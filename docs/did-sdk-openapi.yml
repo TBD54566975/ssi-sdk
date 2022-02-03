@@ -1,0 +1,84 @@
+openapi: 3.0.1
+info:
+  title: DID SDK
+  description: DID SDK
+  termsOfService: https://github.com/TBD54566975
+  contact:
+    email: tbd@squareup.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.0.1
+tags:
+- name: dids
+  description: W3C Decentralized Identifiers
+  externalDocs:
+    description: DID specification
+    url: https://www.w3.org/TR/did-core/
+- name: credentials
+  description: W3C Verifiable Credentials, DIF Credential Manifest, and W3C Credential Revocations
+  externalDocs:
+    description: VC specification
+    url: https://www.w3.org/TR/vc-data-model/https://identity.foundation/credentia-manifest/https://w3c-ccg.github.io/vc-status-rl-2020/
+- name: schemas
+  description: JSON-LD and JSON Schemas
+  externalDocs:
+    description: JSON-LD and JSON specifications
+    url: https://www.w3.org/TR/json-ld/https://w3c-ccg.github.io/vc-json-schemas/v2/index.html
+- name: presentations
+  description: DIF Presentation Exchange
+  externalDocs:
+    description: Presentation Exchange specification
+    url: https://identity.foundation/presentation-exchange/
+- name: messaging
+  description: DIF DIDComm Messaging
+  externalDocs:
+    description: DIDComm specification
+    url: https://identity.foundation/didcomm-messaging/spec/
+paths:
+  /v1/dids:
+    post:
+      tags:
+      - dids
+      summary: Create a DID
+      operationId: createDID
+      requestBody:
+        description: configurable parameters of what the initial doc should contain
+        content: {}
+      responses:
+        200:
+          description: successful operation
+  /v1/dids/{id}:
+    get:
+      tags:
+      - dids
+      summary: Get a DID
+      operationId: getDID
+      parameters:
+      - name: id
+        in: path
+        description: DID Document ID
+        schema:
+          type: string
+        required: true
+      responses:
+        200:
+          description: successful operation
+    put:
+      tags:
+      - dids
+      summary: Update a DID
+      operationId: updateDID
+      parameters:
+      - name: id
+        in: path
+        description: DID Document ID
+        schema:
+          type: string
+        required: true
+      requestBody:
+        description: signed update message
+        content: {}
+      responses:
+        200:
+          description: successful operation
