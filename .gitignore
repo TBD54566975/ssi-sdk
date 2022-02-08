@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+.gobincache
 
 # Test binary, built with `go test -c`
 *.test
@@ -13,3 +14,9 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# MacOS
+.DS_Store
+
+# IDE
+.idea/
