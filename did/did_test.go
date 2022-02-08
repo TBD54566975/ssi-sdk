@@ -2,6 +2,7 @@ package did
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/gobuffalo/packr/v2"
@@ -28,6 +29,10 @@ func TestDIDVectors(t *testing.T) {
 		var did DIDDocument
 		err = json.Unmarshal([]byte(gotTestVector), &did)
 		assert.NoError(t, err)
+
+		assert.NoError(t, did.IsValid())
+		assert.False(t, did.IsEmpty())
+		fmt.Printf("%+v", did)
 
 		didBytes, err := json.Marshal(did)
 		assert.NoError(t, err)

@@ -8,5 +8,4 @@ decentralized identity sdk
 
 # specifications
 
-- [Decentralized Identifiers (DIDs) v1.0
-  ](https://www.w3.org/TR/did-core) _W3C Proposed Recommendation 03 August 2021_
+- [Decentralized Identifiers (DIDs) v1.0](https://www.w3.org/TR/did-core) _W3C Proposed Recommendation 03 August 2021_
