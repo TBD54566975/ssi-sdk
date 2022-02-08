@@ -156,3 +156,15 @@ func goPath() string {
 	}
 	return goPath
 }
+
+// Packr builds a binary using the packr2 tool https://github.com/gobuffalo/packr#building-a-binary
+func Packr() error {
+	mg.Deps(ensureGobin)
+	return gobinRun("github.com/gobuffalo/packr/packr")
+}
+
+// PackrClean removes all packr generated files https://github.com/gobuffalo/packr#cleaning-up
+func PackrClean() error {
+	mg.Deps(ensureGobin)
+	return gobinRun("github.com/gobuffalo/packr/packr", "clean")
+}
