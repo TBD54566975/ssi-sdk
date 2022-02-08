@@ -1,7 +1,13 @@
 package did
 
 import (
+	"reflect"
+
 	"github.com/TBD54566975/did-sdk/util"
+)
+
+var (
+	emptyDID = &DIDDocument{}
 )
 
 // DIDDocument is a representation of the did core specification https://www.w3.org/TR/did-core
@@ -63,9 +69,14 @@ type Service struct {
 }
 
 func (d *DIDDocument) IsEmpty() bool {
-	return false
+	if d == nil {
+		return true
+	}
+	return reflect.DeepEqual(d, emptyDID)
 }
 
 func (d *DIDDocument) IsValid() error {
 	return util.GetValidator().Struct(d)
 }
+
+// TODO(gabe) DID Resolution Metadata

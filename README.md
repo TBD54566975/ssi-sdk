@@ -8,4 +8,5 @@ decentralized identity sdk
 
 # specifications
 
-- [Decentralized Identifiers (DIDs) v1.0](https://www.w3.org/TR/did-core) _W3C Proposed Recommendation 03 August 2021_
+- [Decentralized Identifiers (DIDs) v1.0](https://www.w3.org/TR/2021/PR-did-core-20210803/) _W3C Proposed Recommendation 03 August 2021_
+- [Verifiable Credentials Data Model v1.1](https://www.w3.org/TR/2021/REC-vc-data-model-20211109/) _W3C Recommendation 09 November 2021_
