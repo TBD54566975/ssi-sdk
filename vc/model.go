@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	emptyCredential = &VerifiableCredential{}
+	emptyCredential   = &VerifiableCredential{}
+	emptyPresentation = &VerifiablePresentation{}
 )
 
 // VerifiableCredential is the data model outlined in the
@@ -21,15 +22,15 @@ type VerifiableCredential struct {
 	// either a URI or an object containing an `id` property.
 	Issuer interface{} `json:"issuer" validate:"required"`
 	// https://www.w3.org/TR/xmlschema11-2/#dateTimes
-	IssuanceDate     string           `json:"issuanceDate" validate:"required"`
-	ExpirationDate   string           `json:"expirationDate,omitempty"`
-	CredentialStatus CredentialStatus `json:"credentialStatus,omitempty" validate:"omitempty,dive"`
+	IssuanceDate     string            `json:"issuanceDate" validate:"required"`
+	ExpirationDate   string            `json:"expirationDate,omitempty"`
+	CredentialStatus *CredentialStatus `json:"credentialStatus,omitempty" validate:"omitempty,dive"`
 	// This is where the subject's ID *may* be present
-	CredentialSubject interface{}      `json:"credentialSubject" validate:"required"`
-	CredentialSchema  CredentialSchema `json:"credentialSchema,omitempty" validate:"omitempty,dive"`
-	RefreshService    RefreshService   `json:"refreshService,omitempty" validate:"omitempty,dive"`
-	TermsOfUse        []TermsOfUse     `json:"termsOfUse,omitempty" validate:"omitempty,dive"`
-	Evidence          []interface{}    `json:"evidence,omitempty" validate:"omitempty,dive"`
+	CredentialSubject interface{}       `json:"credentialSubject" validate:"required"`
+	CredentialSchema  *CredentialSchema `json:"credentialSchema,omitempty" validate:"omitempty,dive"`
+	RefreshService    *RefreshService   `json:"refreshService,omitempty" validate:"omitempty,dive"`
+	TermsOfUse        []TermsOfUse      `json:"termsOfUse,omitempty" validate:"omitempty,dive"`
+	Evidence          []interface{}     `json:"evidence,omitempty" validate:"omitempty,dive"`
 	// For embedded proof support
 	// Proof is a digital signature over a credential https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#proofs-signatures
 	Proof interface{} `json:"proof,omitempty"`
@@ -67,6 +68,17 @@ type Prohibition struct {
 	Action   []string `json:"action,omitempty"`
 }
 
+func (v *VerifiableCredential) IsEmpty() bool {
+	if v == nil {
+		return true
+	}
+	return reflect.DeepEqual(v, emptyCredential)
+}
+
+func (v *VerifiableCredential) IsValid() error {
+	return util.GetValidator().Struct(v)
+}
+
 // VerifiablePresentation https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#presentations-0
 type VerifiablePresentation struct {
 	// Either a string or set of strings
@@ -77,13 +89,13 @@ type VerifiablePresentation struct {
 	Proof                interface{}            `json:"proof,omitempty"`
 }
 
-func (v *VerifiableCredential) IsEmpty() bool {
+func (v *VerifiablePresentation) IsEmpty() bool {
 	if v == nil {
 		return true
 	}
-	return reflect.DeepEqual(v, emptyCredential)
+	return reflect.DeepEqual(v, emptyPresentation)
 }
 
-func (v *VerifiableCredential) IsValid() error {
+func (v *VerifiablePresentation) IsValid() error {
 	return util.GetValidator().Struct(v)
 }

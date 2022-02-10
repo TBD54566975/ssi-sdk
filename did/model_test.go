@@ -2,17 +2,18 @@ package did
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/gobuffalo/packr/v2"
 	"github.com/stretchr/testify/assert"
 )
 
+// These test vectors are taken from the did-core spec examples
+// e.g. https://www.w3.org/TR/did-core/#example-30-did-document-with-1-verification-method-type
 const (
-	TestVector1 string = "example-30.json"
-	TestVector2 string = "example-31.json"
-	TestVector3 string = "example-32.json"
+	TestVector1 string = "did-example-30.json"
+	TestVector2 string = "did-example-31.json"
+	TestVector3 string = "did-example-32.json"
 )
 
 var (
@@ -20,6 +21,7 @@ var (
 	testVectors = []string{TestVector1, TestVector2, TestVector3}
 )
 
+// Before running, you'll need to execute `mage packr`
 func TestDIDVectors(t *testing.T) {
 	// round trip serialize and de-serialize from json to our object model
 	for _, tv := range testVectors {
@@ -32,7 +34,6 @@ func TestDIDVectors(t *testing.T) {
 
 		assert.NoError(t, did.IsValid())
 		assert.False(t, did.IsEmpty())
-		fmt.Printf("%+v", did)
 
 		didBytes, err := json.Marshal(did)
 		assert.NoError(t, err)
