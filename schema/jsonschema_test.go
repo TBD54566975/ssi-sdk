@@ -5,23 +5,20 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/gobuffalo/packr/v2"
 )
 
 const (
-	TestVector1 string = "address.json"
-	TestVector2 string = "person.json"
+	JSONSchemaTestVector1 string = "address.json"
+	JSONSchemaTestVector2 string = "person.json"
 )
 
 var (
-	box         = packr.New("JSON Schema Test Vectors", "./test_vectors")
-	testVectors = []string{TestVector1, TestVector2}
+	jsonSchemaTestVectors = []string{JSONSchemaTestVector1, JSONSchemaTestVector2}
 )
 
 // Before running, you'll need to execute `mage packr`
 func TestJSONSchemaVectors(t *testing.T) {
-	for _, tv := range testVectors {
+	for _, tv := range jsonSchemaTestVectors {
 		gotTestVector, err := getTestVector(tv)
 		assert.NoError(t, err)
 
@@ -32,7 +29,7 @@ func TestJSONSchemaVectors(t *testing.T) {
 
 func TestJSONSchemaValidation(t *testing.T) {
 	t.Run("Test Valid Address JSON Schema", func(t *testing.T) {
-		addressJSONSchema, err := getTestVector(TestVector1)
+		addressJSONSchema, err := getTestVector(JSONSchemaTestVector1)
 		assert.NoError(t, err)
 
 		addressData := map[string]interface{}{
@@ -52,7 +49,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 	})
 
 	t.Run("Test Invalid Address JSON Schema", func(t *testing.T) {
-		addressJSONSchema, err := getTestVector(TestVector1)
+		addressJSONSchema, err := getTestVector(JSONSchemaTestVector1)
 		assert.NoError(t, err)
 
 		// Missing required field
@@ -74,7 +71,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 	})
 
 	t.Run("Test Valid Person JSON Schema", func(t *testing.T) {
-		personJSONSchema, err := getTestVector(TestVector2)
+		personJSONSchema, err := getTestVector(JSONSchemaTestVector2)
 		assert.NoError(t, err)
 
 		// Additional field
@@ -93,7 +90,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 	})
 
 	t.Run("Test Invalid Person JSON Schema", func(t *testing.T) {
-		personJSONSchema, err := getTestVector(TestVector2)
+		personJSONSchema, err := getTestVector(JSONSchemaTestVector2)
 		assert.NoError(t, err)
 
 		// Additional field
@@ -116,6 +113,41 @@ func TestJSONSchemaValidation(t *testing.T) {
 	})
 }
 
-func getTestVector(fileName string) (string, error) {
-	return box.FindString(fileName)
+func TestLoadJSONSchema(t *testing.T) {
+	schemaString := `{
+  "$id": "https://example.com/geographical-location.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Longitude and Latitude Values",
+  "description": "A geographical coordinate.",
+  "required": [ "latitude", "longitude" ],
+  "type": "object",
+  "properties": {
+    "latitude": {
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
+    },
+    "longitude": {
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180
+    }
+  }
+}`
+
+	assert.NoError(t, IsValidJSONSchema(schemaString))
+
+	latLong := map[string]interface{}{
+		"latitude":  1,
+		"longitude": 1,
+	}
+
+	latLongBytes, err := json.Marshal(latLong)
+	assert.NoError(t, err)
+
+	latLongJSON := string(latLongBytes)
+	assert.True(t, IsValidJSON(latLongJSON))
+
+	err = IsJSONValidAgainstSchema(latLongJSON, schemaString)
+	assert.NoError(t, err)
 }

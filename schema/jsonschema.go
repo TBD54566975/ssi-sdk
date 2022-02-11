@@ -2,27 +2,11 @@ package schema
 
 import (
 	"encoding/json"
-	"net/url"
 
 	"github.com/TBD54566975/did-sdk/util"
 
 	"github.com/xeipuuv/gojsonschema"
 )
-
-// LoadJSONSchemaFromString loads a JSON schema from a string
-func LoadJSONSchemaFromString(schema string) (interface{}, error) {
-	loader := gojsonschema.NewStringLoader(schema)
-	return loader.LoadJSON()
-}
-
-// LoadJSONSchemaFromRemote attempts to load a JSON Schema from a web resource
-func LoadJSONSchemaFromRemote(maybeURL string) (interface{}, error) {
-	if _, err := url.Parse(maybeURL); err != nil {
-		return nil, err
-	}
-	loader := gojsonschema.NewReferenceLoader(maybeURL)
-	return loader.LoadJSON()
-}
 
 // IsValidJSONSchema returns an error if the schema is not a valid JSON Schema, nil otherwise
 func IsValidJSONSchema(maybeSchema string) error {
