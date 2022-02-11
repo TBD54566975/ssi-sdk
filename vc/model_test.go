@@ -11,7 +11,7 @@ import (
 // These test vectors are taken from the vc-data-model spec examples
 // e.g. https://www.w3.org/TR/vc-data-model/#example-a-simple-example-of-a-verifiable-credential
 const (
-	VCTestVector1 string = "vc-example-1.json"
+	VCTestVector1 string = "vc-vc-json-schema-example-1.json"
 	VCTestVector2 string = "vc-example-11.json"
 	VCTestVector3 string = "vc-example-20.json"
 	VCTestVector4 string = "vc-example-21.json"
