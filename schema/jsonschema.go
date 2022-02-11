@@ -37,9 +37,9 @@ func IsValidJSON(maybeJSON string) bool {
 }
 
 // IsJSONValidAgainstSchema validates a piece of JSON against a schema, returning an error if it is not valid
-func IsJSONValidAgainstSchema(schema, json string) error {
-	schemaLoader := gojsonschema.NewStringLoader(schema)
+func IsJSONValidAgainstSchema(json, schema string) error {
 	jsonLoader := gojsonschema.NewStringLoader(json)
+	schemaLoader := gojsonschema.NewStringLoader(schema)
 	result, err := gojsonschema.Validate(schemaLoader, jsonLoader)
 	if err != nil {
 		return err
@@ -49,6 +49,7 @@ func IsJSONValidAgainstSchema(schema, json string) error {
 		for _, e := range result.Errors() {
 			ae.AppendString(e.String())
 		}
+		err = ae.Error()
 	}
-	return ae.Error()
+	return err
 }

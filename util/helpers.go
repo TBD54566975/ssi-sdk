@@ -76,19 +76,21 @@ func StringPtr(s string) *string {
 
 type AppendError []string
 
-func NewAppendError() AppendError {
-	return []string{}
+func NewAppendError() *AppendError {
+	return new(AppendError)
 }
 
-func NewAppendErrorFromErr(err error) AppendError {
-	return []string{err.Error()}
+func NewAppendErrorFromError(err error) *AppendError {
+	ae := new(AppendError)
+	ae.Append(err)
+	return ae
 }
-func (a *AppendError) Append(err error) AppendError {
-	return append(*a, err.Error())
+func (a *AppendError) Append(err error) {
+	*a = append(*a, err.Error())
 }
 
-func (a *AppendError) AppendString(err string) AppendError {
-	return append(*a, err)
+func (a *AppendError) AppendString(err string) {
+	*a = append(*a, err)
 }
 
 func (a *AppendError) Error() error {
