@@ -1,0 +1,31 @@
+{
+  "$id": "https://example.com/address.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "An address similar to http://microformats.org/wiki/h-card",
+  "type": "object",
+  "properties": {
+    "street-address": {
+      "type": "string"
+    },
+    "extended-address": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "postal-code": {
+      "type": "string"
+    },
+    "country-name": {
+      "type": "string"
+    }
+  },
+  "required": [ "street-address", "state", "postal-code" ],
+  "dependentRequired": {
+    "post-office-box": [ "street-address" ],
+    "extended-address": [ "street-address" ]
+  }
+}

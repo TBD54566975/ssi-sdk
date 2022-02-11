@@ -4,7 +4,9 @@ import (
 	"crypto/ed25519"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -70,4 +72,30 @@ func validateCopy(src interface{}, dst interface{}) error {
 
 func StringPtr(s string) *string {
 	return &s
+}
+
+type AppendError []string
+
+func NewAppendError() *AppendError {
+	return new(AppendError)
+}
+
+func NewAppendErrorFromError(err error) *AppendError {
+	ae := new(AppendError)
+	ae.Append(err)
+	return ae
+}
+func (a *AppendError) Append(err error) {
+	*a = append(*a, err.Error())
+}
+
+func (a *AppendError) AppendString(err string) {
+	*a = append(*a, err)
+}
+
+func (a *AppendError) Error() error {
+	if a == nil || len(*a) == 0 {
+		return nil
+	}
+	return fmt.Errorf(strings.Join(*a, "\n"))
 }

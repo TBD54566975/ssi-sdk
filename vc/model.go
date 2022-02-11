@@ -11,8 +11,10 @@ var (
 	emptyPresentation = &VerifiablePresentation{}
 )
 
-// VerifiableCredential is the data model outlined in the
-// vc data model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concepts
+type CredentialSubject map[string]interface{}
+
+// VerifiableCredential is the known_schemas model outlined in the
+// vc known_schemas model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concepts
 type VerifiableCredential struct {
 	// Either a string or set of strings
 	Context interface{} `json:"@context" validate:"required"`
@@ -26,7 +28,7 @@ type VerifiableCredential struct {
 	ExpirationDate   string            `json:"expirationDate,omitempty"`
 	CredentialStatus *CredentialStatus `json:"credentialStatus,omitempty" validate:"omitempty,dive"`
 	// This is where the subject's ID *may* be present
-	CredentialSubject interface{}       `json:"credentialSubject" validate:"required"`
+	CredentialSubject CredentialSubject `json:"credentialSubject" validate:"required"`
 	CredentialSchema  *CredentialSchema `json:"credentialSchema,omitempty" validate:"omitempty,dive"`
 	RefreshService    *RefreshService   `json:"refreshService,omitempty" validate:"omitempty,dive"`
 	TermsOfUse        []TermsOfUse      `json:"termsOfUse,omitempty" validate:"omitempty,dive"`
