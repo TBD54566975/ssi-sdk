@@ -66,6 +66,7 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (crypto.PrivateKey, *PublicKeyJWK
 		case Ed25519:
 			return GenerateEd25519JSONWebKey2020()
 		case X25519:
+			return GenerateX25519JSONWebKey2020()
 		default:
 			return nil, nil, fmt.Errorf("unsupported OKP curve: %s", curve)
 		}
@@ -74,8 +75,11 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (crypto.PrivateKey, *PublicKeyJWK
 	if kty == EC {
 		switch curve {
 		case SECP256k1:
+			return GenerateSECP256k1JSONWebKey2020()
 		case P256:
+			return GenerateP256JSONWebKey2020()
 		case P384:
+			return GenerateP384JSONWebKey2020()
 		default:
 			return nil, nil, fmt.Errorf("unsupported EC curve: %s", curve)
 		}
