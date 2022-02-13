@@ -3,6 +3,8 @@ package did
 import (
 	"reflect"
 
+	"github.com/TBD54566975/did-sdk/cryptosuite"
+
 	"github.com/TBD54566975/did-sdk/util"
 )
 
@@ -34,7 +36,7 @@ type VerificationMethod struct {
 	Controller      string `json:"controller" validate:"required"`
 	PublicKeyBase58 string `json:"publicKeyBase58,omitempty"`
 	// must conform to https://datatracker.ietf.org/doc/html/rfc7517
-	PublicKeyJWK *PublicKeyJWK `json:"publicKeyJwk,omitempty" validate:"omitempty,dive"`
+	PublicKeyJWK *cryptosuite.PublicKeyJWK `json:"publicKeyJwk,omitempty" validate:"omitempty,dive"`
 	// https://datatracker.ietf.org/doc/html/draft-multiformats-multibase-03
 	PublicKeyMultibase string `json:"publicKeyMultibase,omitempty"`
 }
@@ -44,20 +46,6 @@ type VerificationMethod struct {
 // A set of one or more verification methods. Each verification method MAY be embedded or referenced.
 // TODO(gabe) consider changing this to a custom unmarshaler https://stackoverflow.com/a/28016508
 type VerificationMethodSet interface{}
-
-// PublicKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
-type PublicKeyJWK struct {
-	KTY    string `json:"kty" validate:"required"`
-	CRV    string `json:"crv,omitempty"`
-	X      string `json:"x,omitempty"`
-	Y      string `json:"y,omitempty"`
-	N      string `json:"n,omitempty"`
-	E      string `json:"e,omitempty"`
-	Use    string `json:"use,omitempty"`
-	KeyOps string `json:"key_ops,omitempty"`
-	Alg    string `json:"alg,omitempty"`
-	KID    string `json:"kid,omitempty"`
-}
 
 // Service is a property compliant with the did-core spec https://www.w3.org/TR/did-core/#services
 type Service struct {
