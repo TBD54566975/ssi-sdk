@@ -2,11 +2,19 @@ package cryptosuite
 
 import (
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strconv"
+
+	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
+
+	"filippo.io/edwards25519"
+	"github.com/TBD54566975/did-sdk/util"
 )
 
 type (
@@ -56,6 +64,7 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (crypto.PrivateKey, *PublicKeyJWK
 	if kty == OKP {
 		switch curve {
 		case Ed25519:
+			return GenerateEd25519JSONWebKey2020()
 		case X25519:
 		default:
 			return nil, nil, fmt.Errorf("unsupported OKP curve: %s", curve)
@@ -75,41 +84,92 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (crypto.PrivateKey, *PublicKeyJWK
 }
 
 func GenerateEd25519JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
-	return nil, nil, nil
-}
-
-func GenerateX25519JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
-	return nil, nil, nil
-}
-
-func GenerateSECP256k1JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
-	return nil, nil, nil
-}
-
-func GenerateP256JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
-	return nil, nil, nil
-}
-
-func GenerateP384JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
-	return nil, nil, nil
-}
-
-func GenerateRSAJSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
-	rsaPrivKey, err := generateRSAKey()
+	pubKey, privKey, err := util.GenerateEd25519Key()
 	if err != nil {
 		return nil, nil, err
 	}
-	return rsaPrivKey, &PublicKeyJWK{
-		KTY: RSA,
-		N:   rsaPrivKey.N.String(),
-		E:   strconv.Itoa(rsaPrivKey.E),
+	x := base64.URLEncoding.EncodeToString(pubKey)
+	return privKey, &PublicKeyJWK{
+		KTY: OKP,
+		CRV: Ed25519,
+		X:   x,
 	}, nil
 }
 
-func generateRSAKey() (*rsa.PrivateKey, error) {
+func GenerateX25519JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
+	// since ed25519 and x25519 have birational equivalence we do a conversion as a convenience
+	// this code is officially supported by the lead Golang cryptographer
+	// https://github.com/golang/go/issues/20504#issuecomment-873342677
+	pubKey, privKey, err := util.GenerateEd25519Key()
+	if err != nil {
+		return nil, nil, err
+	}
+	point, err := edwards25519.NewGeneratorPoint().SetBytes(pubKey)
+	if err != nil {
+		return nil, nil, err
+	}
+	x25519PubKey := point.BytesMontgomery()
+	x := base64.URLEncoding.EncodeToString(x25519PubKey)
+	return privKey, &PublicKeyJWK{
+		KTY: OKP,
+		CRV: Ed25519,
+		X:   x,
+	}, nil
+}
+
+func GenerateSECP256k1JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
+	// We use the secp256k1 implementation from Decred https://github.com/decred/dcrd
+	// which is utilized in the widely accepted go bitcoin node implementation from the btcsuite project
+	// https://github.com/btcsuite/btcd/blob/master/btcec/btcec.go#L23
+	privKey, err := secp.GeneratePrivateKey()
+	if err != nil {
+		return nil, nil, err
+	}
+	pubKey := privKey.PubKey()
+	return privKey, &PublicKeyJWK{
+		KTY: EC,
+		CRV: SECP256k1,
+		X:   pubKey.X().String(),
+		Y:   pubKey.Y().String(),
+	}, nil
+}
+
+func GenerateP256JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
+	privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return nil, nil, err
+	}
+	pubKey := privKey.PublicKey
+	return privKey, &PublicKeyJWK{
+		KTY: EC,
+		CRV: P256,
+		X:   pubKey.X.String(),
+		Y:   pubKey.Y.String(),
+	}, nil
+}
+
+func GenerateP384JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
+	privKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	if err != nil {
+		return nil, nil, err
+	}
+	pubKey := privKey.PublicKey
+	return privKey, &PublicKeyJWK{
+		KTY: EC,
+		CRV: P384,
+		X:   pubKey.X.String(),
+		Y:   pubKey.Y.String(),
+	}, nil
+}
+
+func GenerateRSAJSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, RSASize)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return privateKey, nil
+	return privateKey, &PublicKeyJWK{
+		KTY: RSA,
+		N:   privateKey.N.String(),
+		E:   strconv.Itoa(privateKey.E),
+	}, nil
 }
