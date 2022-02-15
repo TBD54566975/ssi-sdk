@@ -52,7 +52,7 @@ type PublicKeyJWK struct {
 
 // GenerateJSONWebKey2020 The JSONWebKey2020 type specifies a number of key type and curve pairs to enable JOSE conformance
 // these pairs are supported in this library and generated via the function below
-//https://w3c-ccg.github.io/lds-jws2020/#dfn-jsonwebkey2020
+// https://w3c-ccg.github.io/lds-jws2020/#dfn-jsonwebkey2020
 func GenerateJSONWebKey2020(kty KTY, crv *CRV) (crypto.PrivateKey, *PublicKeyJWK, error) {
 	if kty == RSA {
 		return GenerateRSAJSONWebKey2020()
@@ -87,13 +87,32 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (crypto.PrivateKey, *PublicKeyJWK
 	return nil, nil, fmt.Errorf("unsupported key type: %s", kty)
 }
 
+func Ed25519JSONWebKey2020(pubKeyBytes []byte) PublicKeyJWK {
+	x := base64.URLEncoding.EncodeToString(pubKeyBytes)
+	return PublicKeyJWK{
+		KTY: OKP,
+		CRV: Ed25519,
+		X:   x,
+	}
+}
+
 func GenerateEd25519JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
 	pubKey, privKey, err := util.GenerateEd25519Key()
 	if err != nil {
 		return nil, nil, err
 	}
-	x := base64.URLEncoding.EncodeToString(pubKey)
-	return privKey, &PublicKeyJWK{
+	pubKeyJWK := Ed25519JSONWebKey2020(pubKey)
+	return privKey, &pubKeyJWK, nil
+}
+
+func X25519JSONWebKey2020(pubKeyBytes []byte) (*PublicKeyJWK, error) {
+	point, err := edwards25519.NewGeneratorPoint().SetBytes(pubKeyBytes)
+	if err != nil {
+		return nil, err
+	}
+	x25519PubKey := point.BytesMontgomery()
+	x := base64.URLEncoding.EncodeToString(x25519PubKey)
+	return &PublicKeyJWK{
 		KTY: OKP,
 		CRV: Ed25519,
 		X:   x,
@@ -108,17 +127,20 @@ func GenerateX25519JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	point, err := edwards25519.NewGeneratorPoint().SetBytes(pubKey)
+	pubKeyJWK, err := X25519JSONWebKey2020(pubKey)
 	if err != nil {
 		return nil, nil, err
 	}
-	x25519PubKey := point.BytesMontgomery()
-	x := base64.URLEncoding.EncodeToString(x25519PubKey)
-	return privKey, &PublicKeyJWK{
-		KTY: OKP,
-		CRV: Ed25519,
-		X:   x,
-	}, nil
+	return privKey, pubKeyJWK, nil
+}
+
+func SECP256k1JSONWebKey2020(pubKey *secp.PublicKey) PublicKeyJWK {
+	return PublicKeyJWK{
+		KTY: EC,
+		CRV: SECP256k1,
+		X:   pubKey.X().String(),
+		Y:   pubKey.Y().String(),
+	}
 }
 
 func GenerateSECP256k1JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
@@ -130,12 +152,17 @@ func GenerateSECP256k1JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error)
 		return nil, nil, err
 	}
 	pubKey := privKey.PubKey()
-	return privKey, &PublicKeyJWK{
+	pubKeyJWK := SECP256k1JSONWebKey2020(pubKey)
+	return privKey, &pubKeyJWK, nil
+}
+
+func P256JSONWebKey2020(pubKey ecdsa.PublicKey) PublicKeyJWK {
+	return PublicKeyJWK{
 		KTY: EC,
-		CRV: SECP256k1,
-		X:   pubKey.X().String(),
-		Y:   pubKey.Y().String(),
-	}, nil
+		CRV: P256,
+		X:   pubKey.X.String(),
+		Y:   pubKey.Y.String(),
+	}
 }
 
 func GenerateP256JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
@@ -143,13 +170,17 @@ func GenerateP256JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	pubKey := privKey.PublicKey
-	return privKey, &PublicKeyJWK{
+	pubKeyJWK := P256JSONWebKey2020(privKey.PublicKey)
+	return privKey, &pubKeyJWK, nil
+}
+
+func P384JSONWebKey2020(pubKey ecdsa.PublicKey) PublicKeyJWK {
+	return PublicKeyJWK{
 		KTY: EC,
-		CRV: P256,
+		CRV: P384,
 		X:   pubKey.X.String(),
 		Y:   pubKey.Y.String(),
-	}, nil
+	}
 }
 
 func GenerateP384JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
@@ -157,13 +188,16 @@ func GenerateP384JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	pubKey := privKey.PublicKey
-	return privKey, &PublicKeyJWK{
-		KTY: EC,
-		CRV: P384,
-		X:   pubKey.X.String(),
-		Y:   pubKey.Y.String(),
-	}, nil
+	pubKeyJWK := P384JSONWebKey2020(privKey.PublicKey)
+	return privKey, &pubKeyJWK, nil
+}
+
+func RSAJSONWebKey2020(pubKey rsa.PublicKey) PublicKeyJWK {
+	return PublicKeyJWK{
+		KTY: RSA,
+		N:   pubKey.N.String(),
+		E:   strconv.Itoa(pubKey.E),
+	}
 }
 
 func GenerateRSAJSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
@@ -171,9 +205,6 @@ func GenerateRSAJSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	return privateKey, &PublicKeyJWK{
-		KTY: RSA,
-		N:   privateKey.N.String(),
-		E:   strconv.Itoa(privateKey.E),
-	}, nil
+	pubKeyJWK := RSAJSONWebKey2020(privateKey.PublicKey)
+	return privateKey, &pubKeyJWK, nil
 }
