@@ -184,6 +184,9 @@ func GenerateP256JSONWebKey2020() (crypto.PrivateKey, *PublicKeyJWK, error) {
 		return nil, nil, err
 	}
 	pubKeyJWK, err := P256JSONWebKey2020(privKey.PublicKey)
+	if err != nil {
+		return nil, nil, err
+	}
 	return privKey, pubKeyJWK, nil
 }
 

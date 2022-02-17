@@ -1,5 +1,13 @@
 package cryptosuite
 
+import (
+	"crypto"
+	"encoding/json"
+
+	"github.com/TBD54566975/did-sdk/util"
+	"github.com/pkg/errors"
+)
+
 // https://w3c-ccg.github.io/ld-cryptosuite-registry/#jsonwebsignature2020
 
 const (
@@ -32,4 +40,24 @@ func (j JWSSignatureSuite) DigestAlgorithm() string {
 
 func (j JWSSignatureSuite) ProofAlgorithm() string {
 	return JWSSignatureSuiteProofAlgorithm
+}
+
+func SignProvable(privKey crypto.PrivateKey, provable Provable) (Provable, error) {
+	// JSONify the provable object
+	jsonBytes, err := json.Marshal(provable)
+	if err != nil {
+		return nil, err
+	}
+	// the LD library anticipates a generic golang object to normalize
+	var generic map[string]interface{}
+	if err := json.Unmarshal(jsonBytes, &generic); err != nil {
+		return nil, err
+	}
+	normalized, err := util.LDNormalize(generic)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not canonize provable document")
+	}
+	v := normalized.(string)
+	println(v)
+	return nil, nil
 }

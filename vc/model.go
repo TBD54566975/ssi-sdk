@@ -3,6 +3,8 @@ package vc
 import (
 	"reflect"
 
+	"github.com/TBD54566975/did-sdk/cryptosuite"
+
 	"github.com/TBD54566975/did-sdk/util"
 )
 
@@ -10,6 +12,8 @@ var (
 	emptyCredential   = &VerifiableCredential{}
 	emptyPresentation = &VerifiablePresentation{}
 )
+
+type CredentialSubject interface{}
 
 // VerifiableCredential is the data model outlined in the
 // vc data model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concepts
@@ -26,14 +30,22 @@ type VerifiableCredential struct {
 	ExpirationDate   string            `json:"expirationDate,omitempty"`
 	CredentialStatus *CredentialStatus `json:"credentialStatus,omitempty" validate:"omitempty,dive"`
 	// This is where the subject's ID *may* be present
-	CredentialSubject interface{}       `json:"credentialSubject" validate:"required"`
+	CredentialSubject CredentialSubject `json:"credentialSubject" validate:"required"`
 	CredentialSchema  *CredentialSchema `json:"credentialSchema,omitempty" validate:"omitempty,dive"`
 	RefreshService    *RefreshService   `json:"refreshService,omitempty" validate:"omitempty,dive"`
 	TermsOfUse        []TermsOfUse      `json:"termsOfUse,omitempty" validate:"omitempty,dive"`
 	Evidence          []interface{}     `json:"evidence,omitempty" validate:"omitempty,dive"`
 	// For embedded proof support
 	// Proof is a digital signature over a credential https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#proofs-signatures
-	Proof interface{} `json:"proof,omitempty"`
+	Proof *cryptosuite.Proof `json:"proof,omitempty"`
+}
+
+func (v *VerifiableCredential) GetProof() *cryptosuite.Proof {
+	return v.Proof
+}
+
+func (v *VerifiableCredential) SetProof(p *cryptosuite.Proof) {
+	v.Proof = p
 }
 
 // CredentialStatus https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#status

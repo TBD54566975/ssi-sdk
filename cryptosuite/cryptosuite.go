@@ -1,6 +1,9 @@
 package cryptosuite
 
-type KeyType string
+type (
+	KeyType string
+	Proof   interface{}
+)
 
 const (
 	JsonWebKey2020 KeyType = "JsonWebKey2020"
@@ -20,4 +23,9 @@ type CryptoSuiteSign interface {
 }
 
 type CryptoSuiteVerify interface {
+}
+
+type Provable interface {
+	GetProof() *Proof
+	SetProof(p *Proof)
 }
