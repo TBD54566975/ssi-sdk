@@ -99,3 +99,4 @@ We review contributions to the codebase via GitHub's Pull Request mechanism. We 
 * The maintainers noted in the `CODEOWNERS` file will review your PR and optionally open a discussion about its contents before moving forward.
 * Remain responsive to follow-up questions, be open to making requested changes, and...
 * You're a contributor!
+* And remember to respect everyone in our global development community. Guidelines are established in our `CODE_OF_CONDUCT.md`.
