@@ -37,7 +37,12 @@ const (
 	P256      CRV = "P-256"
 	P384      CRV = "P-384"
 
-	RSASize int = 2048
+	// Known key sizes
+
+	RSAKeySize       int = 2048
+	SECP256k1KeySize int = 32
+	P256KeySize      int = 32
+	P384KeySize      int = 48
 )
 
 // PublicKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
@@ -223,7 +228,7 @@ func RSAJSONWebKey2020(pubKey rsa.PublicKey) (*PublicKeyJWK, error) {
 }
 
 func GenerateRSAJSONWebKey2020() (*rsa.PrivateKey, *PublicKeyJWK, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, RSASize)
+	privateKey, err := rsa.GenerateKey(rand.Reader, RSAKeySize)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -353,7 +358,7 @@ func signECDSA(crv CRV, key *ecdsa.PrivateKey, tbs []byte) ([]byte, error) {
 	case P384:
 		hasher = crypto.SHA384.New()
 	default:
-		return nil, fmt.Errorf("unable to sign, unknown crv<%s> in signer'", crv)
+		return nil, fmt.Errorf("unable to sign, unknown crv<%s> in signer", crv)
 	}
 	hasher.Write(tbs)
 	digest := hasher.Sum(nil)
@@ -384,9 +389,8 @@ func (j JSONWebKey2020Verifier) Verify(message, signature []byte) error {
 		}
 	case EC:
 		switch crv {
-		case SECP256k1:
-		case P256:
-		case P384:
+		case SECP256k1, P256, P384:
+			return verifyECDSAFromJWK(j.publicKey, message, signature)
 		default:
 			return fmt.Errorf("unsupported EC curve: %s", crv)
 		}
@@ -424,6 +428,43 @@ func verifyEd25519FromJWK(jwk PublicKeyJWK, message, signature []byte) error {
 	}
 	if !ed25519.Verify(pubKeyBytes, message, signature) {
 		return errors.New("ed25519 public key verification failed")
+	}
+	return nil
+}
+
+func verifyECDSAFromJWK(jwk PublicKeyJWK, message, signature []byte) error {
+	x, y := new(big.Int), new(big.Int)
+	x, xok := x.SetString(jwk.X, 10)
+	y, yok := y.SetString(jwk.Y, 10)
+	if !(xok == true && yok == true) {
+		return fmt.Errorf("could not reconstruct ecdsa public key: %+v", jwk)
+	}
+	pubKey := ecdsa.PublicKey{
+		Curve: elliptic.P256(),
+		X:     x,
+		Y:     y,
+	}
+	var hasher hash.Hash
+	var keySize int
+	switch jwk.CRV {
+	case SECP256k1:
+		hasher = crypto.SHA256.New()
+		keySize = SECP256k1KeySize
+	case P256:
+		hasher = crypto.SHA256.New()
+		keySize = P256KeySize
+	case P384:
+		hasher = crypto.SHA384.New()
+		keySize = P384KeySize
+	default:
+		return fmt.Errorf("unable to sign, unknown crv<%s> in signer", jwk.CRV)
+	}
+	hasher.Write(message)
+	digest := hasher.Sum(nil)
+	r := big.NewInt(0).SetBytes(signature[:keySize])
+	s := big.NewInt(0).SetBytes(signature[keySize:])
+	if !ecdsa.Verify(&pubKey, digest, r, s) {
+		return errors.New("ecdsa public key verification failed")
 	}
 	return nil
 }
