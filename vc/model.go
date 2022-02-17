@@ -21,6 +21,10 @@ type CredentialSubject interface{}
 
 // VerifiableCredential is the data model outlined in the
 // vc data model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concepts
+type CredentialSubject map[string]interface{}
+
+// VerifiableCredential is the known_schemas model outlined in the
+// vc known_schemas model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concepts
 type VerifiableCredential struct {
 	// Either a string or set of strings
 	Context interface{} `json:"@context" validate:"required"`
