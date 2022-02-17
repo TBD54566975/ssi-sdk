@@ -326,9 +326,17 @@ func (j JSONWebKey2020Signer) KeyType() KeyType {
 	return j.Type
 }
 
+func NewJSONWebKey2020Verifier(jwk PublicKeyJWK) JSONWebKey2020Verifier {
+	return JSONWebKey2020Verifier{
+		Type:      JsonWebKey2020,
+		publicKey: jwk,
+	}
+}
+
 func (j JSONWebKey2020Signer) Sign(tbs []byte) ([]byte, error) {
 	if j.ed25519PrivateKey != nil {
-		return j.ed25519PrivateKey.Sign(rand.Reader, tbs, nil)
+		signature := ed25519.Sign(*j.ed25519PrivateKey, tbs)
+		return signature, nil
 	}
 	if j.ecdsaPrivateKey != nil {
 		if j.crv == nil {
@@ -436,7 +444,7 @@ func verifyECDSAFromJWK(jwk PublicKeyJWK, message, signature []byte) error {
 	x, y := new(big.Int), new(big.Int)
 	x, xok := x.SetString(jwk.X, 10)
 	y, yok := y.SetString(jwk.Y, 10)
-	if !(xok == true && yok == true) {
+	if xok && yok {
 		return fmt.Errorf("could not reconstruct ecdsa public key: %+v", jwk)
 	}
 	pubKey := ecdsa.PublicKey{
@@ -467,4 +475,8 @@ func verifyECDSAFromJWK(jwk PublicKeyJWK, message, signature []byte) error {
 		return errors.New("ecdsa public key verification failed")
 	}
 	return nil
+}
+
+func crvPtr(crv CRV) *CRV {
+	return &crv
 }
