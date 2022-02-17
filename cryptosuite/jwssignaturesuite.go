@@ -58,6 +58,7 @@ func SignProvable(privKey crypto.PrivateKey, provable Provable) (Provable, error
 		return nil, errors.Wrap(err, "could not canonize provable document")
 	}
 	strNormalized := normalized.(string)
+	println(strNormalized)
 	return nil, nil
 }
 
