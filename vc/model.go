@@ -8,6 +8,10 @@ import (
 	"github.com/TBD54566975/did-sdk/util"
 )
 
+const (
+	VerifiableCredentialsLinkedDataContext string = "https://www.w3.org/2018/credentials/v1"
+)
+
 var (
 	emptyCredential   = &VerifiableCredential{}
 	emptyPresentation = &VerifiablePresentation{}

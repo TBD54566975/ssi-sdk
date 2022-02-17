@@ -57,7 +57,21 @@ func SignProvable(privKey crypto.PrivateKey, provable Provable) (Provable, error
 	if err != nil {
 		return nil, errors.Wrap(err, "could not canonize provable document")
 	}
-	v := normalized.(string)
-	println(v)
+	strNormalized := normalized.(string)
 	return nil, nil
+}
+
+func (j JWSSignatureSuite) CreateProof(provable Provable) {
+	// Create a copy of the document
+	j.CanonicalizationAlgorithm()
+}
+
+func (j JWSSignatureSuite) VerifyProof() {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (j JWSSignatureSuite) CreateVerifyHash() {
+	//TODO implement me
+	panic("implement me")
 }
