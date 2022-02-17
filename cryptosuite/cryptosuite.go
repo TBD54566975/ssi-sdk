@@ -49,7 +49,7 @@ type Signer interface {
 type Verifier interface {
 	KeyID() string
 	KeyType() KeyType
-	Verify(tbv []byte) error
+	Verify(message, signature []byte) error
 }
 
 func getKnownContext(fileName string) (string, error) {

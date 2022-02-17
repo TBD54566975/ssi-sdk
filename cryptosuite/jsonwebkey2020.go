@@ -8,11 +8,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"hash"
 	"math/big"
 	"strconv"
+
+	"github.com/pkg/errors"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
@@ -334,6 +335,7 @@ func (j JSONWebKey2020Signer) Sign(tbs []byte) ([]byte, error) {
 		hasher := crypto.SHA256.New()
 		hasher.Write(tbs)
 		digest := hasher.Sum(nil)
+		// sign with PKCS #1 v1.5
 		return j.rsaPrivateKey.Sign(rand.Reader, digest, crypto.SHA256)
 	}
 	return nil, errors.New("signer contained no keys")
@@ -368,7 +370,60 @@ func (j JSONWebKey2020Verifier) KeyType() KeyType {
 	return j.Type
 }
 
-func (j JSONWebKey2020Verifier) Verify(tbv []byte) error {
-	//TODO implement me
-	panic("implement me")
+func (j JSONWebKey2020Verifier) Verify(message, signature []byte) error {
+	crv := j.publicKey.CRV
+	switch j.publicKey.KTY {
+	case RSA:
+		return verifyRSAFromJWK(j.publicKey, message, signature)
+	case OKP:
+		switch crv {
+		case Ed25519, X25519:
+			return verifyEd25519FromJWK(j.publicKey, message, signature)
+		default:
+			return fmt.Errorf("unsupported OKP curve: %s", crv)
+		}
+	case EC:
+		switch crv {
+		case SECP256k1:
+		case P256:
+		case P384:
+		default:
+			return fmt.Errorf("unsupported EC curve: %s", crv)
+		}
+	}
+	return fmt.Errorf("could not verify for given jwk: %+v", j.publicKey)
+}
+
+func verifyRSAFromJWK(jwk PublicKeyJWK, message, signature []byte) error {
+	n := new(big.Int)
+	n, ok := n.SetString(jwk.N, 10)
+	if !ok {
+		return fmt.Errorf("could not verify for given jwk: %+v", jwk)
+	}
+	e, err := strconv.Atoi(jwk.E)
+	if err != nil {
+		return err
+	}
+	pubKey := rsa.PublicKey{
+		N: n,
+		E: e,
+	}
+	hash := crypto.SHA256.New()
+	hash.Write(message)
+	digest := hash.Sum(nil)
+	return rsa.VerifyPKCS1v15(&pubKey, crypto.SHA256, digest, signature)
+}
+
+func verifyEd25519FromJWK(jwk PublicKeyJWK, message, signature []byte) error {
+	pubKeyBytes, err := base64.URLEncoding.DecodeString(jwk.X)
+	if err != nil {
+		return errors.Wrap(err, "could not decode ed25519 public key value from JWK")
+	}
+	if len(pubKeyBytes) != ed25519.PublicKeySize {
+		return fmt.Errorf("key size<%d> is not equal to required ed25519 public key size: %d", len(pubKeyBytes), ed25519.PublicKeySize)
+	}
+	if !ed25519.Verify(pubKeyBytes, message, signature) {
+		return errors.New("ed25519 public key verification failed")
+	}
+	return nil
 }

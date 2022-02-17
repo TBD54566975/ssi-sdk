@@ -17,8 +17,6 @@ var (
 	emptyPresentation = &VerifiablePresentation{}
 )
 
-// VerifiableCredential is the data model outlined in the
-// vc data model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concepts
 type CredentialSubject map[string]interface{}
 
 // VerifiableCredential is the known_schemas model outlined in the
