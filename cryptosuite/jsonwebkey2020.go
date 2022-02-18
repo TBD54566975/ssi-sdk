@@ -108,7 +108,7 @@ func Ed25519JSONWebKey2020(pubKeyBytes []byte) (*PublicKeyJWK, error) {
 	}, nil
 }
 
-func GenerateEd25519JSONWebKey2020() (ed25519.PrivateKey, *PublicKeyJWK, error) {
+func GenerateEd25519JSONWebKey2020() (*ed25519.PrivateKey, *PublicKeyJWK, error) {
 	pubKey, privKey, err := util.GenerateEd25519Key()
 	if err != nil {
 		return nil, nil, err
@@ -117,7 +117,7 @@ func GenerateEd25519JSONWebKey2020() (ed25519.PrivateKey, *PublicKeyJWK, error) 
 	if err != nil {
 		return nil, nil, err
 	}
-	return privKey, pubKeyJWK, nil
+	return &privKey, pubKeyJWK, nil
 }
 
 func X25519JSONWebKey2020(pubKeyBytes []byte) (*PublicKeyJWK, error) {
@@ -132,12 +132,12 @@ func X25519JSONWebKey2020(pubKeyBytes []byte) (*PublicKeyJWK, error) {
 	x := base64.URLEncoding.EncodeToString(x25519PubKey)
 	return &PublicKeyJWK{
 		KTY: OKP,
-		CRV: Ed25519,
+		CRV: X25519,
 		X:   x,
 	}, nil
 }
 
-func GenerateX25519JSONWebKey2020() (ed25519.PrivateKey, *PublicKeyJWK, error) {
+func GenerateX25519JSONWebKey2020() (*ed25519.PrivateKey, *PublicKeyJWK, error) {
 	// since ed25519 and x25519 have birational equivalence we do a conversion as a convenience
 	// this code is officially supported by the lead Golang cryptographer
 	// https://github.com/golang/go/issues/20504#issuecomment-873342677
@@ -149,7 +149,7 @@ func GenerateX25519JSONWebKey2020() (ed25519.PrivateKey, *PublicKeyJWK, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	return privKey, pubKeyJWK, nil
+	return &privKey, pubKeyJWK, nil
 }
 
 func SECP256k1JSONWebKey2020(pubKey secp.PublicKey) (*PublicKeyJWK, error) {
@@ -262,11 +262,11 @@ func NewJSONWebKey2020Signer(id string, kty KTY, crv *CRV, privateKey crypto.Pri
 	}
 
 	if kty == RSA {
-		rsaPrivateKey, ok := privateKey.(rsa.PrivateKey)
+		rsaPrivateKey, ok := privateKey.(*rsa.PrivateKey)
 		if !ok {
 			return nil, errors.New("provided RSA key not valid")
 		}
-		signer.rsaPrivateKey = &rsaPrivateKey
+		signer.rsaPrivateKey = rsaPrivateKey
 		return &signer, nil
 	}
 
@@ -277,33 +277,33 @@ func NewJSONWebKey2020Signer(id string, kty KTY, crv *CRV, privateKey crypto.Pri
 	curve := *crv
 	if kty == OKP {
 		switch curve {
-		case Ed25519, X25519:
-			ed25519PrivateKey, ok := privateKey.(ed25519.PrivateKey)
+		case Ed25519:
+			ed25519PrivateKey, ok := privateKey.(*ed25519.PrivateKey)
 			if !ok {
 				return nil, errors.New("provided ed25519 key not valid")
 			}
-			signer.ed25519PrivateKey = &ed25519PrivateKey
+			signer.ed25519PrivateKey = ed25519PrivateKey
 			return &signer, nil
 		default:
-			return nil, fmt.Errorf("unsupported OKP curve: %s", curve)
+			return nil, fmt.Errorf("unsupported OKP signing curve: %s", curve)
 		}
 	}
 
 	if kty == EC {
 		switch curve {
 		case SECP256k1:
-			secp256k1PrivateKey, ok := privateKey.(secp.PrivateKey)
+			secp256k1PrivateKey, ok := privateKey.(*secp.PrivateKey)
 			if !ok {
-				return nil, errors.New("provided ed25519 key not valid")
+				return nil, errors.New("provided secp256k1 key not valid")
 			}
 			signer.ecdsaPrivateKey = secp256k1PrivateKey.ToECDSA()
 			return &signer, nil
 		case P256, P384:
-			ecdsaPrivateKey, ok := privateKey.(ecdsa.PrivateKey)
+			ecdsaPrivateKey, ok := privateKey.(*ecdsa.PrivateKey)
 			if !ok {
 				return nil, errors.New("provided ecdsa key not valid")
 			}
-			signer.ecdsaPrivateKey = &ecdsaPrivateKey
+			signer.ecdsaPrivateKey = ecdsaPrivateKey
 			return &signer, nil
 		default:
 			return nil, fmt.Errorf("unsupported EC curve: %s", curve)
@@ -444,24 +444,26 @@ func verifyECDSAFromJWK(jwk PublicKeyJWK, message, signature []byte) error {
 	x, y := new(big.Int), new(big.Int)
 	x, xok := x.SetString(jwk.X, 10)
 	y, yok := y.SetString(jwk.Y, 10)
-	if xok && yok {
+	if !(xok && yok) {
 		return fmt.Errorf("could not reconstruct ecdsa public key: %+v", jwk)
 	}
 	pubKey := ecdsa.PublicKey{
-		Curve: elliptic.P256(),
-		X:     x,
-		Y:     y,
+		X: x,
+		Y: y,
 	}
 	var hasher hash.Hash
 	var keySize int
 	switch jwk.CRV {
 	case SECP256k1:
+		pubKey.Curve = secp.S256()
 		hasher = crypto.SHA256.New()
 		keySize = SECP256k1KeySize
 	case P256:
+		pubKey.Curve = elliptic.P256()
 		hasher = crypto.SHA256.New()
 		keySize = P256KeySize
 	case P384:
+		pubKey.Curve = elliptic.P384()
 		hasher = crypto.SHA384.New()
 		keySize = P384KeySize
 	default:
