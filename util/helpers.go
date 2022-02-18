@@ -6,20 +6,56 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"time"
+
+	"github.com/piprate/json-gold/ld"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
 
-var (
-	v *validator.Validate
+const (
+	ISO8601Template string = "2006-01-02T15:04:05-0700"
 )
 
+var (
+	v *validator.Validate
+
+	proc    *ld.JsonLdProcessor
+	options *ld.JsonLdOptions
+)
+
+func init() {
+	// golang validator
+	v = validator.New()
+
+	// JSON LD processing
+	proc = ld.NewJsonLdProcessor()
+	options = ld.NewJsonLdOptions("")
+	options.Format = "application/n-quads"
+	options.Algorithm = "URDNA2015"
+	options.ProcessingMode = ld.JsonLd_1_1
+	options.ProduceGeneralizedRdf = true
+}
+
 func GetValidator() *validator.Validate {
-	if v == nil {
-		v = validator.New()
-	}
 	return v
+}
+
+func GetLDProcessor() *ld.JsonLdProcessor {
+	return proc
+}
+
+func LDNormalize(document interface{}) (interface{}, error) {
+	return GetLDProcessor().Normalize(document, options)
+}
+
+func GetISO8601Timestamp() string {
+	return time.Now().UTC().Format(ISO8601Template)
+}
+
+func AsISO8601Timestamp(t time.Time) string {
+	return t.UTC().Format(ISO8601Template)
 }
 
 func GenerateEd25519Key() (ed25519.PublicKey, ed25519.PrivateKey, error) {

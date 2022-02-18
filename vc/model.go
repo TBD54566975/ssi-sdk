@@ -3,7 +3,13 @@ package vc
 import (
 	"reflect"
 
+	"github.com/TBD54566975/did-sdk/cryptosuite"
+
 	"github.com/TBD54566975/did-sdk/util"
+)
+
+const (
+	VerifiableCredentialsLinkedDataContext string = "https://www.w3.org/2018/credentials/v1"
 )
 
 var (
@@ -35,7 +41,15 @@ type VerifiableCredential struct {
 	Evidence          []interface{}     `json:"evidence,omitempty" validate:"omitempty,dive"`
 	// For embedded proof support
 	// Proof is a digital signature over a credential https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#proofs-signatures
-	Proof interface{} `json:"proof,omitempty"`
+	Proof *cryptosuite.Proof `json:"proof,omitempty"`
+}
+
+func (v *VerifiableCredential) GetProof() *cryptosuite.Proof {
+	return v.Proof
+}
+
+func (v *VerifiableCredential) SetProof(p *cryptosuite.Proof) {
+	v.Proof = p
 }
 
 // CredentialStatus https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#status
