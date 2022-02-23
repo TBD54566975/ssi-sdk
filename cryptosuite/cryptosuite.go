@@ -1,15 +1,21 @@
 package cryptosuite
 
-import "github.com/gobuffalo/packr/v2"
+import (
+	"crypto"
+
+	"github.com/gobuffalo/packr/v2"
+)
 
 type (
-	KeyType string
-	Proof   interface{}
+	KeyType       string
+	SignatureType string
+	ProofPurpose  string
+	Proof         interface{}
 )
 
 const (
-	JsonWebKey2020           KeyType = "JsonWebKey2020"
-	JWS2020LinkedDataContext string  = "https://w3id.org/security/suites/jws-2020/v1"
+	JWS2020LinkedDataContext string       = "https://w3id.org/security/suites/jws-2020/v1"
+	AssertionMethod          ProofPurpose = "assertionMethod"
 )
 
 var (
@@ -19,20 +25,34 @@ var (
 // CryptoSuite encapsulates the behavior of a proof type as per the W3C specification
 // on data integrity https://w3c-ccg.github.io/data-integrity-spec/#creating-new-proof-types
 type CryptoSuite interface {
+	CryptoSuiteInfo
+	CryptoSuiteProofs
+}
+
+type CryptoSuiteInfo interface {
 	ID() string
-	Type() string
+	Type() KeyType
 	CanonicalizationAlgorithm() string
-	DigestAlgorithm() string
-	ProofAlgorithm() string
+	MessageDigestAlgorithm() crypto.Hash
+	SignatureAlgorithm() string
+	RequiredContexts() []string
 }
 
 type CryptoSuiteProofs interface {
+	// Create and Verify are they key two methods exposed by this interface
+
 	// CreateProof https://w3c-ccg.github.io/data-integrity-spec/#proof-algorithm
-	CreateProof()
+	CreateProof(s Signer, p Provable) (*Provable, error)
 	// VerifyProof https://w3c-ccg.github.io/data-integrity-spec/#proof-verification-algorithm
-	VerifyProof()
+	VerifyProof(v Verifier, p Provable) error
+
+	// The methods below are dependencies of Create and Verify Proof
+
+	Marshal(p Provable) ([]byte, error)
+	Canonicalize(marshaled []byte) (*string, error)
 	// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
-	CreateVerifyHash()
+	CreateVerifyHash(canonicalized []byte) ([]byte, error)
+	Digest(tbd []byte) ([]byte, error)
 }
 
 type Provable interface {
@@ -43,6 +63,8 @@ type Provable interface {
 type Signer interface {
 	KeyID() string
 	KeyType() KeyType
+	SignatureType() SignatureType
+	SigningAlgorithm() string
 	Sign(tbs []byte) ([]byte, error)
 }
 
