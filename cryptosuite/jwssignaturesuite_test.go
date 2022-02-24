@@ -1,6 +1,9 @@
 package cryptosuite
 
 import (
+	"crypto/ed25519"
+	"crypto/rand"
+	"encoding/base64"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -55,4 +58,27 @@ func TestJSONWebSignature2020Suite(t *testing.T) {
 	verifier := NewJSONWebKey2020Verifier(*jwk)
 	err = suite.Verify(verifier, *p)
 	assert.NoError(t, err)
+}
+
+// https://github.com/decentralized-identity/JWS-Test-Suite
+func TestTestVectors(t *testing.T) {
+	key0JWK := PublicKeyJWK{
+		KTY: "OKP",
+		CRV: "Ed25519",
+		X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
+	}
+
+	_, pk, _ := ed25519.GenerateKey(rand.Reader)
+	println(base64.URLEncoding.EncodeToString(pk))
+	key0D := "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE"
+	decodedD, err := base64.URLEncoding.DecodeString(key0D)
+	assert.NoError(t, err)
+
+	assert.True(t, len(decodedD) == ed25519.PrivateKeySize)
+	keyPair0Private := ed25519.PrivateKey(key0D)
+	keyPair0Public := keyPair0Private.Public()
+
+	keyPair0JWK, err := Ed25519JSONWebKey2020(keyPair0Public.([]byte))
+	assert.NoError(t, err)
+	assert.EqualValues(t, key0JWK, keyPair0JWK)
 }

@@ -96,6 +96,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	proof.SetDetachedJWS(*detachedJWS)
 	genericProof = Proof(proof)
 	p.SetProof(&genericProof)
@@ -268,14 +269,13 @@ func FromGenericProof(p Proof) (*JsonWebSignature2020Proof, error) {
 }
 
 func (j *JsonWebSignature2020Proof) SetDetachedJWS(jws string) {
-	if j == nil {
-		return
+	if j != nil {
+		j.JWS = jws
 	}
-	j.JWS = jws
 }
 
 func (j *JsonWebSignature2020Proof) GetDetachedJWS() string {
-	if j == nil {
+	if j != nil {
 		return ""
 	}
 	return j.JWS

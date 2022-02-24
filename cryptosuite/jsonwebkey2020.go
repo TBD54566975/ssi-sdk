@@ -60,6 +60,26 @@ const (
 	P384KeySize      int = 48
 )
 
+// TODO(gabe) use this everywhere
+type JSONWebKey2020 struct {
+	ID            string `json:"id,omitempty"`
+	Type          string `json:"type,omitempty"`
+	Controller    string `json:"controller,omitempty"`
+	PrivateKeyJWK `json:"privateKeyJwk,omitempty"`
+	PublicKeyJWK  `json:"publicKeyJwk,omitempty"`
+}
+
+// PrivateKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
+type PrivateKeyJWK struct {
+	*PublicKeyJWK `json:"*PublicKeyJWK,omitempty"`
+	D             string `json:"d,omitempty"`
+	DP            string `json:"dp,omitempty"`
+	DQ            string `json:"dq,omitempty"`
+	P             string `json:"p,omitempty"`
+	Q             string `json:"q,omitempty"`
+	QI            string `json:"qi,omitempty"`
+}
+
 // PublicKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
 type PublicKeyJWK struct {
 	KTY    KTY    `json:"kty" validate:"required"`
