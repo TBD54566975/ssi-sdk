@@ -61,11 +61,6 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
 		return nil, err
 	}
 
-	// create a proof for the provable type, without a signature value
-	proof := j.createProof(s.KeyID())
-	genericProof := Proof(proof)
-	p.SetProof(&genericProof)
-
 	// marshal to prepare for canonicalizaiton
 	marshaled, err := j.Marshal(p)
 	if err != nil {
@@ -91,6 +86,11 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
 		return nil, err
 	}
 
+	// create a proof for the provable type
+	proof := j.createProof(s.KeyID())
+	genericProof := Proof(proof)
+	p.SetProof(&genericProof)
+
 	// prepare the JWS value to be set as the `signature` in the proof block
 	detachedJWS, err := j.createDetachedJWS(s.SigningAlgorithm(), signature)
 	if err != nil {
@@ -115,10 +115,8 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 		return errors.Wrap(err, "could not decode jws")
 	}
 
-	// remove signature before verification
-	gotProof.JWS = ""
-	genericProof := Proof(gotProof)
-	p.SetProof(&genericProof)
+	// remove the proof before verification
+	p.SetProof(nil)
 
 	// marshal to prepare for canonicalizaiton
 	marshaled, err := j.Marshal(p)
