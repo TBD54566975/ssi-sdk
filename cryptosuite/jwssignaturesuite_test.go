@@ -70,14 +70,15 @@ func TestTestVectors(t *testing.T) {
 
 	_, pk, _ := ed25519.GenerateKey(rand.Reader)
 	println(base64.URLEncoding.EncodeToString(pk))
-	d := ""
-	decodedD, err := base64.URLEncoding.DecodeString(d)
+	d := "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE"
+	decodedD, err := base64.RawURLEncoding.DecodeString(d)
+	decodedX, err := base64.RawURLEncoding.DecodeString(key0JWK.X)
+	pkResult := append(decodedD, decodedX...)
 	assert.NoError(t, err)
-	assert.True(t, len(decodedD) == ed25519.PrivateKeySize)
-	privateKey := ed25519.NewKeyFromSeed(decodedD)
-	keyPair0Public := privateKey.Public()
+	privateKey := ed25519.PrivateKey(pkResult)
+	keyPair0Public := privateKey.Public().(ed25519.PublicKey)
 
-	keyPair0JWK, err := Ed25519JSONWebKey2020(keyPair0Public.([]byte))
+	keyPair0JWK, err := Ed25519JSONWebKey2020(keyPair0Public)
 	assert.NoError(t, err)
-	assert.EqualValues(t, key0JWK, keyPair0JWK)
+	assert.EqualValues(t, key0JWK, *keyPair0JWK)
 }

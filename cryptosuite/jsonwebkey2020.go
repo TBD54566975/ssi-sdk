@@ -32,7 +32,7 @@ const (
 
 	// Supported key types
 
-	OKP KTY = "Ed25519"
+	OKP KTY = "OKP"
 	EC  KTY = "EC"
 	RSA KTY = "RSA"
 
@@ -135,12 +135,11 @@ func Ed25519JSONWebKey2020(pubKeyBytes []byte) (*PublicKeyJWK, error) {
 	if len(pubKeyBytes) != ed25519.PublicKeySize {
 		return nil, fmt.Errorf("key size<%d> is not equal to required ed25519 public key size: %d", len(pubKeyBytes), ed25519.PublicKeySize)
 	}
-	x := base64.URLEncoding.EncodeToString(pubKeyBytes)
+	x := base64.RawURLEncoding.EncodeToString(pubKeyBytes)
 	return &PublicKeyJWK{
 		KTY: OKP,
 		CRV: Ed25519,
 		X:   x,
-		Alg: EdDSA,
 	}, nil
 }
 
@@ -165,7 +164,7 @@ func X25519JSONWebKey2020(pubKeyBytes []byte) (*PublicKeyJWK, error) {
 		return nil, err
 	}
 	x25519PubKey := point.BytesMontgomery()
-	x := base64.URLEncoding.EncodeToString(x25519PubKey)
+	x := base64.RawURLEncoding.EncodeToString(x25519PubKey)
 	return &PublicKeyJWK{
 		KTY: OKP,
 		CRV: X25519,
@@ -194,7 +193,6 @@ func SECP256k1JSONWebKey2020(pubKey secp.PublicKey) (*PublicKeyJWK, error) {
 		CRV: SECP256k1,
 		X:   pubKey.X().String(),
 		Y:   pubKey.Y().String(),
-		Alg: ES256K,
 	}, nil
 }
 
@@ -220,7 +218,6 @@ func P256JSONWebKey2020(pubKey ecdsa.PublicKey) (*PublicKeyJWK, error) {
 		CRV: P256,
 		X:   pubKey.X.String(),
 		Y:   pubKey.Y.String(),
-		Alg: PS256,
 	}, nil
 }
 
@@ -242,7 +239,6 @@ func P384JSONWebKey2020(pubKey ecdsa.PublicKey) (*PublicKeyJWK, error) {
 		CRV: P384,
 		X:   pubKey.X.String(),
 		Y:   pubKey.Y.String(),
-		Alg: PS384,
 	}, nil
 }
 
@@ -263,7 +259,6 @@ func RSAJSONWebKey2020(pubKey rsa.PublicKey) (*PublicKeyJWK, error) {
 		KTY: RSA,
 		N:   pubKey.N.String(),
 		E:   strconv.Itoa(pubKey.E),
-		Alg: RS256,
 	}, nil
 }
 
@@ -488,7 +483,7 @@ func verifyRSAFromJWK(jwk PublicKeyJWK, message, signature []byte) error {
 }
 
 func verifyEd25519FromJWK(jwk PublicKeyJWK, message, signature []byte) error {
-	pubKeyBytes, err := base64.URLEncoding.DecodeString(jwk.X)
+	pubKeyBytes, err := base64.RawURLEncoding.DecodeString(jwk.X)
 	if err != nil {
 		return errors.Wrap(err, "could not decode ed25519 public key value from JWK")
 	}
