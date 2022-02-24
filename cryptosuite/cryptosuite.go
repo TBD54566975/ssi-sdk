@@ -26,7 +26,11 @@ var (
 // on data integrity https://w3c-ccg.github.io/data-integrity-spec/#creating-new-proof-types
 type CryptoSuite interface {
 	CryptoSuiteInfo
-	CryptoSuiteProofs
+
+	// Sign https://w3c-ccg.github.io/data-integrity-spec/#proof-algorithm
+	Sign(s Signer, p Provable) (*Provable, error)
+	// Verify https://w3c-ccg.github.io/data-integrity-spec/#proof-verification-algorithm
+	Verify(v Verifier, p Provable) error
 }
 
 type CryptoSuiteInfo interface {
@@ -34,20 +38,14 @@ type CryptoSuiteInfo interface {
 	Type() KeyType
 	CanonicalizationAlgorithm() string
 	MessageDigestAlgorithm() crypto.Hash
-	SignatureAlgorithm() string
+	SignatureAlgorithm() SignatureType
 	RequiredContexts() []string
 }
 
-type CryptoSuiteProofs interface {
-	// Create and Verify are they key two methods exposed by this interface
-
-	// CreateProof https://w3c-ccg.github.io/data-integrity-spec/#proof-algorithm
-	CreateProof(s Signer, p Provable) (*Provable, error)
-	// VerifyProof https://w3c-ccg.github.io/data-integrity-spec/#proof-verification-algorithm
-	VerifyProof(v Verifier, p Provable) error
-
-	// The methods below are dependencies of Create and Verify Proof
-
+// CryptoSuiteProofType is an interface that defines functionality needed to sign and verify data
+// It encapsulates the functionality defined by the data integrity proof type specification
+// https://w3c-ccg.github.io/data-integrity-spec/#creating-new-proof-types
+type CryptoSuiteProofType interface {
 	Marshal(p Provable) ([]byte, error)
 	Canonicalize(marshaled []byte) (*string, error)
 	// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm

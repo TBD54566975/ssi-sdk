@@ -1,8 +1,6 @@
 package cryptosuite
 
 import (
-	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,14 +44,15 @@ func TestJSONWebSignature2020Suite(t *testing.T) {
 	signer, err := NewJSONWebKey2020Signer("test-signer", jwk.KTY, &jwk.CRV, privKey)
 	assert.NoError(t, err)
 
-	p, err := suite.CreateProof(signer, &tc)
+	p, err := suite.Sign(signer, &tc)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, p)
 
-	bytes, err := json.Marshal(p)
-	assert.NoError(t, err)
-	fmt.Printf("%s", string(bytes))
-	//signed, err := SignProvable(pk, &tc)
+	//bytes, err := json.Marshal(p)
 	//assert.NoError(t, err)
-	//assert.NotEmpty(t, signed)
+	//fmt.Printf("%s", string(bytes))
+
+	verifier := NewJSONWebKey2020Verifier(*jwk)
+	err = suite.Verify(verifier, *p)
+	assert.NoError(t, err)
 }
