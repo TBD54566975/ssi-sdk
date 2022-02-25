@@ -72,13 +72,22 @@ type JSONWebKey2020 struct {
 
 // PrivateKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
 type PrivateKeyJWK struct {
-	*PublicKeyJWK
-	D  string `json:"d,omitempty"`
-	DP string `json:"dp,omitempty"`
-	DQ string `json:"dq,omitempty"`
-	P  string `json:"p,omitempty"`
-	Q  string `json:"q,omitempty"`
-	QI string `json:"qi,omitempty"`
+	KTY    KTY    `json:"kty" validate:"required"`
+	CRV    CRV    `json:"crv,omitempty"`
+	X      string `json:"x,omitempty"`
+	Y      string `json:"y,omitempty"`
+	N      string `json:"n,omitempty"`
+	E      string `json:"e,omitempty"`
+	Use    string `json:"use,omitempty"`
+	KeyOps string `json:"key_ops,omitempty"`
+	Alg    ALG    `json:"alg,omitempty"`
+	KID    string `json:"kid,omitempty"`
+	D      string `json:"d,omitempty"`
+	DP     string `json:"dp,omitempty"`
+	DQ     string `json:"dq,omitempty"`
+	P      string `json:"p,omitempty"`
+	Q      string `json:"q,omitempty"`
+	QI     string `json:"qi,omitempty"`
 }
 
 // PublicKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
@@ -96,27 +105,11 @@ type PublicKeyJWK struct {
 }
 
 type JSONWebKey interface {
-	Generate() (*JSONWebKey2020, error)
-	ToPublicKeyJWK(pubKey []byte) (*PublicKeyJWK, error)
-	ToJSONWebKey2020(privKey []byte) (*JSONWebKey2020, error)
-}
+	Generate() error
+	ToJSONWebKey2020(privKey []byte) error
 
-type JSONWebKey25519 struct{}
-
-func (j *JSONWebKey25519) Generate() (*JSONWebKey2020, error) {
-	_, privKey, err := util.GenerateEd25519Key()
-	if err != nil {
-		return nil, err
-	}
-	return j.ToJSONWebKey2020(privKey)
-}
-
-func (j *JSONWebKey25519) ToPublicKeyJWK(pubKey []byte) (*PublicKeyJWK, error) {
-	return Ed25519JSONWebKey2020(pubKey)
-}
-
-func (j *JSONWebKey25519) ToJSONWebKey2020(privKey []byte) (*JSONWebKey2020, error) {
-	return nil, nil
+	ToPublicKey() (crypto.PublicKey, error)
+	ToPrivateKey() (crypto.PrivateKey, error)
 }
 
 type JSONWebKeySecp256k1 struct{}
@@ -156,30 +149,6 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (crypto.PrivateKey, *PublicKeyJWK
 		}
 	}
 	return nil, nil, fmt.Errorf("unsupported key type: %s", kty)
-}
-
-func Ed25519JSONWebKey2020(pubKey []byte) (*PublicKeyJWK, error) {
-	if len(pubKey) != ed25519.PublicKeySize {
-		return nil, fmt.Errorf("key size<%d> is not equal to required ed25519 public key size: %d", len(pubKey), ed25519.PublicKeySize)
-	}
-	x := base64.RawURLEncoding.EncodeToString(pubKey)
-	return &PublicKeyJWK{
-		KTY: OKP,
-		CRV: Ed25519,
-		X:   x,
-	}, nil
-}
-
-func GenerateEd25519JSONWebKey2020() (*ed25519.PrivateKey, *PublicKeyJWK, error) {
-	pubKey, privKey, err := util.GenerateEd25519Key()
-	if err != nil {
-		return nil, nil, err
-	}
-	pubKeyJWK, err := Ed25519JSONWebKey2020(pubKey)
-	if err != nil {
-		return nil, nil, err
-	}
-	return &privKey, pubKeyJWK, nil
 }
 
 func X25519JSONWebKey2020(pubKeyBytes []byte) (*PublicKeyJWK, error) {

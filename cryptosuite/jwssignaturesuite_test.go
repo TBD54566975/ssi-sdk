@@ -74,7 +74,7 @@ func TestTestVectors(t *testing.T) {
 
 	decodedD, err := base64.RawURLEncoding.DecodeString(knownJWK.D)
 	assert.NoError(t, err)
-	decodedX, err := base64.RawURLEncoding.DecodeString(knownJWK.X)
+	decodedX, err := base64.RawURLEncoding.DecodeString(knownJWK.PublicKeyJWK.X)
 	assert.NoError(t, err)
 	pkResult := append(decodedD, decodedX...)
 	assert.NoError(t, err)
@@ -85,7 +85,7 @@ func TestTestVectors(t *testing.T) {
 	publicKey := privateKey.Public().(ed25519.PublicKey)
 
 	// reconstruct PublicKeyJWK
-	ourJWK, err := jsonwebkey2020.Ed25519JSONWebKey2020(publicKey)
+	ourJWK, err := jsonwebkey2020.PublicEd25519JSONWebKey2020(publicKey)
 	assert.NoError(t, err)
 	assert.EqualValues(t, knownJWK.PublicKeyJWK, *ourJWK)
 
