@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/TBD54566975/did-sdk/util"
+	. "github.com/TBD54566975/did-sdk/util"
 	"github.com/pkg/errors"
 )
 
@@ -145,7 +145,7 @@ func (j JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	if err := json.Unmarshal(marshaled, &generic); err != nil {
 		return nil, err
 	}
-	normalized, err := util.LDNormalize(generic)
+	normalized, err := LDNormalize(generic)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not canonicalize provable document")
 	}
@@ -227,7 +227,7 @@ func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof
 	// make sure the proof has a timestamp
 	created, ok := genericProof["created"]
 	if !ok || created == "" {
-		genericProof["created"] = util.GetISO8601Timestamp()
+		genericProof["created"] = GetISO8601Timestamp()
 	}
 
 	var contexts []string
@@ -283,12 +283,12 @@ func (j JWSSignatureSuite) verifySuiteContext(p Provable) error {
 	}
 
 	// since context can either be a string or an array of strings we need to try both
-	strContexts, err := util.InterfaceToStrings(context)
+	strContexts, err := InterfaceToStrings(context)
 	if err != nil {
 		return errors.Wrap(err, "could not stringify contexts")
 	}
 	for _, requiredContext := range j.RequiredContexts() {
-		if !util.Contains(requiredContext, strContexts) {
+		if !Contains(requiredContext, strContexts) {
 			return fmt.Errorf("provable does not contain required context: %s", requiredContext)
 		}
 	}
@@ -372,7 +372,7 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 func (j JWSSignatureSuite) createProof(verificationMethod string) JsonWebSignature2020Proof {
 	return JsonWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
-		Created:            util.GetISO8601Timestamp(),
+		Created:            GetISO8601Timestamp(),
 		ProofPurpose:       AssertionMethod,
 		VerificationMethod: verificationMethod,
 	}

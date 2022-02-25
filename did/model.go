@@ -3,7 +3,7 @@ package did
 import (
 	"reflect"
 
-	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/TBD54566975/did-sdk/cryptosuite/jsonwebkey2020"
 
 	"github.com/TBD54566975/did-sdk/util"
 )
@@ -36,7 +36,7 @@ type VerificationMethod struct {
 	Controller      string `json:"controller" validate:"required"`
 	PublicKeyBase58 string `json:"publicKeyBase58,omitempty"`
 	// must conform to https://datatracker.ietf.org/doc/html/rfc7517
-	PublicKeyJWK *cryptosuite.PublicKeyJWK `json:"publicKeyJwk,omitempty" validate:"omitempty,dive"`
+	PublicKeyJWK *jsonwebkey2020.PublicKeyJWK `json:"publicKeyJwk,omitempty" validate:"omitempty,dive"`
 	// https://datatracker.ietf.org/doc/html/draft-multiformats-multibase-03
 	PublicKeyMultibase string `json:"publicKeyMultibase,omitempty"`
 }

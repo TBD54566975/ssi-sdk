@@ -4,16 +4,13 @@ import (
 	"crypto"
 	"encoding/json"
 
-	"github.com/TBD54566975/did-sdk/util"
+	. "github.com/TBD54566975/did-sdk/util"
 
 	"github.com/gobuffalo/packr/v2"
 )
 
 type (
-	KeyType       string
-	SignatureType string
-	ProofPurpose  string
-	Proof         interface{}
+	Proof interface{}
 )
 
 const (
@@ -94,7 +91,7 @@ func GetContextsFromProvable(p Provable) ([]string, error) {
 	if !ok {
 		return nil, nil
 	}
-	strContexts, err := util.InterfaceToStrings(contexts)
+	strContexts, err := InterfaceToStrings(contexts)
 	if err != nil {
 		return nil, err
 	}

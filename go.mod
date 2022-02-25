@@ -12,7 +12,7 @@ require (
 	github.com/multiformats/go-multicodec v0.4.0
 	github.com/multiformats/go-varint v0.0.6
 	github.com/piprate/json-gold v0.4.1
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838

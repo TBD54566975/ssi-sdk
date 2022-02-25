@@ -1,4 +1,4 @@
-package cryptosuite
+package jsonwebkey2020
 
 import (
 	"testing"

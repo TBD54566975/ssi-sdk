@@ -1,4 +1,4 @@
-package cryptosuite
+package jsonwebkey2020
 
 import (
 	"crypto"
@@ -13,12 +13,15 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/pkg/errors"
+	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/TBD54566975/did-sdk/util"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
+	. "github.com/TBD54566975/did-sdk/util"
+
 	"filippo.io/edwards25519"
-	"github.com/TBD54566975/did-sdk/util"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -28,8 +31,6 @@ type (
 )
 
 const (
-	JsonWebKey2020 KeyType = "JsonWebKey2020"
-
 	// Supported key types
 
 	OKP KTY = "OKP"
@@ -71,13 +72,13 @@ type JSONWebKey2020 struct {
 
 // PrivateKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
 type PrivateKeyJWK struct {
-	*PublicKeyJWK `json:"*PublicKeyJWK,omitempty"`
-	D             string `json:"d,omitempty"`
-	DP            string `json:"dp,omitempty"`
-	DQ            string `json:"dq,omitempty"`
-	P             string `json:"p,omitempty"`
-	Q             string `json:"q,omitempty"`
-	QI            string `json:"qi,omitempty"`
+	*PublicKeyJWK
+	D  string `json:"d,omitempty"`
+	DP string `json:"dp,omitempty"`
+	DQ string `json:"dq,omitempty"`
+	P  string `json:"p,omitempty"`
+	Q  string `json:"q,omitempty"`
+	QI string `json:"qi,omitempty"`
 }
 
 // PublicKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
@@ -93,6 +94,32 @@ type PublicKeyJWK struct {
 	Alg    ALG    `json:"alg,omitempty"`
 	KID    string `json:"kid,omitempty"`
 }
+
+type JSONWebKey interface {
+	Generate() (*JSONWebKey2020, error)
+	ToPublicKeyJWK(pubKey []byte) (*PublicKeyJWK, error)
+	ToJSONWebKey2020(privKey []byte) (*JSONWebKey2020, error)
+}
+
+type JSONWebKey25519 struct{}
+
+func (j *JSONWebKey25519) Generate() (*JSONWebKey2020, error) {
+	_, privKey, err := util.GenerateEd25519Key()
+	if err != nil {
+		return nil, err
+	}
+	return j.ToJSONWebKey2020(privKey)
+}
+
+func (j *JSONWebKey25519) ToPublicKeyJWK(pubKey []byte) (*PublicKeyJWK, error) {
+	return Ed25519JSONWebKey2020(pubKey)
+}
+
+func (j *JSONWebKey25519) ToJSONWebKey2020(privKey []byte) (*JSONWebKey2020, error) {
+	return nil, nil
+}
+
+type JSONWebKeySecp256k1 struct{}
 
 // GenerateJSONWebKey2020 The JSONWebKey2020 type specifies a number of key type and curve pairs to enable JOSE conformance
 // these pairs are supported in this library and generated via the function below
@@ -131,11 +158,11 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (crypto.PrivateKey, *PublicKeyJWK
 	return nil, nil, fmt.Errorf("unsupported key type: %s", kty)
 }
 
-func Ed25519JSONWebKey2020(pubKeyBytes []byte) (*PublicKeyJWK, error) {
-	if len(pubKeyBytes) != ed25519.PublicKeySize {
-		return nil, fmt.Errorf("key size<%d> is not equal to required ed25519 public key size: %d", len(pubKeyBytes), ed25519.PublicKeySize)
+func Ed25519JSONWebKey2020(pubKey []byte) (*PublicKeyJWK, error) {
+	if len(pubKey) != ed25519.PublicKeySize {
+		return nil, fmt.Errorf("key size<%d> is not equal to required ed25519 public key size: %d", len(pubKey), ed25519.PublicKeySize)
 	}
-	x := base64.RawURLEncoding.EncodeToString(pubKeyBytes)
+	x := base64.RawURLEncoding.EncodeToString(pubKey)
 	return &PublicKeyJWK{
 		KTY: OKP,
 		CRV: Ed25519,
@@ -382,7 +409,7 @@ func NewJSONWebKey2020Verifier(jwk PublicKeyJWK) JSONWebKey2020Verifier {
 }
 
 func (j JSONWebKey2020Signer) SignatureType() SignatureType {
-	return JSONWebSignature2020
+	return cryptosuite.JSONWebSignature2020
 }
 
 func (j JSONWebKey2020Signer) SigningAlgorithm() string {
