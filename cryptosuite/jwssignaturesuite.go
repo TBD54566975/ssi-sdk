@@ -62,31 +62,33 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
 	}
 
 	// marshal provable to prepare for canonicalizaiton
-	marshaledProvable, err := j.Marshal(p)
+	marshaledDocument, err := j.Marshal(p)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not marshal provable")
 	}
 
-	// canonicalize provable using the suite's method
-	canonicalProvable, err := j.Canonicalize(marshaledProvable)
+	// 2. canonicalize provable using the suite's method
+	canonicalizedDocument, err := j.Canonicalize(marshaledDocument)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not canonicalize provable")
 	}
 
 	// create proof before CVH
 	proof := j.createProof(s.KeyID())
-	tbs, err := j.CreateVerifyHash([]byte(*canonicalProvable), proof)
+
+	// 3. tbs value as a result of cvh
+	tbs, err := j.CreateVerifyHash([]byte(*canonicalizedDocument), proof)
 	if err != nil {
 		return nil, err
 	}
 
-	// create the signature over the provable data
+	// 4. create the signature over the provable data
 	signature, err := s.Sign(tbs)
 	if err != nil {
 		return nil, err
 	}
 
-	// prepare the JWS value to be set as the `signature` in the proof block
+	// 5. prepare the JWS value to be set as the `signature` in the proof block
 	detachedJWS, err := j.createDetachedJWS(s.SigningAlgorithm(), signature)
 	if err != nil {
 		return nil, err
@@ -171,31 +173,33 @@ func (j JWSSignatureSuite) Digest(tbd []byte) ([]byte, error) {
 
 func (j JWSSignatureSuite) CreateVerifyHash(canonicalDoc []byte, proof Proof) ([]byte, error) {
 	// marshal proof to prepare for canonicalizaiton
-	marshaledProof, err := j.Marshal(proof)
+	marshaledOptions, err := j.Marshal(proof)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not marshal proof")
 	}
 
-	// canonicalize  proof using the suite's method
-	canonicalProof, err := j.Canonicalize(marshaledProof)
+	// 4.1 canonicalize  proof using the suite's method
+	canonicalizedOptions, err := j.Canonicalize(marshaledOptions)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not canonicalize proof")
 	}
 
-	// combine digests of both provable and proof
-	digestProvable, err := j.Digest(canonicalDoc)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not take digest of provable")
-	}
-
-	canonicalizedProof := []byte(*canonicalProof)
-	digestProof, err := j.Digest(canonicalizedProof)
+	// 4.2 set output to the result of the hash of the canonicalized options document
+	canonicalizedOptionsBytes := []byte(*canonicalizedOptions)
+	output, err := j.Digest(canonicalizedOptionsBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not take digest of proof")
 	}
 
-	appendedResult := append(digestProof, digestProvable...)
-	return appendedResult, nil
+	// 4.3 hash the canonicalized doc and append it to the output
+	documentDigest, err := j.Digest(canonicalDoc)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not take digest of provable")
+	}
+	output = append(output, documentDigest...)
+
+	// 5. return the output
+	return output, nil
 }
 
 func (j JWSSignatureSuite) createDetachedJWS(alg string, signature []byte) (*string, error) {
