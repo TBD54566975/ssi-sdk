@@ -61,28 +61,18 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
 		return nil, err
 	}
 
-	// marshal provable to prepare for canonicalizaiton
-	marshaledDocument, err := j.Marshal(p)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal provable")
-	}
-
-	// 2. canonicalize provable using the suite's method
-	canonicalizedDocument, err := j.Canonicalize(marshaledDocument)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not canonicalize provable")
-	}
-
 	// create proof before CVH
 	proof := j.createProof(s.KeyID())
 
+	// prepare proof options
 	contexts, err := GetContextsFromProvable(p)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get contexts from provable")
 	}
+	opts := &ProofOptions{Contexts: contexts}
 
 	// 3. tbs value as a result of cvh
-	tbs, err := j.CreateVerifyHash([]byte(*canonicalizedDocument), proof, &ProofOptions{Contexts: contexts})
+	tbs, err := j.CreateVerifyHash(p, proof, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -124,25 +114,15 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	// remove the JWS value in the proof before verification
 	gotProof.SetDetachedJWS("")
 
-	// marshal provable to prepare for canonicalizaiton
-	marshaledProvable, err := j.Marshal(p)
-	if err != nil {
-		return errors.Wrap(err, "could not marshal provable")
-	}
-
-	// canonicalize provable using the suite's method
-	canonicalProvable, err := j.Canonicalize(marshaledProvable)
-	if err != nil {
-		return errors.Wrap(err, "could not canonicalize provable")
-	}
-
+	// prepare proof options
 	contexts, err := GetContextsFromProvable(p)
 	if err != nil {
 		return errors.Wrap(err, "could not get contexts from provable")
 	}
+	opts := &ProofOptions{Contexts: contexts}
 
 	// run CVH on both provable and the proof
-	tbv, err := j.CreateVerifyHash([]byte(*canonicalProvable), gotProof, &ProofOptions{Contexts: contexts})
+	tbv, err := j.CreateVerifyHash(p, gotProof, opts)
 	if err != nil {
 		return err
 	}
@@ -181,11 +161,23 @@ func (j JWSSignatureSuite) Digest(tbd []byte) ([]byte, error) {
 	return hash[:], nil
 }
 
-func (j JWSSignatureSuite) CreateVerifyHash(canonicalDoc []byte, proof Proof, opts *ProofOptions) ([]byte, error) {
+func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof Proof, opts *ProofOptions) ([]byte, error) {
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := j.prepareProof(proof, opts)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not prepare proof for the create verify hash algorithm")
+	}
+
+	// marshal provable to prepare for canonicalizaiton
+	marshaledProvable, err := j.Marshal(provable)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not marshal provable")
+	}
+
+	// canonicalize provable using the suite's method
+	canonicalProvable, err := j.Canonicalize(marshaledProvable)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not canonicalize provable")
 	}
 
 	// marshal proof to prepare for canonicalizaiton
@@ -208,6 +200,7 @@ func (j JWSSignatureSuite) CreateVerifyHash(canonicalDoc []byte, proof Proof, op
 	}
 
 	// 4.3 hash the canonicalized doc and append it to the output
+	canonicalDoc := []byte(*canonicalProvable)
 	documentDigest, err := j.Digest(canonicalDoc)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not take digest of provable")
@@ -227,6 +220,9 @@ func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof
 	if err := json.Unmarshal(proofBytes, &genericProof); err != nil {
 		return nil, err
 	}
+
+	// proof cannot have a jws value
+	delete(genericProof, "jws")
 
 	// make sure the proof has a timestamp
 	created, ok := genericProof["created"]
