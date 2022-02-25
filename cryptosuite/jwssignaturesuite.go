@@ -54,7 +54,7 @@ func (j JWSSignatureSuite) RequiredContexts() []string {
 	return []string{JSONWebSignature2020Context}
 }
 
-func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
+func (j JWSSignatureSuite) Sign(s Signer, p Provable, opts *ProofOptions) (*Provable, error) {
 	// before we can create a proof we need to make sure the document contains the requisite
 	// JSON-LD context for this signature suite
 	if err := j.verifySuiteContext(p); err != nil {
@@ -87,7 +87,11 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
 	}
 
 	// create a proof for the provable type
-	proof := j.createProof(s.KeyID())
+	createdAt := util.GetISO8601Timestamp()
+	if opts != nil && opts.Created != "" {
+		createdAt = opts.Created
+	}
+	proof := j.createProof(s.KeyID(), createdAt)
 	genericProof := Proof(proof)
 	p.SetProof(&genericProof)
 
@@ -268,6 +272,10 @@ func FromGenericProof(p Proof) (*JsonWebSignature2020Proof, error) {
 	}, nil
 }
 
+func (j *JsonWebSignature2020Proof) ToGenericProof() Proof {
+	return j
+}
+
 func (j *JsonWebSignature2020Proof) SetDetachedJWS(jws string) {
 	if j != nil {
 		j.JWS = jws
@@ -292,10 +300,10 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(jwsParts[2])
 }
 
-func (j JWSSignatureSuite) createProof(verificationMethod string) JsonWebSignature2020Proof {
+func (j JWSSignatureSuite) createProof(verificationMethod, createdAt string) JsonWebSignature2020Proof {
 	return JsonWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
-		Created:            util.GetISO8601Timestamp(),
+		Created:            createdAt,
 		ProofPurpose:       AssertionMethod,
 		VerificationMethod: verificationMethod,
 	}
