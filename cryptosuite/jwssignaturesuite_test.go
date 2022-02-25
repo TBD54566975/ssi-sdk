@@ -13,7 +13,7 @@ type TestCredential struct {
 	Type              []string               `json:"type,omitempty"`
 	Issuer            string                 `json:"issuer,omitempty"`
 	IssuanceDate      string                 `json:"issuanceDate,omitempty"`
-	CredentialSubject map[string]interface{} `json:"credentialSubject"`
+	CredentialSubject map[string]interface{} `json:"credentialSubject,omitempty"`
 	Proof             *Proof                 `json:"proof,omitempty"`
 }
 
@@ -49,10 +49,6 @@ func TestJSONWebSignature2020Suite(t *testing.T) {
 	p, err := suite.Sign(signer, &tc)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, p)
-
-	//bytes, err := json.Marshal(p)
-	//assert.NoError(t, err)
-	//fmt.Printf("%s", string(bytes))
 
 	verifier := NewJSONWebKey2020Verifier(*jwk)
 	err = suite.Verify(verifier, *p)
@@ -98,6 +94,26 @@ func TestTestVectors(t *testing.T) {
 		IssuanceDate:      "2021-01-01T19:23:24Z",
 		CredentialSubject: map[string]interface{}{},
 	}
+
+	//{
+	//	"@context": [
+	//"https://www.w3.org/2018/credentials/v1",
+	//"https://w3id.org/security/suites/jws-2020/v1"
+	//],
+	//"type": [
+	//"VerifiableCredential"
+	//],
+	//"credentialSubject": {},
+	//"issuer": "did:example:123",
+	//"issuanceDate": "2021-01-01T19:23:24Z",
+	//"proof": {
+	//"type": "JsonWebSignature2020",
+	//"proofPurpose": "assertionMethod",
+	//"verificationMethod": "did:example:123#key-0",
+	//"created": "2022-01-24T23:24:53.257Z",
+	//"jws": "eyJhbGciOiJFZERTQSIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..lsmHsiYKv4N1Ymifu5SW8sp8FqZNf9J97-iZQo40Ligar2D0zZZdV3BlKrydNM6uifiD8V6RMiiuGkAvmomjCw"
+	//}
+	//}
 	knownProof := JsonWebSignature2020Proof{
 		Type:               "JsonWebSignature2020",
 		Created:            "2022-01-24T23:24:53.257Z",

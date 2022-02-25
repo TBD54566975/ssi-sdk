@@ -2,6 +2,9 @@ package cryptosuite
 
 import (
 	"crypto"
+	"encoding/json"
+
+	"github.com/TBD54566975/did-sdk/util"
 
 	"github.com/gobuffalo/packr/v2"
 )
@@ -14,6 +17,7 @@ type (
 )
 
 const (
+	W3CSecurityContext                    = "https://w3id.org/security/v1"
 	JWS2020LinkedDataContext string       = "https://w3id.org/security/suites/jws-2020/v1"
 	AssertionMethod          ProofPurpose = "assertionMethod"
 )
@@ -49,7 +53,7 @@ type CryptoSuiteProofType interface {
 	Marshal(data interface{}) ([]byte, error)
 	Canonicalize(marshaled []byte) (*string, error)
 	// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
-	CreateVerifyHash(canonicalDoc []byte, p Proof) ([]byte, error)
+	CreateVerifyHash(canonicalDoc []byte, p Proof, proofOptions *ProofOptions) ([]byte, error)
 	Digest(tbd []byte) ([]byte, error)
 }
 
@@ -70,6 +74,31 @@ type Verifier interface {
 	KeyID() string
 	KeyType() KeyType
 	Verify(message, signature []byte) error
+}
+
+type ProofOptions struct {
+	// JSON-LD contexts to add to the proof
+	Contexts []string
+}
+
+func GetContextsFromProvable(p Provable) ([]string, error) {
+	provableBytes, err := json.Marshal(p)
+	if err != nil {
+		return nil, err
+	}
+	var genericProvable map[string]interface{}
+	if err := json.Unmarshal(provableBytes, &genericProvable); err != nil {
+		return nil, err
+	}
+	contexts, ok := genericProvable["@context"]
+	if !ok {
+		return nil, nil
+	}
+	strContexts, err := util.InterfaceToStrings(contexts)
+	if err != nil {
+		return nil, err
+	}
+	return strContexts, nil
 }
 
 func getKnownContext(fileName string) (string, error) {

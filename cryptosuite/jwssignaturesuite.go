@@ -76,8 +76,13 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
 	// create proof before CVH
 	proof := j.createProof(s.KeyID())
 
+	contexts, err := GetContextsFromProvable(p)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get contexts from provable")
+	}
+
 	// 3. tbs value as a result of cvh
-	tbs, err := j.CreateVerifyHash([]byte(*canonicalizedDocument), proof)
+	tbs, err := j.CreateVerifyHash([]byte(*canonicalizedDocument), proof, &ProofOptions{Contexts: contexts})
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +136,13 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 		return errors.Wrap(err, "could not canonicalize provable")
 	}
 
+	contexts, err := GetContextsFromProvable(p)
+	if err != nil {
+		return errors.Wrap(err, "could not get contexts from provable")
+	}
+
 	// run CVH on both provable and the proof
-	tbv, err := j.CreateVerifyHash([]byte(*canonicalProvable), proof)
+	tbv, err := j.CreateVerifyHash([]byte(*canonicalProvable), gotProof, &ProofOptions{Contexts: contexts})
 	if err != nil {
 		return err
 	}
@@ -171,9 +181,15 @@ func (j JWSSignatureSuite) Digest(tbd []byte) ([]byte, error) {
 	return hash[:], nil
 }
 
-func (j JWSSignatureSuite) CreateVerifyHash(canonicalDoc []byte, proof Proof) ([]byte, error) {
+func (j JWSSignatureSuite) CreateVerifyHash(canonicalDoc []byte, proof Proof, opts *ProofOptions) ([]byte, error) {
+	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
+	preparedProof, err := j.prepareProof(proof, opts)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not prepare proof for the create verify hash algorithm")
+	}
+
 	// marshal proof to prepare for canonicalizaiton
-	marshaledOptions, err := j.Marshal(proof)
+	marshaledOptions, err := j.Marshal(preparedProof)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not marshal proof")
 	}
@@ -200,6 +216,34 @@ func (j JWSSignatureSuite) CreateVerifyHash(canonicalDoc []byte, proof Proof) ([
 
 	// 5. return the output
 	return output, nil
+}
+
+func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof, error) {
+	var genericProof map[string]interface{}
+	proofBytes, err := json.Marshal(proof)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(proofBytes, &genericProof); err != nil {
+		return nil, err
+	}
+
+	// make sure the proof has a timestamp
+	created, ok := genericProof["created"]
+	if !ok || created == "" {
+		genericProof["created"] = util.GetISO8601Timestamp()
+	}
+
+	var contexts []string
+	if opts != nil {
+		contexts = opts.Contexts
+	} else {
+		// if none provided, make sure the proof has a context value for this suite
+		contexts = j.RequiredContexts()
+	}
+	genericProof["@context"] = contexts
+	p := Proof(genericProof)
+	return &p, nil
 }
 
 func (j JWSSignatureSuite) createDetachedJWS(alg string, signature []byte) (*string, error) {
