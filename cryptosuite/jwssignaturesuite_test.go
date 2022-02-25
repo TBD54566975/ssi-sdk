@@ -3,7 +3,6 @@ package cryptosuite
 import (
 	"crypto/ed25519"
 	"encoding/base64"
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,7 +46,7 @@ func TestJSONWebSignature2020Suite(t *testing.T) {
 	signer, err := NewJSONWebKey2020Signer("test-signer", jwk.KTY, &jwk.CRV, privKey)
 	assert.NoError(t, err)
 
-	p, err := suite.Sign(signer, &tc, nil)
+	p, err := suite.Sign(signer, &tc)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, p)
 
@@ -121,14 +120,16 @@ func TestTestVectors(t *testing.T) {
 	assert.NoError(t, err)
 
 	// sign with known timestamp for test vector
-	p, err := suite.Sign(signer, &knownCred, &ProofOptions{Created: knownProof.Created})
+	p, err := suite.Sign(signer, &knownCred)
 	assert.NoError(t, err)
 
-	ourCredBytes, err := json.Marshal(p)
+	verifier := NewJSONWebKey2020Verifier(*ourJWK)
+
+	// first verify our credential
+	err = suite.Verify(verifier, *p)
 	assert.NoError(t, err)
 
-	knownCredBytes, err := json.Marshal(knownCredSigned)
+	// verify known credential
+	err = suite.Verify(verifier, &knownCredSigned)
 	assert.NoError(t, err)
-
-	assert.JSONEq(t, string(knownCredBytes), string(ourCredBytes))
 }

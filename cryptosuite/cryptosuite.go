@@ -22,18 +22,13 @@ var (
 	contextBox = packr.New("Known JSON-LD Contexts", "./context")
 )
 
-type ProofOptions struct {
-	// useful for test vectors with a known timestamp
-	Created string
-}
-
 // CryptoSuite encapsulates the behavior of a proof type as per the W3C specification
 // on data integrity https://w3c-ccg.github.io/data-integrity-spec/#creating-new-proof-types
 type CryptoSuite interface {
 	CryptoSuiteInfo
 
 	// Sign https://w3c-ccg.github.io/data-integrity-spec/#proof-algorithm
-	Sign(s Signer, p Provable, opts *ProofOptions) (*Provable, error)
+	Sign(s Signer, p Provable) (*Provable, error)
 	// Verify https://w3c-ccg.github.io/data-integrity-spec/#proof-verification-algorithm
 	Verify(v Verifier, p Provable) error
 }
@@ -51,10 +46,10 @@ type CryptoSuiteInfo interface {
 // It encapsulates the functionality defined by the data integrity proof type specification
 // https://w3c-ccg.github.io/data-integrity-spec/#creating-new-proof-types
 type CryptoSuiteProofType interface {
-	Marshal(p Provable) ([]byte, error)
+	Marshal(data interface{}) ([]byte, error)
 	Canonicalize(marshaled []byte) (*string, error)
 	// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
-	CreateVerifyHash(canonicalized []byte) ([]byte, error)
+	CreateVerifyHash(canonicalDoc []byte, p Proof) ([]byte, error)
 	Digest(tbd []byte) ([]byte, error)
 }
 

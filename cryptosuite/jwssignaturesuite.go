@@ -54,28 +54,28 @@ func (j JWSSignatureSuite) RequiredContexts() []string {
 	return []string{JSONWebSignature2020Context}
 }
 
-func (j JWSSignatureSuite) Sign(s Signer, p Provable, opts *ProofOptions) (*Provable, error) {
+func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
 	// before we can create a proof we need to make sure the document contains the requisite
 	// JSON-LD context for this signature suite
 	if err := j.verifySuiteContext(p); err != nil {
 		return nil, err
 	}
 
-	// marshal to prepare for canonicalizaiton
-	marshaled, err := j.Marshal(p)
+	// marshal provable to prepare for canonicalizaiton
+	marshaledProvable, err := j.Marshal(p)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "could not marshal provable")
 	}
 
-	// canonicalize using the suite's method before running CVH
-	canonical, err := j.Canonicalize(marshaled)
+	// canonicalize provable using the suite's method
+	canonicalProvable, err := j.Canonicalize(marshaledProvable)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "could not canonicalize provable")
 	}
 
-	// run the CVH algorithm before signing
-	canonicalized := []byte(*canonical)
-	tbs, err := j.CreateVerifyHash(canonicalized)
+	// create proof before CVH
+	proof := j.createProof(s.KeyID())
+	tbs, err := j.CreateVerifyHash([]byte(*canonicalProvable), proof)
 	if err != nil {
 		return nil, err
 	}
@@ -86,15 +86,6 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable, opts *ProofOptions) (*Prov
 		return nil, err
 	}
 
-	// create a proof for the provable type
-	createdAt := util.GetISO8601Timestamp()
-	if opts != nil && opts.Created != "" {
-		createdAt = opts.Created
-	}
-	proof := j.createProof(s.KeyID(), createdAt)
-	genericProof := Proof(proof)
-	p.SetProof(&genericProof)
-
 	// prepare the JWS value to be set as the `signature` in the proof block
 	detachedJWS, err := j.createDetachedJWS(s.SigningAlgorithm(), signature)
 	if err != nil {
@@ -102,7 +93,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable, opts *ProofOptions) (*Prov
 	}
 
 	proof.SetDetachedJWS(*detachedJWS)
-	genericProof = Proof(proof)
+	genericProof := Proof(proof)
 	p.SetProof(&genericProof)
 	return &p, nil
 }
@@ -114,30 +105,32 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 		return errors.Wrap(err, "could not coerce proof into JsonWebSignature2020 proof")
 	}
 
+	// remove proof before verifying
+	p.SetProof(nil)
+
 	// pull off JWS to get signature
 	decodedJWS, err := gotProof.DecodeJWS()
 	if err != nil {
 		return errors.Wrap(err, "could not decode jws")
 	}
 
-	// remove the proof before verification
-	p.SetProof(nil)
+	// remove the JWS value in the proof before verification
+	gotProof.SetDetachedJWS("")
 
-	// marshal to prepare for canonicalizaiton
-	marshaled, err := j.Marshal(p)
+	// marshal provable to prepare for canonicalizaiton
+	marshaledProvable, err := j.Marshal(p)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "could not marshal provable")
 	}
 
-	// canonicalize using the suite's method before running CVH
-	canonical, err := j.Canonicalize(marshaled)
+	// canonicalize provable using the suite's method
+	canonicalProvable, err := j.Canonicalize(marshaledProvable)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "could not canonicalize provable")
 	}
 
-	// run the CVH algorithm before verifying
-	canonicalized := []byte(*canonical)
-	tbv, err := j.CreateVerifyHash(canonicalized)
+	// run CVH on both provable and the proof
+	tbv, err := j.CreateVerifyHash([]byte(*canonicalProvable), proof)
 	if err != nil {
 		return err
 	}
@@ -145,9 +138,9 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	return v.Verify(tbv, decodedJWS)
 }
 
-func (j JWSSignatureSuite) Marshal(p Provable) ([]byte, error) {
+func (j JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 	// JSONify the provable object
-	jsonBytes, err := json.Marshal(p)
+	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
@@ -176,17 +169,41 @@ func (j JWSSignatureSuite) Digest(tbd []byte) ([]byte, error) {
 	return hash[:], nil
 }
 
-func (j JWSSignatureSuite) CreateVerifyHash(canonicalized []byte) ([]byte, error) {
-	// Note: this method *may* take proof options, though we currently do not support any such options.
-	return j.Digest(canonicalized)
+func (j JWSSignatureSuite) CreateVerifyHash(canonicalDoc []byte, proof Proof) ([]byte, error) {
+	// marshal proof to prepare for canonicalizaiton
+	marshaledProof, err := j.Marshal(proof)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not marshal proof")
+	}
+
+	// canonicalize  proof using the suite's method
+	canonicalProof, err := j.Canonicalize(marshaledProof)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not canonicalize proof")
+	}
+
+	// combine digests of both provable and proof
+	digestProvable, err := j.Digest(canonicalDoc)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not take digest of provable")
+	}
+
+	canonicalizedProof := []byte(*canonicalProof)
+	digestProof, err := j.Digest(canonicalizedProof)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not take digest of proof")
+	}
+
+	appendedResult := append(digestProof, digestProvable...)
+	return appendedResult, nil
 }
 
 func (j JWSSignatureSuite) createDetachedJWS(alg string, signature []byte) (*string, error) {
 	// header is set as per the spec https://w3c-ccg.github.io/lds-jws2020/#json-web-signature-2020
 	header := map[string]interface{}{
+		"alg":  alg,
 		"b64":  false,
 		"crit": []string{"b64"},
-		"alg":  alg,
 	}
 	headerBytes, err := json.Marshal(header)
 	if err != nil {
@@ -300,10 +317,10 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(jwsParts[2])
 }
 
-func (j JWSSignatureSuite) createProof(verificationMethod, createdAt string) JsonWebSignature2020Proof {
+func (j JWSSignatureSuite) createProof(verificationMethod string) JsonWebSignature2020Proof {
 	return JsonWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
-		Created:            createdAt,
+		Created:            util.GetISO8601Timestamp(),
 		ProofPurpose:       AssertionMethod,
 		VerificationMethod: verificationMethod,
 	}
