@@ -13,7 +13,7 @@ type TestCredential struct {
 	Type              []string               `json:"type,omitempty"`
 	Issuer            string                 `json:"issuer,omitempty"`
 	IssuanceDate      string                 `json:"issuanceDate,omitempty"`
-	CredentialSubject map[string]interface{} `json:"credentialSubject,omitempty"`
+	CredentialSubject map[string]interface{} `json:"credentialSubject"`
 	Proof             *Proof                 `json:"proof,omitempty"`
 }
 
@@ -95,10 +95,11 @@ func TestTestVectors(t *testing.T) {
 		CredentialSubject: map[string]interface{}{},
 	}
 
+	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/implementations/transmute/credential-0--key-0-ed25519.vc.json
 	knownProof := JsonWebSignature2020Proof{
 		Type:               "JsonWebSignature2020",
-		Created:            "2022-01-24T23:24:53.257Z",
-		JWS:                "eyJhbGciOiJFZERTQSIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..lsmHsiYKv4N1Ymifu5SW8sp8FqZNf9J97-iZQo40Ligar2D0zZZdV3BlKrydNM6uifiD8V6RMiiuGkAvmomjCw",
+		Created:            "2022-01-24T23:26:38Z",
+		JWS:                "eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..377mL0aIk_YL_scEZh1BIzje17vD4F7U8WPo2ufgkkGLwDNXHDhN99zpnsvsozD5Si82gRbDHqFu3Rp6dLH7Ag",
 		ProofPurpose:       "assertionMethod",
 		VerificationMethod: "did:example:123#key-0",
 	}

@@ -94,7 +94,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
 	}
 
 	// 5. prepare the JWS value to be set as the `signature` in the proof block
-	detachedJWS, err := j.createDetachedJWS(s.SigningAlgorithm(), signature)
+	detachedJWS, err := createDetachedJWS(s.SigningAlgorithm(), signature)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,17 @@ func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof
 	return &p, nil
 }
 
-func (j JWSSignatureSuite) createDetachedJWS(alg string, signature []byte) (*string, error) {
+func createDetachedJWS(alg string, signature []byte) (*string, error) {
+	headerStr, err := getJWSHeader(alg)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get jws header")
+	}
+	signatureStr := base64.RawURLEncoding.EncodeToString(signature)
+	detachedJWS := *headerStr + ".." + signatureStr
+	return &detachedJWS, nil
+}
+
+func getJWSHeader(alg string) (*string, error) {
 	// header is set as per the spec https://w3c-ccg.github.io/lds-jws2020/#json-web-signature-2020
 	header := map[string]interface{}{
 		"alg":  alg,
@@ -258,9 +268,7 @@ func (j JWSSignatureSuite) createDetachedJWS(alg string, signature []byte) (*str
 		return nil, err
 	}
 	headerStr := base64.RawURLEncoding.EncodeToString(headerBytes)
-	signatureStr := base64.RawURLEncoding.EncodeToString(signature)
-	detachedJWS := headerStr + ".." + signatureStr
-	return &detachedJWS, nil
+	return &headerStr, nil
 }
 
 // verifySuiteContext makes sure a given provable document has the @context values this suite requires
