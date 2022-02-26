@@ -80,7 +80,7 @@ func TestJsonWebSignature2020TestVectors(t *testing.T) {
 
 	suite := JWSSignatureSuite{}
 
-	signer := NewSignerbro(privJWK)
+	signer := NewJSONWebKeySigner(privJWK)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-0.json
 	knownCred := TestCredential{
@@ -102,7 +102,7 @@ func TestJsonWebSignature2020TestVectors(t *testing.T) {
 	pubJWK, err := jwk.ParseKey(pubJWKBytes)
 	assert.NoError(t, err)
 
-	verifier := NewVerifierbro(pubJWK)
+	verifier := NewJSONWebKeyVerifier(pubJWK)
 
 	// first verify our credential
 	err = suite.Verify(verifier, *p)
@@ -145,19 +145,9 @@ func TestJSONWebKey2020ToJWK(t *testing.T) {
 		},
 	}
 
-	privJWKBytes, err := json.Marshal(knownJWK.PrivateKeyJWK)
+	signer := NewJSONWebKeySigner(knownJWK.PrivateKeyJWK)
+	verifier, err := NewJSONWebKeyVerifier(knownJWK.PublicKeyJWK)
 	assert.NoError(t, err)
-
-	privJWK, err := jwk.ParseKey(privJWKBytes)
-	assert.NoError(t, err)
-
-	pubJWKBytes, err := json.Marshal(knownJWK.PublicKeyJWK)
-	assert.NoError(t, err)
-	pubJWK, err := jwk.ParseKey(pubJWKBytes)
-	assert.NoError(t, err)
-
-	signer := NewSignerbro(privJWK)
-	verifier := NewVerifierbro(pubJWK)
 
 	msg := []byte("hello")
 	sig, err := signer.Sign(msg)

@@ -41,12 +41,11 @@ func TestJSONWebKey2020SignerVerifier(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			kty := test.kty
 			crv := test.crv
-			privKey, jwk, err := GenerateJSONWebKey2020(kty, crv)
+			jwk, err := GenerateJSONWebKey2020(kty, crv)
 			assert.NoError(t, err)
-			assert.NotEmpty(t, privKey)
 			assert.NotEmpty(t, jwk)
 
-			signer, err := NewJSONWebKey2020Signer(test.name, kty, crv, privKey)
+			signer, err := NewJSONWebKeySigner(jwk.PrivateKeyJWK)
 			assert.NoError(t, err)
 
 			testMessage := []byte("my name is satoshi")
@@ -54,7 +53,8 @@ func TestJSONWebKey2020SignerVerifier(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, signature)
 
-			verifier := NewJSONWebKey2020Verifier(*jwk)
+			verifier, err := NewJSONWebKeyVerifier(jwk.PublicKeyJWK)
+			assert.NoError(t, err)
 			assert.NotEmpty(t, verifier)
 
 			err = verifier.Verify(testMessage, signature)

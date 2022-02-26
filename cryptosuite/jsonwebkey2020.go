@@ -8,10 +8,8 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"hash"
-	"math/big"
-	"strconv"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jws"
@@ -22,9 +20,6 @@ import (
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
-	. "github.com/TBD54566975/did-sdk/util"
-
-	"filippo.io/edwards25519"
 	"github.com/pkg/errors"
 )
 
@@ -35,6 +30,8 @@ type (
 )
 
 const (
+	JsonWebKey2020 string = "JsonWebKey2020"
+
 	// Supported key types
 
 	OKP KTY = "OKP"
@@ -76,15 +73,15 @@ type JSONWebKey2020 struct {
 
 // PrivateKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
 type PrivateKeyJWK struct {
-	KTY    KTY    `json:"kty" validate:"required"`
-	CRV    CRV    `json:"crv,omitempty"`
+	KTY    string `json:"kty" validate:"required"`
+	CRV    string `json:"crv,omitempty"`
 	X      string `json:"x,omitempty"`
 	Y      string `json:"y,omitempty"`
 	N      string `json:"n,omitempty"`
 	E      string `json:"e,omitempty"`
 	Use    string `json:"use,omitempty"`
 	KeyOps string `json:"key_ops,omitempty"`
-	Alg    ALG    `json:"alg,omitempty"`
+	Alg    string `json:"alg,omitempty"`
 	KID    string `json:"kid,omitempty"`
 	D      string `json:"d,omitempty"`
 	DP     string `json:"dp,omitempty"`
@@ -96,15 +93,15 @@ type PrivateKeyJWK struct {
 
 // PublicKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
 type PublicKeyJWK struct {
-	KTY    KTY    `json:"kty" validate:"required"`
-	CRV    CRV    `json:"crv,omitempty"`
+	KTY    string `json:"kty" validate:"required"`
+	CRV    string `json:"crv,omitempty"`
 	X      string `json:"x,omitempty"`
 	Y      string `json:"y,omitempty"`
 	N      string `json:"n,omitempty"`
 	E      string `json:"e,omitempty"`
 	Use    string `json:"use,omitempty"`
 	KeyOps string `json:"key_ops,omitempty"`
-	Alg    ALG    `json:"alg,omitempty"`
+	Alg    string `json:"alg,omitempty"`
 	KID    string `json:"kid,omitempty"`
 }
 
@@ -116,17 +113,15 @@ type JSONWebKey interface {
 	ToPrivateKey() (crypto.PrivateKey, error)
 }
 
-type JSONWebKeySecp256k1 struct{}
-
 // GenerateJSONWebKey2020 The JSONWebKey2020 type specifies a number of key type and curve pairs to enable JOSE conformance
 // these pairs are supported in this library and generated via the function below
 // https://w3c-ccg.github.io/lds-jws2020/#dfn-jsonwebkey2020
-func GenerateJSONWebKey2020(kty KTY, crv *CRV) (crypto.PrivateKey, *PublicKeyJWK, error) {
+func GenerateJSONWebKey2020(kty KTY, crv *CRV) (*JSONWebKey2020, error) {
 	if kty == RSA {
 		return GenerateRSAJSONWebKey2020()
 	}
 	if crv == nil {
-		return nil, nil, errors.New("crv must be specified for non-RSA key types")
+		return nil, errors.New("crv must be specified for non-RSA key types")
 	}
 	curve := *crv
 	if kty == OKP {
@@ -136,7 +131,7 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (crypto.PrivateKey, *PublicKeyJWK
 		case X25519:
 			return GenerateX25519JSONWebKey2020()
 		default:
-			return nil, nil, fmt.Errorf("unsupported OKP curve: %s", curve)
+			return nil, fmt.Errorf("unsupported OKP curve: %s", curve)
 		}
 
 	}
@@ -149,27 +144,55 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (crypto.PrivateKey, *PublicKeyJWK
 		case P384:
 			return GenerateP384JSONWebKey2020()
 		default:
-			return nil, nil, fmt.Errorf("unsupported EC curve: %s", curve)
+			return nil, fmt.Errorf("unsupported EC curve: %s", curve)
 		}
 	}
-	return nil, nil, fmt.Errorf("unsupported key type: %s", kty)
+	return nil, fmt.Errorf("unsupported key type: %s", kty)
 }
 
-func X25519JSONWebKey2020(pubKeyBytes []byte) (*PublicKeyJWK, error) {
-	if len(pubKeyBytes) != ed25519.PublicKeySize {
-		return nil, fmt.Errorf("key size<%d> is not equal to required ed25519 public key size: %d", len(pubKeyBytes), ed25519.PublicKeySize)
-	}
-	point, err := edwards25519.NewGeneratorPoint().SetBytes(pubKeyBytes)
+func GenerateRSAJSONWebKey2020() (*JSONWebKey2020, error) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, RSAKeySize)
 	if err != nil {
 		return nil, err
 	}
-	x25519PubKey := point.BytesMontgomery()
-	x := base64.RawURLEncoding.EncodeToString(x25519PubKey)
-	return &PublicKeyJWK{
-		KTY: OKP,
-		CRV: X25519,
-		X:   x,
+	rsaJWK := jwk.NewRSAPrivateKey()
+	if err := rsaJWK.FromRaw(privateKey); err != nil {
+		return nil, err
+	}
+	kty := rsaJWK.KeyType().String()
+	n := encodeToBase64RawURL(rsaJWK.N())
+	e := encodeToBase64RawURL(rsaJWK.E())
+	return &JSONWebKey2020{
+		Type: JsonWebKey2020,
+		PrivateKeyJWK: PrivateKeyJWK{
+			KTY: kty,
+			N:   n,
+			E:   e,
+			D:   encodeToBase64RawURL(rsaJWK.D()),
+			DP:  encodeToBase64RawURL(rsaJWK.DP()),
+			DQ:  encodeToBase64RawURL(rsaJWK.DQ()),
+			P:   encodeToBase64RawURL(rsaJWK.P()),
+			Q:   encodeToBase64RawURL(rsaJWK.Q()),
+			QI:  encodeToBase64RawURL(rsaJWK.QI()),
+		},
+		PublicKeyJWK: PublicKeyJWK{
+			KTY: kty,
+			N:   n,
+			E:   e,
+		},
 	}, nil
+}
+
+func GenerateEd25519JSONWebKey2020() (*ed25519.PrivateKey, *PublicKeyJWK, error) {
+	pubKey, privKey, err := util.GenerateEd25519Key()
+	if err != nil {
+		return nil, nil, err
+	}
+	pubKeyJWK, err := PublicEd25519JSONWebKey2020(pubKey)
+	if err != nil {
+		return nil, nil, err
+	}
+	return &privKey, pubKeyJWK, nil
 }
 
 func GenerateX25519JSONWebKey2020() (*ed25519.PrivateKey, *PublicKeyJWK, error) {
@@ -185,15 +208,6 @@ func GenerateX25519JSONWebKey2020() (*ed25519.PrivateKey, *PublicKeyJWK, error) 
 		return nil, nil, err
 	}
 	return &privKey, pubKeyJWK, nil
-}
-
-func SECP256k1JSONWebKey2020(pubKey secp.PublicKey) (*PublicKeyJWK, error) {
-	return &PublicKeyJWK{
-		KTY: EC,
-		CRV: SECP256k1,
-		X:   pubKey.X().String(),
-		Y:   pubKey.Y().String(),
-	}, nil
 }
 
 func GenerateSECP256k1JSONWebKey2020() (*secp.PrivateKey, *PublicKeyJWK, error) {
@@ -212,15 +226,6 @@ func GenerateSECP256k1JSONWebKey2020() (*secp.PrivateKey, *PublicKeyJWK, error) 
 	return privKey, pubKeyJWK, nil
 }
 
-func P256JSONWebKey2020(pubKey ecdsa.PublicKey) (*PublicKeyJWK, error) {
-	return &PublicKeyJWK{
-		KTY: EC,
-		CRV: P256,
-		X:   pubKey.X.String(),
-		Y:   pubKey.Y.String(),
-	}, nil
-}
-
 func GenerateP256JSONWebKey2020() (*ecdsa.PrivateKey, *PublicKeyJWK, error) {
 	privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
@@ -231,15 +236,6 @@ func GenerateP256JSONWebKey2020() (*ecdsa.PrivateKey, *PublicKeyJWK, error) {
 		return nil, nil, err
 	}
 	return privKey, pubKeyJWK, nil
-}
-
-func P384JSONWebKey2020(pubKey ecdsa.PublicKey) (*PublicKeyJWK, error) {
-	return &PublicKeyJWK{
-		KTY: EC,
-		CRV: P384,
-		X:   pubKey.X.String(),
-		Y:   pubKey.Y.String(),
-	}, nil
 }
 
 func GenerateP384JSONWebKey2020() (*ecdsa.PrivateKey, *PublicKeyJWK, error) {
@@ -254,325 +250,150 @@ func GenerateP384JSONWebKey2020() (*ecdsa.PrivateKey, *PublicKeyJWK, error) {
 	return privKey, pubKeyJWK, nil
 }
 
-func RSAJSONWebKey2020(pubKey rsa.PublicKey) (*PublicKeyJWK, error) {
-	return &PublicKeyJWK{
-		KTY: RSA,
-		N:   pubKey.N.String(),
-		E:   strconv.Itoa(pubKey.E),
-	}, nil
-}
-
-func GenerateRSAJSONWebKey2020() (*rsa.PrivateKey, *PublicKeyJWK, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, RSAKeySize)
-	if err != nil {
-		return nil, nil, err
-	}
-	pubKeyJWK, err := RSAJSONWebKey2020(privateKey.PublicKey)
-	if err != nil {
-		return nil, nil, err
-	}
-	return privateKey, pubKeyJWK, nil
-}
-
-type JSONWebKey2020Signer struct {
-	ID   string
-	Type KeyType
-
-	// JWK specific properties
-	kty KTY
-	crv *CRV
-	alg ALG
-
-	// TODO(gabe) JWKPrivateKey wrapper
-	ed25519PrivateKey *ed25519.PrivateKey
-	ecdsaPrivateKey   *ecdsa.PrivateKey
-	rsaPrivateKey     *rsa.PrivateKey
-}
-
-type Signerbro struct {
+type JSONWebKeySigner struct {
+	jwa.SignatureAlgorithm
 	jwk.Key
 }
 
-func NewSignerbro(key jwk.Key) Signerbro {
-	return Signerbro{
-		Key: key,
-	}
+func (s JSONWebKeySigner) KeyID() string {
+	return s.Key.KeyID()
 }
 
-func (s Signerbro) KeyID() string                { return "" }
-func (s Signerbro) KeyType() KeyType             { return "" }
-func (s Signerbro) SignatureType() SignatureType { return "" }
-func (s Signerbro) SigningAlgorithm() string     { return "" }
-func (s Signerbro) Sign(tbs []byte) ([]byte, error) {
-	hdrs := jws.NewHeaders()
-	hdrs.Set("b64", false)
-	hdrs.Set("crit", "b64")
-	signOptions := []jws.SignOption{jws.WithHeaders(hdrs), jws.WithDetachedPayload(tbs)}
+func (s JSONWebKeySigner) KeyType() string {
+	return string(s.Key.KeyType())
+}
+
+func (s JSONWebKeySigner) SigningAlgorithm() string {
+	return s.Algorithm()
+}
+
+func (s JSONWebKeySigner) Sign(tbs []byte) ([]byte, error) {
+	headers := jws.NewHeaders()
+	if err := headers.Set("b64", false); err != nil {
+		return nil, err
+	}
+	if err := headers.Set("crit", "b64"); err != nil {
+		return nil, err
+	}
+	signOptions := []jws.SignOption{jws.WithHeaders(headers), jws.WithDetachedPayload(tbs)}
 	return jws.Sign(nil, jwa.EdDSA, s.Key, signOptions...)
 }
 
-type Verifierbro struct {
+func NewJSONWebKeySigner(key PrivateKeyJWK) (*JSONWebKeySigner, error) {
+	if key.KID == "" {
+		return nil, errors.New("key must have an `kid` value")
+	}
+	privKeyJWKBytes, err := json.Marshal(key)
+	if err != nil {
+		return nil, err
+	}
+	privKeyJWK, err := jwk.ParseKey(privKeyJWKBytes)
+	if err != nil {
+		return nil, err
+	}
+	var crv string
+	if maybeCrv, b := privKeyJWK.Get("crv"); b {
+		if strCrv, ok := maybeCrv.(string); ok {
+			crv = strCrv
+		}
+		return nil, fmt.Errorf("could not get curve value: %+v", maybeCrv)
+	}
+	alg, err := AlgFromKeyAndCurve(privKeyJWK.KeyType(), jwa.EllipticCurveAlgorithm(crv))
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get verification alg from jwk")
+	}
+	return &JSONWebKeySigner{
+		SignatureAlgorithm: alg,
+		Key:                privKeyJWK,
+	}, nil
+}
+
+type JSONWebKeyVerifier struct {
+	jwa.SignatureAlgorithm
 	jwk.Key
 }
 
-func NewVerifierbro(key jwk.Key) Verifierbro {
-	return Verifierbro{key}
+func (v JSONWebKeyVerifier) KeyID() string {
+	return v.Key.KeyID()
 }
 
-func (v Verifierbro) KeyID() string    { return "" }
-func (v Verifierbro) KeyType() KeyType { return "" }
-func (v Verifierbro) Verify(message, signature []byte) error {
+func (v JSONWebKeyVerifier) KeyType() string {
+	return string(v.Key.KeyType())
+}
+
+func (v JSONWebKeyVerifier) Verify(message, signature []byte) error {
 	_, err := jws.Verify(signature, jwa.EdDSA, v.Key, jws.VerifyOption(jws.WithDetachedPayload(message)))
 	return err
 }
 
-func NewJSONWebKey2020Signer(id string, kty KTY, crv *CRV, privateKey crypto.PrivateKey) (*JSONWebKey2020Signer, error) {
-	signer := JSONWebKey2020Signer{
-		ID:   id,
-		Type: JsonWebKey2020,
-		kty:  kty,
-		crv:  crv,
+func NewJSONWebKeyVerifier(key PublicKeyJWK) (*JSONWebKeyVerifier, error) {
+	if key.KID == "" {
+		return nil, errors.New("key must have an `kid` value")
 	}
-
-	if kty == RSA {
-		rsaPrivateKey, ok := privateKey.(*rsa.PrivateKey)
-		if !ok {
-			return nil, errors.New("provided RSA key not valid")
-		}
-		signer.rsaPrivateKey = rsaPrivateKey
-		signer.alg = RS256
-		return &signer, nil
-	}
-
-	if crv == nil {
-		return nil, errors.New("crv must be specified for non-RSA key types")
-	}
-
-	curve := *crv
-	if kty == OKP {
-		switch curve {
-		case Ed25519:
-			ed25519PrivateKey, ok := privateKey.(*ed25519.PrivateKey)
-			if !ok {
-				return nil, errors.New("provided ed25519 key not valid")
-			}
-			signer.ed25519PrivateKey = ed25519PrivateKey
-			signer.alg = EdDSA
-			return &signer, nil
-		default:
-			return nil, fmt.Errorf("unsupported OKP signing curve: %s", curve)
-		}
-	}
-
-	if kty == EC {
-		switch curve {
-		case SECP256k1:
-			secp256k1PrivateKey, ok := privateKey.(*secp.PrivateKey)
-			if !ok {
-				return nil, errors.New("provided secp256k1 key not valid")
-			}
-			signer.ecdsaPrivateKey = secp256k1PrivateKey.ToECDSA()
-			signer.alg = ES256K
-			return &signer, nil
-		case P256:
-			ecdsaPrivateKey, ok := privateKey.(*ecdsa.PrivateKey)
-			if !ok {
-				return nil, errors.New("provided ecdsa p256 key not valid")
-			}
-			signer.ecdsaPrivateKey = ecdsaPrivateKey
-			signer.alg = PS256
-			return &signer, nil
-		case P384:
-			ecdsaPrivateKey, ok := privateKey.(*ecdsa.PrivateKey)
-			if !ok {
-				return nil, errors.New("provided ecdsa p384 key not valid")
-			}
-			signer.ecdsaPrivateKey = ecdsaPrivateKey
-			signer.alg = PS384
-			return &signer, nil
-		default:
-			return nil, fmt.Errorf("unsupported EC curve: %s", curve)
-		}
-	}
-
-	return nil, fmt.Errorf("unsupported key type: %s", kty)
-}
-
-type JSONWebKey2020Verifier struct {
-	Type      KeyType
-	publicKey PublicKeyJWK
-}
-
-func (j JSONWebKey2020Signer) KeyID() string {
-	return j.ID
-}
-
-func (j JSONWebKey2020Signer) KeyType() KeyType {
-	return j.Type
-}
-
-func NewJSONWebKey2020Verifier(jwk PublicKeyJWK) JSONWebKey2020Verifier {
-	return JSONWebKey2020Verifier{
-		Type:      JsonWebKey2020,
-		publicKey: jwk,
-	}
-}
-
-func (j JSONWebKey2020Signer) SignatureType() SignatureType {
-	return JSONWebSignature2020
-}
-
-func (j JSONWebKey2020Signer) SigningAlgorithm() string {
-	return string(j.alg)
-}
-
-func (j JSONWebKey2020Signer) Sign(tbs []byte) ([]byte, error) {
-	if j.ed25519PrivateKey != nil {
-		signature := ed25519.Sign(*j.ed25519PrivateKey, tbs)
-		return signature, nil
-	}
-	if j.ecdsaPrivateKey != nil {
-		if j.crv == nil {
-			return nil, fmt.Errorf("no crv set for ecdsa signer")
-		}
-		return signECDSA(*j.crv, j.ecdsaPrivateKey, tbs)
-	}
-	if j.rsaPrivateKey != nil {
-		hasher := crypto.SHA256.New()
-		hasher.Write(tbs)
-		digest := hasher.Sum(nil)
-		// sign with PKCS #1 v1.5
-		return j.rsaPrivateKey.Sign(rand.Reader, digest, crypto.SHA256)
-	}
-	return nil, errors.New("signer contained no keys")
-}
-
-// TODO(gabe) consider a separate ecdsa signer
-func signECDSA(crv CRV, key *ecdsa.PrivateKey, tbs []byte) ([]byte, error) {
-	var r, s *big.Int
-	var err error
-	var hasher hash.Hash
-	reader := rand.Reader
-	switch crv {
-	case SECP256k1, P256:
-		hasher = crypto.SHA256.New()
-	case P384:
-		hasher = crypto.SHA384.New()
-	default:
-		return nil, fmt.Errorf("unable to sign, unknown crv<%s> in signer", crv)
-	}
-	hasher.Write(tbs)
-	digest := hasher.Sum(nil)
-	r, s, err = ecdsa.Sign(reader, key, digest)
-	bytes := append(r.Bytes(), s.Bytes()...)
-	return bytes, err
-}
-
-func (j JSONWebKey2020Verifier) KeyID() string {
-	return j.publicKey.KID
-}
-
-func (j JSONWebKey2020Verifier) KeyType() KeyType {
-	return j.Type
-}
-
-func (j JSONWebKey2020Verifier) Verify(message, signature []byte) error {
-	crv := j.publicKey.CRV
-	switch j.publicKey.KTY {
-	case RSA:
-		return verifyRSAFromJWK(j.publicKey, message, signature)
-	case OKP:
-		switch crv {
-		case Ed25519, X25519:
-			return verifyEd25519FromJWK(j.publicKey, message, signature)
-		default:
-			return fmt.Errorf("unsupported OKP curve: %s", crv)
-		}
-	case EC:
-		switch crv {
-		case SECP256k1, P256, P384:
-			return verifyECDSAFromJWK(j.publicKey, message, signature)
-		default:
-			return fmt.Errorf("unsupported EC curve: %s", crv)
-		}
-	}
-	return fmt.Errorf("could not verify for given jwk: %+v", j.publicKey)
-}
-
-func verifyRSAFromJWK(jwk PublicKeyJWK, message, signature []byte) error {
-	n := new(big.Int)
-	n, ok := n.SetString(jwk.N, 10)
-	if !ok {
-		return fmt.Errorf("could not verify for given jwk: %+v", jwk)
-	}
-	e, err := strconv.Atoi(jwk.E)
+	pubKeyJWKBytes, err := json.Marshal(key)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	pubKey := rsa.PublicKey{
-		N: n,
-		E: e,
-	}
-	hash := crypto.SHA256.New()
-	hash.Write(message)
-	digest := hash.Sum(nil)
-	return rsa.VerifyPKCS1v15(&pubKey, crypto.SHA256, digest, signature)
-}
-
-func verifyEd25519FromJWK(jwk PublicKeyJWK, message, signature []byte) error {
-	pubKeyBytes, err := base64.RawURLEncoding.DecodeString(jwk.X)
-	// JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is
+	pubKeyJWK, err := jwk.ParseKey(pubKeyJWKBytes)
 	if err != nil {
-		return errors.Wrap(err, "could not decode ed25519 public key value from JWK")
+		return nil, err
 	}
-	if len(pubKeyBytes) != ed25519.PublicKeySize {
-		return fmt.Errorf("key size<%d> is not equal to required ed25519 public key size: %d", len(pubKeyBytes), ed25519.PublicKeySize)
+	var crv string
+	if maybeCrv, b := pubKeyJWK.Get("crv"); b {
+		if strCrv, ok := maybeCrv.(string); ok {
+			crv = strCrv
+		}
+		return nil, fmt.Errorf("could not get curve value: %+v", maybeCrv)
 	}
-	if !ed25519.Verify(pubKeyBytes, message, signature) {
-		return errors.New("ed25519 public key verification failed")
+
+	alg, err := AlgFromKeyAndCurve(pubKeyJWK.KeyType(), jwa.EllipticCurveAlgorithm(crv))
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get verification alg from jwk")
 	}
-	return nil
+	return &JSONWebKeyVerifier{
+		SignatureAlgorithm: alg,
+		Key:                pubKeyJWK,
+	}, nil
 }
 
-func verifyECDSAFromJWK(jwk PublicKeyJWK, message, signature []byte) error {
-	x, y := new(big.Int), new(big.Int)
-	x, xok := x.SetString(jwk.X, 10)
-	y, yok := y.SetString(jwk.Y, 10)
-	if !(xok && yok) {
-		return fmt.Errorf("could not reconstruct ecdsa public key: %+v", jwk)
+func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.SignatureAlgorithm, error) {
+	if kty == jwa.RSA {
+		return jwa.RS256, nil
 	}
-	pubKey := ecdsa.PublicKey{
-		X: x,
-		Y: y,
+
+	if crv == "" {
+		return "", errors.New("crv must be specified for non-RSA key types")
 	}
-	var hasher hash.Hash
-	var keySize int
-	switch jwk.CRV {
-	case SECP256k1:
-		pubKey.Curve = secp.S256()
-		hasher = crypto.SHA256.New()
-		keySize = SECP256k1KeySize
-	case P256:
-		pubKey.Curve = elliptic.P256()
-		hasher = crypto.SHA256.New()
-		keySize = P256KeySize
-	case P384:
-		pubKey.Curve = elliptic.P384()
-		hasher = crypto.SHA384.New()
-		keySize = P384KeySize
-	default:
-		return fmt.Errorf("unable to sign, unknown crv<%s> in signer", jwk.CRV)
+
+	curve := crv
+	if kty == jwa.OKP {
+		switch curve {
+		case jwa.Ed25519:
+			return jwa.EdDSA, nil
+		default:
+			return "", fmt.Errorf("unsupported OKP signing curve: %s", curve)
+		}
 	}
-	hasher.Write(message)
-	digest := hasher.Sum(nil)
-	r := big.NewInt(0).SetBytes(signature[:keySize])
-	s := big.NewInt(0).SetBytes(signature[keySize:])
-	if !ecdsa.Verify(&pubKey, digest, r, s) {
-		return errors.New("ecdsa public key verification failed")
+
+	if kty == jwa.EC {
+		switch curve {
+		case jwa.EllipticCurveAlgorithm(SECP256k1):
+			return jwa.ES256K, nil
+		case jwa.P256:
+			return jwa.PS256, nil
+		case jwa.P384:
+			return jwa.PS384, nil
+		default:
+			return "", fmt.Errorf("unsupported EC curve: %s", curve)
+		}
 	}
-	return nil
+	return "", fmt.Errorf("unsupported key type: %s", kty)
 }
 
 func crvPtr(crv CRV) *CRV {
 	return &crv
+}
+
+func encodeToBase64RawURL(data []byte) string {
+	return base64.RawURLEncoding.EncodeToString(data)
 }

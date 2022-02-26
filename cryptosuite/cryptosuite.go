@@ -10,7 +10,9 @@ import (
 )
 
 type (
-	Proof interface{}
+	Proof         interface{}
+	SignatureType string
+	ProofPurpose  string
 )
 
 const (
@@ -36,7 +38,7 @@ type CryptoSuite interface {
 
 type CryptoSuiteInfo interface {
 	ID() string
-	Type() KeyType
+	Type() string
 	CanonicalizationAlgorithm() string
 	MessageDigestAlgorithm() crypto.Hash
 	SignatureAlgorithm() SignatureType
@@ -61,7 +63,7 @@ type Provable interface {
 
 type Signer interface {
 	KeyID() string
-	KeyType() KeyType
+	KeyType() string
 	SignatureType() SignatureType
 	SigningAlgorithm() string
 	Sign(tbs []byte) ([]byte, error)
@@ -69,7 +71,7 @@ type Signer interface {
 
 type Verifier interface {
 	KeyID() string
-	KeyType() KeyType
+	KeyType() string
 	Verify(message, signature []byte) error
 }
 

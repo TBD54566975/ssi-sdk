@@ -34,7 +34,7 @@ func (j JWSSignatureSuite) ID() string {
 	return JWSSignatureSuiteID
 }
 
-func (j JWSSignatureSuite) Type() KeyType {
+func (j JWSSignatureSuite) Type() string {
 	return JWSSignatureSuiteType
 }
 
