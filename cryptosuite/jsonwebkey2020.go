@@ -1,4 +1,4 @@
-package jsonwebkey2020
+package cryptosuite
 
 import (
 	"crypto"
@@ -13,7 +13,11 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jws"
+
+	"github.com/lestrrat-go/jwx/jwk"
+
 	"github.com/TBD54566975/did-sdk/util"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
@@ -285,6 +289,43 @@ type JSONWebKey2020Signer struct {
 	rsaPrivateKey     *rsa.PrivateKey
 }
 
+type Signerbro struct {
+	jwk.Key
+}
+
+func NewSignerbro(key jwk.Key) Signerbro {
+	return Signerbro{
+		Key: key,
+	}
+}
+
+func (s Signerbro) KeyID() string                { return "" }
+func (s Signerbro) KeyType() KeyType             { return "" }
+func (s Signerbro) SignatureType() SignatureType { return "" }
+func (s Signerbro) SigningAlgorithm() string     { return "" }
+func (s Signerbro) Sign(tbs []byte) ([]byte, error) {
+	hdrs := jws.NewHeaders()
+	hdrs.Set("b64", false)
+	hdrs.Set("crit", "b64")
+	signOptions := []jws.SignOption{jws.WithHeaders(hdrs), jws.WithDetachedPayload(tbs)}
+	return jws.Sign(nil, jwa.EdDSA, s.Key, signOptions...)
+}
+
+type Verifierbro struct {
+	jwk.Key
+}
+
+func NewVerifierbro(key jwk.Key) Verifierbro {
+	return Verifierbro{key}
+}
+
+func (v Verifierbro) KeyID() string    { return "" }
+func (v Verifierbro) KeyType() KeyType { return "" }
+func (v Verifierbro) Verify(message, signature []byte) error {
+	_, err := jws.Verify(signature, jwa.EdDSA, v.Key, jws.VerifyOption(jws.WithDetachedPayload(message)))
+	return err
+}
+
 func NewJSONWebKey2020Signer(id string, kty KTY, crv *CRV, privateKey crypto.PrivateKey) (*JSONWebKey2020Signer, error) {
 	signer := JSONWebKey2020Signer{
 		ID:   id,
@@ -378,7 +419,7 @@ func NewJSONWebKey2020Verifier(jwk PublicKeyJWK) JSONWebKey2020Verifier {
 }
 
 func (j JSONWebKey2020Signer) SignatureType() SignatureType {
-	return cryptosuite.JSONWebSignature2020
+	return JSONWebSignature2020
 }
 
 func (j JSONWebKey2020Signer) SigningAlgorithm() string {
@@ -480,6 +521,7 @@ func verifyRSAFromJWK(jwk PublicKeyJWK, message, signature []byte) error {
 
 func verifyEd25519FromJWK(jwk PublicKeyJWK, message, signature []byte) error {
 	pubKeyBytes, err := base64.RawURLEncoding.DecodeString(jwk.X)
+	// JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is
 	if err != nil {
 		return errors.Wrap(err, "could not decode ed25519 public key value from JWK")
 	}

@@ -7,6 +7,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1
 	github.com/go-playground/validator/v10 v10.10.0
 	github.com/gobuffalo/packr/v2 v2.8.3
+	github.com/lestrrat-go/jwx v1.2.19
 	github.com/magefile/mage v1.12.1
 	github.com/multiformats/go-multibase v0.0.3
 	github.com/multiformats/go-multicodec v0.4.0
@@ -24,8 +25,14 @@ require (
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/gobuffalo/logger v1.0.6 // indirect
 	github.com/gobuffalo/packd v1.0.1 // indirect
+	github.com/goccy/go-json v0.9.4 // indirect
 	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
+	github.com/lestrrat-go/blackmagic v1.0.0 // indirect
+	github.com/lestrrat-go/httpcc v1.0.0 // indirect
+	github.com/lestrrat-go/iter v1.0.1 // indirect
+	github.com/lestrrat-go/option v1.0.0 // indirect
 	github.com/markbates/errx v1.1.0 // indirect
 	github.com/markbates/oncer v1.0.0 // indirect
 	github.com/markbates/safe v1.0.1 // indirect

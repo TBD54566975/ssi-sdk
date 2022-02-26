@@ -84,12 +84,12 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
 	}
 
 	// 5. prepare the JWS value to be set as the `signature` in the proof block
-	detachedJWS, err := createDetachedJWS(s.SigningAlgorithm(), signature)
-	if err != nil {
-		return nil, err
-	}
+	//detachedJWS, err := createDetachedJWS(s.SigningAlgorithm(), signature)
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	proof.SetDetachedJWS(*detachedJWS)
+	proof.SetDetachedJWS(string(signature))
 	genericProof := Proof(proof)
 	p.SetProof(&genericProof)
 	return &p, nil
@@ -106,12 +106,13 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	p.SetProof(nil)
 
 	// pull off JWS to get signature
-	decodedJWS, err := gotProof.DecodeJWS()
-	if err != nil {
-		return errors.Wrap(err, "could not decode jws")
-	}
+	//decodedJWS, err := gotProof.DecodeJWS()
+	//if err != nil {
+	//	return errors.Wrap(err, "could not decode jws")
+	//}
 
 	// remove the JWS value in the proof before verification
+	jwsCopy := gotProof.JWS
 	gotProof.SetDetachedJWS("")
 
 	// prepare proof options
@@ -127,7 +128,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 		return err
 	}
 
-	return v.Verify(tbv, decodedJWS)
+	return v.Verify(tbv, []byte(jwsCopy))
 }
 
 func (j JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
@@ -194,7 +195,7 @@ func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof Proof, opts
 
 	// 4.2 set output to the result of the hash of the canonicalized options document
 	canonicalizedOptionsBytes := []byte(*canonicalizedOptions)
-	output, err := j.Digest(canonicalizedOptionsBytes)
+	optionsDigest, err := j.Digest(canonicalizedOptionsBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not take digest of proof")
 	}
@@ -205,9 +206,9 @@ func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof Proof, opts
 	if err != nil {
 		return nil, errors.Wrap(err, "could not take digest of provable")
 	}
-	output = append(output, documentDigest...)
 
 	// 5. return the output
+	output := append(optionsDigest, documentDigest...)
 	return output, nil
 }
 
@@ -372,7 +373,7 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 func (j JWSSignatureSuite) createProof(verificationMethod string) JsonWebSignature2020Proof {
 	return JsonWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
-		Created:            GetISO8601Timestamp(),
+		Created:            "2021-01-01T19:23:24Z", // GetISO8601Timestamp(),
 		ProofPurpose:       AssertionMethod,
 		VerificationMethod: verificationMethod,
 	}
