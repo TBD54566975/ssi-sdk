@@ -77,18 +77,13 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
 		return nil, err
 	}
 
-	// 4. create the signature over the provable data
+	// 4 & 5. create the signature over the provable data as a JWS
 	signature, err := s.Sign(tbs)
 	if err != nil {
 		return nil, err
 	}
 
-	// 5. prepare the JWS value to be set as the `signature` in the proof block
-	//detachedJWS, err := createDetachedJWS(s.SigningAlgorithm(), signature)
-	//if err != nil {
-	//	return nil, err
-	//}
-
+	// set the signature on the proof object and return
 	proof.SetDetachedJWS(string(signature))
 	genericProof := Proof(proof)
 	p.SetProof(&genericProof)
@@ -105,14 +100,8 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	// remove proof before verifying
 	p.SetProof(nil)
 
-	// pull off JWS to get signature
-	//decodedJWS, err := gotProof.DecodeJWS()
-	//if err != nil {
-	//	return errors.Wrap(err, "could not decode jws")
-	//}
-
 	// remove the JWS value in the proof before verification
-	jwsCopy := gotProof.JWS
+	jwsCopy := []byte(gotProof.JWS)
 	gotProof.SetDetachedJWS("")
 
 	// prepare proof options
@@ -128,7 +117,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 		return err
 	}
 
-	return v.Verify(tbv, []byte(jwsCopy))
+	return v.Verify(tbv, jwsCopy)
 }
 
 func (j JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
@@ -243,31 +232,6 @@ func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof
 	return &p, nil
 }
 
-func createDetachedJWS(alg string, signature []byte) (*string, error) {
-	headerStr, err := getJWSHeader(alg)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not get jws header")
-	}
-	signatureStr := base64.RawURLEncoding.EncodeToString(signature)
-	detachedJWS := *headerStr + ".." + signatureStr
-	return &detachedJWS, nil
-}
-
-func getJWSHeader(alg string) (*string, error) {
-	// header is set as per the spec https://w3c-ccg.github.io/lds-jws2020/#json-web-signature-2020
-	header := map[string]interface{}{
-		"alg":  alg,
-		"b64":  false,
-		"crit": []string{"b64"},
-	}
-	headerBytes, err := json.Marshal(header)
-	if err != nil {
-		return nil, err
-	}
-	headerStr := base64.RawURLEncoding.EncodeToString(headerBytes)
-	return &headerStr, nil
-}
-
 // verifySuiteContext makes sure a given provable document has the @context values this suite requires
 func (j JWSSignatureSuite) verifySuiteContext(p Provable) error {
 	bytes, err := json.Marshal(p)
@@ -373,7 +337,7 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 func (j JWSSignatureSuite) createProof(verificationMethod string) JsonWebSignature2020Proof {
 	return JsonWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
-		Created:            "2021-01-01T19:23:24Z", // GetISO8601Timestamp(),
+		Created:            GetISO8601Timestamp(),
 		ProofPurpose:       AssertionMethod,
 		VerificationMethod: verificationMethod,
 	}
