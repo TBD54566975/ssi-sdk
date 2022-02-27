@@ -8,8 +8,9 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/piprate/json-gold/ld"
 	"strings"
+
+	"github.com/piprate/json-gold/ld"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -134,4 +135,53 @@ func (a *AppendError) Error() error {
 		return nil
 	}
 	return fmt.Errorf(strings.Join(*a, "\n"))
+}
+
+func Contains(needle string, haystack []string) bool {
+	for _, maybe := range haystack {
+		if maybe == needle {
+			return true
+		}
+	}
+	return false
+}
+
+func ArrayInterfaceToStr(have []interface{}) ([]string, error) {
+	var want []string
+	for _, item := range have {
+		strItem, ok := item.(string)
+		if !ok {
+			return nil, fmt.Errorf("found non-string item in array: %v", item)
+		}
+		want = append(want, strItem)
+	}
+	return want, nil
+}
+
+// InterfaceToStrings assumes we are given an interface of either `string`, `[]string` or `[]interface{}` types
+// and attempts to flatten into an array of strings
+func InterfaceToStrings(have interface{}) ([]string, error) {
+	// case 1: it's a string
+	strVal, ok := have.(string)
+	if ok {
+		return []string{strVal}, nil
+	}
+
+	// case 2: it's an array of string types
+	strVals, ok := have.([]string)
+	if ok {
+		var want []string
+		for _, s := range strVals {
+			want = append(want, s)
+		}
+		return want, nil
+	}
+
+	// case 3: it's an array of interface types
+	interVals, ok := have.([]interface{})
+	if ok {
+		return ArrayInterfaceToStr(interVals)
+	}
+
+	return nil, errors.New("could not turn interface into strings")
 }
