@@ -1,15 +1,17 @@
+//go:build jwx_es256k
+
 package cryptosuite
 
 import (
-	"crypto"
 	"crypto/ecdsa"
-	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+
+	"github.com/lestrrat-go/jwx/x25519"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jws"
@@ -46,23 +48,12 @@ const (
 	P256      CRV = "P-256"
 	P384      CRV = "P-384"
 
-	// Supported signing algs
-
-	EdDSA  ALG = "EdDSA"
-	ES256K ALG = "ES256K"
-	PS256  ALG = "PS256"
-	PS384  ALG = "PS384"
-	RS256  ALG = "RS256"
-
 	// Known key sizes
 
-	RSAKeySize       int = 2048
-	SECP256k1KeySize int = 32
-	P256KeySize      int = 32
-	P384KeySize      int = 48
+	RSAKeySize int = 2048
 )
 
-// TODO(gabe) use this everywhere
+// JSONWebKey2020 complies with https://w3c-ccg.github.io/lds-jws2020/#json-web-key-2020
 type JSONWebKey2020 struct {
 	ID            string `json:"id,omitempty"`
 	Type          string `json:"type,omitempty"`
@@ -103,14 +94,6 @@ type PublicKeyJWK struct {
 	KeyOps string `json:"key_ops,omitempty"`
 	Alg    string `json:"alg,omitempty"`
 	KID    string `json:"kid,omitempty"`
-}
-
-type JSONWebKey interface {
-	Generate() error
-	ToJSONWebKey2020(privKey []byte) error
-
-	ToPublicKey() (crypto.PublicKey, error)
-	ToPrivateKey() (crypto.PrivateKey, error)
 }
 
 // GenerateJSONWebKey2020 The JSONWebKey2020 type specifies a number of key type and curve pairs to enable JOSE conformance
@@ -157,7 +140,7 @@ func GenerateRSAJSONWebKey2020() (*JSONWebKey2020, error) {
 	}
 	rsaJWK := jwk.NewRSAPrivateKey()
 	if err := rsaJWK.FromRaw(privateKey); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to generate rsa jwk")
 	}
 	kty := rsaJWK.KeyType().String()
 	n := encodeToBase64RawURL(rsaJWK.N())
@@ -183,76 +166,168 @@ func GenerateRSAJSONWebKey2020() (*JSONWebKey2020, error) {
 	}, nil
 }
 
-func GenerateEd25519JSONWebKey2020() (*ed25519.PrivateKey, *PublicKeyJWK, error) {
-	pubKey, privKey, err := util.GenerateEd25519Key()
+func GenerateEd25519JSONWebKey2020() (*JSONWebKey2020, error) {
+	_, privKey, err := util.GenerateEd25519Key()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	pubKeyJWK, err := PublicEd25519JSONWebKey2020(pubKey)
-	if err != nil {
-		return nil, nil, err
+	ed25519JWK := jwk.NewOKPPrivateKey()
+	if err := ed25519JWK.FromRaw(privKey); err != nil {
+		return nil, errors.Wrap(err, "failed to generate ed25519 jwk")
 	}
-	return &privKey, pubKeyJWK, nil
+
+	kty := ed25519JWK.KeyType().String()
+	crv := ed25519JWK.Crv().String()
+	x := encodeToBase64RawURL(ed25519JWK.X())
+	return &JSONWebKey2020{
+		Type: JsonWebKey2020,
+		PrivateKeyJWK: PrivateKeyJWK{
+			KTY: kty,
+			CRV: crv,
+			X:   x,
+			D:   encodeToBase64RawURL(ed25519JWK.D()),
+		},
+		PublicKeyJWK: PublicKeyJWK{
+			KTY: kty,
+			CRV: crv,
+			X:   x,
+		},
+	}, nil
 }
 
-func GenerateX25519JSONWebKey2020() (*ed25519.PrivateKey, *PublicKeyJWK, error) {
-	// since ed25519 and x25519 have birational equivalence we do a conversion as a convenience
-	// this code is officially supported by the lead Golang cryptographer
-	// https://github.com/golang/go/issues/20504#issuecomment-873342677
-	pubKey, privKey, err := util.GenerateEd25519Key()
+func GenerateX25519JSONWebKey2020() (*JSONWebKey2020, error) {
+	_, privKey, err := x25519.GenerateKey(rand.Reader)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	pubKeyJWK, err := X25519JSONWebKey2020(pubKey)
-	if err != nil {
-		return nil, nil, err
+	x25519JWK := jwk.NewOKPPrivateKey()
+	if err := x25519JWK.FromRaw(privKey); err != nil {
+		return nil, errors.Wrap(err, "failed to generate x25519 jwk")
 	}
-	return &privKey, pubKeyJWK, nil
+
+	kty := x25519JWK.KeyType().String()
+	crv := x25519JWK.Crv().String()
+	x := encodeToBase64RawURL(x25519JWK.X())
+	return &JSONWebKey2020{
+		Type: JsonWebKey2020,
+		PrivateKeyJWK: PrivateKeyJWK{
+			KTY: kty,
+			CRV: crv,
+			X:   x,
+			D:   encodeToBase64RawURL(x25519JWK.D()),
+		},
+		PublicKeyJWK: PublicKeyJWK{
+			KTY: kty,
+			CRV: crv,
+			X:   x,
+		},
+	}, nil
 }
 
-func GenerateSECP256k1JSONWebKey2020() (*secp.PrivateKey, *PublicKeyJWK, error) {
+func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
 	// We use the secp256k1 implementation from Decred https://github.com/decred/dcrd
 	// which is utilized in the widely accepted go bitcoin node implementation from the btcsuite project
 	// https://github.com/btcsuite/btcd/blob/master/btcec/btcec.go#L23
 	privKey, err := secp.GeneratePrivateKey()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	pubKey := privKey.PubKey()
-	pubKeyJWK, err := SECP256k1JSONWebKey2020(*pubKey)
-	if err != nil {
-		return nil, nil, err
+	ecdsaPrivKey := privKey.ToECDSA()
+	secp256k1JWK := jwk.NewECDSAPrivateKey()
+	if err := secp256k1JWK.FromRaw(ecdsaPrivKey); err != nil {
+		return nil, errors.Wrap(err, "failed to generate secp256k1 jwk")
 	}
-	return privKey, pubKeyJWK, nil
+	kty := secp256k1JWK.KeyType().String()
+	crv := secp256k1JWK.Crv().String()
+	x := encodeToBase64RawURL(secp256k1JWK.X())
+	y := encodeToBase64RawURL(secp256k1JWK.Y())
+	return &JSONWebKey2020{
+		Type: JsonWebKey2020,
+		PrivateKeyJWK: PrivateKeyJWK{
+			KTY: kty,
+			CRV: crv,
+			X:   x,
+			Y:   y,
+			D:   encodeToBase64RawURL(secp256k1JWK.D()),
+		},
+		PublicKeyJWK: PublicKeyJWK{
+			KTY: kty,
+			CRV: crv,
+			X:   x,
+			Y:   y,
+		},
+	}, nil
 }
 
-func GenerateP256JSONWebKey2020() (*ecdsa.PrivateKey, *PublicKeyJWK, error) {
+func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
 	privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	pubKeyJWK, err := P256JSONWebKey2020(privKey.PublicKey)
-	if err != nil {
-		return nil, nil, err
+	p256JWK := jwk.NewECDSAPrivateKey()
+	if err := p256JWK.FromRaw(privKey); err != nil {
+		return nil, errors.Wrap(err, "failed to generate p-256 jwk")
 	}
-	return privKey, pubKeyJWK, nil
+	kty := p256JWK.KeyType().String()
+	crv := p256JWK.Crv().String()
+	x := encodeToBase64RawURL(p256JWK.X())
+	y := encodeToBase64RawURL(p256JWK.Y())
+	return &JSONWebKey2020{
+		Type: JsonWebKey2020,
+		PrivateKeyJWK: PrivateKeyJWK{
+			KTY: kty,
+			CRV: crv,
+			X:   x,
+			Y:   y,
+			D:   encodeToBase64RawURL(p256JWK.D()),
+		},
+		PublicKeyJWK: PublicKeyJWK{
+			KTY: kty,
+			CRV: crv,
+			X:   x,
+			Y:   y,
+		},
+	}, nil
 }
 
-func GenerateP384JSONWebKey2020() (*ecdsa.PrivateKey, *PublicKeyJWK, error) {
+func GenerateP384JSONWebKey2020() (*JSONWebKey2020, error) {
 	privKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	pubKeyJWK, err := P384JSONWebKey2020(privKey.PublicKey)
-	if err != nil {
-		return nil, nil, err
+	p384JWK := jwk.NewECDSAPrivateKey()
+	if err := p384JWK.FromRaw(privKey); err != nil {
+		return nil, errors.Wrap(err, "failed to generate p-384 jwk")
 	}
-	return privKey, pubKeyJWK, nil
+	kty := p384JWK.KeyType().String()
+	crv := p384JWK.Crv().String()
+	x := encodeToBase64RawURL(p384JWK.X())
+	y := encodeToBase64RawURL(p384JWK.Y())
+	return &JSONWebKey2020{
+		Type: JsonWebKey2020,
+		PrivateKeyJWK: PrivateKeyJWK{
+			KTY: kty,
+			CRV: crv,
+			X:   x,
+			Y:   y,
+			D:   encodeToBase64RawURL(p384JWK.D()),
+		},
+		PublicKeyJWK: PublicKeyJWK{
+			KTY: kty,
+			CRV: crv,
+			X:   x,
+			Y:   y,
+		},
+	}, nil
 }
 
 type JSONWebKeySigner struct {
 	jwa.SignatureAlgorithm
 	jwk.Key
+}
+
+func (s JSONWebKeySigner) SignatureType() SignatureType {
+	return JSONWebSignature2020
 }
 
 func (s JSONWebKeySigner) KeyID() string {
@@ -272,17 +347,14 @@ func (s JSONWebKeySigner) Sign(tbs []byte) ([]byte, error) {
 	if err := headers.Set("b64", false); err != nil {
 		return nil, err
 	}
-	if err := headers.Set("crit", "b64"); err != nil {
+	if err := headers.Set(jws.CriticalKey, []string{"b64"}); err != nil {
 		return nil, err
 	}
 	signOptions := []jws.SignOption{jws.WithHeaders(headers), jws.WithDetachedPayload(tbs)}
-	return jws.Sign(nil, jwa.EdDSA, s.Key, signOptions...)
+	return jws.Sign(nil, s.SignatureAlgorithm, s.Key, signOptions...)
 }
 
 func NewJSONWebKeySigner(key PrivateKeyJWK) (*JSONWebKeySigner, error) {
-	if key.KID == "" {
-		return nil, errors.New("key must have an `kid` value")
-	}
 	privKeyJWKBytes, err := json.Marshal(key)
 	if err != nil {
 		return nil, err
@@ -291,12 +363,9 @@ func NewJSONWebKeySigner(key PrivateKeyJWK) (*JSONWebKeySigner, error) {
 	if err != nil {
 		return nil, err
 	}
-	var crv string
-	if maybeCrv, b := privKeyJWK.Get("crv"); b {
-		if strCrv, ok := maybeCrv.(string); ok {
-			crv = strCrv
-		}
-		return nil, fmt.Errorf("could not get curve value: %+v", maybeCrv)
+	crv, err := getCrvFromJWK(privKeyJWK)
+	if err != nil {
+		return nil, err
 	}
 	alg, err := AlgFromKeyAndCurve(privKeyJWK.KeyType(), jwa.EllipticCurveAlgorithm(crv))
 	if err != nil {
@@ -322,14 +391,11 @@ func (v JSONWebKeyVerifier) KeyType() string {
 }
 
 func (v JSONWebKeyVerifier) Verify(message, signature []byte) error {
-	_, err := jws.Verify(signature, jwa.EdDSA, v.Key, jws.VerifyOption(jws.WithDetachedPayload(message)))
+	_, err := jws.Verify(signature, v.SignatureAlgorithm, v.Key, jws.VerifyOption(jws.WithDetachedPayload(message)))
 	return err
 }
 
 func NewJSONWebKeyVerifier(key PublicKeyJWK) (*JSONWebKeyVerifier, error) {
-	if key.KID == "" {
-		return nil, errors.New("key must have an `kid` value")
-	}
 	pubKeyJWKBytes, err := json.Marshal(key)
 	if err != nil {
 		return nil, err
@@ -338,14 +404,10 @@ func NewJSONWebKeyVerifier(key PublicKeyJWK) (*JSONWebKeyVerifier, error) {
 	if err != nil {
 		return nil, err
 	}
-	var crv string
-	if maybeCrv, b := pubKeyJWK.Get("crv"); b {
-		if strCrv, ok := maybeCrv.(string); ok {
-			crv = strCrv
-		}
-		return nil, fmt.Errorf("could not get curve value: %+v", maybeCrv)
+	crv, err := getCrvFromJWK(pubKeyJWK)
+	if err != nil {
+		return nil, err
 	}
-
 	alg, err := AlgFromKeyAndCurve(pubKeyJWK.KeyType(), jwa.EllipticCurveAlgorithm(crv))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get verification alg from jwk")
@@ -380,9 +442,9 @@ func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.Si
 		case jwa.EllipticCurveAlgorithm(SECP256k1):
 			return jwa.ES256K, nil
 		case jwa.P256:
-			return jwa.PS256, nil
+			return jwa.ES256, nil
 		case jwa.P384:
-			return jwa.PS384, nil
+			return jwa.ES384, nil
 		default:
 			return "", fmt.Errorf("unsupported EC curve: %s", curve)
 		}
@@ -396,4 +458,16 @@ func crvPtr(crv CRV) *CRV {
 
 func encodeToBase64RawURL(data []byte) string {
 	return base64.RawURLEncoding.EncodeToString(data)
+}
+
+func getCrvFromJWK(jwk jwk.Key) (string, error) {
+	maybeCrv, hasCrv := jwk.Get("crv")
+	if hasCrv {
+		crv, crvStr := maybeCrv.(jwa.EllipticCurveAlgorithm)
+		if !crvStr {
+			return "", fmt.Errorf("could not get crv value: %+v", maybeCrv)
+		}
+		return crv.String(), nil
+	}
+	return "", nil
 }

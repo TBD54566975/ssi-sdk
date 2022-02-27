@@ -27,7 +27,7 @@ var (
 // Build builds the library.
 func Build() error {
 	fmt.Println("Building...")
-	return sh.Run(Go, "build", "./...")
+	return sh.Run(Go, "build", "-tags", "jwx_es256k", "./...")
 }
 
 // Clean deletes any build artifacts.
@@ -47,7 +47,7 @@ func runTests(extraTestArgs ...string) error {
 	if mg.Verbose() {
 		args = append(args, "-v")
 	}
-	args = append(args, "-race", "-tags", "unit")
+	args = append(args, "-race", "-tags=jwx_es256k")
 	args = append(args, extraTestArgs...)
 	args = append(args, "./...")
 	testEnv := map[string]string{
@@ -55,6 +55,7 @@ func runTests(extraTestArgs ...string) error {
 		"GO111MODULE": "on",
 	}
 	writer := ColorizeTestStdout()
+	fmt.Printf("%+v", args)
 	_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
 	return err
 }
