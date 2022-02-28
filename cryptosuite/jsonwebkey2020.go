@@ -101,6 +101,9 @@ type PublicKeyJWK struct {
 // https://w3c-ccg.github.io/lds-jws2020/#dfn-jsonwebkey2020
 func GenerateJSONWebKey2020(kty KTY, crv *CRV) (*JSONWebKey2020, error) {
 	if kty == RSA {
+		if crv != nil {
+			return nil, fmt.Errorf("RSA key type cannot have curve specified: %s", *crv)
+		}
 		return GenerateRSAJSONWebKey2020()
 	}
 	if crv == nil {
@@ -453,6 +456,9 @@ func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.Si
 }
 
 func crvPtr(crv CRV) *CRV {
+	if crv == "" {
+		return nil
+	}
 	return &crv
 }
 

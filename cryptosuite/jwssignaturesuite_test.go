@@ -54,32 +54,103 @@ func TestJSONWebKey2020ToJWK(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// tests data from https://github.com/decentralized-identity/JWS-Test-Suite/tree/main/data/credentials
-func TestJSONWebSignature2020Suite(t *testing.T) {
-	tc := TestCredential{
+func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
+	tests := []struct {
+		name      string
+		kty       KTY
+		crv       CRV
+		expectErr bool
+	}{
+		{
+			name:      "RSA",
+			kty:       RSA,
+			expectErr: false,
+		},
+		{
+			name:      "RSA with CRV",
+			kty:       RSA,
+			crv:       Ed25519,
+			expectErr: true,
+		},
+		{
+			name:      "Ed25519",
+			kty:       OKP,
+			crv:       Ed25519,
+			expectErr: false,
+		},
+		{
+			name:      "Ed25519 with EC",
+			kty:       EC,
+			crv:       Ed25519,
+			expectErr: true,
+		},
+		{
+			name:      "P-256",
+			kty:       EC,
+			crv:       P256,
+			expectErr: false,
+		},
+		{
+			name:      "P-384",
+			kty:       EC,
+			crv:       P384,
+			expectErr: false,
+		},
+		{
+			name:      "secp256k1",
+			kty:       EC,
+			crv:       SECP256k1,
+			expectErr: false,
+		},
+		{
+			name:      "secp256k1 as OKP",
+			kty:       OKP,
+			crv:       SECP256k1,
+			expectErr: true,
+		},
+		{
+			name:      "unsupported curve",
+			kty:       EC,
+			crv:       "P512",
+			expectErr: true,
+		},
+	}
+
+	suite := JWSSignatureSuite{}
+	testCred := TestCredential{
 		Context: []string{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
 		Type:         []string{"VerifiableCredential"},
 		Issuer:       "did:example:123",
 		IssuanceDate: "2021-01-01T19:23:24Z",
+		CredentialSubject: map[string]interface{}{
+			"id":        "did:example:abcd",
+			"firstName": "Satoshi",
+			"lastName":  "Nakamoto",
+		},
 	}
 
-	jwk, err := GenerateEd25519JSONWebKey2020()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, jwk)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			jwk, err := GenerateJSONWebKey2020(test.kty, crvPtr(test.crv))
 
-	suite := JWSSignatureSuite{}
-	signer, err := NewJSONWebKeySigner(jwk.PrivateKeyJWK)
-	assert.NoError(t, err)
+			if !test.expectErr {
+				signer, err := NewJSONWebKeySigner(jwk.PrivateKeyJWK)
+				assert.NoError(t, err)
 
-	p, err := suite.Sign(signer, &tc)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, p)
+				p, err := suite.Sign(signer, &testCred)
+				assert.NoError(t, err)
+				assert.NotEmpty(t, p)
 
-	verifier, err := NewJSONWebKeyVerifier(jwk.PublicKeyJWK)
-	assert.NoError(t, err)
-	err = suite.Verify(verifier, *p)
-	assert.NoError(t, err)
+				verifier, err := NewJSONWebKeyVerifier(jwk.PublicKeyJWK)
+				assert.NoError(t, err)
+				err = suite.Verify(verifier, *p)
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
 }
 
 // https://github.com/decentralized-identity/JWS-Test-Suite
