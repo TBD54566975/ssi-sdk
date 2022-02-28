@@ -8,10 +8,6 @@ import (
 	"github.com/TBD54566975/did-sdk/util"
 )
 
-var (
-	emptyDID = &DIDDocument{}
-)
-
 // DIDDocument is a representation of the did core specification https://www.w3.org/TR/did-core
 // TODO(gabe) enforce validation of DID syntax https://www.w3.org/TR/did-core/#did-syntax
 type DIDDocument struct {
@@ -60,11 +56,11 @@ func (d *DIDDocument) IsEmpty() bool {
 	if d == nil {
 		return true
 	}
-	return reflect.DeepEqual(d, emptyDID)
+	return reflect.DeepEqual(d, &DIDDocument{})
 }
 
 func (d *DIDDocument) IsValid() error {
-	return util.GetValidator().Struct(d)
+	return util.NewValidator().Struct(d)
 }
 
 // TODO(gabe) DID Resolution Metadata

@@ -12,11 +12,6 @@ const (
 	VerifiableCredentialsLinkedDataContext string = "https://www.w3.org/2018/credentials/v1"
 )
 
-var (
-	emptyCredential   = &VerifiableCredential{}
-	emptyPresentation = &VerifiablePresentation{}
-)
-
 type CredentialSubject map[string]interface{}
 
 // VerifiableCredential is the known_schemas model outlined in the
@@ -88,11 +83,11 @@ func (v *VerifiableCredential) IsEmpty() bool {
 	if v == nil {
 		return true
 	}
-	return reflect.DeepEqual(v, emptyCredential)
+	return reflect.DeepEqual(v, &VerifiableCredential{})
 }
 
 func (v *VerifiableCredential) IsValid() error {
-	return util.GetValidator().Struct(v)
+	return util.NewValidator().Struct(v)
 }
 
 // VerifiablePresentation https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#presentations-0
@@ -109,9 +104,9 @@ func (v *VerifiablePresentation) IsEmpty() bool {
 	if v == nil {
 		return true
 	}
-	return reflect.DeepEqual(v, emptyPresentation)
+	return reflect.DeepEqual(v, &VerifiablePresentation{})
 }
 
 func (v *VerifiablePresentation) IsValid() error {
-	return util.GetValidator().Struct(v)
+	return util.NewValidator().Struct(v)
 }

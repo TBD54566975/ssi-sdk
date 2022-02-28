@@ -3,7 +3,6 @@
 package cryptosuite
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -185,9 +184,6 @@ func TestJsonWebSignature2020TestVectors(t *testing.T) {
 	suite := JWSSignatureSuite{}
 	p, err := suite.Sign(signer, &knownCred)
 	assert.NoError(t, err)
-
-	b, _ := json.Marshal(p)
-	println(string(b))
 
 	verifier, err := NewJSONWebKeyVerifier(knownJWK.PublicKeyJWK)
 	assert.NoError(t, err)
