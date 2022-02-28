@@ -3,24 +3,16 @@
 package cryptosuite
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
-	"github.com/lestrrat-go/jwx/x25519"
+	"github.com/TBD54566975/did-sdk/crypto"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jws"
 
 	"github.com/lestrrat-go/jwx/jwk"
-
-	"github.com/TBD54566975/did-sdk/util"
-
-	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
 	"github.com/pkg/errors"
 )
@@ -44,13 +36,9 @@ const (
 
 	Ed25519   CRV = "Ed25519"
 	X25519    CRV = "X25519"
-	SECP256k1 CRV = "secp256k1"
+	Secp256k1 CRV = "secp256k1"
 	P256      CRV = "P-256"
 	P384      CRV = "P-384"
-
-	// Known key sizes
-
-	RSAKeySize int = 2048
 )
 
 // JSONWebKey2020 complies with https://w3c-ccg.github.io/lds-jws2020/#json-web-key-2020
@@ -123,7 +111,7 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (*JSONWebKey2020, error) {
 	}
 	if kty == EC {
 		switch curve {
-		case SECP256k1:
+		case Secp256k1:
 			return GenerateSECP256k1JSONWebKey2020()
 		case P256:
 			return GenerateP256JSONWebKey2020()
@@ -137,12 +125,12 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (*JSONWebKey2020, error) {
 }
 
 func GenerateRSAJSONWebKey2020() (*JSONWebKey2020, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, RSAKeySize)
+	_, privKey, err := crypto.GenerateRSA2048Key()
 	if err != nil {
 		return nil, err
 	}
 	rsaJWK := jwk.NewRSAPrivateKey()
-	if err := rsaJWK.FromRaw(privateKey); err != nil {
+	if err := rsaJWK.FromRaw(&privKey); err != nil {
 		return nil, errors.Wrap(err, "failed to generate rsa jwk")
 	}
 	kty := rsaJWK.KeyType().String()
@@ -170,7 +158,7 @@ func GenerateRSAJSONWebKey2020() (*JSONWebKey2020, error) {
 }
 
 func GenerateEd25519JSONWebKey2020() (*JSONWebKey2020, error) {
-	_, privKey, err := util.GenerateEd25519Key()
+	_, privKey, err := crypto.GenerateEd25519Key()
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +187,7 @@ func GenerateEd25519JSONWebKey2020() (*JSONWebKey2020, error) {
 }
 
 func GenerateX25519JSONWebKey2020() (*JSONWebKey2020, error) {
-	_, privKey, err := x25519.GenerateKey(rand.Reader)
+	_, privKey, err := crypto.GenerateX25519Key()
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +219,7 @@ func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
 	// We use the secp256k1 implementation from Decred https://github.com/decred/dcrd
 	// which is utilized in the widely accepted go bitcoin node implementation from the btcsuite project
 	// https://github.com/btcsuite/btcd/blob/master/btcec/btcec.go#L23
-	privKey, err := secp.GeneratePrivateKey()
+	_, privKey, err := crypto.GenerateSecp256k1Key()
 	if err != nil {
 		return nil, err
 	}
@@ -263,12 +251,12 @@ func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
 }
 
 func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
-	privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	_, privKey, err := crypto.GenerateP256Key()
 	if err != nil {
 		return nil, err
 	}
 	p256JWK := jwk.NewECDSAPrivateKey()
-	if err := p256JWK.FromRaw(privKey); err != nil {
+	if err := p256JWK.FromRaw(&privKey); err != nil {
 		return nil, errors.Wrap(err, "failed to generate p-256 jwk")
 	}
 	kty := p256JWK.KeyType().String()
@@ -294,12 +282,12 @@ func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
 }
 
 func GenerateP384JSONWebKey2020() (*JSONWebKey2020, error) {
-	privKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	_, privKey, err := crypto.GenerateP384Key()
 	if err != nil {
 		return nil, err
 	}
 	p384JWK := jwk.NewECDSAPrivateKey()
-	if err := p384JWK.FromRaw(privKey); err != nil {
+	if err := p384JWK.FromRaw(&privKey); err != nil {
 		return nil, errors.Wrap(err, "failed to generate p-384 jwk")
 	}
 	kty := p384JWK.KeyType().String()
@@ -442,7 +430,7 @@ func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.Si
 
 	if kty == jwa.EC {
 		switch curve {
-		case jwa.EllipticCurveAlgorithm(SECP256k1):
+		case jwa.EllipticCurveAlgorithm(Secp256k1):
 			return jwa.ES256K, nil
 		case jwa.P256:
 			return jwa.ES256, nil

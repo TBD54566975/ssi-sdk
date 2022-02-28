@@ -1,7 +1,6 @@
 package util
 
 import (
-	"crypto/ed25519"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -57,10 +56,6 @@ func GetISO8601Timestamp() string {
 
 func AsISO8601Timestamp(t time.Time) string {
 	return t.UTC().Format(ISO8601Template)
-}
-
-func GenerateEd25519Key() (ed25519.PublicKey, ed25519.PrivateKey, error) {
-	return ed25519.GenerateKey(nil)
 }
 
 // Copy makes a 1:1 copy of src into dst.
