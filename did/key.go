@@ -40,6 +40,7 @@ const (
 	DIDKeyPrefix = "did:key"
 
 	// DID Key Types
+
 	X25519KeyAgreementKey2019         cryptosuite.LDKeyType = "X25519KeyAgreementKey2019"
 	Ed25519VerificationKey2018        cryptosuite.LDKeyType = "Ed25519VerificationKey2018"
 	EcdsaSecp256k1VerificationKey2019 cryptosuite.LDKeyType = "EcdsaSecp256k1VerificationKey2019"
@@ -130,6 +131,7 @@ func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
 	}
 }
 
+// Expand turns the DID key into a complaint DID Document
 func (d DIDKey) Expand() (*DIDDocument, error) {
 	keyReference := "#" + d.Parse()
 	id := string(d)
@@ -186,7 +188,7 @@ func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType
 
 // Parse returns the value without the `did:key` prefix
 func (d DIDKey) Parse() string {
-	split := strings.Split(string(d), DIDKeyPrefix)
+	split := strings.Split(string(d), DIDKeyPrefix+":")
 	if len(split) != 2 {
 		return ""
 	}
@@ -211,26 +213,6 @@ func keyTypeToMultiCodec(kt crypto.KeyType) (multicodec.Code, error) {
 		return RSAMultiCodec, nil
 	}
 	return 0, fmt.Errorf("unknown multicodec for key type: %s", kt)
-}
-
-func keyTypeToDIDKeyType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
-	switch kt {
-	case crypto.Ed25519:
-		return Ed25519VerificationKey2018, nil
-	case crypto.X25519:
-		return X25519KeyAgreementKey2019, nil
-	case crypto.Secp256k1:
-		return EcdsaSecp256k1VerificationKey2019, nil
-	case crypto.P256:
-		return cryptosuite.JsonWebKey2020, nil
-	case crypto.P384:
-		return cryptosuite.JsonWebKey2020, nil
-	case crypto.P521:
-		return cryptosuite.JsonWebKey2020, nil
-	case crypto.RSA:
-		return cryptosuite.JsonWebKey2020, nil
-	}
-	return "", fmt.Errorf("unknown did:key type for key type: %s", kt)
 }
 
 func isSupportedKeyType(kt crypto.KeyType) bool {
