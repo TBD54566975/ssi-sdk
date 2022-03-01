@@ -38,7 +38,7 @@ type CryptoSuite interface {
 
 type CryptoSuiteInfo interface {
 	ID() string
-	Type() string
+	Type() LDKeyType
 	CanonicalizationAlgorithm() string
 	MessageDigestAlgorithm() crypto.Hash
 	SignatureAlgorithm() SignatureType

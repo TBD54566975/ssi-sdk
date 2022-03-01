@@ -1,3 +1,5 @@
+//go:build jwx_es256k
+
 package cryptosuite
 
 import (
@@ -18,7 +20,7 @@ const (
 	JSONWebSignature2020Context                string        = "https://w3id.org/security/suites/jws-2020/v1"
 	JSONWebSignature2020                       SignatureType = "JsonWebSignature2020"
 	JWSSignatureSuiteID                        string        = "https://w3c-ccg.github.io/security-vocab/#JsonWebSignature2020"
-	JWSSignatureSuiteType                                    = JsonWebKey2020
+	JWSSignatureSuiteType                      LDKeyType     = JsonWebKey2020
 	JWSSignatureSuiteCanonicalizationAlgorithm string        = "https://w3id.org/security#URDNA2015"
 	// JWSSignatureSuiteDigestAlgorithm uses https://www.rfc-editor.org/rfc/rfc4634
 	JWSSignatureSuiteDigestAlgorithm crypto.Hash = crypto.SHA256
@@ -34,7 +36,7 @@ func (j JWSSignatureSuite) ID() string {
 	return JWSSignatureSuiteID
 }
 
-func (j JWSSignatureSuite) Type() string {
+func (j JWSSignatureSuite) Type() LDKeyType {
 	return JWSSignatureSuiteType
 }
 

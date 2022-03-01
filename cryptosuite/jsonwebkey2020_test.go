@@ -24,7 +24,7 @@ func TestJSONWebKey2020SignerVerifier(t *testing.T) {
 		{
 			name: "secpk256k1",
 			kty:  EC,
-			crv:  crvPtr(SECP256k1),
+			crv:  crvPtr(Secp256k1),
 		},
 		{
 			name: "P-256",

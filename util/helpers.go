@@ -1,7 +1,6 @@
 package util
 
 import (
-	"crypto/ed25519"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,36 +18,36 @@ const (
 	ISO8601Template string = "2006-01-02T15:04:05-0700"
 )
 
-var (
-	v *validator.Validate
+type LDProcessor struct {
+	*ld.JsonLdProcessor
+	*ld.JsonLdOptions
+}
 
-	proc    *ld.JsonLdProcessor
-	options *ld.JsonLdOptions
-)
+func NewValidator() *validator.Validate {
+	return validator.New()
+}
 
-func init() {
-	// golang validator
-	v = validator.New()
-
+func NewLDProcessor() LDProcessor {
 	// JSON LD processing
-	proc = ld.NewJsonLdProcessor()
-	options = ld.NewJsonLdOptions("")
+	proc := ld.NewJsonLdProcessor()
+	options := ld.NewJsonLdOptions("")
 	options.Format = "application/n-quads"
 	options.Algorithm = "URDNA2015"
 	options.ProcessingMode = ld.JsonLd_1_1
 	options.ProduceGeneralizedRdf = true
+	return LDProcessor{
+		JsonLdProcessor: proc,
+		JsonLdOptions:   options,
+	}
 }
 
-func GetValidator() *validator.Validate {
-	return v
-}
-
-func GetLDProcessor() *ld.JsonLdProcessor {
-	return proc
+func (l LDProcessor) GetOptions() *ld.JsonLdOptions {
+	return l.JsonLdOptions
 }
 
 func LDNormalize(document interface{}) (interface{}, error) {
-	return GetLDProcessor().Normalize(document, options)
+	processor := NewLDProcessor()
+	return processor.Normalize(document, processor.GetOptions())
 }
 
 func GetISO8601Timestamp() string {
@@ -57,10 +56,6 @@ func GetISO8601Timestamp() string {
 
 func AsISO8601Timestamp(t time.Time) string {
 	return t.UTC().Format(ISO8601Template)
-}
-
-func GenerateEd25519Key() (ed25519.PublicKey, ed25519.PrivateKey, error) {
-	return ed25519.GenerateKey(nil)
 }
 
 // Copy makes a 1:1 copy of src into dst.
