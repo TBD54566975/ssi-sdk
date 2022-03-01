@@ -3,6 +3,13 @@ package did
 import (
 	gocrypto "crypto"
 	"fmt"
+	"strings"
+
+	"github.com/lestrrat-go/jwx/jwk"
+
+	"github.com/mr-tron/base58"
+
+	"github.com/TBD54566975/did-sdk/cryptosuite"
 
 	"github.com/pkg/errors"
 
@@ -31,6 +38,11 @@ const (
 
 	// DIDKeyPrefix did:key prefix
 	DIDKeyPrefix = "did:key"
+
+	// DID Key Types
+	X25519KeyAgreementKey2019         cryptosuite.LDKeyType = "X25519KeyAgreementKey2019"
+	Ed25519VerificationKey2018        cryptosuite.LDKeyType = "Ed25519VerificationKey2018"
+	EcdsaSecp256k1VerificationKey2019 cryptosuite.LDKeyType = "EcdsaSecp256k1VerificationKey2019"
 )
 
 func GenerateDIDKey(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDKey, error) {
@@ -78,8 +90,107 @@ func CreateDIDKey(kt crypto.KeyType, publicKey []byte) (*DIDKey, error) {
 	return &did, nil
 }
 
-func (d DIDKey) Expand() string {
-	return ""
+// Decode takes a did:key and returns the underlying public key value as bytes, the LD key type, and a possible error
+func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
+	parsed := d.Parse()
+	if parsed == "" {
+		return nil, "", fmt.Errorf("could not decode did:key value: %s", string(d))
+	}
+
+	encoding, decoded, err := multibase.Decode(parsed)
+	if err != nil {
+		return nil, "", err
+	}
+	if encoding != Base58BTCMultiBase {
+		return nil, "", fmt.Errorf("expected %d encoding but found %d", Base58BTCMultiBase, encoding)
+	}
+
+	// n = # bytes for the int, which we expect to be two from our multicodec
+	multiCodec, n, err := varint.FromUvarint(decoded)
+	if err != nil {
+		return nil, "", err
+	}
+	if n != 2 {
+		return nil, "", fmt.Errorf("error parsing did:key varint")
+	}
+
+	pubKeyBytes := decoded[n:]
+	multiCodecValue := multicodec.Code(multiCodec)
+	switch multiCodecValue {
+	case Ed25519MultiCodec:
+		return pubKeyBytes, Ed25519VerificationKey2018, nil
+	case X25519MultiCodec:
+		return pubKeyBytes, X25519KeyAgreementKey2019, nil
+	case Secp256k1MultiCodec:
+		return pubKeyBytes, EcdsaSecp256k1VerificationKey2019, nil
+	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
+		return pubKeyBytes, cryptosuite.JsonWebKey2020, nil
+	default:
+		return nil, "", fmt.Errorf("unknown multicodec for did:key: %d", multiCodecValue)
+	}
+}
+
+func (d DIDKey) Expand() (*DIDDocument, error) {
+	keyReference := "#" + d.Parse()
+	id := string(d)
+
+	pubKey, keyType, err := d.Decode()
+	if err != nil {
+		return nil, err
+	}
+
+	verificationMethod, err := constructVerificationMethod(id, keyReference, pubKey, keyType)
+	if err != nil {
+		return nil, err
+	}
+
+	verificationMethodSet := []VerificationMethodSet{
+		[]string{keyReference},
+	}
+
+	return &DIDDocument{
+		Context:              KnownDIDContext,
+		ID:                   id,
+		VerificationMethod:   []VerificationMethod{*verificationMethod},
+		Authentication:       verificationMethodSet,
+		AssertionMethod:      verificationMethodSet,
+		KeyAgreement:         verificationMethodSet,
+		CapabilityDelegation: verificationMethodSet,
+	}, nil
+}
+
+func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType cryptosuite.LDKeyType) (*VerificationMethod, error) {
+	if keyType != cryptosuite.JsonWebKey2020 {
+		return &VerificationMethod{
+			ID:              keyReference,
+			Type:            keyType,
+			Controller:      id,
+			PublicKeyBase58: base58.Encode(pubKey),
+		}, nil
+	}
+	standardJWK, err := jwk.New(pubKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not expand key of type JsonWebKey2020")
+	}
+	pubKeyJWK, err := cryptosuite.ToPublicKeyJWK(standardJWK)
+	if err != nil {
+		return nil, errors.Wrap(err, "could convert did:key to PublicKeyJWK")
+	}
+	return &VerificationMethod{
+		ID:           keyReference,
+		Type:         keyType,
+		Controller:   id,
+		PublicKeyJWK: pubKeyJWK,
+	}, nil
+}
+
+// Parse returns the value without the `did:key` prefix
+func (d DIDKey) Parse() string {
+	split := strings.Split(string(d), DIDKeyPrefix)
+	if len(split) != 2 {
+		return ""
+	}
+	return split[1]
 }
 
 func keyTypeToMultiCodec(kt crypto.KeyType) (multicodec.Code, error) {
@@ -100,6 +211,26 @@ func keyTypeToMultiCodec(kt crypto.KeyType) (multicodec.Code, error) {
 		return RSAMultiCodec, nil
 	}
 	return 0, fmt.Errorf("unknown multicodec for key type: %s", kt)
+}
+
+func keyTypeToDIDKeyType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
+	switch kt {
+	case crypto.Ed25519:
+		return Ed25519VerificationKey2018, nil
+	case crypto.X25519:
+		return X25519KeyAgreementKey2019, nil
+	case crypto.Secp256k1:
+		return EcdsaSecp256k1VerificationKey2019, nil
+	case crypto.P256:
+		return cryptosuite.JsonWebKey2020, nil
+	case crypto.P384:
+		return cryptosuite.JsonWebKey2020, nil
+	case crypto.P521:
+		return cryptosuite.JsonWebKey2020, nil
+	case crypto.RSA:
+		return cryptosuite.JsonWebKey2020, nil
+	}
+	return "", fmt.Errorf("unknown did:key type for key type: %s", kt)
 }
 
 func isSupportedKeyType(kt crypto.KeyType) bool {

@@ -18,13 +18,14 @@ import (
 )
 
 type (
-	KTY string
-	CRV string
-	ALG string
+	KTY       string
+	CRV       string
+	ALG       string
+	LDKeyType string
 )
 
 const (
-	JsonWebKey2020 string = "JsonWebKey2020"
+	JsonWebKey2020 LDKeyType = "JsonWebKey2020"
 
 	// Supported key types
 
@@ -43,9 +44,9 @@ const (
 
 // JSONWebKey2020 complies with https://w3c-ccg.github.io/lds-jws2020/#json-web-key-2020
 type JSONWebKey2020 struct {
-	ID            string `json:"id,omitempty"`
-	Type          string `json:"type,omitempty"`
-	Controller    string `json:"controller,omitempty"`
+	ID            string    `json:"id,omitempty"`
+	Type          LDKeyType `json:"type,omitempty"`
+	Controller    string    `json:"controller,omitempty"`
 	PrivateKeyJWK `json:"privateKeyJwk,omitempty"`
 	PublicKeyJWK  `json:"publicKeyJwk,omitempty"`
 }
@@ -82,6 +83,18 @@ type PublicKeyJWK struct {
 	KeyOps string `json:"key_ops,omitempty"`
 	Alg    string `json:"alg,omitempty"`
 	KID    string `json:"kid,omitempty"`
+}
+
+func ToPublicKeyJWK(key jwk.Key) (*PublicKeyJWK, error) {
+	keyBytes, err := json.Marshal(key)
+	if err != nil {
+		return nil, err
+	}
+	var pubKeyJWK PublicKeyJWK
+	if err := json.Unmarshal(keyBytes, &pubKeyJWK); err != nil {
+		return nil, err
+	}
+	return &pubKeyJWK, nil
 }
 
 // GenerateJSONWebKey2020 The JSONWebKey2020 type specifies a number of key type and curve pairs to enable JOSE conformance

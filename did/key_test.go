@@ -61,7 +61,12 @@ func TestGenerateDIDKey(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotNil(t, didKey)
 			assert.NotEmpty(t, privKey)
+
 			assert.True(t, strings.Contains(string(*didKey), "did:key"))
+
+			codec, err := keyTypeToMultiCodec(test.keyType)
+			assert.NoError(t, err)
+			assert.Contains(t, *didKey)
 		})
 	}
 }

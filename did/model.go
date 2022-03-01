@@ -10,6 +10,10 @@ import (
 	"github.com/TBD54566975/did-sdk/util"
 )
 
+const (
+	KnownDIDContext string = "https://www.w3.org/ns/did/v1"
+)
+
 // DIDDocument is a representation of the did core specification https://www.w3.org/TR/did-core
 // TODO(gabe) enforce validation of DID syntax https://www.w3.org/TR/did-core/#did-syntax
 type DIDDocument struct {
@@ -29,10 +33,10 @@ type DIDDocument struct {
 }
 
 type VerificationMethod struct {
-	ID              string `json:"id" validate:"required"`
-	Type            string `json:"type" validate:"required"`
-	Controller      string `json:"controller" validate:"required"`
-	PublicKeyBase58 string `json:"publicKeyBase58,omitempty"`
+	ID              string                `json:"id" validate:"required"`
+	Type            cryptosuite.LDKeyType `json:"type" validate:"required"`
+	Controller      string                `json:"controller" validate:"required"`
+	PublicKeyBase58 string                `json:"publicKeyBase58,omitempty"`
 	// must conform to https://datatracker.ietf.org/doc/html/rfc7517
 	PublicKeyJWK *cryptosuite.PublicKeyJWK `json:"publicKeyJwk,omitempty" validate:"omitempty,dive"`
 	// https://datatracker.ietf.org/doc/html/draft-multiformats-multibase-03
