@@ -2,6 +2,7 @@
 [![goversion](https://img.shields.io/badge/go_version-1.17.6-brightgreen)](https://golang.org/)
 [![license](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/did-sdk/blob/main/LICENSE)
 [![issues](https://img.shields.io/github/issues/TBD54566975/did-sdk)](https://github.com/TBD54566975/did-sdk/issues)
+[![CircleCI](https://circleci.com/gh/TBD54566975/did-sdk/tree/main.svg?style=shield)](https://circleci.com/gh/TBD54566975/did-sdk/tree/main)
 
 # did-sdk
 
