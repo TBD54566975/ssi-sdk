@@ -7,7 +7,7 @@
 
 # Introduction
 
-Named `did-sdk`, this SDK refers to "DID" as Decentralized IDentity, not specifically the
+Named `did-sdk`, this SDK refers to "DID" as **D**ecentralized **ID**entity, not specifically the
 [did-core specification](https://www.w3.org/TR/did-core/). The `did-sdk` intends to provide a set of standards-based
 primitives for building decentralized identity applications in a modular manner: with limited dependencies between
 components.

@@ -80,6 +80,8 @@ type ProofOptions struct {
 	Contexts []string
 }
 
+// GetContextsFromProvable searches from a Linked Data `@context` property in the document and returns the value
+// associated with the context, if it exists.
 func GetContextsFromProvable(p Provable) ([]string, error) {
 	provableBytes, err := json.Marshal(p)
 	if err != nil {

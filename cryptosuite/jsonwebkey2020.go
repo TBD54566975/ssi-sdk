@@ -137,6 +137,8 @@ func GenerateJSONWebKey2020(kty KTY, crv *CRV) (*JSONWebKey2020, error) {
 	return nil, fmt.Errorf("unsupported key type: %s", kty)
 }
 
+// GenerateRSAJSONWebKey2020 returns a JsonWebKey2020 value, containing both public and private keys
+// for an RSA-2048 key.
 func GenerateRSAJSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateRSA2048Key()
 	if err != nil {
@@ -170,6 +172,8 @@ func GenerateRSAJSONWebKey2020() (*JSONWebKey2020, error) {
 	}, nil
 }
 
+// GenerateEd25519JSONWebKey2020 returns a JsonWebKey2020 value, containing both public and
+// private keys for an Ed25519 key.
 func GenerateEd25519JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateEd25519Key()
 	if err != nil {
@@ -199,6 +203,8 @@ func GenerateEd25519JSONWebKey2020() (*JSONWebKey2020, error) {
 	}, nil
 }
 
+// GenerateX25519JSONWebKey2020 returns a JsonWebKey2020 value, containing both public and
+// private keys for an Ed25519 key transformed to a bi-rationally equivalent X25519 key.
 func GenerateX25519JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateX25519Key()
 	if err != nil {
@@ -228,10 +234,12 @@ func GenerateX25519JSONWebKey2020() (*JSONWebKey2020, error) {
 	}, nil
 }
 
+// GenerateSECP256k1JSONWebKey2020 returns a JsonWebKey2020 value, containing both public and
+// private keys for a secp256k1 key transformed to an ecdsa key.
+// We use the secp256k1 implementation from Decred https://github.com/decred/dcrd
+// which is utilized in the widely accepted go bitcoin node implementation from the btcsuite project
+// https://github.com/btcsuite/btcd/blob/master/btcec/btcec.go#L23
 func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
-	// We use the secp256k1 implementation from Decred https://github.com/decred/dcrd
-	// which is utilized in the widely accepted go bitcoin node implementation from the btcsuite project
-	// https://github.com/btcsuite/btcd/blob/master/btcec/btcec.go#L23
 	_, privKey, err := crypto.GenerateSecp256k1Key()
 	if err != nil {
 		return nil, err
@@ -263,6 +271,8 @@ func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
 	}, nil
 }
 
+// GenerateP256JSONWebKey2020 returns a JsonWebKey2020 value, containing both public and
+// private keys for a P-256 ECDSA key.
 func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateP256Key()
 	if err != nil {
@@ -294,6 +304,8 @@ func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
 	}, nil
 }
 
+// GenerateP384JSONWebKey2020 returns a JsonWebKey2020 value, containing both public and
+// private keys for a P-384 ECDSA key.
 func GenerateP384JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateP384Key()
 	if err != nil {
@@ -346,6 +358,7 @@ func (s JSONWebKeySigner) SigningAlgorithm() string {
 	return s.Algorithm()
 }
 
+// Sign returns a byte array signature value for a message `tbs`
 func (s JSONWebKeySigner) Sign(tbs []byte) ([]byte, error) {
 	headers := jws.NewHeaders()
 	if err := headers.Set("b64", false); err != nil {
@@ -394,6 +407,8 @@ func (v JSONWebKeyVerifier) KeyType() string {
 	return string(v.Key.KeyType())
 }
 
+// Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
+// and an error should it fail.
 func (v JSONWebKeyVerifier) Verify(message, signature []byte) error {
 	_, err := jws.Verify(signature, v.SignatureAlgorithm, v.Key, jws.VerifyOption(jws.WithDetachedPayload(message)))
 	return err
@@ -422,6 +437,8 @@ func NewJSONWebKeyVerifier(key PublicKeyJWK) (*JSONWebKeyVerifier, error) {
 	}, nil
 }
 
+// AlgFromKeyAndCurve returns the supported JSON Web Algorithm for signing for a given key type and curve pair
+// The curve parameter is optional (e.g. "") as in the case of RSA.
 func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.SignatureAlgorithm, error) {
 	if kty == jwa.RSA {
 		return jwa.RS256, nil
