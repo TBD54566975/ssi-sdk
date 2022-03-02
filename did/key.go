@@ -46,6 +46,15 @@ const (
 	EcdsaSecp256k1VerificationKey2019 cryptosuite.LDKeyType = "EcdsaSecp256k1VerificationKey2019"
 )
 
+// GenerateDIDKey takes in a key type value that this library supports and constructs a conformant did:key identifier.
+// The function returns the associated private key value cast to the generic golang crypto.PrivateKey interface.
+// To use the private key, it is recommended to re-cast to the associated type. For example, called with the input
+// for a secp256k1 key:
+// privKey, didKey, err := GenerateDIDKey(Secp256k1)
+// if err != nil { ... }
+// // where secp is an import alias to the secp256k1 library we use "github.com/decred/dcrd/dcrec/secp256k1/v4"
+// secpPrivKey, ok := privKey.(secp.PrivateKey)
+// if !ok { ... }
 func GenerateDIDKey(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDKey, error) {
 	if !isSupportedKeyType(kt) {
 		return nil, nil, fmt.Errorf("unsupported did:key type: %s", kt)
