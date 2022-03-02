@@ -3,8 +3,16 @@
 package did
 
 import (
+	gocrypto "crypto"
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"strings"
 	"testing"
+
+	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
 	"github.com/TBD54566975/did-sdk/cryptosuite"
 
@@ -93,9 +101,128 @@ func TestGenerateDIDKey(t *testing.T) {
 	}
 }
 
+func TestDIDKeySignVerify(t *testing.T) {
+	t.Run("Test Ed25519 did:key", func(t *testing.T) {
+		privKey, didKey, err := GenerateDIDKey(crypto.Ed25519)
+		assert.NoError(t, err)
+		assert.NotNil(t, didKey)
+		assert.NotEmpty(t, privKey)
+
+		ed25519PrivKey, ok := privKey.(ed25519.PrivateKey)
+		assert.True(t, ok)
+		ed25519PubKey, ok := ed25519PrivKey.Public().(ed25519.PublicKey)
+		assert.True(t, ok)
+
+		msg := []byte("hello world")
+		signature := ed25519.Sign(ed25519PrivKey, msg)
+		verified := ed25519.Verify(ed25519PubKey, msg, signature)
+		assert.True(t, verified)
+	})
+
+	t.Run("Test secp256k1 did:key", func(t *testing.T) {
+		privKey, didKey, err := GenerateDIDKey(crypto.Secp256k1)
+		assert.NoError(t, err)
+		assert.NotNil(t, didKey)
+		assert.NotEmpty(t, privKey)
+
+		secp256k1PrivKey, ok := privKey.(secp.PrivateKey)
+		assert.True(t, ok)
+
+		ecdsaPrivKey := secp256k1PrivKey.ToECDSA()
+		ecdsaPubKey := ecdsaPrivKey.PublicKey
+
+		msg := []byte("hello world")
+		digest := sha256.Sum256(msg)
+		r, s, err := ecdsa.Sign(rand.Reader, ecdsaPrivKey, digest[:])
+		assert.NoError(t, err)
+
+		verified := ecdsa.Verify(&ecdsaPubKey, digest[:], r, s)
+		assert.True(t, verified)
+	})
+
+	t.Run("Test P-256 did:key", func(t *testing.T) {
+		privKey, didKey, err := GenerateDIDKey(crypto.P256)
+		assert.NoError(t, err)
+		assert.NotNil(t, didKey)
+		assert.NotEmpty(t, privKey)
+
+		ecdsaPrivKey, ok := privKey.(ecdsa.PrivateKey)
+		assert.True(t, ok)
+
+		ecdsaPubKey := ecdsaPrivKey.PublicKey
+
+		msg := []byte("hello world")
+		digest := sha256.Sum256(msg)
+		r, s, err := ecdsa.Sign(rand.Reader, &ecdsaPrivKey, digest[:])
+		assert.NoError(t, err)
+
+		verified := ecdsa.Verify(&ecdsaPubKey, digest[:], r, s)
+		assert.True(t, verified)
+	})
+
+	t.Run("Test P-384 did:key", func(t *testing.T) {
+		privKey, didKey, err := GenerateDIDKey(crypto.P384)
+		assert.NoError(t, err)
+		assert.NotNil(t, didKey)
+		assert.NotEmpty(t, privKey)
+
+		ecdsaPrivKey, ok := privKey.(ecdsa.PrivateKey)
+		assert.True(t, ok)
+
+		ecdsaPubKey := ecdsaPrivKey.PublicKey
+
+		msg := []byte("hello world")
+		digest := sha256.Sum256(msg)
+		r, s, err := ecdsa.Sign(rand.Reader, &ecdsaPrivKey, digest[:])
+		assert.NoError(t, err)
+
+		verified := ecdsa.Verify(&ecdsaPubKey, digest[:], r, s)
+		assert.True(t, verified)
+	})
+
+	t.Run("Test P-521 did:key", func(t *testing.T) {
+		privKey, didKey, err := GenerateDIDKey(crypto.P521)
+		assert.NoError(t, err)
+		assert.NotNil(t, didKey)
+		assert.NotEmpty(t, privKey)
+
+		ecdsaPrivKey, ok := privKey.(ecdsa.PrivateKey)
+		assert.True(t, ok)
+
+		ecdsaPubKey := ecdsaPrivKey.PublicKey
+
+		msg := []byte("hello world")
+		digest := sha256.Sum256(msg)
+		r, s, err := ecdsa.Sign(rand.Reader, &ecdsaPrivKey, digest[:])
+		assert.NoError(t, err)
+
+		verified := ecdsa.Verify(&ecdsaPubKey, digest[:], r, s)
+		assert.True(t, verified)
+	})
+
+	t.Run("Test RSA 4096 did:key", func(t *testing.T) {
+		privKey, didKey, err := GenerateDIDKey(crypto.RSA)
+		assert.NoError(t, err)
+		assert.NotNil(t, didKey)
+		assert.NotEmpty(t, privKey)
+
+		rsaPrivKey, ok := privKey.(rsa.PrivateKey)
+		assert.True(t, ok)
+		rsaPubKey := rsaPrivKey.PublicKey
+
+		msg := []byte("hello world")
+		digest := sha256.Sum256(msg)
+		signature, err := rsa.SignPKCS1v15(rand.Reader, &rsaPrivKey, gocrypto.SHA256, digest[:])
+		assert.NoError(t, err)
+		assert.NotEmpty(t, signature)
+
+		err = rsa.VerifyPKCS1v15(&rsaPubKey, gocrypto.SHA256, digest[:], signature)
+		assert.NoError(t, err)
+	})
+}
+
 // From https://w3c-ccg.github.io/did-method-key/#test-vectors
 func TestKnownTestVectors(t *testing.T) {
-
 	t.Run("Ed25519 / X25519", func(tt *testing.T) {
 		did1 := "did:key:z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp"
 		didKey1 := DIDKey(did1)
