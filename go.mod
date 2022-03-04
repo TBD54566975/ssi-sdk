@@ -7,6 +7,7 @@ require (
 	github.com/go-playground/validator/v10 v10.10.0
 	github.com/gobuffalo/packr/v2 v2.8.3
 	github.com/goccy/go-json v0.9.4
+	github.com/google/uuid v1.1.2
 	github.com/lestrrat-go/jwx v1.2.19
 	github.com/magefile/mage v1.12.1
 	github.com/mr-tron/base58 v1.1.3
