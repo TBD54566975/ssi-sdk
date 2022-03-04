@@ -15,10 +15,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-const (
-	ISO8601Template string = "2006-01-02T15:04:05-0700"
-)
-
 type LDProcessor struct {
 	*ld.JsonLdProcessor
 	*ld.JsonLdOptions
@@ -51,18 +47,18 @@ func LDNormalize(document interface{}) (interface{}, error) {
 	return processor.Normalize(document, processor.GetOptions())
 }
 
-func GetISO8601Timestamp() string {
-	return AsISO8601Timestamp(time.Now())
+func GetRFC3339Timestamp() string {
+	return AsRFC3339Timestamp(time.Now())
 }
 
-func AsISO8601Timestamp(t time.Time) string {
-	return t.UTC().Format(ISO8601Template)
+func AsRFC3339Timestamp(t time.Time) string {
+	return t.UTC().Format(time.RFC3339)
 }
 
-// IsISO8601Timestamp attempts to parse a string as an ISO-8601 timestamp
-// Returns true if the parsing is successful, false if not.
-func IsISO8601Timestamp(t string) bool {
-	_, err := time.Parse(ISO8601Template, t)
+// IsRFC3339Timestamp attempts to parse a string as an RFC3339 timestamp, which is a subset of an
+// ISO-8601 timestamp. Returns true if the parsing is successful, false if not.
+func IsRFC3339Timestamp(t string) bool {
+	_, err := time.Parse(time.RFC3339, t)
 	return err == nil
 }
 

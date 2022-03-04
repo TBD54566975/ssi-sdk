@@ -37,7 +37,7 @@ func NewCredentialBuilder() CredentialBuilder {
 		VerifiableCredential: &VerifiableCredential{
 			ID:           uuid.New().String(),
 			Type:         types,
-			IssuanceDate: util.GetISO8601Timestamp(),
+			IssuanceDate: util.GetRFC3339Timestamp(),
 		},
 	}
 }
@@ -75,6 +75,15 @@ func (cb *CredentialBuilder) SetContext(context interface{}) error {
 	return nil
 }
 
+func (cb *CredentialBuilder) SetID(id string) error {
+	if cb.IsEmpty() {
+		return errors.New(CredentialBuilderEmptyError)
+	}
+
+	cb.ID = id
+	return nil
+}
+
 func (cb *CredentialBuilder) SetType(t interface{}) error {
 	if cb.IsEmpty() {
 		return errors.New(CredentialBuilderEmptyError)
@@ -85,6 +94,7 @@ func (cb *CredentialBuilder) SetType(t interface{}) error {
 	}
 	uniqueTypes := util.MergeUniqueValues(cb.types, res)
 	cb.types = uniqueTypes
+	cb.Type = uniqueTypes
 	return nil
 }
 
@@ -96,17 +106,40 @@ func (cb *CredentialBuilder) SetIssuer(issuer interface{}) error {
 	// since an issue can be a URI or an object containing an `id` property,
 	// if it's not a string or string array we'll check to see if it's an object that contains an `id` property.
 	res, err := util.InterfaceToStrings(issuer)
-	if err != nil {
-		// check to see if it's an object that contains an `id` property
-		jsonMap, err := util.ToJSONMap(issuer)
-		if err != nil {
-			return errors.Wrap(err, "malformed issuer")
+	if err == nil {
+		// if the initial value was a single string we'll maintain that
+		_, ok := issuer.(string)
+		if len(res) == 1 && ok {
+			cb.Issuer = res[0]
+		} else {
+			cb.Issuer = res
 		}
-		if _, gotID := jsonMap[VerifiableCredentialIDProperty]; !gotID {
-			return errors.New("issuer object did not contain `id` property")
-		}
+		return nil
 	}
-	cb.Issuer = res
+
+	// check to see if it's an object that contains an `id` property
+	jsonMap, err := util.ToJSONMap(issuer)
+	if err != nil {
+		return errors.Wrap(err, "malformed issuer")
+	}
+	if _, gotID := jsonMap[VerifiableCredentialIDProperty]; !gotID {
+		return errors.New("issuer object did not contain `id` property")
+	}
+	// we know it's a valid issuer object object
+	cb.Issuer = issuer
+	return nil
+}
+
+func (cb *CredentialBuilder) SetIssuanceDate(dateTime string) error {
+	if cb.IsEmpty() {
+		return errors.New(CredentialBuilderEmptyError)
+	}
+
+	if !util.IsRFC3339Timestamp(dateTime) {
+		return fmt.Errorf("timestamp must be ISO-8601 compliant: %s", dateTime)
+	}
+
+	cb.IssuanceDate = dateTime
 	return nil
 }
 
@@ -115,7 +148,7 @@ func (cb *CredentialBuilder) SetExpirationDate(dateTime string) error {
 		return errors.New(CredentialBuilderEmptyError)
 	}
 
-	if !util.IsISO8601Timestamp(dateTime) {
+	if !util.IsRFC3339Timestamp(dateTime) {
 		return fmt.Errorf("timestamp must be ISO-8601 compliant: %s", dateTime)
 	}
 
@@ -141,8 +174,8 @@ func (cb *CredentialBuilder) SetCredentialSubject(subject CredentialSubject) err
 		return errors.New(CredentialBuilderEmptyError)
 	}
 
-	if _, ok := subject[VerifiableCredentialIDProperty]; !ok {
-		return fmt.Errorf("credential subject must contain %s property", VerifiableCredentialIDProperty)
+	if subject.GetID() == "" {
+		return errors.New("credential subject must have an ID property")
 	}
 
 	cb.CredentialSubject = subject

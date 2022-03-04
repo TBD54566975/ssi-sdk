@@ -220,7 +220,7 @@ func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof
 	// make sure the proof has a timestamp
 	created, ok := genericProof["created"]
 	if !ok || created == "" {
-		genericProof["created"] = GetISO8601Timestamp()
+		genericProof["created"] = GetRFC3339Timestamp()
 	}
 
 	var contexts []string
@@ -340,7 +340,7 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 func (j JWSSignatureSuite) createProof(verificationMethod string) JsonWebSignature2020Proof {
 	return JsonWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
-		Created:            GetISO8601Timestamp(),
+		Created:            GetRFC3339Timestamp(),
 		ProofPurpose:       AssertionMethod,
 		VerificationMethod: verificationMethod,
 	}

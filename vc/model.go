@@ -49,6 +49,14 @@ type CredentialStatus struct {
 
 type CredentialSubject map[string]interface{}
 
+func (cs CredentialSubject) GetID() string {
+	id := ""
+	if gotID, ok := cs[VerifiableCredentialIDProperty]; ok {
+		id = gotID.(string)
+	}
+	return id
+}
+
 type CredentialSchema struct {
 	ID   string `json:"id" validate:"required"`
 	Type string `json:"type" validate:"required"`
