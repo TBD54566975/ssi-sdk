@@ -52,11 +52,18 @@ func LDNormalize(document interface{}) (interface{}, error) {
 }
 
 func GetISO8601Timestamp() string {
-	return time.Now().UTC().Format(ISO8601Template)
+	return AsISO8601Timestamp(time.Now())
 }
 
 func AsISO8601Timestamp(t time.Time) string {
 	return t.UTC().Format(ISO8601Template)
+}
+
+// IsISO8601Timestamp attempts to parse a string as an ISO-8601 timestamp
+// Returns true if the parsing is successful, false if not.
+func IsISO8601Timestamp(t string) bool {
+	_, err := time.Parse(ISO8601Template, t)
+	return err == nil
 }
 
 // Copy makes a 1:1 copy of src into dst.
@@ -180,4 +187,36 @@ func InterfaceToStrings(have interface{}) ([]string, error) {
 	}
 
 	return nil, errors.New("could not turn interface into strings")
+}
+
+func ToJSONMap(data interface{}) (map[string]interface{}, error) {
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	var jsonMap map[string]interface{}
+	if err := json.Unmarshal(dataBytes, &jsonMap); err != nil {
+		return nil, err
+	}
+	return jsonMap, nil
+}
+
+// MergeUniqueValues takes in two string arrays and returns the union set
+// the input arrays are not modified
+func MergeUniqueValues(a, b []string) []string {
+	seen := make(map[string]bool)
+	var res []string
+	for _, v := range a {
+		// this check is necessary if a contains duplicates
+		if _, s := seen[v]; !s {
+			res = append(res, v)
+			seen[v] = true
+		}
+	}
+	for _, v := range b {
+		if _, s := seen[v]; !s {
+			res = append(res, v)
+		}
+	}
+	return res
 }

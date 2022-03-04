@@ -8,12 +8,6 @@ import (
 	"github.com/TBD54566975/did-sdk/util"
 )
 
-const (
-	VerifiableCredentialsLinkedDataContext string = "https://www.w3.org/2018/credentials/v1"
-)
-
-type CredentialSubject map[string]interface{}
-
 // VerifiableCredential is the known_schemas model outlined in the
 // vc known_schemas model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concepts
 type VerifiableCredential struct {
@@ -52,6 +46,8 @@ type CredentialStatus struct {
 	ID   string `json:"id" validate:"required"`
 	Type string `json:"type" validate:"required"`
 }
+
+type CredentialSubject map[string]interface{}
 
 type CredentialSchema struct {
 	ID   string `json:"id" validate:"required"`
