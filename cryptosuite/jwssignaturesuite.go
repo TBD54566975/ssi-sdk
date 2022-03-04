@@ -6,9 +6,10 @@ import (
 	"crypto"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/goccy/go-json"
 
 	. "github.com/TBD54566975/did-sdk/util"
 	"github.com/pkg/errors"

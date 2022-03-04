@@ -1,11 +1,12 @@
 package util
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	"strings"
 

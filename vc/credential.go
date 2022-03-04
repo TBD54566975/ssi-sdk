@@ -1,0 +1,5 @@
+package vc
+
+func GenerateCredential() {
+
+}

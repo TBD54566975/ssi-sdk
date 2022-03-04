@@ -1,8 +1,9 @@
 package vc
 
 import (
-	"encoding/json"
 	"testing"
+
+	"github.com/goccy/go-json"
 
 	"github.com/gobuffalo/packr/v2"
 	"github.com/stretchr/testify/assert"

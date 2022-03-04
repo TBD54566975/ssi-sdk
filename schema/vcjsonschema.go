@@ -1,7 +1,7 @@
 package schema
 
 import (
-	"encoding/json"
+	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/did-sdk/vc"
 	"github.com/gobuffalo/packr/v2"

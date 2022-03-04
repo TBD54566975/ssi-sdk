@@ -2,7 +2,8 @@ package cryptosuite
 
 import (
 	"crypto"
-	"encoding/json"
+
+	"github.com/goccy/go-json"
 
 	. "github.com/TBD54566975/did-sdk/util"
 

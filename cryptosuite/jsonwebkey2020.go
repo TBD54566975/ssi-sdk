@@ -4,8 +4,9 @@ package cryptosuite
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
+
+	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/did-sdk/crypto"
 
