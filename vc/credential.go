@@ -42,6 +42,8 @@ func NewCredentialBuilder() CredentialBuilder {
 	}
 }
 
+// Build attempts to turn a builder into a valid verifiable credential, doing some object model validation.
+// Schema validation and proof generation must be done separately.
 func (cb *CredentialBuilder) Build() (*VerifiableCredential, error) {
 	if cb.IsEmpty() {
 		return nil, errors.New(CredentialBuilderEmptyError)

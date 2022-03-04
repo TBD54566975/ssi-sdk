@@ -40,9 +40,9 @@ func TestJSONWebKey2020ToJWK(t *testing.T) {
 		},
 	}
 
-	signer, err := NewJSONWebKeySigner(knownJWK.PrivateKeyJWK)
+	signer, err := NewJSONWebKeySigner(knownJWK.ID, knownJWK.PrivateKeyJWK)
 	assert.NoError(t, err)
-	verifier, err := NewJSONWebKeyVerifier(knownJWK.PublicKeyJWK)
+	verifier, err := NewJSONWebKeyVerifier(knownJWK.ID, knownJWK.PublicKeyJWK)
 	assert.NoError(t, err)
 
 	msg := []byte("hello")
@@ -115,7 +115,7 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 		},
 	}
 
-	suite := JWSSignatureSuite{}
+	suite := GetJSONWebSignature2020Suite()
 	testCred := TestCredential{
 		Context: []string{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
@@ -130,23 +130,27 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			jwk, err := GenerateJSONWebKey2020(test.kty, crvPtr(test.crv))
+		t.Run(test.name, func(tt *testing.T) {
+			jwk, err := GenerateJSONWebKey2020(test.kty, test.crv)
 
 			if !test.expectErr {
-				signer, err := NewJSONWebKeySigner(jwk.PrivateKeyJWK)
-				assert.NoError(t, err)
+				signer, err := NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK)
+				assert.NoError(tt, err)
 
-				p, err := suite.Sign(signer, &testCred)
-				assert.NoError(t, err)
-				assert.NotEmpty(t, p)
+				// pin to avoid ptr shadowing
+				credPtr := testCred
+				err = suite.Sign(signer, &credPtr)
+				assert.NoError(tt, err)
 
-				verifier, err := NewJSONWebKeyVerifier(jwk.PublicKeyJWK)
-				assert.NoError(t, err)
-				err = suite.Verify(verifier, *p)
-				assert.NoError(t, err)
+				verifier, err := NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
+				assert.NoError(tt, err)
+
+				// pin to avoid ptr shadowing
+				verifyPtr := credPtr
+				err = suite.Verify(verifier, &verifyPtr)
+				assert.NoError(tt, err)
 			} else {
-				assert.Error(t, err)
+				assert.Error(tt, err)
 			}
 		})
 	}
@@ -169,7 +173,7 @@ func TestJsonWebSignature2020TestVectors(t *testing.T) {
 		},
 	}
 
-	signer, err := NewJSONWebKeySigner(knownJWK.PrivateKeyJWK)
+	signer, err := NewJSONWebKeySigner(knownJWK.ID, knownJWK.PrivateKeyJWK)
 	assert.NoError(t, err)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-0.json
@@ -181,15 +185,15 @@ func TestJsonWebSignature2020TestVectors(t *testing.T) {
 		CredentialSubject: map[string]interface{}{},
 	}
 
-	suite := JWSSignatureSuite{}
-	p, err := suite.Sign(signer, &knownCred)
+	suite := GetJSONWebSignature2020Suite()
+	err = suite.Sign(signer, &knownCred)
 	assert.NoError(t, err)
 
-	verifier, err := NewJSONWebKeyVerifier(knownJWK.PublicKeyJWK)
+	verifier, err := NewJSONWebKeyVerifier(knownJWK.ID, knownJWK.PublicKeyJWK)
 	assert.NoError(t, err)
 
 	// first verify our credential
-	err = suite.Verify(verifier, *p)
+	err = suite.Verify(verifier, &knownCred)
 	assert.NoError(t, err)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/implementations/transmute/credential-0--key-0-ed25519.vc.json

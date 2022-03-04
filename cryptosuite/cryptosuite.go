@@ -2,8 +2,10 @@ package cryptosuite
 
 import (
 	"crypto"
+	"reflect"
 
 	"github.com/goccy/go-json"
+	"github.com/pkg/errors"
 
 	. "github.com/TBD54566975/did-sdk/util"
 
@@ -32,7 +34,8 @@ type CryptoSuite interface {
 	CryptoSuiteInfo
 
 	// Sign https://w3c-ccg.github.io/data-integrity-spec/#proof-algorithm
-	Sign(s Signer, p Provable) (*Provable, error)
+	// this method mutates the provided provable object, adding a `proof` block`
+	Sign(s Signer, p Provable) error
 	// Verify https://w3c-ccg.github.io/data-integrity-spec/#proof-verification-algorithm
 	Verify(v Verifier, p Provable) error
 }
@@ -101,6 +104,21 @@ func GetContextsFromProvable(p Provable) ([]string, error) {
 		return nil, err
 	}
 	return strContexts, nil
+}
+
+func ProvableToType(p Provable, t interface{}) error {
+	tType := reflect.TypeOf(t)
+	tKind := tType.Kind()
+	if !(tKind == reflect.Ptr || tKind == reflect.Slice) {
+		return errors.New("t is not of kind ptr or slice")
+	}
+
+	jsonBytes, err := json.Marshal(p)
+	if err != nil {
+		return errors.Wrap(err, "could not convert provable to json")
+	}
+
+	return json.Unmarshal(jsonBytes, &t)
 }
 
 func getKnownContext(fileName string) (string, error) {

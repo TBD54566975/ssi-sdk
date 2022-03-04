@@ -10,7 +10,7 @@ func TestJSONWebKey2020SignerVerifier(t *testing.T) {
 	tests := []struct {
 		name string
 		kty  KTY
-		crv  *CRV
+		crv  CRV
 	}{
 		{
 			name: "RSA-2048",
@@ -19,22 +19,22 @@ func TestJSONWebKey2020SignerVerifier(t *testing.T) {
 		{
 			name: "Ed25519",
 			kty:  OKP,
-			crv:  crvPtr(Ed25519),
+			crv:  Ed25519,
 		},
 		{
 			name: "secpk256k1",
 			kty:  EC,
-			crv:  crvPtr(Secp256k1),
+			crv:  Secp256k1,
 		},
 		{
 			name: "P-256",
 			kty:  EC,
-			crv:  crvPtr(P256),
+			crv:  P256,
 		},
 		{
 			name: "P-384",
 			kty:  EC,
-			crv:  crvPtr(P384),
+			crv:  P384,
 		},
 	}
 	for _, test := range tests {
@@ -45,7 +45,7 @@ func TestJSONWebKey2020SignerVerifier(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, jwk)
 
-			signer, err := NewJSONWebKeySigner(jwk.PrivateKeyJWK)
+			signer, err := NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK)
 			assert.NoError(t, err)
 
 			testMessage := []byte("my name is satoshi")
@@ -53,7 +53,7 @@ func TestJSONWebKey2020SignerVerifier(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, signature)
 
-			verifier, err := NewJSONWebKeyVerifier(jwk.PublicKeyJWK)
+			verifier, err := NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, verifier)
 
