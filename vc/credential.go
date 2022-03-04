@@ -36,6 +36,7 @@ func NewCredentialBuilder() CredentialBuilder {
 		types:    types,
 		VerifiableCredential: &VerifiableCredential{
 			ID:           uuid.New().String(),
+			Context:      contexts,
 			Type:         types,
 			IssuanceDate: util.GetRFC3339Timestamp(),
 		},
@@ -214,6 +215,9 @@ func (cb *CredentialBuilder) SetTermsOfUse(terms []TermsOfUse) error {
 	if cb.IsEmpty() {
 		return errors.New(CredentialBuilderEmptyError)
 	}
+	if len(terms) == 0 {
+		return errors.New("terms of use cannot be empty")
+	}
 
 	cb.TermsOfUse = terms
 	return nil
@@ -222,6 +226,9 @@ func (cb *CredentialBuilder) SetTermsOfUse(terms []TermsOfUse) error {
 func (cb *CredentialBuilder) SetEvidence(evidence []interface{}) error {
 	if cb.IsEmpty() {
 		return errors.New(CredentialBuilderEmptyError)
+	}
+	if len(evidence) == 0 {
+		return errors.New("evidence cannot be empty")
 	}
 
 	cb.Evidence = evidence

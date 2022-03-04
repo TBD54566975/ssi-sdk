@@ -2,12 +2,9 @@ package cryptosuite
 
 import (
 	"crypto"
-	"reflect"
-
-	"github.com/goccy/go-json"
-	"github.com/pkg/errors"
 
 	. "github.com/TBD54566975/did-sdk/util"
+	"github.com/goccy/go-json"
 
 	"github.com/gobuffalo/packr/v2"
 )
@@ -104,21 +101,6 @@ func GetContextsFromProvable(p Provable) ([]string, error) {
 		return nil, err
 	}
 	return strContexts, nil
-}
-
-func ProvableToType(p Provable, t interface{}) error {
-	tType := reflect.TypeOf(t)
-	tKind := tType.Kind()
-	if !(tKind == reflect.Ptr || tKind == reflect.Slice) {
-		return errors.New("t is not of kind ptr or slice")
-	}
-
-	jsonBytes, err := json.Marshal(p)
-	if err != nil {
-		return errors.Wrap(err, "could not convert provable to json")
-	}
-
-	return json.Unmarshal(jsonBytes, &t)
 }
 
 func getKnownContext(fileName string) (string, error) {
