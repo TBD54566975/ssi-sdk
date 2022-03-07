@@ -2,9 +2,9 @@ package cryptosuite
 
 import (
 	"crypto"
-	"encoding/json"
 
 	. "github.com/TBD54566975/did-sdk/util"
+	"github.com/goccy/go-json"
 
 	"github.com/gobuffalo/packr/v2"
 )
@@ -31,7 +31,8 @@ type CryptoSuite interface {
 	CryptoSuiteInfo
 
 	// Sign https://w3c-ccg.github.io/data-integrity-spec/#proof-algorithm
-	Sign(s Signer, p Provable) (*Provable, error)
+	// this method mutates the provided provable object, adding a `proof` block`
+	Sign(s Signer, p Provable) error
 	// Verify https://w3c-ccg.github.io/data-integrity-spec/#proof-verification-algorithm
 	Verify(v Verifier, p Provable) error
 }

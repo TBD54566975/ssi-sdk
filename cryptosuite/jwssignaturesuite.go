@@ -6,9 +6,10 @@ import (
 	"crypto"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/goccy/go-json"
 
 	. "github.com/TBD54566975/did-sdk/util"
 	"github.com/pkg/errors"
@@ -30,6 +31,10 @@ const (
 
 type JWSSignatureSuite struct {
 	CryptoSuiteProofType
+}
+
+func GetJSONWebSignature2020Suite() CryptoSuite {
+	return &JWSSignatureSuite{}
 }
 
 func (j JWSSignatureSuite) ID() string {
@@ -56,40 +61,37 @@ func (j JWSSignatureSuite) RequiredContexts() []string {
 	return []string{JSONWebSignature2020Context}
 }
 
-func (j JWSSignatureSuite) Sign(s Signer, p Provable) (*Provable, error) {
-	// before we can create a proof we need to make sure the document contains the requisite
-	// JSON-LD context for this signature suite
-	if err := j.verifySuiteContext(p); err != nil {
-		return nil, err
-	}
-
+func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	// create proof before CVH
 	proof := j.createProof(s.KeyID())
 
 	// prepare proof options
 	contexts, err := GetContextsFromProvable(p)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get contexts from provable")
+		return errors.Wrap(err, "could not get contexts from provable")
 	}
+
+	// make sure the suite's context(s) are included
+	contexts = MergeUniqueValues(contexts, j.RequiredContexts())
 	opts := &ProofOptions{Contexts: contexts}
 
 	// 3. tbs value as a result of cvh
 	tbs, err := j.CreateVerifyHash(p, proof, opts)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// 4 & 5. create the signature over the provable data as a JWS
 	signature, err := s.Sign(tbs)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// set the signature on the proof object and return
 	proof.SetDetachedJWS(string(signature))
 	genericProof := Proof(proof)
 	p.SetProof(&genericProof)
-	return &p, nil
+	return nil
 }
 
 func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
@@ -102,6 +104,9 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	// remove proof before verifying
 	p.SetProof(nil)
 
+	// make sure we set it back after we're done verifying
+	defer p.SetProof(proof)
+
 	// remove the JWS value in the proof before verification
 	jwsCopy := []byte(gotProof.JWS)
 	gotProof.SetDetachedJWS("")
@@ -111,6 +116,9 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get contexts from provable")
 	}
+
+	// make sure the suite's context(s) are included
+	contexts = MergeUniqueValues(contexts, j.RequiredContexts())
 	opts := &ProofOptions{Contexts: contexts}
 
 	// run CVH on both provable and the proof
@@ -219,7 +227,7 @@ func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof
 	// make sure the proof has a timestamp
 	created, ok := genericProof["created"]
 	if !ok || created == "" {
-		genericProof["created"] = GetISO8601Timestamp()
+		genericProof["created"] = GetRFC3339Timestamp()
 	}
 
 	var contexts []string
@@ -232,34 +240,6 @@ func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof
 	genericProof["@context"] = contexts
 	p := Proof(genericProof)
 	return &p, nil
-}
-
-// verifySuiteContext makes sure a given provable document has the @context values this suite requires
-func (j JWSSignatureSuite) verifySuiteContext(p Provable) error {
-	bytes, err := json.Marshal(p)
-	if err != nil {
-		return err
-	}
-	var generic map[string]interface{}
-	if err := json.Unmarshal(bytes, &generic); err != nil {
-		return err
-	}
-	context, ok := generic["@context"]
-	if !ok {
-		return errors.New("no context property found in provable struct")
-	}
-
-	// since context can either be a string or an array of strings we need to try both
-	strContexts, err := InterfaceToStrings(context)
-	if err != nil {
-		return errors.Wrap(err, "could not stringify contexts")
-	}
-	for _, requiredContext := range j.RequiredContexts() {
-		if !Contains(requiredContext, strContexts) {
-			return fmt.Errorf("provable does not contain required context: %s", requiredContext)
-		}
-	}
-	return nil
 }
 
 type JsonWebSignature2020Proof struct {
@@ -339,7 +319,7 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 func (j JWSSignatureSuite) createProof(verificationMethod string) JsonWebSignature2020Proof {
 	return JsonWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
-		Created:            GetISO8601Timestamp(),
+		Created:            GetRFC3339Timestamp(),
 		ProofPurpose:       AssertionMethod,
 		VerificationMethod: verificationMethod,
 	}

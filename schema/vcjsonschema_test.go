@@ -1,8 +1,9 @@
 package schema
 
 import (
-	"encoding/json"
 	"testing"
+
+	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/did-sdk/vc"
 

@@ -170,3 +170,15 @@ func PackrClean() error {
 	mg.Deps(ensureGobin)
 	return gobinRun("github.com/gobuffalo/packr/packr", "clean")
 }
+
+// CBT runs clean; build; test
+func CBT() error {
+	Clean()
+	if err := Build(); err != nil {
+		return err
+	}
+	if err := Test(); err != nil {
+		return err
+	}
+	return nil
+}
