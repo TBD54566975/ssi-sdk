@@ -45,7 +45,7 @@ func TestJSONWebKey2020SignerVerifier(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, jwk)
 
-			signer, err := NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK)
+			signer, err := NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, AssertionMethod)
 			assert.NoError(t, err)
 
 			testMessage := []byte("my name is satoshi")

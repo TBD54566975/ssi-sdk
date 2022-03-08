@@ -19,6 +19,7 @@ const (
 	W3CSecurityContext                    = "https://w3id.org/security/v1"
 	JWS2020LinkedDataContext string       = "https://w3id.org/security/suites/jws-2020/v1"
 	AssertionMethod          ProofPurpose = "assertionMethod"
+	Authentication           ProofPurpose = "authentication"
 )
 
 var (
@@ -68,6 +69,8 @@ type Signer interface {
 	SignatureType() SignatureType
 	SigningAlgorithm() string
 	Sign(tbs []byte) ([]byte, error)
+	SetProofPurpose(purpose ProofPurpose)
+	GetProofPurpose() ProofPurpose
 }
 
 type Verifier interface {

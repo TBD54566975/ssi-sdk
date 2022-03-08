@@ -63,7 +63,7 @@ func (j JWSSignatureSuite) RequiredContexts() []string {
 
 func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	// create proof before CVH
-	proof := j.createProof(s.KeyID())
+	proof := j.createProof(s.KeyID(), s.GetProofPurpose())
 
 	// prepare proof options
 	contexts, err := GetContextsFromProvable(p)
@@ -247,6 +247,7 @@ type JsonWebSignature2020Proof struct {
 	Created            string        `json:"created,omitempty"`
 	JWS                string        `json:"jws,omitempty"`
 	ProofPurpose       ProofPurpose  `json:"proofPurpose,omitempty"`
+	Challenge          string        `json:"challenge,omitempty"`
 	VerificationMethod string        `json:"verificationMethod,omitempty"`
 }
 
@@ -275,6 +276,10 @@ func FromGenericProof(p Proof) (*JsonWebSignature2020Proof, error) {
 	if !ok {
 		purposeValue = ""
 	}
+	challengeValue, ok := generic["challenge"].(string)
+	if !ok {
+		challengeValue = ""
+	}
 	methodValue, ok := generic["verificationMethod"].(string)
 	if !ok {
 		methodValue = ""
@@ -284,6 +289,7 @@ func FromGenericProof(p Proof) (*JsonWebSignature2020Proof, error) {
 		Created:            createdValue,
 		JWS:                jwsValue,
 		ProofPurpose:       ProofPurpose(purposeValue),
+		Challenge:          challengeValue,
 		VerificationMethod: methodValue,
 	}, nil
 }
@@ -316,11 +322,11 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(jwsParts[2])
 }
 
-func (j JWSSignatureSuite) createProof(verificationMethod string) JsonWebSignature2020Proof {
+func (j JWSSignatureSuite) createProof(verificationMethod string, purpose ProofPurpose) JsonWebSignature2020Proof {
 	return JsonWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
 		Created:            GetRFC3339Timestamp(),
-		ProofPurpose:       AssertionMethod,
+		ProofPurpose:       purpose,
 		VerificationMethod: verificationMethod,
 	}
 }
