@@ -200,7 +200,7 @@ func TestDIDKeySignVerify(t *testing.T) {
 		assert.True(t, verified)
 	})
 
-	t.Run("Test RSA 4096 did:key", func(t *testing.T) {
+	t.Run("Test RSA 2048 did:key", func(t *testing.T) {
 		privKey, didKey, err := GenerateDIDKey(crypto.RSA)
 		assert.NoError(t, err)
 		assert.NotNil(t, didKey)
@@ -355,7 +355,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.Equal(tt, cryptosuite.JsonWebKey2020, didDoc2.VerificationMethod[0].Type)
 	})
 
-	t.Run("RSA 4096", func(tt *testing.T) {
+	t.Run("RSA 2048", func(tt *testing.T) {
 		did1 := "did:key:zgghBUVkqmWS8e1ioRVp2WN9Vw6x4NvnE9PGAyQsPqM3fnfPf8EdauiRVfBTcVDyzhqM5FFC7ekAvuV1cJHawtfgB9wDcru1hPDobk3hqyedijhgWmsYfJCmodkiiFnjNWATE7PvqTyoCjcmrc8yMRXmFPnoASyT5beUd4YZxTE9VfgmavcPy3BSouNmASMQ8xUXeiRwjb7xBaVTiDRjkmyPD7NYZdXuS93gFhyDFr5b3XLg7Rfj9nHEqtHDa7NmAX7iwDAbMUFEfiDEf9hrqZmpAYJracAjTTR8Cvn6mnDXMLwayNG8dcsXFodxok2qksYF4D8ffUxMRmyyQVQhhhmdSi4YaMPqTnC1J6HTG9Yfb98yGSVaWi4TApUhLXFow2ZvB6vqckCNhjCRL2R4MDUSk71qzxWHgezKyDeyThJgdxydrn1osqH94oSeA346eipkJvKqYREXBKwgB5VL6WF4qAK6sVZxJp2dQBfCPVZ4EbsBQaJXaVK7cNcWG8tZBFWZ79gG9Cu6C4u8yjBS8Ux6dCcJPUTLtixQu4z2n5dCsVSNdnP1EEs8ZerZo5pBgc68w4Yuf9KL3xVxPnAB1nRCBfs9cMU6oL1EdyHbqrTfnjE8HpY164akBqe92LFVsk8RusaGsVPrMekT8emTq5y8v8CabuZg5rDs3f9NPEtogjyx49wiub1FecM5B7QqEcZSYiKHgF4mfkteT2"
 		didKey1 := DIDKey(did1)
 		didDoc1, err := didKey1.Expand()
