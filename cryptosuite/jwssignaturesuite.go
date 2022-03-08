@@ -63,7 +63,7 @@ func (j JWSSignatureSuite) RequiredContexts() []string {
 
 func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	// create proof before CVH
-	proof := j.createProof(s.KeyID())
+	proof := j.createProof(s.KeyID(), AssertionMethod)
 
 	// prepare proof options
 	contexts, err := GetContextsFromProvable(p)
@@ -316,11 +316,11 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(jwsParts[2])
 }
 
-func (j JWSSignatureSuite) createProof(verificationMethod string) JsonWebSignature2020Proof {
+func (j JWSSignatureSuite) createProof(verificationMethod string, purpose ProofPurpose) JsonWebSignature2020Proof {
 	return JsonWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
 		Created:            GetRFC3339Timestamp(),
-		ProofPurpose:       AssertionMethod,
+		ProofPurpose:       purpose,
 		VerificationMethod: verificationMethod,
 	}
 }

@@ -29,7 +29,7 @@ func (t *TestCredential) SetProof(p *Proof) {
 
 func TestJSONWebKey2020ToJWK(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
-	signer, jwk := getTestVectorKey0Signer(t)
+	signer, jwk := getTestVectorKey0Signer(t, AssertionMethod)
 	verifier, err := NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
 	assert.NoError(t, err)
 
@@ -122,7 +122,7 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 			jwk, err := GenerateJSONWebKey2020(test.kty, test.crv)
 
 			if !test.expectErr {
-				signer, err := NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK)
+				signer, err := NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, AssertionMethod)
 				assert.NoError(tt, err)
 
 				// pin to avoid ptr shadowing
@@ -147,7 +147,7 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 // https://github.com/decentralized-identity/JWS-Test-Suite
 func TestJsonWebSignature2020TestVectorCredential0(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
-	signer, jwk := getTestVectorKey0Signer(t)
+	signer, jwk := getTestVectorKey0Signer(t, AssertionMethod)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-0.json
 	knownCred := TestCredential{
@@ -159,7 +159,7 @@ func TestJsonWebSignature2020TestVectorCredential0(t *testing.T) {
 	}
 
 	suite := GetJSONWebSignature2020Suite()
-	err := suite.Sign(signer, &knownCred)
+	err := suite.Sign(&signer, &knownCred)
 	assert.NoError(t, err)
 
 	verifier, err := NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
@@ -188,7 +188,7 @@ func TestJsonWebSignature2020TestVectorCredential0(t *testing.T) {
 
 func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
-	signer, jwk := getTestVectorKey0Signer(t)
+	signer, jwk := getTestVectorKey0Signer(t, AssertionMethod)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-1.json
 	knownCred := TestCredential{
@@ -204,7 +204,7 @@ func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
 	}
 
 	suite := GetJSONWebSignature2020Suite()
-	err := suite.Sign(signer, &knownCred)
+	err := suite.Sign(&signer, &knownCred)
 	assert.NoError(t, err)
 
 	verifier, err := NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
@@ -234,7 +234,7 @@ func (t *TestPresentation) SetProof(p *Proof) {
 
 func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
-	signer, jwk := getTestVectorKey0Signer(t)
+	signer, jwk := getTestVectorKey0Signer(t, Authentication)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/presentations/presentation-1.json
 	var credProof Proof = map[string]interface{}{
@@ -288,7 +288,7 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 
 	// sign known pres
 	suite := GetJSONWebSignature2020Suite()
-	err := suite.Sign(signer, &knownPres)
+	err := suite.Sign(&signer, &knownPres)
 	assert.NoError(t, err)
 
 	verifier, err := NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
@@ -316,7 +316,7 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func getTestVectorKey0Signer(t *testing.T) (JSONWebKeySigner, JSONWebKey2020) {
+func getTestVectorKey0Signer(t *testing.T, purpose ProofPurpose) (JSONWebKeySigner, JSONWebKey2020) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	knownJWK := JSONWebKey2020{
 		ID: "did:example:123#key-0",
@@ -333,7 +333,7 @@ func getTestVectorKey0Signer(t *testing.T) (JSONWebKeySigner, JSONWebKey2020) {
 		},
 	}
 
-	signer, err := NewJSONWebKeySigner(knownJWK.ID, knownJWK.PrivateKeyJWK)
+	signer, err := NewJSONWebKeySigner(knownJWK.ID, knownJWK.PrivateKeyJWK, purpose)
 	assert.NoError(t, err)
 	return *signer, knownJWK
 }

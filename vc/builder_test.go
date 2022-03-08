@@ -112,7 +112,7 @@ func TestCredentialLDProof(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, jwk)
 
-	signer, err := cryptosuite.NewJSONWebKeySigner(issuer, jwk.PrivateKeyJWK)
+	signer, err := cryptosuite.NewJSONWebKeySigner(issuer, jwk.PrivateKeyJWK, cryptosuite.AssertionMethod)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, signer)
 
