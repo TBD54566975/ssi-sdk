@@ -72,7 +72,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	}
 
 	// make sure the suite's context(s) are included
-	contexts = MergeUniqueValues(contexts, j.RequiredContexts())
+	contexts = ensureRequiredContexts(contexts, j.RequiredContexts())
 	opts := &ProofOptions{Contexts: contexts}
 
 	// 3. tbs value as a result of cvh
@@ -118,7 +118,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	}
 
 	// make sure the suite's context(s) are included
-	contexts = MergeUniqueValues(contexts, j.RequiredContexts())
+	contexts = ensureRequiredContexts(contexts, j.RequiredContexts())
 	opts := &ProofOptions{Contexts: contexts}
 
 	// run CVH on both provable and the proof
@@ -230,12 +230,12 @@ func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof
 		genericProof["created"] = GetRFC3339Timestamp()
 	}
 
-	var contexts []string
+	var contexts []interface{}
 	if opts != nil {
 		contexts = opts.Contexts
 	} else {
 		// if none provided, make sure the proof has a context value for this suite
-		contexts = j.RequiredContexts()
+		contexts = ArrayStrToInterface(j.RequiredContexts())
 	}
 	genericProof["@context"] = contexts
 	p := Proof(genericProof)

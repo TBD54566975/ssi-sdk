@@ -78,12 +78,12 @@ type Verifier interface {
 
 type ProofOptions struct {
 	// JSON-LD contexts to add to the proof
-	Contexts []string
+	Contexts []interface{}
 }
 
 // GetContextsFromProvable searches from a Linked Data `@context` property in the document and returns the value
 // associated with the context, if it exists.
-func GetContextsFromProvable(p Provable) ([]string, error) {
+func GetContextsFromProvable(p Provable) ([]interface{}, error) {
 	provableBytes, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
@@ -96,11 +96,39 @@ func GetContextsFromProvable(p Provable) ([]string, error) {
 	if !ok {
 		return nil, nil
 	}
-	strContexts, err := InterfaceToStrings(contexts)
+	interfaceContexts, err := InterfaceToInterfaceArray(contexts)
 	if err != nil {
 		return nil, err
 	}
-	return strContexts, nil
+	return interfaceContexts, nil
+}
+
+// attempt to verify that string context(s) exist in the context interface
+func ensureRequiredContexts(context []interface{}, requiredContexts []string) []interface{} {
+	required := make(map[string]bool)
+	for _, v := range requiredContexts {
+		required[v] = true
+	}
+
+	for _, v := range context {
+		vStr, ok := v.(string)
+		// if it's a string, check to see if it's required
+		if ok {
+			req, ok := required[vStr]
+			// if it's required and has a true value, we can check it off
+			if ok && req {
+				required[vStr] = false
+			}
+		}
+	}
+
+	// for all remaining true values, add it to the result
+	for k, v := range required {
+		if v {
+			context = append(context, k)
+		}
+	}
+	return context
 }
 
 func getKnownContext(fileName string) (string, error) {

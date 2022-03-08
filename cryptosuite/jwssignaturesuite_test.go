@@ -9,10 +9,11 @@ import (
 )
 
 type TestCredential struct {
-	Context           []string               `json:"@context,omitempty"`
+	Context           []interface{}          `json:"@context,omitempty"`
 	Type              []string               `json:"type,omitempty"`
 	Issuer            string                 `json:"issuer,omitempty"`
 	IssuanceDate      string                 `json:"issuanceDate,omitempty"`
+	ExpirationDate    string                 `json:"expirationDate,omitempty"`
 	CredentialSubject map[string]interface{} `json:"credentialSubject"`
 	Proof             Proof                  `json:"proof,omitempty"`
 }
@@ -117,7 +118,7 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 
 	suite := GetJSONWebSignature2020Suite()
 	testCred := TestCredential{
-		Context: []string{"https://www.w3.org/2018/credentials/v1",
+		Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
 		Type:         []string{"VerifiableCredential"},
 		Issuer:       "did:example:123",
@@ -157,7 +158,7 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 }
 
 // https://github.com/decentralized-identity/JWS-Test-Suite
-func TestJsonWebSignature2020TestVectors(t *testing.T) {
+func TestJsonWebSignature2020TestVectorCredential0(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	knownJWK := JSONWebKey2020{
 		PublicKeyJWK: PublicKeyJWK{
@@ -178,7 +179,7 @@ func TestJsonWebSignature2020TestVectors(t *testing.T) {
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-0.json
 	knownCred := TestCredential{
-		Context:           []string{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
+		Context:           []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
 		Type:              []string{"VerifiableCredential"},
 		Issuer:            "did:example:123",
 		IssuanceDate:      "2021-01-01T19:23:24Z",
@@ -205,15 +206,54 @@ func TestJsonWebSignature2020TestVectors(t *testing.T) {
 		VerificationMethod: "did:example:123#key-0",
 	}
 	proof := knownProof.ToGenericProof()
-	knownCredSigned := TestCredential{
-		Context:           []string{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
-		Type:              []string{"VerifiableCredential"},
-		Issuer:            "did:example:123",
-		IssuanceDate:      "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]interface{}{},
-		Proof:             &proof,
-	}
+	knownCredSigned := knownCred
+	knownCredSigned.SetProof(&proof)
+
 	// verify known cred
 	err = suite.Verify(verifier, &knownCredSigned)
+	assert.NoError(t, err)
+}
+
+func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
+	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
+	knownJWK := JSONWebKey2020{
+		PublicKeyJWK: PublicKeyJWK{
+			KTY: "OKP",
+			CRV: "Ed25519",
+			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
+		},
+		PrivateKeyJWK: PrivateKeyJWK{
+			KTY: "OKP",
+			CRV: "Ed25519",
+			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
+			D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
+		},
+	}
+
+	signer, err := NewJSONWebKeySigner(knownJWK.ID, knownJWK.PrivateKeyJWK)
+	assert.NoError(t, err)
+
+	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-1.json
+	knownCred := TestCredential{
+		Context:        []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1", map[string]string{"@vocab": "https://example.com/#"}},
+		Type:           []string{"VerifiableCredential"},
+		Issuer:         "did:example:123",
+		IssuanceDate:   "2021-01-01T19:23:24Z",
+		ExpirationDate: "2031-01-01T19:23:24Z",
+		CredentialSubject: map[string]interface{}{
+			"id":   "did:example:456",
+			"type": "Person",
+		},
+	}
+
+	suite := GetJSONWebSignature2020Suite()
+	err = suite.Sign(signer, &knownCred)
+	assert.NoError(t, err)
+
+	verifier, err := NewJSONWebKeyVerifier(knownJWK.ID, knownJWK.PublicKeyJWK)
+	assert.NoError(t, err)
+
+	// verify our credential
+	err = suite.Verify(verifier, &knownCred)
 	assert.NoError(t, err)
 }

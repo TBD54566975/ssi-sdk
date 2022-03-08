@@ -121,6 +121,7 @@ func NewAppendErrorFromError(err error) *AppendError {
 	ae.Append(err)
 	return ae
 }
+
 func (a *AppendError) Append(err error) {
 	*a = append(*a, err.Error())
 }
@@ -155,6 +156,42 @@ func ArrayInterfaceToStr(have []interface{}) ([]string, error) {
 		want = append(want, strItem)
 	}
 	return want, nil
+}
+
+func ArrayStrToInterface(have []string) []interface{} {
+	var want []interface{}
+	for _, v := range have {
+		want = append(want, v)
+	}
+	return want
+}
+
+// InterfaceToInterfaceArray attempts to array-ify an interface type
+func InterfaceToInterfaceArray(have interface{}) ([]interface{}, error) {
+	// case 1: it's a string
+	strVal, ok := have.(string)
+	if ok {
+		return []interface{}{strVal}, nil
+	}
+
+	// case 2: it's an array of string types
+	strVals, ok := have.([]string)
+	if ok {
+		var want []interface{}
+		for _, s := range strVals {
+			want = append(want, s)
+		}
+		return want, nil
+	}
+
+	// case 3: it's an array of interface types
+	interVals, ok := have.([]interface{})
+	if ok {
+		return interVals, nil
+	}
+
+	// case 4: it's another interface type
+	return []interface{}{have}, nil
 }
 
 // InterfaceToStrings assumes we are given an interface of either `string`, `[]string` or `[]interface{}` types
