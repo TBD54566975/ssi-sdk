@@ -97,7 +97,7 @@ func (v *VerifiableCredential) IsValid() error {
 // VerifiablePresentation https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#presentations-0
 type VerifiablePresentation struct {
 	// Either a string or set of strings
-	Context              interface{}            `json:"@context" validate:"required"`
+	Context              interface{}            `json:"@context,omitempty"`
 	ID                   string                 `json:"id,omitempty"`
 	Holder               string                 `json:"holder,omitempty"`
 	Type                 interface{}            `json:"type" validate:"required"`
