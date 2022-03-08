@@ -63,7 +63,7 @@ func (j JWSSignatureSuite) RequiredContexts() []string {
 
 func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	// create proof before CVH
-	proof := j.createProof(s.KeyID(), AssertionMethod)
+	proof := j.createProof(s.KeyID(), s.GetProofPurpose())
 
 	// prepare proof options
 	contexts, err := GetContextsFromProvable(p)
