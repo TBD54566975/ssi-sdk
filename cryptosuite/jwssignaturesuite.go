@@ -247,6 +247,7 @@ type JsonWebSignature2020Proof struct {
 	Created            string        `json:"created,omitempty"`
 	JWS                string        `json:"jws,omitempty"`
 	ProofPurpose       ProofPurpose  `json:"proofPurpose,omitempty"`
+	Challenge          string        `json:"challenge,omitempty"`
 	VerificationMethod string        `json:"verificationMethod,omitempty"`
 }
 
@@ -275,6 +276,10 @@ func FromGenericProof(p Proof) (*JsonWebSignature2020Proof, error) {
 	if !ok {
 		purposeValue = ""
 	}
+	challengeValue, ok := generic["challenge"].(string)
+	if !ok {
+		challengeValue = ""
+	}
 	methodValue, ok := generic["verificationMethod"].(string)
 	if !ok {
 		methodValue = ""
@@ -284,6 +289,7 @@ func FromGenericProof(p Proof) (*JsonWebSignature2020Proof, error) {
 		Created:            createdValue,
 		JWS:                jwsValue,
 		ProofPurpose:       ProofPurpose(purposeValue),
+		Challenge:          challengeValue,
 		VerificationMethod: methodValue,
 	}, nil
 }

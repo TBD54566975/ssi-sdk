@@ -302,11 +302,11 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 	// https://identity.foundation/JWS-Test-Suite/implementations/transmute/presentation-1--key-0-ed25519.vp.json
 	var knownProof Proof = map[string]interface{}{
 		"type":               "JsonWebSignature2020",
-		"created":            "2022-03-08T07:09:59Z",
+		"created":            "2022-03-08T23:38:19Z",
 		"verificationMethod": "did:example:123#key-0",
 		"proofPurpose":       "authentication",
 		"challenge":          "123",
-		"jws":                "eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..48d3JTVPCLnKDRqunOngQkVpiMqIX41sk56mPSMWtTKXreGED55I0_cGIfi226XKMSXdC_-p0r403e7gLR5aAw",
+		"jws":                "eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..2Lckee0hjEiXlvl3X-Sp4ghqhc6HAH1AjnGwAYWC71i6k84U5ajb79aUWfwxUIMdQcE-hwbU6roUfsMWliDxAA",
 	}
 	signedPres := knownPres
 	signedPres.SetProof(&knownProof)
