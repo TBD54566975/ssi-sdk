@@ -101,7 +101,7 @@ type VerifiablePresentation struct {
 	ID                   string                 `json:"id,omitempty"`
 	Type                 interface{}            `json:"type" validate:"required"`
 	VerifiableCredential []VerifiableCredential `json:"verifiableCredential,omitempty" validate:"omitempty,dive"`
-	Proof                interface{}            `json:"proof,omitempty"`
+	Proof                *cryptosuite.Proof     `json:"proof,omitempty"`
 }
 
 func (v *VerifiablePresentation) IsEmpty() bool {
@@ -113,4 +113,12 @@ func (v *VerifiablePresentation) IsEmpty() bool {
 
 func (v *VerifiablePresentation) IsValid() error {
 	return util.NewValidator().Struct(v)
+}
+
+func (v *VerifiablePresentation) GetProof() *cryptosuite.Proof {
+	return v.Proof
+}
+
+func (v *VerifiablePresentation) SetProof(p *cryptosuite.Proof) {
+	v.Proof = p
 }
