@@ -457,7 +457,7 @@ func NewJSONWebKeyVerifier(kid string, key PublicKeyJWK) (*JSONWebKeyVerifier, e
 // The curve parameter is optional (e.g. "") as in the case of RSA.
 func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.SignatureAlgorithm, error) {
 	if kty == jwa.RSA {
-		return jwa.RS256, nil
+		return jwa.PS256, nil
 	}
 
 	if crv == "" {
