@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
+
 	"github.com/goccy/go-json"
 
 	. "github.com/TBD54566975/did-sdk/util"
@@ -323,10 +325,15 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 }
 
 func (j JWSSignatureSuite) createProof(verificationMethod string, purpose ProofPurpose) JsonWebSignature2020Proof {
+	var challenge string
+	if purpose == Authentication {
+		challenge = uuid.New().String()
+	}
 	return JsonWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
 		Created:            GetRFC3339Timestamp(),
 		ProofPurpose:       purpose,
+		Challenge:          challenge,
 		VerificationMethod: verificationMethod,
 	}
 }

@@ -5,6 +5,8 @@ package cryptosuite
 import (
 	"testing"
 
+	"github.com/goccy/go-json"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -232,8 +234,53 @@ func (t *TestPresentation) SetProof(p *Proof) {
 	t.Proof = p
 }
 
-func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
+func TestJsonWebSignature2020TestVectorPresentation0(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
+	signer, jwk := getTestVectorKey0Signer(t, Authentication)
+
+	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/presentations/presentation-0.json
+	knownPres := TestPresentation{
+		Context: []string{"https://www.w3.org/2018/credentials/v1",
+			"https://w3id.org/security/suites/jws-2020/v1"},
+		Type:   []string{"VerifiablePresentation"},
+		Holder: "did:example:123",
+	}
+
+	// sign known pres
+	suite := GetJSONWebSignature2020Suite()
+	err := suite.Sign(&signer, &knownPres)
+	assert.NoError(t, err)
+
+	b, _ := json.Marshal(knownPres)
+	println(string(b))
+
+	verifier, err := NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
+	assert.NoError(t, err)
+
+	// verify our presentation
+	err = suite.Verify(verifier, &knownPres)
+	assert.NoError(t, err)
+
+	// verify against known working impl
+	// https://identity.foundation/JWS-Test-Suite/implementations/transmute/presentation-0--key-0-ed25519.vp.json
+	var knownProof Proof = map[string]interface{}{
+		"type":               "JsonWebSignature2020",
+		"proofPurpose":       "authentication",
+		"challenge":          "123",
+		"verificationMethod": "did:example:123#key-0",
+		"created":            "2022-03-08T23:35:52.906Z",
+		"jws":                "eyJhbGciOiJFZERTQSIsImNyaXQiOlsiYjY0Il0sImI2NCI6ZmFsc2V9..0PvxIWgyEZ3Lmx44tgMYj6obpvZotnTRkfdOxunBVIu5UTtejPg-l3zlRrsgrgA-wPH3osTm11ubwBLlpuW1DQ",
+	}
+	signedPres := knownPres
+	signedPres.SetProof(&knownProof)
+
+	// verify known proof
+	err = suite.Verify(verifier, &signedPres)
+	assert.NoError(t, err)
+}
+
+// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
+func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 	signer, jwk := getTestVectorKey0Signer(t, Authentication)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/presentations/presentation-1.json
