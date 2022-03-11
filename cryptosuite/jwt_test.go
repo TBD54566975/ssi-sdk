@@ -50,8 +50,17 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
 	assert.NoError(t, err)
 
-	err = verifier.VerifyJWT(string(signed))
+	token := string(signed)
+	err = verifier.VerifyJWT(token)
 	assert.NoError(t, err)
+
+	parsedPres, err := ParseVerifiablePresentationFromJWT(token)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, parsedPres)
+
+	pres, err := verifier.VerifyVerifiablePresentationJWT(token)
+	assert.NoError(t, err)
+	assert.Equal(t, parsedPres, pres)
 }
 
 func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {

@@ -185,7 +185,44 @@ func (v *JSONWebKeyVerifier) VerifyVerifiablePresentationJWT(token string) (*vc.
 	if err := v.VerifyJWT(token); err != nil {
 		return nil, errors.Wrap(err, "could not verify JWT and its signature")
 	}
-	return nil, nil
+	return ParseVerifiablePresentationFromJWT(token)
+}
+
+// ParseVerifiablePresentationFromJWT the JWT is decoded according to the specification.
+// https://www.w3.org/TR/vc-data-model/#jwt-decoding
+// If there are any issues during decoding, an error is returned. As a result, a successfully
+// decoded VerifiablePresentation object is returned.
+func ParseVerifiablePresentationFromJWT(token string) (*vc.VerifiablePresentation, error) {
+	parsed, err := jwt.Parse([]byte(token))
+	if err != nil {
+		return nil, errors.Wrap(err, "could not parse vp token")
+	}
+	vpClaim, ok := parsed.Get(VPJWTProperty)
+	if !ok {
+		return nil, fmt.Errorf("did not find %s property in token", VPJWTProperty)
+	}
+	vpBytes, err := json.Marshal(vpClaim)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not marshal vp claim")
+	}
+	vpStr, err := strconv.Unquote(string(vpBytes))
+	if err != nil {
+		return nil, errors.Wrap(err, "vp property in unknown format")
+	}
+	var pres vc.VerifiablePresentation
+	if err := json.Unmarshal([]byte(vpStr), &pres); err != nil {
+		return nil, errors.Wrap(err, "could not reconstruct Verifiable Presentation")
+	}
+
+	// parse remaining JWT properties and set in the presentation
+
+	jti, hasJti := parsed.Get(jwt.NotBeforeKey)
+	jtiStr, ok := jti.(string)
+	if hasJti && ok && jtiStr != "" {
+		pres.ID = jtiStr
+	}
+
+	return &pres, nil
 }
 
 // VerifyJWT parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success
