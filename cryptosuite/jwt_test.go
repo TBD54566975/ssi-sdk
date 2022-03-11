@@ -3,9 +3,50 @@
 package cryptosuite
 
 import (
+	"github.com/TBD54566975/did-sdk/vc"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+func TestVerifiableCredentialJWT(t *testing.T) {
+	testCredential := vc.VerifiableCredential{
+		Context:      []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
+		Type:         []string{"VerifiableCredential"},
+		Issuer:       "did:example:123",
+		IssuanceDate: "2021-01-01T19:23:24Z",
+		CredentialSubject: map[string]interface{}{
+			"id":   "did:abcd:efghi",
+			"name": "satoshi nakamoto",
+		},
+	}
+	signer, key := getTestVectorKey0Signer(t, AssertionMethod)
+	signed, err := signer.SignVerifiableCredentialJWT(testCredential)
+	assert.NoError(t, err)
+
+	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
+	assert.NoError(t, err)
+
+	err = verifier.VerifyVerifiableCredentialJWT(string(signed))
+	assert.NoError(t, err)
+}
+
+func TestVerifiablePresentationJWT(t *testing.T) {
+	testPresentation := vc.VerifiablePresentation{
+		Context: []string{"https://www.w3.org/2018/credentials/v1",
+			"https://w3id.org/security/suites/jws-2020/v1"},
+		Type:   []string{"VerifiablePresentation"},
+		Holder: "did:example:123",
+	}
+	signer, key := getTestVectorKey0Signer(t, AssertionMethod)
+	signed, err := signer.SignVerifiablePresentationJWT(testPresentation)
+	assert.NoError(t, err)
+
+	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
+	assert.NoError(t, err)
+
+	err = verifier.VerifyVerifiablePresentationJWT(string(signed))
+	assert.NoError(t, err)
+}
 
 func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
