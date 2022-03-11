@@ -253,3 +253,8 @@ func MergeUniqueValues(a, b []string) []string {
 	}
 	return res
 }
+
+// PrettyJSON JSON-ifies data in a 'pretty-print' fashion
+func PrettyJSON(data interface{}) ([]byte, error) {
+	return json.MarshalIndent(data, "", "  ")
+}
