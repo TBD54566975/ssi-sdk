@@ -17,8 +17,6 @@ import (
 	"github.com/lestrrat-go/jwx/x25519"
 )
 
-type KeyType string
-
 const (
 	Ed25519   KeyType = "Ed25519"
 	X25519    KeyType = "X25519"

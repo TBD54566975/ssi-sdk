@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	crypto2 "github.com/TBD54566975/did-sdk/crypto"
 	"strings"
 
 	"github.com/google/uuid"
@@ -93,7 +94,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 
 	// set the signature on the proof object and return
 	proof.SetDetachedJWS(string(signature))
-	genericProof := Proof(proof)
+	genericProof := crypto2.Proof(proof)
 	p.SetProof(&genericProof)
 	return nil
 }
@@ -159,7 +160,7 @@ func (j JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	return &canonicalString, nil
 }
 
-func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof Proof, opts *ProofOptions) ([]byte, error) {
+func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof crypto2.Proof, opts *ProofOptions) ([]byte, error) {
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := j.prepareProof(proof, opts)
 	if err != nil {
@@ -217,7 +218,7 @@ func (j JWSSignatureSuite) Digest(tbd []byte) ([]byte, error) {
 	return hash[:], nil
 }
 
-func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof, error) {
+func (j JWSSignatureSuite) prepareProof(proof crypto2.Proof, opts *ProofOptions) (*crypto2.Proof, error) {
 	var genericProof map[string]interface{}
 	proofBytes, err := json.Marshal(proof)
 	if err != nil {
@@ -244,7 +245,7 @@ func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof
 		contexts = ArrayStrToInterface(j.RequiredContexts())
 	}
 	genericProof["@context"] = contexts
-	p := Proof(genericProof)
+	p := crypto2.Proof(genericProof)
 	return &p, nil
 }
 
@@ -257,7 +258,7 @@ type JsonWebSignature2020Proof struct {
 	VerificationMethod string        `json:"verificationMethod,omitempty"`
 }
 
-func FromGenericProof(p Proof) (*JsonWebSignature2020Proof, error) {
+func FromGenericProof(p crypto2.Proof) (*JsonWebSignature2020Proof, error) {
 	proofBytes, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
@@ -300,7 +301,7 @@ func FromGenericProof(p Proof) (*JsonWebSignature2020Proof, error) {
 	}, nil
 }
 
-func (j *JsonWebSignature2020Proof) ToGenericProof() Proof {
+func (j *JsonWebSignature2020Proof) ToGenericProof() crypto2.Proof {
 	return j
 }
 

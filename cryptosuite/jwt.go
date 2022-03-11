@@ -1,12 +1,15 @@
+//go:build jwx_es256k
+
 package cryptosuite
 
 import (
-	"errors"
 	"github.com/TBD54566975/did-sdk/util"
 	"github.com/TBD54566975/did-sdk/vc"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -47,8 +50,15 @@ func (s *JSONWebKeySigner) SignVerifiableCredentialJWT(cred vc.VerifiableCredent
 	return jwt.Sign(t, jwa.SignatureAlgorithm(s.GetSigningAlgorithm()), s.Key)
 }
 
-func (v *JSONWebKeyVerifier) VerifyVerifiableCredentialJWT(token jwt.Token) error {
-	return nil
+// VerifyVerifiableCredentialJWT verifies the signature validity on the token.
+func (v *JSONWebKeyVerifier) VerifyVerifiableCredentialJWT(token string) error {
+	_, err := jwt.Parse([]byte(token), jwt.WithVerify(jwa.SignatureAlgorithm(v.Algorithm()), v.Key)) //, jwt.WithSubject(""))
+	return err
+}
+
+// VerifiableCredentialFromJWT follows the decoding steps from the spec https://www.w3.org/TR/vc-data-model/#jwt-decoding
+func VerifiableCredentialFromJWT(token string) (*vc.VerifiableCredential, error) {
+	return nil, nil
 }
 
 // SignVerifiablePresentationJWT is prepared according to https://www.w3.org/TR/vc-data-model/#jwt-encoding
@@ -77,6 +87,15 @@ func (s *JSONWebKeySigner) SignVerifiablePresentationJWT(pres vc.VerifiablePrese
 	return jwt.Sign(t, jwa.SignatureAlgorithm(s.GetSigningAlgorithm()), s.Key)
 }
 
-func (v *JSONWebKeyVerifier) VerifyVerifiablePresentationJWT() error {
-	return nil
+// VerifyVerifiablePresentationJWT verifies the signature validity on the token.
+func (v *JSONWebKeyVerifier) VerifyVerifiablePresentationJWT(token string) error {
+	set := jwk.NewSet()
+	set.Add(v.Key)
+	_, err := jwt.Parse([]byte(token), jwt.WithKeySet(set))
+	return err
+}
+
+// VerifiablePresentationFromJWT follows the decoding steps from the spec https://www.w3.org/TR/vc-data-model/#jwt-decoding
+func VerifiablePresentationFromJWT(token string) (*vc.VerifiablePresentation, error) {
+	return nil, nil
 }
