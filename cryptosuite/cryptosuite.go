@@ -3,8 +3,8 @@
 package cryptosuite
 
 import (
-	"crypto"
-	crypto2 "github.com/TBD54566975/did-sdk/crypto"
+	gocrypto "crypto"
+	"github.com/TBD54566975/did-sdk/crypto"
 
 	. "github.com/TBD54566975/did-sdk/util"
 	"github.com/goccy/go-json"
@@ -49,7 +49,7 @@ type CryptoSuiteInfo interface {
 	ID() string
 	Type() LDKeyType
 	CanonicalizationAlgorithm() string
-	MessageDigestAlgorithm() crypto.Hash
+	MessageDigestAlgorithm() gocrypto.Hash
 	SignatureAlgorithm() SignatureType
 	RequiredContexts() []string
 }
@@ -61,13 +61,13 @@ type CryptoSuiteProofType interface {
 	Marshal(data interface{}) ([]byte, error)
 	Canonicalize(marshaled []byte) (*string, error)
 	// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
-	CreateVerifyHash(provable Provable, proof crypto2.Proof, proofOptions *ProofOptions) ([]byte, error)
+	CreateVerifyHash(provable Provable, proof crypto.Proof, proofOptions *ProofOptions) ([]byte, error)
 	Digest(tbd []byte) ([]byte, error)
 }
 
 type Provable interface {
-	GetProof() *crypto2.Proof
-	SetProof(p *crypto2.Proof)
+	GetProof() *crypto.Proof
+	SetProof(p *crypto.Proof)
 }
 
 type Signer interface {

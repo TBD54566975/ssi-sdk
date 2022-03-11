@@ -3,11 +3,11 @@
 package cryptosuite
 
 import (
-	"crypto"
+	gocrypto "crypto"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	crypto2 "github.com/TBD54566975/did-sdk/crypto"
+	"github.com/TBD54566975/did-sdk/crypto"
 	"strings"
 
 	"github.com/google/uuid"
@@ -27,7 +27,7 @@ const (
 	JWSSignatureSuiteType                      LDKeyType     = JsonWebKey2020
 	JWSSignatureSuiteCanonicalizationAlgorithm string        = "https://w3id.org/security#URDNA2015"
 	// JWSSignatureSuiteDigestAlgorithm uses https://www.rfc-editor.org/rfc/rfc4634
-	JWSSignatureSuiteDigestAlgorithm crypto.Hash = crypto.SHA256
+	JWSSignatureSuiteDigestAlgorithm gocrypto.Hash = gocrypto.SHA256
 	// JWSSignatureSuiteProofAlgorithm  uses https://www.rfc-editor.org/rfc/rfc7797
 	JWSSignatureSuiteProofAlgorithm = JSONWebSignature2020
 )
@@ -54,7 +54,7 @@ func (j JWSSignatureSuite) CanonicalizationAlgorithm() string {
 	return JWSSignatureSuiteCanonicalizationAlgorithm
 }
 
-func (j JWSSignatureSuite) MessageDigestAlgorithm() crypto.Hash {
+func (j JWSSignatureSuite) MessageDigestAlgorithm() gocrypto.Hash {
 	return JWSSignatureSuiteDigestAlgorithm
 }
 
@@ -94,7 +94,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 
 	// set the signature on the proof object and return
 	proof.SetDetachedJWS(string(signature))
-	genericProof := crypto2.Proof(proof)
+	genericProof := crypto.Proof(proof)
 	p.SetProof(&genericProof)
 	return nil
 }
@@ -160,7 +160,7 @@ func (j JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	return &canonicalString, nil
 }
 
-func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof crypto2.Proof, opts *ProofOptions) ([]byte, error) {
+func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := j.prepareProof(proof, opts)
 	if err != nil {
@@ -211,14 +211,14 @@ func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof crypto2.Pro
 }
 
 func (j JWSSignatureSuite) Digest(tbd []byte) ([]byte, error) {
-	if j.MessageDigestAlgorithm() != crypto.SHA256 {
+	if j.MessageDigestAlgorithm() != gocrypto.SHA256 {
 		return nil, fmt.Errorf("unexpected digest algorithm: %s", j.MessageDigestAlgorithm().String())
 	}
 	hash := sha256.Sum256(tbd)
 	return hash[:], nil
 }
 
-func (j JWSSignatureSuite) prepareProof(proof crypto2.Proof, opts *ProofOptions) (*crypto2.Proof, error) {
+func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) (*crypto.Proof, error) {
 	var genericProof map[string]interface{}
 	proofBytes, err := json.Marshal(proof)
 	if err != nil {
@@ -245,7 +245,7 @@ func (j JWSSignatureSuite) prepareProof(proof crypto2.Proof, opts *ProofOptions)
 		contexts = ArrayStrToInterface(j.RequiredContexts())
 	}
 	genericProof["@context"] = contexts
-	p := crypto2.Proof(genericProof)
+	p := crypto.Proof(genericProof)
 	return &p, nil
 }
 
@@ -258,7 +258,7 @@ type JsonWebSignature2020Proof struct {
 	VerificationMethod string        `json:"verificationMethod,omitempty"`
 }
 
-func FromGenericProof(p crypto2.Proof) (*JsonWebSignature2020Proof, error) {
+func FromGenericProof(p crypto.Proof) (*JsonWebSignature2020Proof, error) {
 	proofBytes, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
@@ -301,7 +301,7 @@ func FromGenericProof(p crypto2.Proof) (*JsonWebSignature2020Proof, error) {
 	}, nil
 }
 
-func (j *JsonWebSignature2020Proof) ToGenericProof() crypto2.Proof {
+func (j *JsonWebSignature2020Proof) ToGenericProof() crypto.Proof {
 	return j
 }
 
