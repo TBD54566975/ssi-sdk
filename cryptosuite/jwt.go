@@ -3,8 +3,10 @@
 package cryptosuite
 
 import (
+	"fmt"
 	"github.com/TBD54566975/did-sdk/util"
 	"github.com/TBD54566975/did-sdk/vc"
+	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
@@ -69,13 +71,78 @@ func (s *JSONWebKeySigner) SignVerifiableCredentialJWT(cred vc.VerifiableCredent
 	return jwt.Sign(t, jwa.SignatureAlgorithm(s.GetSigningAlgorithm()), s.Key)
 }
 
-// VerifyVerifiableCredentialJWT verifies the signature validity on the token.
-// After signature validation, the JWT is decoded according to the specification.
+// VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
+// the token in a verifiable credential.
+func (v *JSONWebKeyVerifier) VerifyVerifiableCredentialJWT(token string) (*vc.VerifiableCredential, error) {
+	if err := v.VerifyJWT(token); err != nil {
+		return nil, errors.Wrap(err, "could not verify JWT and its signature")
+	}
+	return ParseVerifiableCredentialFromJWT(token)
+}
+
+// ParseVerifiableCredentialFromJWT the JWT is decoded according to the specification.
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiableCredential object is returned.
-func (v *JSONWebKeyVerifier) VerifyVerifiableCredentialJWT(token string) error {
-	return v.VerifyJWT(token)
+func ParseVerifiableCredentialFromJWT(token string) (*vc.VerifiableCredential, error) {
+	parsed, err := jwt.Parse([]byte(token))
+	if err != nil {
+		return nil, errors.Wrap(err, "could not parse vc token")
+	}
+	vcClaim, ok := parsed.Get(VCJWTProperty)
+	if !ok {
+		return nil, fmt.Errorf("did not find %s property in token", VCJWTProperty)
+	}
+	vcBytes, err := json.Marshal(vcClaim)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not marshal vc claim")
+	}
+	vcStr, err := strconv.Unquote(string(vcBytes))
+	if err != nil {
+		return nil, errors.Wrap(err, "vc property in unknown format")
+	}
+	var cred vc.VerifiableCredential
+	if err := json.Unmarshal([]byte(vcStr), &cred); err != nil {
+		return nil, errors.Wrap(err, "could not reconstruct Verifiable Credential")
+	}
+
+	// parse remaining JWT properties and set in the credential
+
+	exp, hasExp := parsed.Get(jwt.ExpirationKey)
+	expStr, ok := exp.(string)
+	if hasExp && ok && expStr != "" {
+		cred.ExpirationDate = expStr
+	}
+
+	// Note: we only handle string issuer values, not objects for JWTs
+	iss, hasIss := parsed.Get(jwt.IssuerKey)
+	issStr, ok := iss.(string)
+	if hasIss && ok && issStr != "" {
+		cred.Issuer = issStr
+	}
+
+	nbf, hasNbf := parsed.Get(jwt.NotBeforeKey)
+	nbfStr, ok := nbf.(string)
+	if hasNbf && ok && nbfStr != "" {
+		cred.IssuanceDate = nbfStr
+	}
+
+	sub, hasSub := parsed.Get(jwt.SubjectKey)
+	subStr, ok := sub.(string)
+	if hasSub && ok && subStr != "" {
+		if cred.CredentialSubject == nil {
+			cred.CredentialSubject = make(map[string]interface{})
+		}
+		cred.CredentialSubject[vc.VerifiableCredentialIDProperty] = subStr
+	}
+
+	jti, hasJti := parsed.Get(jwt.NotBeforeKey)
+	jtiStr, ok := jti.(string)
+	if hasJti && ok && jtiStr != "" {
+		cred.ID = jtiStr
+	}
+
+	return &cred, nil
 }
 
 // SignVerifiablePresentationJWT is prepared according to https://www.w3.org/TR/vc-data-model/#jwt-encoding
@@ -114,8 +181,11 @@ func (s *JSONWebKeySigner) SignVerifiablePresentationJWT(pres vc.VerifiablePrese
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
-func (v *JSONWebKeyVerifier) VerifyVerifiablePresentationJWT(token string) error {
-	return v.VerifyJWT(token)
+func (v *JSONWebKeyVerifier) VerifyVerifiablePresentationJWT(token string) (*vc.VerifiablePresentation, error) {
+	if err := v.VerifyJWT(token); err != nil {
+		return nil, errors.Wrap(err, "could not verify JWT and its signature")
+	}
+	return nil, nil
 }
 
 // VerifyJWT parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success
