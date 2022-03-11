@@ -13,13 +13,18 @@ type (
 	Proof         interface{}
 	SignatureType string
 	ProofPurpose  string
+	PayloadFormat string
 )
 
 const (
-	W3CSecurityContext                    = "https://w3id.org/security/v1"
-	JWS2020LinkedDataContext string       = "https://w3id.org/security/suites/jws-2020/v1"
-	AssertionMethod          ProofPurpose = "assertionMethod"
-	Authentication           ProofPurpose = "authentication"
+	W3CSecurityContext       string = "https://w3id.org/security/v1"
+	JWS2020LinkedDataContext string = "https://w3id.org/security/suites/jws-2020/v1"
+
+	AssertionMethod ProofPurpose = "assertionMethod"
+	Authentication  ProofPurpose = "authentication"
+
+	JWTFormat PayloadFormat = "jwt"
+	LDPFormat PayloadFormat = "ldp"
 )
 
 var (
@@ -64,24 +69,32 @@ type Provable interface {
 }
 
 type Signer interface {
-	KeyID() string
-	KeyType() string
-	SignatureType() SignatureType
-	SigningAlgorithm() string
 	Sign(tbs []byte) ([]byte, error)
+
+	GetKeyID() string
+	GetKeyType() string
+	GetSignatureType() SignatureType
+	GetSigningAlgorithm() string
+
 	SetProofPurpose(purpose ProofPurpose)
 	GetProofPurpose() ProofPurpose
+
+	SetPayloadFormat(format PayloadFormat)
+	GetPayloadFormat() PayloadFormat
 }
 
 type Verifier interface {
-	KeyID() string
-	KeyType() string
 	Verify(message, signature []byte) error
+
+	GetKeyID() string
+	GetKeyType() string
 }
 
 type ProofOptions struct {
 	// JSON-LD contexts to add to the proof
 	Contexts []interface{}
+	// Whether a JWT or detached JWS in an LD proof
+	AsJWT bool
 }
 
 // GetContextsFromProvable searches from a Linked Data `@context` property in the document and returns the value

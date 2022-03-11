@@ -39,6 +39,8 @@ func GetJSONWebSignature2020Suite() CryptoSuite {
 	return &JWSSignatureSuite{}
 }
 
+// CryptoSuiteInfo interface
+
 func (j JWSSignatureSuite) ID() string {
 	return JWSSignatureSuiteID
 }
@@ -65,7 +67,7 @@ func (j JWSSignatureSuite) RequiredContexts() []string {
 
 func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	// create proof before CVH
-	proof := j.createProof(s.KeyID(), s.GetProofPurpose())
+	proof := j.createProof(s.GetKeyID(), s.GetProofPurpose())
 
 	// prepare proof options
 	contexts, err := GetContextsFromProvable(p)
@@ -132,6 +134,8 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	return v.Verify(tbv, jwsCopy)
 }
 
+// CryptoSuiteProofType interface
+
 func (j JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 	// JSONify the provable object
 	jsonBytes, err := json.Marshal(data)
@@ -153,14 +157,6 @@ func (j JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	}
 	canonicalString := normalized.(string)
 	return &canonicalString, nil
-}
-
-func (j JWSSignatureSuite) Digest(tbd []byte) ([]byte, error) {
-	if j.MessageDigestAlgorithm() != crypto.SHA256 {
-		return nil, fmt.Errorf("unexpected digest algorithm: %s", j.MessageDigestAlgorithm().String())
-	}
-	hash := sha256.Sum256(tbd)
-	return hash[:], nil
 }
 
 func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof Proof, opts *ProofOptions) ([]byte, error) {
@@ -211,6 +207,14 @@ func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof Proof, opts
 	// 5. return the output
 	output := append(optionsDigest, documentDigest...)
 	return output, nil
+}
+
+func (j JWSSignatureSuite) Digest(tbd []byte) ([]byte, error) {
+	if j.MessageDigestAlgorithm() != crypto.SHA256 {
+		return nil, fmt.Errorf("unexpected digest algorithm: %s", j.MessageDigestAlgorithm().String())
+	}
+	hash := sha256.Sum256(tbd)
+	return hash[:], nil
 }
 
 func (j JWSSignatureSuite) prepareProof(proof Proof, opts *ProofOptions) (*Proof, error) {

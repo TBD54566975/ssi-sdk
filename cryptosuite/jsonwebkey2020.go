@@ -341,22 +341,7 @@ type JSONWebKeySigner struct {
 	jwa.SignatureAlgorithm
 	jwk.Key
 	purpose ProofPurpose
-}
-
-func (j *JSONWebKeySigner) SignatureType() SignatureType {
-	return JSONWebSignature2020
-}
-
-func (j *JSONWebKeySigner) KeyID() string {
-	return j.Key.KeyID()
-}
-
-func (j *JSONWebKeySigner) KeyType() string {
-	return string(j.Key.KeyType())
-}
-
-func (j *JSONWebKeySigner) SigningAlgorithm() string {
-	return j.Algorithm()
+	format  PayloadFormat
 }
 
 // Sign returns a byte array signature value for a message `tbs`
@@ -370,6 +355,38 @@ func (j *JSONWebKeySigner) Sign(tbs []byte) ([]byte, error) {
 	}
 	signOptions := []jws.SignOption{jws.WithHeaders(headers), jws.WithDetachedPayload(tbs)}
 	return jws.Sign(nil, j.SignatureAlgorithm, j.Key, signOptions...)
+}
+
+func (j *JSONWebKeySigner) GetKeyID() string {
+	return j.Key.KeyID()
+}
+
+func (j *JSONWebKeySigner) GetKeyType() string {
+	return string(j.Key.KeyType())
+}
+
+func (j *JSONWebKeySigner) GetSignatureType() SignatureType {
+	return JSONWebSignature2020
+}
+
+func (j *JSONWebKeySigner) GetSigningAlgorithm() string {
+	return j.Algorithm()
+}
+
+func (j *JSONWebKeySigner) SetProofPurpose(purpose ProofPurpose) {
+	j.purpose = purpose
+}
+
+func (j *JSONWebKeySigner) GetProofPurpose() ProofPurpose {
+	return j.purpose
+}
+
+func (j *JSONWebKeySigner) SetPayloadFormat(format PayloadFormat) {
+	j.format = format
+}
+
+func (j *JSONWebKeySigner) GetPayloadFormat() PayloadFormat {
+	return j.format
 }
 
 func NewJSONWebKeySigner(kid string, key PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
@@ -399,25 +416,9 @@ func NewJSONWebKeySigner(kid string, key PrivateKeyJWK, purpose ProofPurpose) (*
 	}, nil
 }
 
-func (j *JSONWebKeySigner) SetProofPurpose(purpose ProofPurpose) {
-	j.purpose = purpose
-}
-
-func (j *JSONWebKeySigner) GetProofPurpose() ProofPurpose {
-	return j.purpose
-}
-
 type JSONWebKeyVerifier struct {
 	jwa.SignatureAlgorithm
 	jwk.Key
-}
-
-func (v JSONWebKeyVerifier) KeyID() string {
-	return v.Key.KeyID()
-}
-
-func (v JSONWebKeyVerifier) KeyType() string {
-	return string(v.Key.KeyType())
 }
 
 // Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
@@ -425,6 +426,14 @@ func (v JSONWebKeyVerifier) KeyType() string {
 func (v JSONWebKeyVerifier) Verify(message, signature []byte) error {
 	_, err := jws.Verify(signature, v.SignatureAlgorithm, v.Key, jws.VerifyOption(jws.WithDetachedPayload(message)))
 	return err
+}
+
+func (v JSONWebKeyVerifier) GetKeyID() string {
+	return v.Key.KeyID()
+}
+
+func (v JSONWebKeyVerifier) GetKeyType() string {
+	return string(v.Key.KeyType())
 }
 
 func NewJSONWebKeyVerifier(kid string, key PublicKeyJWK) (*JSONWebKeyVerifier, error) {
