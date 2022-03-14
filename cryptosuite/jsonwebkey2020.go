@@ -341,35 +341,53 @@ type JSONWebKeySigner struct {
 	jwa.SignatureAlgorithm
 	jwk.Key
 	purpose ProofPurpose
-}
-
-func (j *JSONWebKeySigner) SignatureType() SignatureType {
-	return JSONWebSignature2020
-}
-
-func (j *JSONWebKeySigner) KeyID() string {
-	return j.Key.KeyID()
-}
-
-func (j *JSONWebKeySigner) KeyType() string {
-	return string(j.Key.KeyType())
-}
-
-func (j *JSONWebKeySigner) SigningAlgorithm() string {
-	return j.Algorithm()
+	format  PayloadFormat
 }
 
 // Sign returns a byte array signature value for a message `tbs`
-func (j *JSONWebKeySigner) Sign(tbs []byte) ([]byte, error) {
+func (s *JSONWebKeySigner) Sign(tbs []byte) ([]byte, error) {
+	b64 := "b64"
 	headers := jws.NewHeaders()
-	if err := headers.Set("b64", false); err != nil {
+	if err := headers.Set(b64, false); err != nil {
 		return nil, err
 	}
-	if err := headers.Set(jws.CriticalKey, []string{"b64"}); err != nil {
+	if err := headers.Set(jws.CriticalKey, []string{b64}); err != nil {
 		return nil, err
 	}
 	signOptions := []jws.SignOption{jws.WithHeaders(headers), jws.WithDetachedPayload(tbs)}
-	return jws.Sign(nil, j.SignatureAlgorithm, j.Key, signOptions...)
+	return jws.Sign(nil, s.SignatureAlgorithm, s.Key, signOptions...)
+}
+
+func (s *JSONWebKeySigner) GetKeyID() string {
+	return s.Key.KeyID()
+}
+
+func (s *JSONWebKeySigner) GetKeyType() string {
+	return string(s.Key.KeyType())
+}
+
+func (s *JSONWebKeySigner) GetSignatureType() SignatureType {
+	return JSONWebSignature2020
+}
+
+func (s *JSONWebKeySigner) GetSigningAlgorithm() string {
+	return s.Algorithm()
+}
+
+func (s *JSONWebKeySigner) SetProofPurpose(purpose ProofPurpose) {
+	s.purpose = purpose
+}
+
+func (s *JSONWebKeySigner) GetProofPurpose() ProofPurpose {
+	return s.purpose
+}
+
+func (s *JSONWebKeySigner) SetPayloadFormat(format PayloadFormat) {
+	s.format = format
+}
+
+func (s *JSONWebKeySigner) GetPayloadFormat() PayloadFormat {
+	return s.format
 }
 
 func NewJSONWebKeySigner(kid string, key PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
@@ -392,6 +410,9 @@ func NewJSONWebKeySigner(kid string, key PrivateKeyJWK, purpose ProofPurpose) (*
 	if err := privKeyJWK.Set(jwk.KeyIDKey, kid); err != nil {
 		return nil, fmt.Errorf("could not set kid with provided value: %s", kid)
 	}
+	if err := privKeyJWK.Set(jwk.AlgorithmKey, alg); err != nil {
+		return nil, fmt.Errorf("could not set alg with value: %s", alg)
+	}
 	return &JSONWebKeySigner{
 		SignatureAlgorithm: alg,
 		Key:                privKeyJWK,
@@ -399,32 +420,24 @@ func NewJSONWebKeySigner(kid string, key PrivateKeyJWK, purpose ProofPurpose) (*
 	}, nil
 }
 
-func (j *JSONWebKeySigner) SetProofPurpose(purpose ProofPurpose) {
-	j.purpose = purpose
-}
-
-func (j *JSONWebKeySigner) GetProofPurpose() ProofPurpose {
-	return j.purpose
-}
-
 type JSONWebKeyVerifier struct {
 	jwa.SignatureAlgorithm
 	jwk.Key
 }
 
-func (v JSONWebKeyVerifier) KeyID() string {
+// Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
+// and an error should it fail.
+func (v *JSONWebKeyVerifier) Verify(message, signature []byte) error {
+	_, err := jws.Verify(signature, v.SignatureAlgorithm, v.Key, jws.VerifyOption(jws.WithDetachedPayload(message)))
+	return err
+}
+
+func (v *JSONWebKeyVerifier) GetKeyID() string {
 	return v.Key.KeyID()
 }
 
-func (v JSONWebKeyVerifier) KeyType() string {
+func (v *JSONWebKeyVerifier) GetKeyType() string {
 	return string(v.Key.KeyType())
-}
-
-// Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
-// and an error should it fail.
-func (v JSONWebKeyVerifier) Verify(message, signature []byte) error {
-	_, err := jws.Verify(signature, v.SignatureAlgorithm, v.Key, jws.VerifyOption(jws.WithDetachedPayload(message)))
-	return err
 }
 
 func NewJSONWebKeyVerifier(kid string, key PublicKeyJWK) (*JSONWebKeyVerifier, error) {
@@ -446,6 +459,9 @@ func NewJSONWebKeyVerifier(kid string, key PublicKeyJWK) (*JSONWebKeyVerifier, e
 	}
 	if err := pubKeyJWK.Set(jwk.KeyIDKey, kid); err != nil {
 		return nil, fmt.Errorf("could not set kid with provided value: %s", kid)
+	}
+	if err := pubKeyJWK.Set(jwk.AlgorithmKey, alg); err != nil {
+		return nil, fmt.Errorf("could not set alg with value: %s", alg)
 	}
 	return &JSONWebKeyVerifier{
 		SignatureAlgorithm: alg,

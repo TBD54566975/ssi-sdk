@@ -1,7 +1,10 @@
+//go:build jwx_es256k
+
 package cryptosuite
 
 import (
-	"crypto"
+	gocrypto "crypto"
+	"github.com/TBD54566975/did-sdk/crypto"
 
 	. "github.com/TBD54566975/did-sdk/util"
 	"github.com/goccy/go-json"
@@ -10,16 +13,20 @@ import (
 )
 
 type (
-	Proof         interface{}
 	SignatureType string
 	ProofPurpose  string
+	PayloadFormat string
 )
 
 const (
-	W3CSecurityContext                    = "https://w3id.org/security/v1"
-	JWS2020LinkedDataContext string       = "https://w3id.org/security/suites/jws-2020/v1"
-	AssertionMethod          ProofPurpose = "assertionMethod"
-	Authentication           ProofPurpose = "authentication"
+	W3CSecurityContext       string = "https://w3id.org/security/v1"
+	JWS2020LinkedDataContext string = "https://w3id.org/security/suites/jws-2020/v1"
+
+	AssertionMethod ProofPurpose = "assertionMethod"
+	Authentication  ProofPurpose = "authentication"
+
+	JWTFormat PayloadFormat = "jwt"
+	LDPFormat PayloadFormat = "ldp"
 )
 
 var (
@@ -42,7 +49,7 @@ type CryptoSuiteInfo interface {
 	ID() string
 	Type() LDKeyType
 	CanonicalizationAlgorithm() string
-	MessageDigestAlgorithm() crypto.Hash
+	MessageDigestAlgorithm() gocrypto.Hash
 	SignatureAlgorithm() SignatureType
 	RequiredContexts() []string
 }
@@ -54,29 +61,35 @@ type CryptoSuiteProofType interface {
 	Marshal(data interface{}) ([]byte, error)
 	Canonicalize(marshaled []byte) (*string, error)
 	// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
-	CreateVerifyHash(provable Provable, proof Proof, proofOptions *ProofOptions) ([]byte, error)
+	CreateVerifyHash(provable Provable, proof crypto.Proof, proofOptions *ProofOptions) ([]byte, error)
 	Digest(tbd []byte) ([]byte, error)
 }
 
 type Provable interface {
-	GetProof() *Proof
-	SetProof(p *Proof)
+	GetProof() *crypto.Proof
+	SetProof(p *crypto.Proof)
 }
 
 type Signer interface {
-	KeyID() string
-	KeyType() string
-	SignatureType() SignatureType
-	SigningAlgorithm() string
 	Sign(tbs []byte) ([]byte, error)
+
+	GetKeyID() string
+	GetKeyType() string
+	GetSignatureType() SignatureType
+	GetSigningAlgorithm() string
+
 	SetProofPurpose(purpose ProofPurpose)
 	GetProofPurpose() ProofPurpose
+
+	SetPayloadFormat(format PayloadFormat)
+	GetPayloadFormat() PayloadFormat
 }
 
 type Verifier interface {
-	KeyID() string
-	KeyType() string
 	Verify(message, signature []byte) error
+
+	GetKeyID() string
+	GetKeyType() string
 }
 
 type ProofOptions struct {

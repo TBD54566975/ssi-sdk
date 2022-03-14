@@ -1,9 +1,8 @@
 package vc
 
 import (
+	"github.com/TBD54566975/did-sdk/crypto"
 	"reflect"
-
-	"github.com/TBD54566975/did-sdk/cryptosuite"
 
 	"github.com/TBD54566975/did-sdk/util"
 )
@@ -30,14 +29,14 @@ type VerifiableCredential struct {
 	Evidence          []interface{}     `json:"evidence,omitempty" validate:"omitempty,dive"`
 	// For embedded proof support
 	// Proof is a digital signature over a credential https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#proofs-signatures
-	Proof *cryptosuite.Proof `json:"proof,omitempty"`
+	Proof *crypto.Proof `json:"proof,omitempty"`
 }
 
-func (v *VerifiableCredential) GetProof() *cryptosuite.Proof {
+func (v *VerifiableCredential) GetProof() *crypto.Proof {
 	return v.Proof
 }
 
-func (v *VerifiableCredential) SetProof(p *cryptosuite.Proof) {
+func (v *VerifiableCredential) SetProof(p *crypto.Proof) {
 	v.Proof = p
 }
 
@@ -102,7 +101,7 @@ type VerifiablePresentation struct {
 	Holder               string                 `json:"holder,omitempty"`
 	Type                 interface{}            `json:"type" validate:"required"`
 	VerifiableCredential []VerifiableCredential `json:"verifiableCredential,omitempty" validate:"omitempty,dive"`
-	Proof                *cryptosuite.Proof     `json:"proof,omitempty"`
+	Proof                *crypto.Proof          `json:"proof,omitempty"`
 }
 
 func (v *VerifiablePresentation) IsEmpty() bool {
@@ -116,10 +115,10 @@ func (v *VerifiablePresentation) IsValid() error {
 	return util.NewValidator().Struct(v)
 }
 
-func (v *VerifiablePresentation) GetProof() *cryptosuite.Proof {
+func (v *VerifiablePresentation) GetProof() *crypto.Proof {
 	return v.Proof
 }
 
-func (v *VerifiablePresentation) SetProof(p *cryptosuite.Proof) {
+func (v *VerifiablePresentation) SetProof(p *crypto.Proof) {
 	v.Proof = p
 }
