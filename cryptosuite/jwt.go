@@ -4,7 +4,6 @@ package cryptosuite
 
 import (
 	"fmt"
-	"github.com/TBD54566975/did-sdk/util"
 	"github.com/TBD54566975/did-sdk/vc"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
@@ -28,9 +27,10 @@ func (s *JSONWebKeySigner) SignVerifiableCredentialJWT(cred vc.VerifiableCredent
 	}
 
 	t := jwt.New()
-	if cred.ExpirationDate != "" {
-		var expirationDate = cred.ExpirationDate
-		if unixTime, err := rfc3339ToUnix(cred.ExpirationDate); err == nil {
+	expirationVal := cred.ExpirationDate
+	if expirationVal != "" {
+		var expirationDate = expirationVal
+		if unixTime, err := rfc3339ToUnix(expirationVal); err == nil {
 			expirationDate = string(unixTime)
 		}
 		if err := t.Set(jwt.ExpirationKey, expirationDate); err != nil {
@@ -51,20 +51,21 @@ func (s *JSONWebKeySigner) SignVerifiableCredentialJWT(cred vc.VerifiableCredent
 		return nil, errors.Wrap(err, "could not set nbf value")
 	}
 
-	if err := t.Set(jwt.JwtIDKey, cred.ID); err != nil {
-		return nil, errors.Wrap(err, "could not set jti value")
+	idVal := cred.ID
+	if idVal != "" {
+		if err := t.Set(jwt.JwtIDKey, idVal); err != nil {
+			return nil, errors.Wrap(err, "could not set jti value")
+		}
 	}
 
-	if err := t.Set(jwt.SubjectKey, cred.CredentialSubject.GetID()); err != nil {
-		return nil, errors.Wrap(err, "could not set subject value")
+	subVal := cred.CredentialSubject.GetID()
+	if subVal != "" {
+		if err := t.Set(jwt.SubjectKey, subVal); err != nil {
+			return nil, errors.Wrap(err, "could not set subject value")
+		}
 	}
 
-	credBytes, err := util.PrettyJSON(cred)
-	if err != nil {
-		return nil, errors.New("could not marshal cred to JSON")
-	}
-	credJSON := string(credBytes)
-	if err := t.Set(VCJWTProperty, credJSON); err != nil {
+	if err := t.Set(VCJWTProperty, cred); err != nil {
 		return nil, errors.New("could not set vc value")
 	}
 
@@ -97,12 +98,8 @@ func ParseVerifiableCredentialFromJWT(token string) (*vc.VerifiableCredential, e
 	if err != nil {
 		return nil, errors.Wrap(err, "could not marshal vc claim")
 	}
-	vcStr, err := strconv.Unquote(string(vcBytes))
-	if err != nil {
-		return nil, errors.Wrap(err, "vc property in unknown format")
-	}
 	var cred vc.VerifiableCredential
-	if err := json.Unmarshal([]byte(vcStr), &cred); err != nil {
+	if err := json.Unmarshal(vcBytes, &cred); err != nil {
 		return nil, errors.Wrap(err, "could not reconstruct Verifiable Credential")
 	}
 
@@ -152,20 +149,21 @@ func (s *JSONWebKeySigner) SignVerifiablePresentationJWT(pres vc.VerifiablePrese
 	}
 
 	t := jwt.New()
-	if err := t.Set(jwt.JwtIDKey, pres.ID); err != nil {
-		return nil, errors.Wrap(err, "could not set jti value")
+	idVal := pres.ID
+	if idVal != "" {
+		if err := t.Set(jwt.JwtIDKey, idVal); err != nil {
+			return nil, errors.Wrap(err, "could not set jti value")
+		}
 	}
 
-	if err := t.Set(jwt.SubjectKey, pres.Holder); err != nil {
-		return nil, errors.New("could not set subject value")
+	subVal := pres.Holder
+	if subVal != "" {
+		if err := t.Set(jwt.SubjectKey, pres.Holder); err != nil {
+			return nil, errors.New("could not set subject value")
+		}
 	}
 
-	presBytes, err := util.PrettyJSON(pres)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal cred to JSON")
-	}
-	presJSON := string(presBytes)
-	if err := t.Set(VPJWTProperty, presJSON); err != nil {
+	if err := t.Set(VPJWTProperty, pres); err != nil {
 		return nil, errors.Wrap(err, "could not set vp value")
 	}
 
@@ -205,12 +203,8 @@ func ParseVerifiablePresentationFromJWT(token string) (*vc.VerifiablePresentatio
 	if err != nil {
 		return nil, errors.Wrap(err, "could not marshal vp claim")
 	}
-	vpStr, err := strconv.Unquote(string(vpBytes))
-	if err != nil {
-		return nil, errors.Wrap(err, "vp property in unknown format")
-	}
 	var pres vc.VerifiablePresentation
-	if err := json.Unmarshal([]byte(vpStr), &pres); err != nil {
+	if err := json.Unmarshal(vpBytes, &pres); err != nil {
 		return nil, errors.Wrap(err, "could not reconstruct Verifiable Presentation")
 	}
 
