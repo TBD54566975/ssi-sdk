@@ -39,7 +39,8 @@ change as the library evolves.
     - Supports [VC-JWT and VP-JWT](https://www.w3.org/TR/vc-data-model/#json-web-token) formats.
 - [Verifiable Credentials JSON Schema Specification](https://w3c-ccg.github.io/vc-json-schemas/v2/index.html) _Draft
   Community Group Report, 21 September 2021_
-- [Credential Manifest](https://identity.foundation/credential-manifest/) _Strawman, March 2022_
+- **WIP** [Credential Manifest](https://identity.foundation/credential-manifest/) _Strawman, March 2022_
+- **WIP** [Presentation Exchange 2.0.0](https://identity.foundation/presentation-exchange/) _Working Group Draft, March 2022_
 
 ## signature suites
 
