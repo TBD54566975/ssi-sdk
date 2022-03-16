@@ -5,7 +5,7 @@ import "fmt"
 type JSONSchema map[string]interface{}
 
 // VCJSONSchema is the model representing the
-// vc json schema specification https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
+// credential json schema specification https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
 type VCJSONSchema struct {
 	Type     string     `json:"type"`
 	Version  string     `json:"version"`

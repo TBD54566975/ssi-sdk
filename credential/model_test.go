@@ -1,4 +1,4 @@
-package vc
+package credential
 
 import (
 	"testing"
@@ -9,13 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// These test vectors are taken from the vc-known_schemas-model spec examples
+// These test vectors are taken from the credential-known_schemas-model spec examples
 // e.g. https://www.w3.org/TR/vc-data-model/#example-a-simple-example-of-a-verifiable-credential
 const (
-	VCTestVector1 string = "vc-example-1.json"
-	VCTestVector2 string = "vc-example-11.json"
-	VCTestVector3 string = "vc-example-20.json"
-	VCTestVector4 string = "vc-example-21.json"
+	VCTestVector1 string = "credential-example-1.json"
+	VCTestVector2 string = "credential-example-11.json"
+	VCTestVector3 string = "credential-example-20.json"
+	VCTestVector4 string = "credential-example-21.json"
 	VPTestVector1 string = "vp-example-2.json"
 	VPTestVector2 string = "vp-example-22.json"
 )

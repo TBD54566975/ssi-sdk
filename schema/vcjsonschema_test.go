@@ -5,16 +5,14 @@ import (
 
 	"github.com/goccy/go-json"
 
-	"github.com/TBD54566975/did-sdk/vc"
-
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gobuffalo/packr/v2"
 )
 
 const (
-	VCJSONTestVector1           string = "vc-json-schema-example-1.json"
-	VCJSONCredentialTestVector1 string = "vc-with-schema-example-11.json"
+	VCJSONTestVector1           string = "credential-json-schema-example-1.json"
+	VCJSONCredentialTestVector1 string = "credential-with-schema-example-11.json"
 )
 
 var (
@@ -34,7 +32,7 @@ func TestIsValidCredentialSchema(t *testing.T) {
 func TestIsCredentialValidForSchema(t *testing.T) {
 	// Load VC
 	credential, err := getTestVector(VCJSONCredentialTestVector1)
-	var cred vc.VerifiableCredential
+	var cred credential.VerifiableCredential
 	err = json.Unmarshal([]byte(credential), &cred)
 	assert.NoError(t, err)
 

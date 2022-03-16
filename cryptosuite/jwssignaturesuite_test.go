@@ -3,9 +3,9 @@
 package cryptosuite
 
 import (
+	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/TBD54566975/did-sdk/crypto"
 	"github.com/TBD54566975/did-sdk/util"
-	"github.com/TBD54566975/did-sdk/vc"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -88,7 +88,7 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 	}
 
 	suite := GetJSONWebSignature2020Suite()
-	testCred := vc.VerifiableCredential{
+	testCred := credential.VerifiableCredential{
 		Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
 		Type:         []string{"VerifiableCredential"},
@@ -130,7 +130,7 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 
 func TestCredentialLDProof(t *testing.T) {
 	issuer := "https://example.edu/issuers/565049"
-	knownCred := vc.VerifiableCredential{
+	knownCred := credential.VerifiableCredential{
 		Context:      []interface{}{"https://www.w3.org/2018/credentials/v1", "https://www.w3.org/2018/credentials/examples/v1"},
 		ID:           "http://example.edu/credentials/1872",
 		Type:         []interface{}{"VerifiableCredential", "AlumniCredential"},
@@ -153,7 +153,7 @@ func TestCredentialLDProof(t *testing.T) {
 	}
 
 	// create a copy for value verification later
-	var preSigned vc.VerifiableCredential
+	var preSigned credential.VerifiableCredential
 	err := util.Copy(&knownCred, &preSigned)
 	assert.NoError(t, err)
 
@@ -206,7 +206,7 @@ func TestJsonWebSignature2020TestVectorCredential0(t *testing.T) {
 	signer, jwk := getTestVectorKey0Signer(t, AssertionMethod)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-0.json
-	knownCred := vc.VerifiableCredential{
+	knownCred := credential.VerifiableCredential{
 		Context:           []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
 		Type:              []string{"VerifiableCredential"},
 		Issuer:            "did:example:123",
@@ -247,7 +247,7 @@ func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
 	signer, jwk := getTestVectorKey0Signer(t, AssertionMethod)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-1.json
-	knownCred := vc.VerifiableCredential{
+	knownCred := credential.VerifiableCredential{
 		Context:        []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1", map[string]string{"@vocab": "https://example.com/#"}},
 		Type:           []string{"VerifiableCredential"},
 		Issuer:         "did:example:123",
@@ -276,7 +276,7 @@ func TestJsonWebSignature2020TestVectorPresentation0(t *testing.T) {
 	signer, jwk := getTestVectorKey0Signer(t, Authentication)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/presentations/presentation-0.json
-	knownPres := vc.VerifiablePresentation{
+	knownPres := credential.VerifiablePresentation{
 		Context: []string{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
 		Type:   []string{"VerifiablePresentation"},
@@ -325,13 +325,13 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 		"verificationMethod": "did:example:123#key-0",
 		"jws":                "eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJFZERTQSJ9..VA8VQqAerUT6AIVdHc8W8Q2aj12LOQjV_VZ1e134NU9Q20eBsNySPjNdmTWp2HkdquCnbRhBHxIbNeFEIOOhAg",
 	}
-	knownPres := vc.VerifiablePresentation{
+	knownPres := credential.VerifiablePresentation{
 		Context: []string{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
 		ID:     "urn:uuid:789",
 		Holder: "did:example:123",
 		Type:   []string{"VerifiablePresentation"},
-		VerifiableCredential: []vc.VerifiableCredential{
+		VerifiableCredential: []credential.VerifiableCredential{
 			{
 				Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
 					"https://w3id.org/security/suites/jws-2020/v1",
