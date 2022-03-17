@@ -108,7 +108,7 @@ type RelationalConstraint struct {
 }
 
 type Filter struct {
-	Type             string      `json:"type" validate:"required"`
+	Type             string      `json:"type,omitempty"`
 	Format           string      `json:"format,omitempty"`
 	Pattern          string      `json:"pattern,omitempty"`
 	Minimum          interface{} `json:"minimum,omitempty"`
@@ -123,6 +123,8 @@ type Filter struct {
 	Const         interface{}   `json:"const,omitempty"`
 	Enum          []interface{} `json:"enum,omitempty"`
 	Not           interface{}   `json:"not,omitempty"`
+	AllOf         interface{}   `json:"allOf,omitempty"`
+	OneOf         interface{}   `json:"oneOf,omitempty"`
 }
 
 // CredentialStatus https://identity.foundation/presentation-exchange/#credential-status-constraint-feature

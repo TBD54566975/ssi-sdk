@@ -20,16 +20,14 @@ const (
 )
 
 var (
-	peBox     = packr.New("Presentation Exchange Test Vectors", "../test_vectors")
-	peVectors = []string{DefinitionVector1, DefinitionVector2, DefinitionVector3,
-		InputDescriptorsVector1, InputDescriptorsVector2, SubmissionVector1, SubmissionVector2,
-		SubmissionRequirementVector1, SubmissionRequirementVector2}
+	peBox = packr.New("Presentation Exchange Test Vectors", "../test_vectors")
 )
 
 // Round trip de/serialize to test our object models
 
 func TestPresentationDefinition(t *testing.T) {
 	// examples here https://identity.foundation/presentation-exchange/#presentation-definition
+
 	t.Run("Definition Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(DefinitionVector1)
 		assert.NoError(tt, err)
@@ -115,7 +113,7 @@ func TestPresentationDefinition(t *testing.T) {
 	})
 
 	t.Run("Submission Requirements Vector 2", func(tt *testing.T) {
-		vector, err := getTestVector(SubmissionRequirementVector1)
+		vector, err := getTestVector(SubmissionRequirementVector2)
 		assert.NoError(tt, err)
 
 		var def PresentationDefinition
@@ -131,6 +129,34 @@ func TestPresentationDefinition(t *testing.T) {
 
 func TestPresentationSubmission(t *testing.T) {
 	// examples here and after https://identity.foundation/presentation-exchange/#basic-presentation-submission-object-1
+
+	t.Run("Presentation Submission Vector 1", func(tt *testing.T) {
+		vector, err := getTestVector(SubmissionVector1)
+		assert.NoError(tt, err)
+
+		var sub PresentationSubmission
+		err = json.Unmarshal([]byte(vector), &sub)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, sub)
+
+		roundTripBytes, err := json.Marshal(sub)
+		assert.NoError(tt, err)
+		assert.JSONEq(tt, vector, string(roundTripBytes))
+	})
+
+	t.Run("Presentation Submission Vector 2", func(tt *testing.T) {
+		vector, err := getTestVector(SubmissionVector2)
+		assert.NoError(tt, err)
+
+		var sub PresentationSubmission
+		err = json.Unmarshal([]byte(vector), &sub)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, sub)
+
+		roundTripBytes, err := json.Marshal(sub)
+		assert.NoError(tt, err)
+		assert.JSONEq(tt, vector, string(roundTripBytes))
+	})
 }
 
 func getTestVector(fileName string) (string, error) {
