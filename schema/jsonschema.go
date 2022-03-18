@@ -2,6 +2,7 @@ package schema
 
 import (
 	"github.com/goccy/go-json"
+	"github.com/pkg/errors"
 
 	"github.com/TBD54566975/did-sdk/util"
 
@@ -10,6 +11,9 @@ import (
 
 // IsValidJSONSchema returns an error if the schema is not a valid JSON Schema, nil otherwise
 func IsValidJSONSchema(maybeSchema string) error {
+	if !IsValidJSON(maybeSchema) {
+		return errors.New("input is not valid json")
+	}
 	loader := gojsonschema.NewStringLoader(maybeSchema)
 	return gojsonschema.NewSchemaLoader().AddSchemas(loader)
 }
@@ -22,6 +26,12 @@ func IsValidJSON(maybeJSON string) bool {
 
 // IsJSONValidAgainstSchema validates a piece of JSON against a schema, returning an error if it is not valid
 func IsJSONValidAgainstSchema(json, schema string) error {
+	if !IsValidJSON(json) {
+		return errors.New("json input is not valid json")
+	}
+	if !IsValidJSON(schema) {
+		return errors.New("schema input is not valid json")
+	}
 	jsonLoader := gojsonschema.NewStringLoader(json)
 	schemaLoader := gojsonschema.NewStringLoader(schema)
 	result, err := gojsonschema.Validate(schemaLoader, jsonLoader)

@@ -3,6 +3,7 @@ package manifest
 import (
 	"github.com/TBD54566975/did-sdk/credential/exchange"
 	"github.com/TBD54566975/did-sdk/util"
+	"github.com/pkg/errors"
 	"reflect"
 )
 
@@ -23,6 +24,15 @@ func (cm *CredentialManifest) IsEmpty() bool {
 }
 
 func (cm *CredentialManifest) IsValid() error {
+	if cm.IsEmpty() {
+		return errors.New("manifest is empty")
+	}
+	if err := IsValidCredentialManifest(*cm); err != nil {
+		return errors.Wrap(err, "manifest failed json schema validation")
+	}
+	if err := AreValidOutputDescriptors(cm.OutputDescriptors); err != nil {
+		return errors.Wrap(err, "manifest's output descriptors failed json schema validation")
+	}
 	return util.NewValidator().Struct(cm)
 }
 
@@ -75,6 +85,17 @@ func (ca *CredentialApplication) IsEmpty() bool {
 }
 
 func (ca *CredentialApplication) IsValid() error {
+	if ca.IsEmpty() {
+		return errors.New("application is empty")
+	}
+	if err := IsValidCredentialApplication(*ca); err != nil {
+		return errors.Wrap(err, "application failed json schema validation")
+	}
+	if ca.Application.Format != nil {
+		if err := exchange.IsValidFormatDeclaration(*ca.Application.Format); err != nil {
+			return errors.Wrap(err, "application's claim format failed json schema validation")
+		}
+	}
 	return util.NewValidator().Struct(ca)
 }
 
@@ -99,6 +120,12 @@ func (cf *CredentialFulfillment) IsEmpty() bool {
 }
 
 func (cf *CredentialFulfillment) IsValid() error {
+	if cf.IsEmpty() {
+		return errors.New("fulfillment is empty")
+	}
+	if err := IsValidCredentialFulfillment(*cf); err != nil {
+		return errors.Wrap(err, "fulfillment failed json schema validation")
+	}
 	return util.NewValidator().Struct(cf)
 }
 

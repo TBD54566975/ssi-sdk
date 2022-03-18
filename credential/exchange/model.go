@@ -2,6 +2,7 @@ package exchange
 
 import (
 	"github.com/TBD54566975/did-sdk/util"
+	"github.com/pkg/errors"
 	"reflect"
 )
 
@@ -54,6 +55,29 @@ func (pd *PresentationDefinition) IsEmpty() bool {
 }
 
 func (pd *PresentationDefinition) IsValid() error {
+	if pd.IsEmpty() {
+		return errors.New("presentation definition is empty")
+	}
+	if err := IsValidPresentationDefinition(*pd); err != nil {
+		return errors.Wrap(err, "presentation definition failed json schema validation")
+	}
+	if len(pd.InputDescriptors) > 0 {
+		for _, id := range pd.InputDescriptors {
+			if err := id.IsValid(); err != nil {
+				return errors.Wrap(err, "presentation definition's input descriptor failed json schema validation")
+			}
+		}
+	}
+	if pd.Format != nil {
+		if err := IsValidFormatDeclaration(*pd.Format); err != nil {
+			return errors.Wrap(err, "presentation definition's claim format failed json schema validation")
+		}
+	}
+	if len(pd.SubmissionRequirements) > 0 {
+		if err := AreValidSubmissionRequirements(pd.SubmissionRequirements); err != nil {
+			return errors.Wrap(err, "presentation definition's submission requirements failed json schema validation")
+		}
+	}
 	return util.NewValidator().Struct(pd)
 }
 
@@ -87,6 +111,25 @@ type InputDescriptor struct {
 	Constraints *Constraints `json:"constraints,omitempty"`
 	// Must match a grouping strings listed in the `from` values of a submission requirement rule
 	Group []string `json:"group,omitempty"`
+}
+
+func (id *InputDescriptor) IsEmpty() bool {
+	if id == nil {
+		return true
+	}
+	return reflect.DeepEqual(id, &InputDescriptor{})
+}
+
+func (id *InputDescriptor) IsValid() error {
+	if id.IsEmpty() {
+		return errors.New("input descriptor is empty")
+	}
+	if id.Format != nil {
+		if err := IsValidFormatDeclaration(*id.Format); err != nil {
+			return errors.Wrap(err, "input descriptor's claim format failed json schema validation")
+		}
+	}
+	return util.NewValidator().Struct(id)
 }
 
 type Constraints struct {
