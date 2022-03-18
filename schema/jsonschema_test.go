@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"github.com/gobuffalo/packr/v2"
 	"testing"
 
 	"github.com/goccy/go-json"
@@ -14,6 +15,7 @@ const (
 )
 
 var (
+	box                   = packr.New("JSON Schema Test Vectors", "./test_vectors")
 	jsonSchemaTestVectors = []string{JSONSchemaTestVector1, JSONSchemaTestVector2}
 )
 
@@ -151,4 +153,8 @@ func TestLoadJSONSchema(t *testing.T) {
 
 	err = IsJSONValidAgainstSchema(latLongJSON, schemaString)
 	assert.NoError(t, err)
+}
+
+func getTestVector(fileName string) (string, error) {
+	return box.FindString(fileName)
 }

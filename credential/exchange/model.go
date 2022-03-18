@@ -1,6 +1,10 @@
 package exchange
 
-import "github.com/TBD54566975/did-sdk/util"
+import (
+	"github.com/TBD54566975/did-sdk/util"
+	"github.com/pkg/errors"
+	"reflect"
+)
 
 type (
 	Selection        string
@@ -32,31 +36,61 @@ const (
 
 // PresentationDefinition https://identity.foundation/presentation-exchange/#presentation-definition
 type PresentationDefinition struct {
-	ID                     string                  `json:"id" validate:"required"`
-	InputDescriptors       []InputDescriptor       `json:"input_descriptors" validate:"required,dive"`
+	ID                     string                  `json:"id,omitempty" validate:"required"`
+	InputDescriptors       []InputDescriptor       `json:"input_descriptors,omitempty" validate:"required,dive"`
 	Name                   string                  `json:"name,omitempty"`
 	Purpose                string                  `json:"purpose,omitempty"`
-	Format                 *ClaimFormat            `json:"format,omitempty" validate:"dive"`
-	SubmissionRequirements []SubmissionRequirement `json:"submission_requirements,omitempty" validate:"dive"`
+	Format                 *ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`
+	SubmissionRequirements []SubmissionRequirement `json:"submission_requirements,omitempty" validate:"omitempty,dive"`
 
 	// https://identity.foundation/presentation-exchange/#json-ld-framing-feature
 	Frame interface{} `json:"frame,omitempty"`
 }
 
+func (pd *PresentationDefinition) IsEmpty() bool {
+	if pd == nil {
+		return true
+	}
+	return reflect.DeepEqual(pd, &PresentationDefinition{})
+}
+
 func (pd *PresentationDefinition) IsValid() error {
+	if pd.IsEmpty() {
+		return errors.New("presentation definition is empty")
+	}
+	if err := IsValidPresentationDefinition(*pd); err != nil {
+		return errors.Wrap(err, "presentation definition failed json schema validation")
+	}
+	if len(pd.InputDescriptors) > 0 {
+		for _, id := range pd.InputDescriptors {
+			if err := id.IsValid(); err != nil {
+				return errors.Wrap(err, "presentation definition's input descriptor failed json schema validation")
+			}
+		}
+	}
+	if pd.Format != nil {
+		if err := IsValidFormatDeclaration(*pd.Format); err != nil {
+			return errors.Wrap(err, "presentation definition's claim format failed json schema validation")
+		}
+	}
+	if len(pd.SubmissionRequirements) > 0 {
+		if err := AreValidSubmissionRequirements(pd.SubmissionRequirements); err != nil {
+			return errors.Wrap(err, "presentation definition's submission requirements failed json schema validation")
+		}
+	}
 	return util.NewValidator().Struct(pd)
 }
 
 // ClaimFormat https://identity.foundation/presentation-exchange/#claim-format-designations
 // At most one field can have non-nil
 type ClaimFormat struct {
-	JWT   *JWTType `json:"jwt,omitempty" validate:"dive"`
-	JWTVC *JWTType `json:"jwt_vc,omitempty" validate:"dive"`
-	JWTVP *JWTType `json:"jwt_vp,omitempty" validate:"dive"`
+	JWT   *JWTType `json:"jwt,omitempty" validate:"omitempty,dive"`
+	JWTVC *JWTType `json:"jwt_vc,omitempty" validate:"omitempty,dive"`
+	JWTVP *JWTType `json:"jwt_vp,omitempty" validate:"omitempty,dive"`
 
-	LDP   *LDPType `json:"ldp,omitempty" validate:"dive"`
-	LDPVC *LDPType `json:"ldp_vc,omitempty" validate:"dive"`
-	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"dive"`
+	LDP   *LDPType `json:"ldp,omitempty" validate:"omitempty,dive"`
+	LDPVC *LDPType `json:"ldp_vc,omitempty" validate:"omitempty,dive"`
+	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty,dive"`
 }
 
 type JWTType struct {
@@ -69,14 +103,33 @@ type LDPType struct {
 
 type InputDescriptor struct {
 	// Must be unique within the Presentation Definition
-	ID   string `json:"id,omitempty" validate:"required"`
+	ID   string `json:"id,omitempty" validate:"required,omitempty"`
 	Name string `json:"name,omitempty"`
 	// Purpose for which claim's data is being requested
 	Purpose     string       `json:"purpose,omitempty"`
-	Format      *ClaimFormat `json:"format,omitempty" validate:"dive"`
+	Format      *ClaimFormat `json:"format,omitempty" validate:"omitempty,dive"`
 	Constraints *Constraints `json:"constraints,omitempty"`
 	// Must match a grouping strings listed in the `from` values of a submission requirement rule
 	Group []string `json:"group,omitempty"`
+}
+
+func (id *InputDescriptor) IsEmpty() bool {
+	if id == nil {
+		return true
+	}
+	return reflect.DeepEqual(id, &InputDescriptor{})
+}
+
+func (id *InputDescriptor) IsValid() error {
+	if id.IsEmpty() {
+		return errors.New("input descriptor is empty")
+	}
+	if id.Format != nil {
+		if err := IsValidFormatDeclaration(*id.Format); err != nil {
+			return errors.Wrap(err, "input descriptor's claim format failed json schema validation")
+		}
+	}
+	return util.NewValidator().Struct(id)
 }
 
 type Constraints struct {
@@ -85,7 +138,7 @@ type Constraints struct {
 
 	// https://identity.foundation/presentation-exchange/#relational-constraint-feature
 	SubjectIsIssuer *Preference           `json:"subject_is_issuer,omitempty"`
-	IsHolder        *RelationalConstraint `json:"is_holder,omitempty" validate:"dive"`
+	IsHolder        *RelationalConstraint `json:"is_holder,omitempty" validate:"omitempty,dive"`
 	SameSubject     *RelationalConstraint `json:"same_subject,omitempty"`
 
 	// https://identity.foundation/presentation-exchange/#credential-status-constraint-feature
@@ -150,9 +203,20 @@ type SubmissionRequirement struct {
 
 	Name    string `json:"name,omitempty"`
 	Purpose string `json:"purpose,omitempty"`
-	Count   int    `json:"count,omitempty" validate:"min=1"`
+	Count   int    `json:"count,omitempty" validate:"omitempty,min=1"`
 	Minimum int    `json:"min,omitempty"`
 	Maximum int    `json:"max,omitempty"`
+}
+
+func (sr *SubmissionRequirement) IsEmpty() bool {
+	if sr == nil {
+		return true
+	}
+	return reflect.DeepEqual(sr, &SubmissionRequirement{})
+}
+
+func (sr *SubmissionRequirement) IsValid() error {
+	return util.NewValidator().Struct(sr)
 }
 
 type FromOption struct {
@@ -165,6 +229,17 @@ type PresentationSubmission struct {
 	ID            string                 `json:"id" validate:"required"`
 	DefinitionID  string                 `json:"definition_id" validate:"required"`
 	DescriptorMap []SubmissionDescriptor `json:"descriptor_map" validate:"required"`
+}
+
+func (ps *PresentationSubmission) IsEmpty() bool {
+	if ps == nil {
+		return true
+	}
+	return reflect.DeepEqual(ps, &PresentationSubmission{})
+}
+
+func (ps *PresentationSubmission) IsValid() error {
+	return util.NewValidator().Struct(ps)
 }
 
 // SubmissionDescriptor is a mapping to Input Descriptor objects

@@ -12,13 +12,13 @@ import (
 )
 
 const (
-	VCJSONTestVector1           string = "vc-json-schema-example-1.json"
-	VCJSONCredentialTestVector1 string = "vc-with-schema-example-11.json"
+	vcJSONTestVector1           string = "vc-json-schema-example-1.json"
+	vcJSONCredentialTestVector1 string = "vc-with-schema-example-11.json"
 )
 
 var (
-	box               = packr.New("VC JSON Schema Test Vectors", "test_vectors")
-	vcJSONTestVectors = []string{VCJSONTestVector1}
+	testSchemaBox     = packr.New("VC JSON Schema Test Vectors", "../test_vectors")
+	vcJSONTestVectors = []string{vcJSONTestVector1}
 )
 
 // Before running, you'll need to execute `mage packr`
@@ -32,13 +32,13 @@ func TestIsValidCredentialSchema(t *testing.T) {
 
 func TestIsCredentialValidForSchema(t *testing.T) {
 	// Load VC
-	credential, err := getTestVector(VCJSONCredentialTestVector1)
+	credential, err := getTestVector(vcJSONCredentialTestVector1)
 	var cred vc.VerifiableCredential
 	err = json.Unmarshal([]byte(credential), &cred)
 	assert.NoError(t, err)
 
 	// Load vcJSONSchema
-	vcJSONSchemaString, err := getTestVector(VCJSONTestVector1)
+	vcJSONSchemaString, err := getTestVector(vcJSONTestVector1)
 	assert.NoError(t, err)
 
 	vcJSONSchema, err := StringToVCJSONCredentialSchema(vcJSONSchemaString)
@@ -50,5 +50,5 @@ func TestIsCredentialValidForSchema(t *testing.T) {
 }
 
 func getTestVector(fileName string) (string, error) {
-	return box.FindString(fileName)
+	return testSchemaBox.FindString(fileName)
 }

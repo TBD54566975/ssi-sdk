@@ -11,7 +11,7 @@ import (
 // Before running, you'll need to execute `mage packr`
 // Round trip to and from our data model
 func TestVCJSONSchema(t *testing.T) {
-	schema, err := getTestVector(VCJSONTestVector1)
+	schema, err := getTestVector(vcJSONTestVector1)
 	assert.NoError(t, err)
 
 	var vcJSONSchema VCJSONSchema
@@ -26,7 +26,7 @@ func TestVCJSONSchema(t *testing.T) {
 }
 
 func TestGetPropertyFromSchema(t *testing.T) {
-	schema, err := getTestVector(VCJSONTestVector1)
+	schema, err := getTestVector(vcJSONTestVector1)
 	assert.NoError(t, err)
 
 	var vcJSONSchema VCJSONSchema
