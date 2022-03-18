@@ -165,6 +165,17 @@ type SubmissionRequirement struct {
 	Maximum int    `json:"max,omitempty"`
 }
 
+func (sr *SubmissionRequirement) IsEmpty() bool {
+	if sr == nil {
+		return true
+	}
+	return reflect.DeepEqual(sr, &SubmissionRequirement{})
+}
+
+func (sr *SubmissionRequirement) IsValid() error {
+	return util.NewValidator().Struct(sr)
+}
+
 type FromOption struct {
 	From       string                  `json:"from,omitempty"`
 	FromNested []SubmissionRequirement `json:"from_nested,omitempty"`

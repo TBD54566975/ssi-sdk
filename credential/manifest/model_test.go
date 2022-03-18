@@ -18,7 +18,7 @@ var (
 	manifestBox = packr.New("Credential Manifest Test Vectors", "../test_vectors")
 )
 
-// Round trip de/serialize to test our object models
+// Round trip de/serialize to test our object models, and check validity
 
 func TestCredentialManifest(t *testing.T) {
 	// examples here https://identity.foundation/credential-manifest/#credential-manifest---all-features-exercised
@@ -31,6 +31,8 @@ func TestCredentialManifest(t *testing.T) {
 		err = json.Unmarshal([]byte(vector), &man)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, man)
+
+		assert.NoError(tt, man.IsValid())
 
 		roundTripBytes, err := json.Marshal(man)
 		assert.NoError(tt, err)

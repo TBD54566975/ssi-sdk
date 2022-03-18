@@ -49,6 +49,17 @@ type OutputDescriptor struct {
 	Display interface{} `json:"display,omitempty"`
 }
 
+func (od *OutputDescriptor) IsEmpty() bool {
+	if od == nil {
+		return true
+	}
+	return reflect.DeepEqual(od, &OutputDescriptor{})
+}
+
+func (od *OutputDescriptor) IsValid() error {
+	return util.NewValidator().Struct(od)
+}
+
 // CredentialApplication https://identity.foundation/credential-manifest/#credential-application
 type CredentialApplication struct {
 	Application Application `json:"credential_application" validate:"required"`

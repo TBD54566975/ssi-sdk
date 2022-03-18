@@ -10,10 +10,11 @@ import (
 )
 
 const (
-	credentialManifestSchema     string = "cm-credential-manifest.json"
-	credentialApplicationSchema  string = "cm-credential-application.json"
-	credentialFulfillmentSchema  string = "cm-credential-fulfillment.json"
-	outputDescriptorsSchema      string = "cm-output-descriptors.json"
+	credentialManifestSchema    string = "cm-credential-manifest.json"
+	credentialApplicationSchema string = "cm-credential-application.json"
+	credentialFulfillmentSchema string = "cm-credential-fulfillment.json"
+	outputDescriptorsSchema     string = "cm-output-descriptors.json"
+
 	presentationDefinitionSchema string = "pe-presentation-definition.json"
 	formatDeclarationSchema      string = "pe-format-declaration.json"
 	submissionRequirementsSchema string = "pe-submission-requirements.json"
