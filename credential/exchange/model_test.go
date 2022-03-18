@@ -37,6 +37,8 @@ func TestPresentationDefinition(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, def)
 
+		assert.NoError(tt, def.IsValid())
+
 		roundTripBytes, err := json.Marshal(def)
 		assert.NoError(tt, err)
 		assert.JSONEq(tt, vector, string(roundTripBytes))
@@ -50,6 +52,8 @@ func TestPresentationDefinition(t *testing.T) {
 		err = json.Unmarshal([]byte(vector), &def)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, def)
+
+		assert.NoError(tt, def.IsValid())
 
 		roundTripBytes, err := json.Marshal(def)
 		assert.NoError(tt, err)
@@ -65,6 +69,8 @@ func TestPresentationDefinition(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, def)
 
+		assert.NoError(tt, def.IsValid())
+
 		roundTripBytes, err := json.Marshal(def)
 		assert.NoError(tt, err)
 		assert.JSONEq(tt, vector, string(roundTripBytes))
@@ -78,6 +84,8 @@ func TestPresentationDefinition(t *testing.T) {
 		err = json.Unmarshal([]byte(vector), &def)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, def)
+
+		assert.NoError(tt, def.IsValid())
 
 		roundTripBytes, err := json.Marshal(def)
 		assert.NoError(tt, err)
@@ -93,6 +101,8 @@ func TestPresentationDefinition(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, def)
 
+		assert.NoError(tt, def.IsValid())
+
 		roundTripBytes, err := json.Marshal(def)
 		assert.NoError(tt, err)
 		assert.JSONEq(tt, vector, string(roundTripBytes))
@@ -107,6 +117,8 @@ func TestPresentationDefinition(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, def)
 
+		assert.NoError(tt, def.IsValid())
+
 		roundTripBytes, err := json.Marshal(def)
 		assert.NoError(tt, err)
 		assert.JSONEq(tt, vector, string(roundTripBytes))
@@ -120,6 +132,8 @@ func TestPresentationDefinition(t *testing.T) {
 		err = json.Unmarshal([]byte(vector), &def)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, def)
+
+		assert.NoError(tt, def.IsValid())
 
 		roundTripBytes, err := json.Marshal(def)
 		assert.NoError(tt, err)
@@ -139,6 +153,8 @@ func TestPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, sub)
 
+		assert.NoError(tt, sub.IsValid())
+
 		roundTripBytes, err := json.Marshal(sub)
 		assert.NoError(tt, err)
 		assert.JSONEq(tt, vector, string(roundTripBytes))
@@ -152,6 +168,8 @@ func TestPresentationSubmission(t *testing.T) {
 		err = json.Unmarshal([]byte(vector), &sub)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, sub)
+
+		assert.NoError(tt, sub.IsValid())
 
 		roundTripBytes, err := json.Marshal(sub)
 		assert.NoError(tt, err)

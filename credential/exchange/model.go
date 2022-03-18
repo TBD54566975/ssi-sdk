@@ -39,8 +39,8 @@ type PresentationDefinition struct {
 	InputDescriptors       []InputDescriptor       `json:"input_descriptors,omitempty" validate:"required,dive"`
 	Name                   string                  `json:"name,omitempty"`
 	Purpose                string                  `json:"purpose,omitempty"`
-	Format                 *ClaimFormat            `json:"format,omitempty" validate:"dive"`
-	SubmissionRequirements []SubmissionRequirement `json:"submission_requirements,omitempty" validate:"dive"`
+	Format                 *ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`
+	SubmissionRequirements []SubmissionRequirement `json:"submission_requirements,omitempty" validate:"omitempty,dive"`
 
 	// https://identity.foundation/presentation-exchange/#json-ld-framing-feature
 	Frame interface{} `json:"frame,omitempty"`
@@ -60,13 +60,13 @@ func (pd *PresentationDefinition) IsValid() error {
 // ClaimFormat https://identity.foundation/presentation-exchange/#claim-format-designations
 // At most one field can have non-nil
 type ClaimFormat struct {
-	JWT   *JWTType `json:"jwt,omitempty" validate:"dive"`
-	JWTVC *JWTType `json:"jwt_vc,omitempty" validate:"dive"`
-	JWTVP *JWTType `json:"jwt_vp,omitempty" validate:"dive"`
+	JWT   *JWTType `json:"jwt,omitempty" validate:"omitempty,dive"`
+	JWTVC *JWTType `json:"jwt_vc,omitempty" validate:"omitempty,dive"`
+	JWTVP *JWTType `json:"jwt_vp,omitempty" validate:"omitempty,dive"`
 
-	LDP   *LDPType `json:"ldp,omitempty" validate:"dive"`
-	LDPVC *LDPType `json:"ldp_vc,omitempty" validate:"dive"`
-	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"dive"`
+	LDP   *LDPType `json:"ldp,omitempty" validate:"omitempty,dive"`
+	LDPVC *LDPType `json:"ldp_vc,omitempty" validate:"omitempty,dive"`
+	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty,dive"`
 }
 
 type JWTType struct {
@@ -79,11 +79,11 @@ type LDPType struct {
 
 type InputDescriptor struct {
 	// Must be unique within the Presentation Definition
-	ID   string `json:"id,omitempty" validate:"required"`
+	ID   string `json:"id,omitempty" validate:"required,omitempty"`
 	Name string `json:"name,omitempty"`
 	// Purpose for which claim's data is being requested
 	Purpose     string       `json:"purpose,omitempty"`
-	Format      *ClaimFormat `json:"format,omitempty" validate:"dive"`
+	Format      *ClaimFormat `json:"format,omitempty" validate:"omitempty,dive"`
 	Constraints *Constraints `json:"constraints,omitempty"`
 	// Must match a grouping strings listed in the `from` values of a submission requirement rule
 	Group []string `json:"group,omitempty"`
@@ -95,7 +95,7 @@ type Constraints struct {
 
 	// https://identity.foundation/presentation-exchange/#relational-constraint-feature
 	SubjectIsIssuer *Preference           `json:"subject_is_issuer,omitempty"`
-	IsHolder        *RelationalConstraint `json:"is_holder,omitempty" validate:"dive"`
+	IsHolder        *RelationalConstraint `json:"is_holder,omitempty" validate:"omitempty,dive"`
 	SameSubject     *RelationalConstraint `json:"same_subject,omitempty"`
 
 	// https://identity.foundation/presentation-exchange/#credential-status-constraint-feature
@@ -160,7 +160,7 @@ type SubmissionRequirement struct {
 
 	Name    string `json:"name,omitempty"`
 	Purpose string `json:"purpose,omitempty"`
-	Count   int    `json:"count,omitempty" validate:"min=1"`
+	Count   int    `json:"count,omitempty" validate:"omitempty,min=1"`
 	Minimum int    `json:"min,omitempty"`
 	Maximum int    `json:"max,omitempty"`
 }

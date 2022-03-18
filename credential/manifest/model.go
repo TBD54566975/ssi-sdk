@@ -11,8 +11,8 @@ type CredentialManifest struct {
 	ID                     string                           `json:"id" validate:"required"`
 	Issuer                 Issuer                           `json:"issuer" validate:"required,dive"`
 	OutputDescriptors      []OutputDescriptor               `json:"output_descriptors" validate:"required,dive"`
-	Format                 *exchange.ClaimFormat            `json:"format,omitempty" validate:"dive"`
-	PresentationDefinition *exchange.PresentationDefinition `json:"presentation_definition,omitempty" validate:"dive"`
+	Format                 *exchange.ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`
+	PresentationDefinition *exchange.PresentationDefinition `json:"presentation_definition,omitempty" validate:"omitempty,dive"`
 }
 
 func (cm *CredentialManifest) IsEmpty() bool {
@@ -64,7 +64,7 @@ func (od *OutputDescriptor) IsValid() error {
 type CredentialApplication struct {
 	Application Application `json:"credential_application" validate:"required"`
 	// Must be present if the corresponding manifest contains a presentation_definition
-	PresentationSubmission *exchange.PresentationSubmission `json:"presentation_submission,omitempty" validate:"dive"`
+	PresentationSubmission *exchange.PresentationSubmission `json:"presentation_submission,omitempty" validate:"omitempty,dive"`
 }
 
 func (ca *CredentialApplication) IsEmpty() bool {

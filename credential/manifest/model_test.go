@@ -52,6 +52,10 @@ func TestCredentialManifest(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, od)
 
+		for _, d := range od.OutputDescriptors {
+			assert.NoError(tt, d.IsValid())
+		}
+
 		roundTripBytes, err := json.Marshal(od)
 		assert.NoError(tt, err)
 		assert.JSONEq(tt, vector, string(roundTripBytes))
@@ -70,6 +74,8 @@ func TestCredentialApplication(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, app)
 
+		assert.NoError(tt, app.IsValid())
+
 		roundTripBytes, err := json.Marshal(app)
 		assert.NoError(tt, err)
 		assert.JSONEq(tt, vector, string(roundTripBytes))
@@ -87,6 +93,8 @@ func TestCredentialFulfillment(t *testing.T) {
 		err = json.Unmarshal([]byte(vector), &fulfillment)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, fulfillment)
+
+		assert.NoError(tt, fulfillment.IsValid())
 
 		roundTripBytes, err := json.Marshal(fulfillment)
 		assert.NoError(tt, err)
