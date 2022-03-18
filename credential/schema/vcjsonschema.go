@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"github.com/TBD54566975/did-sdk/schema"
 	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/did-sdk/credential"
@@ -8,17 +9,17 @@ import (
 )
 
 const (
-	VerifiableCredentialJSONSchemaSchema string = "vc-json-schema.json"
-	VerifiableCredentialIDProperty       string = "id"
+	verifiableCredentialJSONSchemaSchema string = "vc-json-schema.json"
+	verifiableCredentialIDProperty       string = "id"
 )
 
 var (
-	knownSchemaBox = packr.New("Known JSON Schemas", "./known_schemas")
+	knownSchemaBox = packr.New("Known JSON Schemas", "../known_schemas")
 )
 
 // StringToVCJSONCredentialSchema marshals a string into a credential json credential schema
 func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSONSchema, error) {
-	if err := IsValidJSONSchema(maybeVCJSONCredentialSchema); err != nil {
+	if err := schema.IsValidJSONSchema(maybeVCJSONCredentialSchema); err != nil {
 		return nil, err
 	}
 	var vcs VCJSONSchema
@@ -31,16 +32,16 @@ func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSON
 // IsValidCredentialSchema determines if a given credential schema is compliant with the specification's
 // JSON Schema https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
 func IsValidCredentialSchema(maybeCredentialSchema string) error {
-	if err := IsValidJSONSchema(maybeCredentialSchema); err != nil {
+	if err := schema.IsValidJSONSchema(maybeCredentialSchema); err != nil {
 		return err
 	}
 
-	vcJSONSchemaSchema, err := getKnownSchema(VerifiableCredentialJSONSchemaSchema)
+	vcJSONSchemaSchema, err := getKnownSchema(verifiableCredentialJSONSchemaSchema)
 	if err != nil {
 		return err
 	}
 
-	return IsJSONValidAgainstSchema(maybeCredentialSchema, vcJSONSchemaSchema)
+	return schema.IsJSONValidAgainstSchema(maybeCredentialSchema, vcJSONSchemaSchema)
 }
 
 func IsCredentialValidForVCJSONSchema(credential credential.VerifiableCredential, vcJSONSchema VCJSONSchema) error {
@@ -53,10 +54,10 @@ func IsCredentialValidForVCJSONSchema(credential credential.VerifiableCredential
 
 // IsCredentialValidForSchema determines whether a given Verifiable Credential is valid against
 // a specified credential schema
-func IsCredentialValidForSchema(credential credential.VerifiableCredential, schema string) error {
+func IsCredentialValidForSchema(credential credential.VerifiableCredential, s string) error {
 	// First pull out credential subject and remove the ID property
 	credSubjectMap := credential.CredentialSubject
-	delete(credSubjectMap, VerifiableCredentialIDProperty)
+	delete(credSubjectMap, verifiableCredentialIDProperty)
 
 	// JSON-ify the subject
 	subjectBytes, err := json.Marshal(credSubjectMap)
@@ -64,7 +65,7 @@ func IsCredentialValidForSchema(credential credential.VerifiableCredential, sche
 		return err
 	}
 	subjectJSON := string(subjectBytes)
-	return IsJSONValidAgainstSchema(subjectJSON, schema)
+	return schema.IsJSONValidAgainstSchema(subjectJSON, s)
 }
 
 func getKnownSchema(fileName string) (string, error) {

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// These test vectors are taken from the credential-known_schemas-model spec examples
+// These test vectors are taken from the vc-data-model spec examples
 // e.g. https://www.w3.org/TR/vc-data-model/#example-a-simple-example-of-a-verifiable-credential
 const (
 	VCTestVector1 string = "vc-example-1.json"
