@@ -129,21 +129,17 @@ type Filter struct {
 
 // CredentialStatus https://identity.foundation/presentation-exchange/#credential-status-constraint-feature
 type CredentialStatus struct {
-	Active    *ActiveStatus    `json:"active,omitempty"`
-	Suspended *SuspendedStatus `json:"suspended,omitempty"`
-	Revoked   *RevokedStatus   `json:"revoked,omitempty"`
-}
+	Active *struct {
+		Directive Preference `json:"directive,omitempty"`
+	} `json:"active,omitempty"`
 
-type ActiveStatus struct {
-	Directive Preference `json:"directive,omitempty"`
-}
+	Suspended *struct {
+		Directive Preference `json:"directive,omitempty"`
+	} `json:"suspended,omitempty"`
 
-type SuspendedStatus struct {
-	Directive Preference `json:"directive,omitempty"`
-}
-
-type RevokedStatus struct {
-	Directive Preference `json:"directive,omitempty"`
+	Revoked *struct {
+		Directive Preference `json:"directive,omitempty"`
+	} `json:"revoked,omitempty"`
 }
 
 // SubmissionRequirement https://identity.foundation/presentation-exchange/#presentation-definition-extensions
@@ -174,12 +170,8 @@ type PresentationSubmission struct {
 // SubmissionDescriptor is a mapping to Input Descriptor objects
 type SubmissionDescriptor struct {
 	// Must match the `id` property of the corresponding input descriptor
-	ID         string            `json:"id" validate:"required"`
-	Format     string            `json:"format" validate:"required"`
-	Path       string            `json:"path" validate:"required"`
-	PathNested *NestedDescriptor `json:"path_nested,omitempty"`
-}
-
-type NestedDescriptor struct {
-	*SubmissionDescriptor
+	ID         string                `json:"id" validate:"required"`
+	Format     string                `json:"format" validate:"required"`
+	Path       string                `json:"path" validate:"required"`
+	PathNested *SubmissionDescriptor `json:"path_nested,omitempty"`
 }

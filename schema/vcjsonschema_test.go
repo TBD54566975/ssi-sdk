@@ -1,6 +1,7 @@
 package schema
 
 import (
+	vc "github.com/TBD54566975/did-sdk/credential"
 	"testing"
 
 	"github.com/goccy/go-json"
@@ -11,12 +12,12 @@ import (
 )
 
 const (
-	VCJSONTestVector1           string = "credential-json-schema-example-1.json"
-	VCJSONCredentialTestVector1 string = "credential-with-schema-example-11.json"
+	VCJSONTestVector1           string = "vc-json-schema-example-1.json"
+	VCJSONCredentialTestVector1 string = "vc-with-schema-example-11.json"
 )
 
 var (
-	box               = packr.New("VC JSON Schema Test Vectors", "./test_vectors")
+	box               = packr.New("VC JSON Schema Test Vectors", "test_vectors")
 	vcJSONTestVectors = []string{VCJSONTestVector1}
 )
 
@@ -32,7 +33,7 @@ func TestIsValidCredentialSchema(t *testing.T) {
 func TestIsCredentialValidForSchema(t *testing.T) {
 	// Load VC
 	credential, err := getTestVector(VCJSONCredentialTestVector1)
-	var cred credential.VerifiableCredential
+	var cred vc.VerifiableCredential
 	err = json.Unmarshal([]byte(credential), &cred)
 	assert.NoError(t, err)
 

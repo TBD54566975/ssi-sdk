@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	VerifiableCredentialJSONSchemaSchema string = "credential-json-schema.json"
+	VerifiableCredentialJSONSchemaSchema string = "vc-json-schema.json"
 	VerifiableCredentialIDProperty       string = "id"
 )
 

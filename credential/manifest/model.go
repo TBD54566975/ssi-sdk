@@ -4,6 +4,7 @@ import "github.com/TBD54566975/did-sdk/util"
 
 // CredentialManifest https://identity.foundation/credential-manifest/#general-composition
 type CredentialManifest struct {
+	ID                string             `json:"id" validate:"required"`
 	Issuer            Issuer             `json:"issuer" validate:"required,dive"`
 	OutputDescriptors []OutputDescriptor `json:"output_descriptors" validate:"required"`
 	// TODO(gabe) unify these properties with the pres def impl in https://github.com/TBD54566975/did-sdk/issues/18
