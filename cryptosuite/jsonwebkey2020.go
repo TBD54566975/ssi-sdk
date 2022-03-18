@@ -5,6 +5,7 @@ package cryptosuite
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/TBD54566975/did-sdk/util"
 
 	"github.com/goccy/go-json"
 
@@ -50,6 +51,10 @@ type JSONWebKey2020 struct {
 	Controller    string    `json:"controller,omitempty"`
 	PrivateKeyJWK `json:"privateKeyJwk,omitempty"`
 	PublicKeyJWK  `json:"publicKeyJwk,omitempty"`
+}
+
+func (jwk *JSONWebKey2020) IsValid() error {
+	return util.NewValidator().Struct(jwk)
 }
 
 // PrivateKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517

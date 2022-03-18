@@ -3,7 +3,7 @@ package schema
 import (
 	"github.com/goccy/go-json"
 
-	"github.com/TBD54566975/did-sdk/vc"
+	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/gobuffalo/packr/v2"
 )
 
@@ -16,7 +16,7 @@ var (
 	knownSchemaBox = packr.New("Known JSON Schemas", "./known_schemas")
 )
 
-// StringToVCJSONCredentialSchema marshals a string into a vc json credential schema
+// StringToVCJSONCredentialSchema marshals a string into a credential json credential schema
 func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSONSchema, error) {
 	if err := IsValidJSONSchema(maybeVCJSONCredentialSchema); err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func IsValidCredentialSchema(maybeCredentialSchema string) error {
 	return IsJSONValidAgainstSchema(maybeCredentialSchema, vcJSONSchemaSchema)
 }
 
-func IsCredentialValidForVCJSONSchema(credential vc.VerifiableCredential, vcJSONSchema VCJSONSchema) error {
+func IsCredentialValidForVCJSONSchema(credential credential.VerifiableCredential, vcJSONSchema VCJSONSchema) error {
 	schemaBytes, err := json.Marshal(vcJSONSchema.Schema)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func IsCredentialValidForVCJSONSchema(credential vc.VerifiableCredential, vcJSON
 
 // IsCredentialValidForSchema determines whether a given Verifiable Credential is valid against
 // a specified credential schema
-func IsCredentialValidForSchema(credential vc.VerifiableCredential, schema string) error {
+func IsCredentialValidForSchema(credential credential.VerifiableCredential, schema string) error {
 	// First pull out credential subject and remove the ID property
 	credSubjectMap := credential.CredentialSubject
 	delete(credSubjectMap, VerifiableCredentialIDProperty)

@@ -1,6 +1,6 @@
 //go:build jwx_es256k
 
-package vc
+package credential
 
 import (
 	"testing"

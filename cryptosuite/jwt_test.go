@@ -3,13 +3,13 @@
 package cryptosuite
 
 import (
-	"github.com/TBD54566975/did-sdk/vc"
+	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestVerifiableCredentialJWT(t *testing.T) {
-	testCredential := vc.VerifiableCredential{
+	testCredential := credential.VerifiableCredential{
 		Context:           []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
 		Type:              []string{"VerifiableCredential"},
 		Issuer:            "did:example:123",
@@ -37,7 +37,7 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 }
 
 func TestVerifiablePresentationJWT(t *testing.T) {
-	testPresentation := vc.VerifiablePresentation{
+	testPresentation := credential.VerifiablePresentation{
 		Context: []string{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
 		Type:   []string{"VerifiablePresentation"},

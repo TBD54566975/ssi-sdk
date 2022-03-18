@@ -1,11 +1,10 @@
 package schema
 
 import (
+	vc "github.com/TBD54566975/did-sdk/credential"
 	"testing"
 
 	"github.com/goccy/go-json"
-
-	"github.com/TBD54566975/did-sdk/vc"
 
 	"github.com/stretchr/testify/assert"
 
@@ -18,7 +17,7 @@ const (
 )
 
 var (
-	box               = packr.New("VC JSON Schema Test Vectors", "./test_vectors")
+	box               = packr.New("VC JSON Schema Test Vectors", "test_vectors")
 	vcJSONTestVectors = []string{VCJSONTestVector1}
 )
 

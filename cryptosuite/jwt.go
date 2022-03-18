@@ -4,7 +4,7 @@ package cryptosuite
 
 import (
 	"fmt"
-	"github.com/TBD54566975/did-sdk/vc"
+	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwa"
@@ -15,13 +15,13 @@ import (
 )
 
 const (
-	VCJWTProperty string = "vc"
+	VCJWTProperty string = "credential"
 	VPJWTProperty string = "vp"
 	NonceProperty string = "nonce"
 )
 
 // SignVerifiableCredentialJWT is prepared according to https://www.w3.org/TR/vc-data-model/#jwt-encoding
-func (s *JSONWebKeySigner) SignVerifiableCredentialJWT(cred vc.VerifiableCredential) ([]byte, error) {
+func (s *JSONWebKeySigner) SignVerifiableCredentialJWT(cred credential.VerifiableCredential) ([]byte, error) {
 	if cred.IsEmpty() {
 		return nil, errors.New("credential cannot be empty")
 	}
@@ -66,7 +66,7 @@ func (s *JSONWebKeySigner) SignVerifiableCredentialJWT(cred vc.VerifiableCredent
 	}
 
 	if err := t.Set(VCJWTProperty, cred); err != nil {
-		return nil, errors.New("could not set vc value")
+		return nil, errors.New("could not set credential value")
 	}
 
 	return jwt.Sign(t, jwa.SignatureAlgorithm(s.GetSigningAlgorithm()), s.Key)
@@ -74,7 +74,7 @@ func (s *JSONWebKeySigner) SignVerifiableCredentialJWT(cred vc.VerifiableCredent
 
 // VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
 // the token in a verifiable credential.
-func (v *JSONWebKeyVerifier) VerifyVerifiableCredentialJWT(token string) (*vc.VerifiableCredential, error) {
+func (v *JSONWebKeyVerifier) VerifyVerifiableCredentialJWT(token string) (*credential.VerifiableCredential, error) {
 	if err := v.VerifyJWT(token); err != nil {
 		return nil, errors.Wrap(err, "could not verify JWT and its signature")
 	}
@@ -85,10 +85,10 @@ func (v *JSONWebKeyVerifier) VerifyVerifiableCredentialJWT(token string) (*vc.Ve
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiableCredential object is returned.
-func ParseVerifiableCredentialFromJWT(token string) (*vc.VerifiableCredential, error) {
+func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCredential, error) {
 	parsed, err := jwt.Parse([]byte(token))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse vc token")
+		return nil, errors.Wrap(err, "could not parse credential token")
 	}
 	vcClaim, ok := parsed.Get(VCJWTProperty)
 	if !ok {
@@ -96,9 +96,9 @@ func ParseVerifiableCredentialFromJWT(token string) (*vc.VerifiableCredential, e
 	}
 	vcBytes, err := json.Marshal(vcClaim)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal vc claim")
+		return nil, errors.Wrap(err, "could not marshal credential claim")
 	}
-	var cred vc.VerifiableCredential
+	var cred credential.VerifiableCredential
 	if err := json.Unmarshal(vcBytes, &cred); err != nil {
 		return nil, errors.Wrap(err, "could not reconstruct Verifiable Credential")
 	}
@@ -130,7 +130,7 @@ func ParseVerifiableCredentialFromJWT(token string) (*vc.VerifiableCredential, e
 		if cred.CredentialSubject == nil {
 			cred.CredentialSubject = make(map[string]interface{})
 		}
-		cred.CredentialSubject[vc.VerifiableCredentialIDProperty] = subStr
+		cred.CredentialSubject[credential.VerifiableCredentialIDProperty] = subStr
 	}
 
 	jti, hasJti := parsed.Get(jwt.NotBeforeKey)
@@ -143,7 +143,7 @@ func ParseVerifiableCredentialFromJWT(token string) (*vc.VerifiableCredential, e
 }
 
 // SignVerifiablePresentationJWT is prepared according to https://www.w3.org/TR/vc-data-model/#jwt-encoding
-func (s *JSONWebKeySigner) SignVerifiablePresentationJWT(pres vc.VerifiablePresentation) ([]byte, error) {
+func (s *JSONWebKeySigner) SignVerifiablePresentationJWT(pres credential.VerifiablePresentation) ([]byte, error) {
 	if pres.IsEmpty() {
 		return nil, errors.New("presentation cannot be empty")
 	}
@@ -179,7 +179,7 @@ func (s *JSONWebKeySigner) SignVerifiablePresentationJWT(pres vc.VerifiablePrese
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
-func (v *JSONWebKeyVerifier) VerifyVerifiablePresentationJWT(token string) (*vc.VerifiablePresentation, error) {
+func (v *JSONWebKeyVerifier) VerifyVerifiablePresentationJWT(token string) (*credential.VerifiablePresentation, error) {
 	if err := v.VerifyJWT(token); err != nil {
 		return nil, errors.Wrap(err, "could not verify JWT and its signature")
 	}
@@ -190,7 +190,7 @@ func (v *JSONWebKeyVerifier) VerifyVerifiablePresentationJWT(token string) (*vc.
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
-func ParseVerifiablePresentationFromJWT(token string) (*vc.VerifiablePresentation, error) {
+func ParseVerifiablePresentationFromJWT(token string) (*credential.VerifiablePresentation, error) {
 	parsed, err := jwt.Parse([]byte(token))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse vp token")
@@ -203,7 +203,7 @@ func ParseVerifiablePresentationFromJWT(token string) (*vc.VerifiablePresentatio
 	if err != nil {
 		return nil, errors.Wrap(err, "could not marshal vp claim")
 	}
-	var pres vc.VerifiablePresentation
+	var pres credential.VerifiablePresentation
 	if err := json.Unmarshal(vpBytes, &pres); err != nil {
 		return nil, errors.Wrap(err, "could not reconstruct Verifiable Presentation")
 	}
