@@ -14,7 +14,7 @@ const (
 )
 
 var (
-	knownSchemaBox = packr.New("Known JSON Schemas", "../known_schemas")
+	schemaBox = packr.New("Known JSON Schemas", "../known_schemas")
 )
 
 // StringToVCJSONCredentialSchema marshals a string into a credential json credential schema
@@ -69,5 +69,5 @@ func IsCredentialValidForSchema(credential credential.VerifiableCredential, s st
 }
 
 func getKnownSchema(fileName string) (string, error) {
-	return knownSchemaBox.FindString(fileName)
+	return schemaBox.FindString(fileName)
 }

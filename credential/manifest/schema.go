@@ -18,6 +18,7 @@ var (
 	schemaBox = packr.New("Credential Manifest JSON Schemas", "../known_schemas")
 )
 
+// IsValidCredentialManifest validates a given credential manifest object against its known JSON schema
 func IsValidCredentialManifest(manifest CredentialManifest) error {
 	jsonBytes, err := json.Marshal(manifest)
 	if err != nil {
@@ -30,6 +31,7 @@ func IsValidCredentialManifest(manifest CredentialManifest) error {
 	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
 }
 
+// IsValidCredentialApplication validates a given credential application object against its known JSON schema
 func IsValidCredentialApplication(application CredentialApplication) error {
 	jsonBytes, err := json.Marshal(application)
 	if err != nil {
@@ -42,6 +44,7 @@ func IsValidCredentialApplication(application CredentialApplication) error {
 	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
 }
 
+// IsValidCredentialFulfillment validates a given credential fulfillment object against its known JSON schema
 func IsValidCredentialFulfillment(fulfillment CredentialFulfillment) error {
 	fulfillmentWrapper := struct {
 		CredentialFulfillment `json:"credential_fulfillment"`
@@ -59,6 +62,7 @@ func IsValidCredentialFulfillment(fulfillment CredentialFulfillment) error {
 	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
 }
 
+// AreValidOutputDescriptors validates a set of output descriptor objects against its known JSON schema
 func AreValidOutputDescriptors(descriptors []OutputDescriptor) error {
 	descriptorsWrapper := struct {
 		OutputDescriptors []OutputDescriptor `json:"output_descriptors"`

@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	box               = packr.New("VC JSON Schema Test Vectors", "../test_vectors")
+	testSchemaBox     = packr.New("VC JSON Schema Test Vectors", "../test_vectors")
 	vcJSONTestVectors = []string{vcJSONTestVector1}
 )
 
@@ -50,5 +50,5 @@ func TestIsCredentialValidForSchema(t *testing.T) {
 }
 
 func getTestVector(fileName string) (string, error) {
-	return box.FindString(fileName)
+	return testSchemaBox.FindString(fileName)
 }

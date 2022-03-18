@@ -17,6 +17,7 @@ var (
 	schemaBox = packr.New("Presentation Exchange JSON Schemas", "../known_schemas")
 )
 
+// IsValidPresentationDefinition validates a given presentation definition object against its known JSON schema
 func IsValidPresentationDefinition(definition PresentationDefinition) error {
 	definitionWrapper := struct {
 		PresentationDefinition PresentationDefinition `json:"presentation_definition"`
@@ -34,6 +35,7 @@ func IsValidPresentationDefinition(definition PresentationDefinition) error {
 	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
 }
 
+// IsValidFormatDeclaration validates a given claim format object against its known JSON schema
 func IsValidFormatDeclaration(format ClaimFormat) error {
 	jsonBytes, err := json.Marshal(format)
 	if err != nil {
@@ -46,6 +48,7 @@ func IsValidFormatDeclaration(format ClaimFormat) error {
 	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
 }
 
+// AreValidSubmissionRequirements validates a set of submission requirement objects against its known JSON schema
 func AreValidSubmissionRequirements(requirements []SubmissionRequirement) error {
 	requirementsWrapper := struct {
 		SubmissionRequirements []SubmissionRequirement `json:"submission_requirements"`
