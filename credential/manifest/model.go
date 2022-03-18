@@ -1,15 +1,17 @@
 package manifest
 
-import "github.com/TBD54566975/did-sdk/util"
+import (
+	"github.com/TBD54566975/did-sdk/credential/exchange"
+	"github.com/TBD54566975/did-sdk/util"
+)
 
 // CredentialManifest https://identity.foundation/credential-manifest/#general-composition
 type CredentialManifest struct {
-	ID                string             `json:"id" validate:"required"`
-	Issuer            Issuer             `json:"issuer" validate:"required,dive"`
-	OutputDescriptors []OutputDescriptor `json:"output_descriptors" validate:"required"`
-	// TODO(gabe) unify these properties with the pres def impl in https://github.com/TBD54566975/did-sdk/issues/18
-	Format                 interface{} `json:"format,omitempty"`
-	PresentationDefinition interface{} `json:"presentation_definition,omitempty"`
+	ID                     string                           `json:"id" validate:"required"`
+	Issuer                 Issuer                           `json:"issuer" validate:"required,dive"`
+	OutputDescriptors      []OutputDescriptor               `json:"output_descriptors" validate:"required,dive"`
+	Format                 *exchange.ClaimFormat            `json:"format,omitempty" validate:"dive"`
+	PresentationDefinition *exchange.PresentationDefinition `json:"presentation_definition,omitempty" validate:"dive"`
 }
 
 type Issuer struct {
@@ -17,6 +19,7 @@ type Issuer struct {
 	Name string `json:"name,omitempty"`
 	// an object or URI as defined by the DIF Entity Styles specification
 	// https://identity.foundation/wallet-rendering/#entity-styles
+	// TODO(gabe) https://github.com/TBD54566975/did-sdk/issues/52
 	Styles interface{} `json:"styles,omitempty"`
 }
 
@@ -27,11 +30,10 @@ type OutputDescriptor struct {
 	Schema      string `json:"schema" validate:"required"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
-	// an object or URI as defined by the DIF Entity Styles specification
+	// both below: an object or URI as defined by the DIF Entity Styles specification
 	// https://identity.foundation/wallet-rendering/#entity-styles
-	Styles interface{} `json:"styles,omitempty"`
-	// an object as defined by the DIF Data Display spec
-	// https://identity.foundation/wallet-rendering/#data-display
+	// TODO(gabe) https://github.com/TBD54566975/did-sdk/issues/52
+	Styles  interface{} `json:"styles,omitempty"`
 	Display interface{} `json:"display,omitempty"`
 }
 
@@ -43,23 +45,20 @@ func (cm *CredentialManifest) IsValid() error {
 type CredentialApplication struct {
 	Application Application `json:"credential_application" validate:"required"`
 	// Must be present if the corresponding manifest contains a presentation_definition
-	// TODO(gabe) point to impl after https://github.com/TBD54566975/did-sdk/issues/18
-	PresentationSubmission interface{} `json:"presentation_submission,omitempty"`
+	PresentationSubmission *exchange.PresentationSubmission `json:"presentation_submission,omitempty" validate:"dive"`
 }
 
 type Application struct {
-	ID         string `json:"id" validate:"required"`
-	ManifestID string `json:"manifest_id" validate:"required"`
-	// TODO(gabe) unify format with the pres def impl in https://github.com/TBD54566975/did-sdk/issues/18
-	Format interface{} `json:"format" validate:"required"`
+	ID         string                `json:"id" validate:"required"`
+	ManifestID string                `json:"manifest_id" validate:"required"`
+	Format     *exchange.ClaimFormat `json:"format" validate:"required,dive"`
 }
 
 // CredentialFulfillment https://identity.foundation/credential-manifest/#credential-fulfillment
 type CredentialFulfillment struct {
-	ID         string `json:"id" validate:"required"`
-	ManifestID string `json:"manifest_id" validate:"required"`
-	// TODO(gabe) unify with https://identity.foundation/presentation-exchange/#presentation-submission
-	DescriptorMap interface{} `json:"descriptor_map" validate:"required"`
+	ID            string                          `json:"id" validate:"required"`
+	ManifestID    string                          `json:"manifest_id" validate:"required"`
+	DescriptorMap []exchange.SubmissionDescriptor `json:"descriptor_map" validate:"required"`
 }
 
-// TODO(gabe) support multiple embed targets https://identity.foundation/credential-manifest/#embed-targets-2
+// TODO(gabe) support multiple embed targets https://github.com/TBD54566975/did-sdk/issues/57

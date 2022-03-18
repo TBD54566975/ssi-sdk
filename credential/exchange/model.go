@@ -32,8 +32,8 @@ const (
 
 // PresentationDefinition https://identity.foundation/presentation-exchange/#presentation-definition
 type PresentationDefinition struct {
-	ID                     string                  `json:"id" validate:"required"`
-	InputDescriptors       []InputDescriptor       `json:"input_descriptors" validate:"required,dive"`
+	ID                     string                  `json:"id,omitempty" validate:"required"`
+	InputDescriptors       []InputDescriptor       `json:"input_descriptors,omitempty" validate:"required,dive"`
 	Name                   string                  `json:"name,omitempty"`
 	Purpose                string                  `json:"purpose,omitempty"`
 	Format                 *ClaimFormat            `json:"format,omitempty" validate:"dive"`
