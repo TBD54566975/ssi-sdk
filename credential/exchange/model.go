@@ -1,6 +1,9 @@
 package exchange
 
-import "github.com/TBD54566975/did-sdk/util"
+import (
+	"github.com/TBD54566975/did-sdk/util"
+	"reflect"
+)
 
 type (
 	Selection        string
@@ -41,6 +44,13 @@ type PresentationDefinition struct {
 
 	// https://identity.foundation/presentation-exchange/#json-ld-framing-feature
 	Frame interface{} `json:"frame,omitempty"`
+}
+
+func (pd *PresentationDefinition) IsEmpty() bool {
+	if pd == nil {
+		return true
+	}
+	return reflect.DeepEqual(pd, &PresentationDefinition{})
 }
 
 func (pd *PresentationDefinition) IsValid() error {
@@ -165,6 +175,17 @@ type PresentationSubmission struct {
 	ID            string                 `json:"id" validate:"required"`
 	DefinitionID  string                 `json:"definition_id" validate:"required"`
 	DescriptorMap []SubmissionDescriptor `json:"descriptor_map" validate:"required"`
+}
+
+func (ps *PresentationSubmission) IsEmpty() bool {
+	if ps == nil {
+		return true
+	}
+	return reflect.DeepEqual(ps, &PresentationSubmission{})
+}
+
+func (ps *PresentationSubmission) IsValid() error {
+	return util.NewValidator().Struct(ps)
 }
 
 // SubmissionDescriptor is a mapping to Input Descriptor objects
