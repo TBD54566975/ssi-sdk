@@ -99,3 +99,44 @@ func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 	err = verifier.VerifyJWT(presentation2)
 	assert.NoError(t, err)
 }
+
+func TestSignVerifyGenericJWT(t *testing.T) {
+	signer, key := getTestVectorKey0Signer(t, AssertionMethod)
+	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
+	assert.NoError(t, err)
+
+	jwtData := map[string]interface{}{
+		"id":   "abcd",
+		"jti":  "1234",
+		"data": []interface{}{"one", "two", "three"},
+		"more_data": map[string]int{
+			"a": 1,
+			"b": 2,
+			"c": 3,
+		},
+	}
+	token, err := signer.SignGenericJWT(jwtData)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, token)
+
+	err = verifier.VerifyJWT(string(token))
+	assert.NoError(t, err)
+
+	parsed, err := verifier.ParseJWT(string(token))
+	assert.NoError(t, err)
+
+	gotID, ok := parsed.Get("id")
+	assert.True(t, ok)
+	assert.EqualValues(t, "abcd", gotID)
+
+	gotJTI, ok := parsed.Get("jti")
+	assert.True(t, ok)
+	assert.EqualValues(t, "1234", gotJTI)
+
+	gotData, ok := parsed.Get("data")
+	assert.True(t, ok)
+	assert.EqualValues(t, []interface{}{"one", "two", "three"}, gotData)
+
+	_, err = verifier.VerifyAndParseJWT(string(token))
+	assert.NoError(t, err)
+}
