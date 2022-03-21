@@ -7,12 +7,13 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 )
 
-// PresentationType represents wrappers for Presentation Definitions
-type PresentationType string
+// PresentationRequestType represents wrappers for Presentation Definitions submitted as requests
+// https://identity.foundation/presentation-exchange/#presentation-request
+type PresentationRequestType string
 
 const (
-	JWTRequest        PresentationType = "jwt"
-	LinkedDataRequest PresentationType = "ld"
+	// JWTRequest is a wrapper for a `presentation_definition` inside a signed JWT
+	JWTRequest PresentationRequestType = "jwt"
 
 	// JWT key values
 
@@ -22,7 +23,7 @@ const (
 // BuildPresentationRequest https://identity.foundation/presentation-exchange/#presentation-request
 // used for transmitting a Presentation Definition from a holder to a verifier. Target is who the request is intended for.
 // TODO(gabe) expand to other presentation types and signers https://github.com/TBD54566975/did-sdk/issues/57
-func BuildPresentationRequest(signer cryptosuite.Signer, pt PresentationType, def PresentationDefinition, target string) ([]byte, error) {
+func BuildPresentationRequest(signer cryptosuite.Signer, pt PresentationRequestType, def PresentationDefinition, target string) ([]byte, error) {
 	if !IsSupportedPresentationRequestType(pt) {
 		return nil, fmt.Errorf("unsupported presentation request type: %s", pt)
 	}
@@ -49,7 +50,7 @@ func BuildJWTPresentationRequest(signer cryptosuite.JSONWebKeySigner, def Presen
 	return signer.SignGenericJWT(jwtValues)
 }
 
-func IsSupportedPresentationRequestType(rt PresentationType) bool {
+func IsSupportedPresentationRequestType(rt PresentationRequestType) bool {
 	supported := GetSupportedPresentationRequestTypes()
 	for _, t := range supported {
 		if rt == t {
@@ -59,6 +60,6 @@ func IsSupportedPresentationRequestType(rt PresentationType) bool {
 	return false
 }
 
-func GetSupportedPresentationRequestTypes() []PresentationType {
-	return []PresentationType{JWTRequest}
+func GetSupportedPresentationRequestTypes() []PresentationRequestType {
+	return []PresentationRequestType{JWTRequest}
 }
