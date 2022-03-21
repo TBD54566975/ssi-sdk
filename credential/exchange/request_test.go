@@ -3,9 +3,9 @@
 package exchange
 
 import (
+	"github.com/TBD54566975/did-sdk/crypto"
 	"github.com/TBD54566975/did-sdk/cryptosuite"
 	"github.com/goccy/go-json"
-	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -81,7 +81,7 @@ func getDummyPresentationDefinition() PresentationDefinition {
 		},
 		Name: "test-def",
 		Format: &ClaimFormat{
-			JWTVC: &JWTType{Alg: []string{jwa.EdDSA.String()}},
+			JWTVC: &JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
 		},
 	}
 }

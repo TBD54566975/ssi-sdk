@@ -7,11 +7,12 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 )
 
-// PresentationRequestType represents wrappers for Presentation Definitions
-type PresentationRequestType string
+// PresentationType represents wrappers for Presentation Definitions
+type PresentationType string
 
 const (
-	JWTRequest PresentationRequestType = "jwt"
+	JWTRequest        PresentationType = "jwt"
+	LinkedDataRequest PresentationType = "ld"
 
 	// JWT key values
 
@@ -20,20 +21,20 @@ const (
 
 // BuildPresentationRequest https://identity.foundation/presentation-exchange/#presentation-request
 // used for transmitting a Presentation Definition from a holder to a verifier. Target is who the request is intended for.
-// TODO(gabe) consider expanding to other presentation request types and signers
-func BuildPresentationRequest(signer cryptosuite.Signer, rt PresentationRequestType, def PresentationDefinition, target string) ([]byte, error) {
-	if !IsSupportedPresentationRequestType(rt) {
-		return nil, fmt.Errorf("unsupported presentation request type: %s", rt)
+// TODO(gabe) expand to other presentation types and signers https://github.com/TBD54566975/did-sdk/issues/57
+func BuildPresentationRequest(signer cryptosuite.Signer, pt PresentationType, def PresentationDefinition, target string) ([]byte, error) {
+	if !IsSupportedPresentationRequestType(pt) {
+		return nil, fmt.Errorf("unsupported presentation request type: %s", pt)
 	}
-	switch rt {
+	switch pt {
 	case JWTRequest:
 		jwkSigner, ok := signer.(*cryptosuite.JSONWebKeySigner)
 		if !ok {
-			return nil, fmt.Errorf("signer not valid for request type: %s", rt)
+			return nil, fmt.Errorf("signer not valid for request type: %s", pt)
 		}
 		return BuildJWTPresentationRequest(*jwkSigner, def, target)
 	default:
-		return nil, fmt.Errorf("presentation request type <%s> is not implemented", rt)
+		return nil, fmt.Errorf("presentation request type <%s> is not implemented", pt)
 	}
 }
 
@@ -48,7 +49,7 @@ func BuildJWTPresentationRequest(signer cryptosuite.JSONWebKeySigner, def Presen
 	return signer.SignGenericJWT(jwtValues)
 }
 
-func IsSupportedPresentationRequestType(rt PresentationRequestType) bool {
+func IsSupportedPresentationRequestType(rt PresentationType) bool {
 	supported := GetSupportedPresentationRequestTypes()
 	for _, t := range supported {
 		if rt == t {
@@ -58,6 +59,6 @@ func IsSupportedPresentationRequestType(rt PresentationRequestType) bool {
 	return false
 }
 
-func GetSupportedPresentationRequestTypes() []PresentationRequestType {
-	return []PresentationRequestType{JWTRequest}
+func GetSupportedPresentationRequestTypes() []PresentationType {
+	return []PresentationType{JWTRequest}
 }

@@ -1,6 +1,8 @@
 package exchange
 
 import (
+	"github.com/TBD54566975/did-sdk/crypto"
+	"github.com/TBD54566975/did-sdk/cryptosuite"
 	"github.com/TBD54566975/did-sdk/util"
 	"github.com/pkg/errors"
 	"reflect"
@@ -94,11 +96,11 @@ type ClaimFormat struct {
 }
 
 type JWTType struct {
-	Alg []string `json:"alg" validate:"required"`
+	Alg []crypto.SignatureAlgorithm `json:"alg" validate:"required"`
 }
 
 type LDPType struct {
-	ProofType []string `json:"proof_type" validate:"required"`
+	ProofType []cryptosuite.SignatureType `json:"proof_type" validate:"required"`
 }
 
 type InputDescriptor struct {
