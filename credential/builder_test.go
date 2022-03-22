@@ -48,13 +48,13 @@ func TestCredential(t *testing.T) {
 	// re-build with our builder
 	builder := NewVerifiableCredentialBuilder()
 
-	err = builder.SetContext(knownContext)
+	err = builder.AddContext(knownContext)
 	assert.NoError(t, err)
 
 	err = builder.SetID(knownID)
 	assert.NoError(t, err)
 
-	err = builder.SetType(knownType)
+	err = builder.AddType(knownType)
 	assert.NoError(t, err)
 
 	err = builder.SetIssuer(knownIssuer)
@@ -87,12 +87,12 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.NotEmpty(t, builder.Context)
 
 	// set context of a bad type
-	err = builder.SetContext(4)
+	err = builder.AddContext(4)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "malformed context")
 
 	// correct context
-	err = builder.SetContext("https://www.w3.org/2018/credentials/examples/v1")
+	err = builder.AddContext("https://www.w3.org/2018/credentials/examples/v1")
 	assert.NoError(t, err)
 
 	// there is a default id
@@ -104,16 +104,16 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// set bad type value
-	err = builder.SetType(5)
+	err = builder.AddType(5)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "malformed type")
 
 	// valid type as a string
-	err = builder.SetType("TestType")
+	err = builder.AddType("TestType")
 	assert.NoError(t, err)
 
 	// valid type as a []string
-	err = builder.SetType([]string{"TestType"})
+	err = builder.AddType([]string{"TestType"})
 	assert.NoError(t, err)
 
 	// set issuer as a string
@@ -275,12 +275,12 @@ func TestVerifiablePresentationBuilder(t *testing.T) {
 	assert.NotEmpty(t, builder.Context)
 
 	// set context of a bad type
-	err = builder.SetContext(4)
+	err = builder.AddContext(4)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "malformed context")
 
 	// correct context
-	err = builder.SetContext("https://www.w3.org/2018/credentials/examples/v1")
+	err = builder.AddContext("https://www.w3.org/2018/credentials/examples/v1")
 	assert.NoError(t, err)
 
 	// there is a default id
@@ -292,16 +292,16 @@ func TestVerifiablePresentationBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// set bad type value
-	err = builder.SetType(5)
+	err = builder.AddType(5)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "malformed type")
 
 	// valid type as a string
-	err = builder.SetType("TestType")
+	err = builder.AddType("TestType")
 	assert.NoError(t, err)
 
 	// valid type as a []string
-	err = builder.SetType([]string{"TestType"})
+	err = builder.AddType([]string{"TestType"})
 	assert.NoError(t, err)
 
 	// add two credentials

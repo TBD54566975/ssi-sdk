@@ -5,6 +5,7 @@ import (
 	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/TBD54566975/did-sdk/credential/signing"
 	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -18,6 +19,9 @@ const (
 	JWTVPTarget EmbedTarget = "jwt_vp"
 	//JWTTarget   EmbedTarget = "jwt"
 	//LDPVPTarget EmbedTarget = "ldp_vp"
+
+	PresentationSubmissionContext string = "https://identity.foundation/presentation-exchange/submission/v1"
+	PresentationSubmissionType    string = "PresentationSubmission"
 )
 
 // PresentationClaim 's may be of any claim format designation, including LD or JWT variations of VCs or VPs
@@ -53,8 +57,67 @@ func BuildPresentationSubmission(signer cryptosuite.Signer, def PresentationDefi
 }
 
 func BuildPresentationSubmissionVP(def PresentationDefinition, claims []PresentationClaim) (*credential.VerifiablePresentation, error) {
+	if err := canProcessDefinition(def); err != nil {
+		return nil, errors.Wrap(err, "feature not supported in processing given presentation definition")
+	}
+	builder := credential.NewVerifiablePresentationBuilder()
+	if err := builder.AddContext(PresentationSubmissionContext); err != nil {
+		return nil, err
+	}
+	if err := builder.AddType(PresentationSubmissionType); err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	submission := PresentationSubmission{
+		ID:           uuid.New().String(),
+		DefinitionID: def.ID,
+	}
+
+	// begin to process to presentation definition against the available claims
+
+	// set descriptor map in submission
+
+	// add credentials to the VP
+
+	// set submission in vp, build, and return
+	if err := builder.SetPresentationSubmission(submission); err != nil {
+		return nil, err
+	}
+	return builder.Build()
+}
+
+// TODO(gabe) https://github.com/TBD54566975/did-sdk/issues/56
+// check for certain features we may not support yet: submission requirements, predicates, relational constraints,
+// credential status, JSON-LD framing from https://identity.foundation/presentation-exchange/#features
+func canProcessDefinition(def PresentationDefinition) error {
+	if len(def.SubmissionRequirements) > 0 {
+		return errors.New("submission requirements feature not supported")
+	}
+	for _, id := range def.InputDescriptors {
+		if id.Constraints != nil && len(id.Constraints.Fields) > 0 {
+			for _, field := range id.Constraints.Fields {
+				if field.Predicate != nil && field.Filter != nil {
+					return errors.New("predicate feature not supported")
+				}
+			}
+		}
+	}
+	for _, id := range def.InputDescriptors {
+		constraints := id.Constraints
+		if constraints != nil && len(constraints.Fields) > 0 && constraints.IsHolder != nil ||
+			constraints.SameSubject != nil || constraints.SubjectIsIssuer != nil {
+			return errors.New("relational constraint feature not supported")
+		}
+	}
+	for _, id := range def.InputDescriptors {
+		if id.Constraints != nil && len(id.Constraints.Fields) > 0 && id.Constraints.Statuses != nil {
+			return errors.New("credential status constraint feature not supported")
+		}
+	}
+	if def.Frame != nil {
+		return errors.New("JSON-LD framing feature not supported")
+	}
+	return nil
 }
 
 func VerifyPresentationSubmission() error {

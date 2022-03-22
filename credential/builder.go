@@ -65,7 +65,7 @@ func (vcb *VerifiableCredentialBuilder) IsEmpty() bool {
 	return reflect.DeepEqual(vcb, &VerifiableCredentialBuilder{})
 }
 
-func (vcb *VerifiableCredentialBuilder) SetContext(context interface{}) error {
+func (vcb *VerifiableCredentialBuilder) AddContext(context interface{}) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -88,7 +88,7 @@ func (vcb *VerifiableCredentialBuilder) SetID(id string) error {
 	return nil
 }
 
-func (vcb *VerifiableCredentialBuilder) SetType(t interface{}) error {
+func (vcb *VerifiableCredentialBuilder) AddType(t interface{}) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -280,7 +280,7 @@ func (vpb *VerifiablePresentationBuilder) IsEmpty() bool {
 	return reflect.DeepEqual(vpb, &VerifiablePresentationBuilder{})
 }
 
-func (vpb *VerifiablePresentationBuilder) SetContext(context interface{}) error {
+func (vpb *VerifiablePresentationBuilder) AddContext(context interface{}) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -312,7 +312,7 @@ func (vpb *VerifiablePresentationBuilder) SetHolder(holder string) error {
 	return nil
 }
 
-func (vpb *VerifiablePresentationBuilder) SetType(t interface{}) error {
+func (vpb *VerifiablePresentationBuilder) AddType(t interface{}) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
