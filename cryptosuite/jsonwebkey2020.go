@@ -5,17 +5,12 @@ package cryptosuite
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/TBD54566975/did-sdk/util"
-
-	"github.com/goccy/go-json"
-
 	"github.com/TBD54566975/did-sdk/crypto"
-
+	"github.com/TBD54566975/did-sdk/util"
+	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jws"
-
 	"github.com/lestrrat-go/jwx/jwk"
-
+	"github.com/lestrrat-go/jwx/jws"
 	"github.com/pkg/errors"
 )
 

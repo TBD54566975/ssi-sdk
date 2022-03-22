@@ -1,8 +1,8 @@
 package credential
 
 import (
-	"github.com/TBD54566975/did-sdk/credential/exchange"
 	"github.com/TBD54566975/did-sdk/crypto"
+	"github.com/TBD54566975/did-sdk/cryptosuite"
 	"reflect"
 
 	"github.com/TBD54566975/did-sdk/util"
@@ -94,6 +94,11 @@ func (v *VerifiableCredential) IsValid() error {
 	return util.NewValidator().Struct(v)
 }
 
+type VP interface {
+	util.Emptyable
+	cryptosuite.Provable
+}
+
 // VerifiablePresentation https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#presentations-0
 type VerifiablePresentation struct {
 	// Either a string or set of strings
@@ -102,9 +107,9 @@ type VerifiablePresentation struct {
 	Holder  string      `json:"holder,omitempty"`
 	Type    interface{} `json:"type" validate:"required"`
 	// an optional field as a part of https://identity.foundation/presentation-exchange/#embed-targets
-	PresentationSubmission exchange.PresentationSubmission `json:"presentation_submission,omitempty"`
-	VerifiableCredential   []VerifiableCredential          `json:"verifiableCredential,omitempty" validate:"omitempty,dive"`
-	Proof                  *crypto.Proof                   `json:"proof,omitempty"`
+	PresentationSubmission interface{}            `json:"presentation_submission,omitempty"`
+	VerifiableCredential   []VerifiableCredential `json:"verifiableCredential,omitempty" validate:"omitempty,dive"`
+	Proof                  *crypto.Proof          `json:"proof,omitempty"`
 }
 
 func (v *VerifiablePresentation) IsEmpty() bool {

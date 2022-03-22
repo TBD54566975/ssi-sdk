@@ -46,7 +46,7 @@ func TestCredential(t *testing.T) {
 	assert.NoError(t, err)
 
 	// re-build with our builder
-	builder := NewCredentialBuilder()
+	builder := NewVerifiableCredentialBuilder()
 
 	err = builder.SetContext(knownContext)
 	assert.NoError(t, err)
@@ -75,7 +75,7 @@ func TestCredential(t *testing.T) {
 
 // Exercise all builder methods
 func TestCredentialBuilder(t *testing.T) {
-	builder := NewCredentialBuilder()
+	builder := NewVerifiableCredentialBuilder()
 	_, err := builder.Build()
 	assert.Error(t, err)
 	notReadyErr := "credential not ready to be built"

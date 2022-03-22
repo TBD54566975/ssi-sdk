@@ -3,65 +3,9 @@
 package cryptosuite
 
 import (
-	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
-
-func TestVerifiableCredentialJWT(t *testing.T) {
-	testCredential := credential.VerifiableCredential{
-		Context:           []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
-		Type:              []string{"VerifiableCredential"},
-		Issuer:            "did:example:123",
-		IssuanceDate:      "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]interface{}{},
-	}
-	signer, key := getTestVectorKey0Signer(t, AssertionMethod)
-	signed, err := signer.SignVerifiableCredentialJWT(testCredential)
-	assert.NoError(t, err)
-
-	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
-	assert.NoError(t, err)
-
-	token := string(signed)
-	err = verifier.VerifyJWT(token)
-	assert.NoError(t, err)
-
-	parsedCred, err := ParseVerifiableCredentialFromJWT(token)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, parsedCred)
-
-	cred, err := verifier.VerifyVerifiableCredentialJWT(token)
-	assert.NoError(t, err)
-	assert.Equal(t, parsedCred, cred)
-}
-
-func TestVerifiablePresentationJWT(t *testing.T) {
-	testPresentation := credential.VerifiablePresentation{
-		Context: []string{"https://www.w3.org/2018/credentials/v1",
-			"https://w3id.org/security/suites/jws-2020/v1"},
-		Type:   []string{"VerifiablePresentation"},
-		Holder: "did:example:123",
-	}
-	signer, key := getTestVectorKey0Signer(t, AssertionMethod)
-	signed, err := signer.SignVerifiablePresentationJWT(testPresentation)
-	assert.NoError(t, err)
-
-	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
-	assert.NoError(t, err)
-
-	token := string(signed)
-	err = verifier.VerifyJWT(token)
-	assert.NoError(t, err)
-
-	parsedPres, err := ParseVerifiablePresentationFromJWT(token)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, parsedPres)
-
-	pres, err := verifier.VerifyVerifiablePresentationJWT(token)
-	assert.NoError(t, err)
-	assert.Equal(t, parsedPres, pres)
-}
 
 func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json

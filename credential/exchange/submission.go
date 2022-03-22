@@ -3,6 +3,7 @@ package exchange
 import (
 	"fmt"
 	"github.com/TBD54566975/did-sdk/credential"
+	"github.com/TBD54566975/did-sdk/credential/signing"
 	"github.com/TBD54566975/did-sdk/cryptosuite"
 	"github.com/pkg/errors"
 )
@@ -15,8 +16,8 @@ const (
 	// JWTVPTarget is an embed target where a presentation submission is represented alongside a Verifiable Presentation
 	// in a JWT value. `presentation_submission` is a top-level claim alongside `vc` for the VP
 	JWTVPTarget EmbedTarget = "jwt_vp"
-	// JWTTarget EmbedTarget = "jwt
-	// LDPVPTarget EmbedTarget = "ldp_vp"
+	//JWTTarget   EmbedTarget = "jwt"
+	//LDPVPTarget EmbedTarget = "ldp_vp"
 )
 
 // PresentationClaim 's may be of any claim format designation, including LD or JWT variations of VCs or VPs
@@ -45,7 +46,7 @@ func BuildPresentationSubmission(signer cryptosuite.Signer, def PresentationDefi
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
 		}
-		return jwkSigner.SignVerifiablePresentationJWT(*vpSubmission)
+		return signing.SignVerifiablePresentationJWT(*jwkSigner, *vpSubmission)
 	default:
 		return nil, fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
 	}

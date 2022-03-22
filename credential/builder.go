@@ -16,22 +16,22 @@ const (
 	VerifiableCredentialType               string = "VerifiableCredential"
 	VerifiableCredentialIDProperty         string = "id"
 
-	CredentialBuilderEmptyError string = "Credential Builder cannot be empty"
+	BuilderEmptyError string = "builder cannot be empty"
 )
 
-// CredentialBuilder uses the builder pattern to construct a verifiable credential
-type CredentialBuilder struct {
+// VerifiableCredentialBuilder uses the builder pattern to construct a verifiable credential
+type VerifiableCredentialBuilder struct {
 	// contexts and types are kept to avoid having cast to/from interface{} values
 	contexts []string
 	types    []string
 	*VerifiableCredential
 }
 
-// NewCredentialBuilder returns an initialized credential builder with some default fields populated
-func NewCredentialBuilder() CredentialBuilder {
+// NewVerifiableCredentialBuilder returns an initialized credential builder with some default fields populated
+func NewVerifiableCredentialBuilder() VerifiableCredentialBuilder {
 	contexts := []string{VerifiableCredentialsLinkedDataContext}
 	types := []string{VerifiableCredentialType}
-	return CredentialBuilder{
+	return VerifiableCredentialBuilder{
 		contexts: contexts,
 		types:    types,
 		VerifiableCredential: &VerifiableCredential{
@@ -45,65 +45,65 @@ func NewCredentialBuilder() CredentialBuilder {
 
 // Build attempts to turn a builder into a valid verifiable credential, doing some object model validation.
 // Schema validation and proof generation must be done separately.
-func (cb *CredentialBuilder) Build() (*VerifiableCredential, error) {
-	if cb.IsEmpty() {
-		return nil, errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) Build() (*VerifiableCredential, error) {
+	if vcb.IsEmpty() {
+		return nil, errors.New(BuilderEmptyError)
 	}
 
-	if err := cb.VerifiableCredential.IsValid(); err != nil {
+	if err := vcb.VerifiableCredential.IsValid(); err != nil {
 		return nil, errors.Wrap(err, "credential not ready to be built")
 	}
 
-	return cb.VerifiableCredential, nil
+	return vcb.VerifiableCredential, nil
 }
 
-func (cb *CredentialBuilder) IsEmpty() bool {
-	if cb == nil || cb.VerifiableCredential == nil {
+func (vcb *VerifiableCredentialBuilder) IsEmpty() bool {
+	if vcb == nil || vcb.VerifiableCredential == nil {
 		return true
 	}
-	return reflect.DeepEqual(cb, &CredentialBuilder{})
+	return reflect.DeepEqual(vcb, &VerifiableCredentialBuilder{})
 }
 
-func (cb *CredentialBuilder) SetContext(context interface{}) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetContext(context interface{}) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 	res, err := util.InterfaceToStrings(context)
 	if err != nil {
 		return errors.Wrap(err, "malformed context")
 	}
-	uniqueContexts := util.MergeUniqueValues(cb.contexts, res)
-	cb.contexts = uniqueContexts
-	cb.Context = uniqueContexts
+	uniqueContexts := util.MergeUniqueValues(vcb.contexts, res)
+	vcb.contexts = uniqueContexts
+	vcb.Context = uniqueContexts
 	return nil
 }
 
-func (cb *CredentialBuilder) SetID(id string) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetID(id string) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 
-	cb.ID = id
+	vcb.ID = id
 	return nil
 }
 
-func (cb *CredentialBuilder) SetType(t interface{}) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetType(t interface{}) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 	res, err := util.InterfaceToStrings(t)
 	if err != nil {
 		return errors.Wrap(err, "malformed type")
 	}
-	uniqueTypes := util.MergeUniqueValues(cb.types, res)
-	cb.types = uniqueTypes
-	cb.Type = uniqueTypes
+	uniqueTypes := util.MergeUniqueValues(vcb.types, res)
+	vcb.types = uniqueTypes
+	vcb.Type = uniqueTypes
 	return nil
 }
 
-func (cb *CredentialBuilder) SetIssuer(issuer interface{}) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetIssuer(issuer interface{}) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 
 	// since an issue can be a URI or an object containing an `id` property,
@@ -113,9 +113,9 @@ func (cb *CredentialBuilder) SetIssuer(issuer interface{}) error {
 		// if the initial value was a single string we'll maintain that
 		_, ok := issuer.(string)
 		if len(res) == 1 && ok {
-			cb.Issuer = res[0]
+			vcb.Issuer = res[0]
 		} else {
-			cb.Issuer = res
+			vcb.Issuer = res
 		}
 		return nil
 	}
@@ -129,108 +129,108 @@ func (cb *CredentialBuilder) SetIssuer(issuer interface{}) error {
 		return errors.New("issuer object did not contain `id` property")
 	}
 	// we know it's a valid issuer object object
-	cb.Issuer = issuer
+	vcb.Issuer = issuer
 	return nil
 }
 
-func (cb *CredentialBuilder) SetIssuanceDate(dateTime string) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetIssuanceDate(dateTime string) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 
 	if !util.IsRFC3339Timestamp(dateTime) {
 		return fmt.Errorf("timestamp must be ISO-8601 compliant: %s", dateTime)
 	}
 
-	cb.IssuanceDate = dateTime
+	vcb.IssuanceDate = dateTime
 	return nil
 }
 
-func (cb *CredentialBuilder) SetExpirationDate(dateTime string) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetExpirationDate(dateTime string) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 
 	if !util.IsRFC3339Timestamp(dateTime) {
 		return fmt.Errorf("timestamp must be ISO-8601 compliant: %s", dateTime)
 	}
 
-	cb.ExpirationDate = dateTime
+	vcb.ExpirationDate = dateTime
 	return nil
 }
 
-func (cb *CredentialBuilder) SetCredentialStatus(status CredentialStatus) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetCredentialStatus(status CredentialStatus) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 
 	if err := util.NewValidator().Struct(status); err != nil {
 		return errors.Wrap(err, "credential status not valid")
 	}
 
-	cb.CredentialStatus = &status
+	vcb.CredentialStatus = &status
 	return nil
 }
 
-func (cb *CredentialBuilder) SetCredentialSubject(subject CredentialSubject) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetCredentialSubject(subject CredentialSubject) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 
 	if subject.GetID() == "" {
 		return errors.New("credential subject must have an ID property")
 	}
 
-	cb.CredentialSubject = subject
+	vcb.CredentialSubject = subject
 	return nil
 }
 
-func (cb *CredentialBuilder) SetCredentialSchema(schema CredentialSchema) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetCredentialSchema(schema CredentialSchema) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 
 	if err := util.NewValidator().Struct(schema); err != nil {
 		return errors.Wrap(err, "credential schema not valid")
 	}
 
-	cb.CredentialSchema = &schema
+	vcb.CredentialSchema = &schema
 	return nil
 }
 
-func (cb *CredentialBuilder) SetRefreshService(refreshService RefreshService) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetRefreshService(refreshService RefreshService) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 
 	if err := util.NewValidator().Struct(refreshService); err != nil {
 		return errors.Wrap(err, "refresh service not valid")
 	}
 
-	cb.RefreshService = &refreshService
+	vcb.RefreshService = &refreshService
 	return nil
 }
 
-func (cb *CredentialBuilder) SetTermsOfUse(terms []TermsOfUse) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetTermsOfUse(terms []TermsOfUse) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 	if len(terms) == 0 {
 		return errors.New("terms of use cannot be empty")
 	}
 
-	cb.TermsOfUse = terms
+	vcb.TermsOfUse = terms
 	return nil
 }
 
-func (cb *CredentialBuilder) SetEvidence(evidence []interface{}) error {
-	if cb.IsEmpty() {
-		return errors.New(CredentialBuilderEmptyError)
+func (vcb *VerifiableCredentialBuilder) SetEvidence(evidence []interface{}) error {
+	if vcb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
 	}
 	if len(evidence) == 0 {
 		return errors.New("evidence cannot be empty")
 	}
 
-	cb.Evidence = evidence
+	vcb.Evidence = evidence
 	return nil
 }
