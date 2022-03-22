@@ -251,3 +251,22 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.Equal(t, evidence, cred.Evidence)
 	assert.Equal(t, terms, cred.TermsOfUse)
 }
+
+func TestVerifiablePresentationBuilder(t *testing.T) {
+	badBuilder := VerifiablePresentationBuilder{}
+	_, err := badBuilder.Build()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "builder cannot be empty")
+
+	badBuilder = VerifiablePresentationBuilder{
+		VerifiablePresentation: &VerifiablePresentation{
+			ID: "test-id",
+		},
+	}
+	_, err = badBuilder.Build()
+	assert.Contains(t, err.Error(), "presentation not ready to be built")
+
+	builder := NewVerifiablePresentationBuilder()
+	_, err = builder.Build()
+	assert.NoError(t, err)
+}

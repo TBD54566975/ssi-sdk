@@ -15,6 +15,7 @@ const (
 	VerifiableCredentialsLinkedDataContext string = "https://www.w3.org/2018/credentials/v1"
 	VerifiableCredentialType               string = "VerifiableCredential"
 	VerifiableCredentialIDProperty         string = "id"
+	VerifiablePresentationType             string = "VerifiablePresentation"
 
 	BuilderEmptyError string = "builder cannot be empty"
 )
@@ -232,5 +233,114 @@ func (vcb *VerifiableCredentialBuilder) SetEvidence(evidence []interface{}) erro
 	}
 
 	vcb.Evidence = evidence
+	return nil
+}
+
+// VerifiablePresentationBuilder uses the builder pattern to construct a verifiable presentation
+type VerifiablePresentationBuilder struct {
+	// contexts and types are kept to avoid having cast to/from interface{} values
+	contexts []string
+	types    []string
+	*VerifiablePresentation
+}
+
+// NewVerifiablePresentationBuilder returns an initialized credential builder with some default fields populated
+func NewVerifiablePresentationBuilder() VerifiablePresentationBuilder {
+	contexts := []string{VerifiableCredentialsLinkedDataContext}
+	types := []string{VerifiablePresentationType}
+	return VerifiablePresentationBuilder{
+		contexts: contexts,
+		types:    types,
+		VerifiablePresentation: &VerifiablePresentation{
+			ID:      uuid.New().String(),
+			Context: contexts,
+			Type:    types,
+		},
+	}
+}
+
+// Build attempts to turn a builder into a valid verifiable credential, doing some object model validation.
+// Schema validation and proof generation must be done separately.
+func (vpb *VerifiablePresentationBuilder) Build() (*VerifiablePresentation, error) {
+	if vpb.IsEmpty() {
+		return nil, errors.New(BuilderEmptyError)
+	}
+
+	if err := vpb.VerifiablePresentation.IsValid(); err != nil {
+		return nil, errors.Wrap(err, "presentation not ready to be built")
+	}
+
+	return vpb.VerifiablePresentation, nil
+}
+
+func (vpb *VerifiablePresentationBuilder) IsEmpty() bool {
+	if vpb == nil || vpb.VerifiablePresentation == nil {
+		return true
+	}
+	return reflect.DeepEqual(vpb, &VerifiablePresentationBuilder{})
+}
+
+func (vpb *VerifiablePresentationBuilder) SetContext(context interface{}) error {
+	if vpb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	res, err := util.InterfaceToStrings(context)
+	if err != nil {
+		return errors.Wrap(err, "malformed context")
+	}
+	uniqueContexts := util.MergeUniqueValues(vpb.contexts, res)
+	vpb.contexts = uniqueContexts
+	vpb.Context = uniqueContexts
+	return nil
+}
+
+func (vpb *VerifiablePresentationBuilder) SetID(id string) error {
+	if vpb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+
+	vpb.ID = id
+	return nil
+}
+
+func (vpb *VerifiablePresentationBuilder) SetHolder(holder string) error {
+	if vpb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+
+	vpb.Holder = holder
+	return nil
+}
+
+func (vpb *VerifiablePresentationBuilder) SetType(t interface{}) error {
+	if vpb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	res, err := util.InterfaceToStrings(t)
+	if err != nil {
+		return errors.Wrap(err, "malformed type")
+	}
+	uniqueTypes := util.MergeUniqueValues(vpb.types, res)
+	vpb.types = uniqueTypes
+	vpb.Type = uniqueTypes
+	return nil
+}
+
+func (vpb *VerifiablePresentationBuilder) SetPresentationSubmission(ps interface{}) error {
+	if vpb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+
+	vpb.PresentationSubmission = ps
+	return nil
+}
+
+// AddVerifiableCredentials appends the given credentials to the verifiable presentation.
+// It does not check for duplicates.
+func (vpb *VerifiablePresentationBuilder) AddVerifiableCredentials(creds ...VerifiableCredential) error {
+	if vpb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	vpb.VerifiableCredential = append(vpb.VerifiableCredential, creds...)
 	return nil
 }
