@@ -1,6 +1,7 @@
 package credential
 
 import (
+	"github.com/TBD54566975/did-sdk/credential/exchange"
 	"github.com/TBD54566975/did-sdk/crypto"
 	"reflect"
 
@@ -96,12 +97,14 @@ func (v *VerifiableCredential) IsValid() error {
 // VerifiablePresentation https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#presentations-0
 type VerifiablePresentation struct {
 	// Either a string or set of strings
-	Context              interface{}            `json:"@context,omitempty"`
-	ID                   string                 `json:"id,omitempty"`
-	Holder               string                 `json:"holder,omitempty"`
-	Type                 interface{}            `json:"type" validate:"required"`
-	VerifiableCredential []VerifiableCredential `json:"verifiableCredential,omitempty" validate:"omitempty,dive"`
-	Proof                *crypto.Proof          `json:"proof,omitempty"`
+	Context interface{} `json:"@context,omitempty"`
+	ID      string      `json:"id,omitempty"`
+	Holder  string      `json:"holder,omitempty"`
+	Type    interface{} `json:"type" validate:"required"`
+	// an optional field as a part of https://identity.foundation/presentation-exchange/#embed-targets
+	PresentationSubmission exchange.PresentationSubmission `json:"presentation_submission,omitempty"`
+	VerifiableCredential   []VerifiableCredential          `json:"verifiableCredential,omitempty" validate:"omitempty,dive"`
+	Proof                  *crypto.Proof                   `json:"proof,omitempty"`
 }
 
 func (v *VerifiablePresentation) IsEmpty() bool {
