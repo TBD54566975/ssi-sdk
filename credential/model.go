@@ -108,7 +108,7 @@ type VerifiablePresentation struct {
 	Type    interface{} `json:"type" validate:"required"`
 	// an optional field as a part of https://identity.foundation/presentation-exchange/#embed-targets
 	PresentationSubmission interface{}            `json:"presentation_submission,omitempty"`
-	VerifiableCredential   []VerifiableCredential `json:"verifiableCredential,omitempty" validate:"omitempty,dive"`
+	VerifiableCredential   []VerifiableCredential `json:"verifiableCredential,omitempty"`
 	Proof                  *crypto.Proof          `json:"proof,omitempty"`
 }
 

@@ -242,6 +242,7 @@ func TestCredentialBuilder(t *testing.T) {
 	cred, err := builder.Build()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cred)
+
 	assert.Equal(t, id, cred.ID)
 	assert.Equal(t, issuedAt, cred.IssuanceDate)
 	assert.Equal(t, expiresAt, cred.ExpirationDate)
@@ -269,4 +270,61 @@ func TestVerifiablePresentationBuilder(t *testing.T) {
 	builder := NewVerifiablePresentationBuilder()
 	_, err = builder.Build()
 	assert.NoError(t, err)
+
+	// default context should be set
+	assert.NotEmpty(t, builder.Context)
+
+	// set context of a bad type
+	err = builder.SetContext(4)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "malformed context")
+
+	// correct context
+	err = builder.SetContext("https://www.w3.org/2018/credentials/examples/v1")
+	assert.NoError(t, err)
+
+	// there is a default id
+	assert.NotEmpty(t, builder.ID)
+
+	// set id
+	id := "test-id"
+	err = builder.SetID(id)
+	assert.NoError(t, err)
+
+	// set bad type value
+	err = builder.SetType(5)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "malformed type")
+
+	// valid type as a string
+	err = builder.SetType("TestType")
+	assert.NoError(t, err)
+
+	// valid type as a []string
+	err = builder.SetType([]string{"TestType"})
+	assert.NoError(t, err)
+
+	// add two credentials
+	creds := []VerifiableCredential{
+		{
+			ID:     "cred-1",
+			Type:   "type",
+			Issuer: "issuer-1",
+		},
+		{
+			ID:     "cred-2",
+			Type:   "type",
+			Issuer: "issuer-2",
+		},
+	}
+	err = builder.AddVerifiableCredentials(creds...)
+	assert.NoError(t, err)
+
+	// build it and verify some values
+	pres, err := builder.Build()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, pres)
+
+	assert.Equal(t, id, pres.ID)
+	assert.True(t, 2 == len(pres.VerifiableCredential))
 }
