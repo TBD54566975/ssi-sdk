@@ -7,6 +7,7 @@ import (
 	"github.com/TBD54566975/did-sdk/cryptosuite"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"reflect"
 )
 
 // EmbedTarget describes where a presentation_submission is located in an object model
@@ -33,6 +34,35 @@ type PresentationClaim struct {
 	Format       ClaimFormat
 }
 
+func (pc *PresentationClaim) IsEmpty() bool {
+	if pc == nil || (pc.Credential == nil && pc.Presentation == nil && pc.Token == nil) {
+		return true
+	}
+	return reflect.DeepEqual(pc, &PresentationClaim{})
+}
+
+// GetClaimValue returns the value of the claim, since PresentationClaim is a union type. An error is returned if
+// no value is present in any of the possible embedded types.
+func (pc *PresentationClaim) GetClaimValue() (interface{}, error) {
+	if pc.Credential != nil {
+		return *pc.Credential, nil
+	}
+	if pc.Presentation != nil {
+		return *pc.Presentation, nil
+	}
+	if pc.Token != nil {
+		return *pc.Token, nil
+	}
+	return nil, errors.New("claim is empty")
+}
+
+// processedClaim represents a claim that has been processed for an input descriptor along with relevant
+// information for building a valid descriptor_map in the resulting presentation submission
+type processedClaim struct {
+	PresentationClaim
+	SubmissionDescriptor
+}
+
 // BuildPresentationSubmission constructs a submission given a presentation definition, set of claims, and an
 // embed target format.
 // https://identity.foundation/presentation-exchange/#presentation-submission
@@ -56,6 +86,9 @@ func BuildPresentationSubmission(signer cryptosuite.Signer, def PresentationDefi
 	}
 }
 
+// BuildPresentationSubmissionVP takes a presentation definition and a set of claims. According to the presentation
+// definition, and the algorithm defined - https://identity.foundation/presentation-exchange/#input-evaluation - in
+// the specification, a presentation submission is constructed as a Verifiable Presentation.
 func BuildPresentationSubmissionVP(def PresentationDefinition, claims []PresentationClaim) (*credential.VerifiablePresentation, error) {
 	if err := canProcessDefinition(def); err != nil {
 		return nil, errors.Wrap(err, "feature not supported in processing given presentation definition")
@@ -74,16 +107,41 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []Presenta
 	}
 
 	// begin to process to presentation definition against the available claims
+	var processedClaims []processedClaim
+	for _, id := range def.InputDescriptors {
+		processedClaim, fulfilled, err := processInputDescriptor(id, claims)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error processing input descriptor: %s", id.ID)
+		}
+		if fulfilled {
+			processedClaims = append(processedClaims, processedClaim)
+		} else {
+			return nil, fmt.Errorf("input descrpitor<%s> could not be fulfilled; could not build a valid presentation submission", id.ID)
+		}
+	}
 
-	// set descriptor map in submission
-
-	// add credentials to the VP
+	// set descriptor map in submission and credentials to the VP
+	var descriptorMap []SubmissionDescriptor
+	for _, claim := range processedClaims {
+		descriptorMap = append(descriptorMap, claim.SubmissionDescriptor)
+		claimValue, err := claim.GetClaimValue()
+		if err != nil {
+			return nil, errors.Wrap(err, "could not build submission descriptor in presentation submission")
+		}
+		if err := builder.AddVerifiableCredentials(claimValue); err != nil {
+			return nil, errors.Wrap(err, "could not add claim value to verifiable presentation")
+		}
+	}
 
 	// set submission in vp, build, and return
 	if err := builder.SetPresentationSubmission(submission); err != nil {
 		return nil, err
 	}
 	return builder.Build()
+}
+
+func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (claim processedClaim, fulfilled bool, err error) {
+	return
 }
 
 // TODO(gabe) https://github.com/TBD54566975/did-sdk/issues/56
