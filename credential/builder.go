@@ -337,7 +337,7 @@ func (vpb *VerifiablePresentationBuilder) SetPresentationSubmission(ps interface
 
 // AddVerifiableCredentials appends the given credentials to the verifiable presentation.
 // It does not check for duplicates.
-func (vpb *VerifiablePresentationBuilder) AddVerifiableCredentials(creds ...VerifiableCredential) error {
+func (vpb *VerifiablePresentationBuilder) AddVerifiableCredentials(creds ...interface{}) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}

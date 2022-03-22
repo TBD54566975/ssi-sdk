@@ -305,13 +305,13 @@ func TestVerifiablePresentationBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// add two credentials
-	creds := []VerifiableCredential{
-		{
+	creds := []interface{}{
+		VerifiableCredential{
 			ID:     "cred-1",
 			Type:   "type",
 			Issuer: "issuer-1",
 		},
-		{
+		VerifiableCredential{
 			ID:     "cred-2",
 			Type:   "type",
 			Issuer: "issuer-2",
