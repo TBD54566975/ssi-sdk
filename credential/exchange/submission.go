@@ -109,12 +109,12 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []Presenta
 	// begin to process to presentation definition against the available claims
 	var processedClaims []processedClaim
 	for _, id := range def.InputDescriptors {
-		processedClaim, fulfilled, err := processInputDescriptor(id, claims)
+		processedClaim, err := processInputDescriptor(id, claims)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error processing input descriptor: %s", id.ID)
 		}
-		if fulfilled {
-			processedClaims = append(processedClaims, processedClaim)
+		if processedClaim != nil {
+			processedClaims = append(processedClaims, *processedClaim)
 		} else {
 			return nil, fmt.Errorf("input descrpitor<%s> could not be fulfilled; could not build a valid presentation submission", id.ID)
 		}
@@ -140,22 +140,80 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []Presenta
 	return builder.Build()
 }
 
-func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (claim processedClaim, fulfilled bool, err error) {
-	return
+// processInputDescriptor runs the input evaluation algorithm described in the spec for a specific input descriptor
+// https://identity.foundation/presentation-exchange/#input-evaluation
+// TODO(gabe) consider normalization of claims before processing
+func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (*processedClaim, error) {
+	constraints := id.Constraints
+	fields := constraints.Fields
+	if !(constraints == nil || len(fields) == 0) {
+		return nil, fmt.Errorf("invalid input descriptor without constraints and/or fields: %s", id.ID)
+	}
+
+	// for the input descriptor to be successfully processed each field needs to yield a result for a given claim,
+	// so we need to iterate through each claim, and test it against each field, and each path within each field.
+	// if we find a match, we know a claim can fulfill the given input descriptor.
+	fieldsToProcess := len(fields)
+	limitDisclosure := false
+	disclosure := constraints.LimitDisclosure
+	if disclosure != nil && (*disclosure == Required || *disclosure == Preferred) {
+		limitDisclosure = true
+	}
+	for _, claim := range claims {
+		var processedClaims []processedClaim
+		for _, field := range fields {
+			// if we were able to process a field for a given claim, we'll attempt to process the proceeding field
+			limitedClaim, fulfilled := processInputDescriptorField(field, limitDisclosure, claim)
+			if fulfilled && limitDisclosure {
+				processedClaims = append(processedClaims, *limitedClaim)
+			}
+		}
+
+		// if a claim has matched all fields, we can fulfill the input descriptor with this claim
+		// because the `limit_disclosure` property may have been present, we must merge the claim values we've
+		// processed in order of processing.
+		if len(processedClaims) == fieldsToProcess {
+			// need to merge limited claims
+			var claim *processedClaim
+			var err error
+			if limitDisclosure {
+
+			} else {
+				
+			}
+			return claim, err
+		}
+	}
+	return nil, fmt.Errorf("no claims could fulfill the input descriptor: %s", id.ID)
+}
+
+// processInputDescriptorField applies all possible path values to a claim, and checks to see if any match.
+// if a path matches fulfilled will be set to true and no limitedClaim value will be returned. if limitDisclosure is
+// set to true, the limitedClaim value will be returned as well.
+func processInputDescriptorField(field Field, limitDisclosure bool, claim PresentationClaim) (limitedClaim *processedClaim, fulfilled bool) {
+	for _, path := range field.Path {
+
+	}
 }
 
 // TODO(gabe) https://github.com/TBD54566975/did-sdk/issues/56
 // check for certain features we may not support yet: submission requirements, predicates, relational constraints,
 // credential status, JSON-LD framing from https://identity.foundation/presentation-exchange/#features
 func canProcessDefinition(def PresentationDefinition) error {
+	submissionRequirementsErr := "submission requirements feature not supported"
 	if len(def.SubmissionRequirements) > 0 {
-		return errors.New("submission requirements feature not supported")
+		return errors.New(submissionRequirementsErr)
 	}
 	for _, id := range def.InputDescriptors {
-		if id.Constraints != nil && len(id.Constraints.Fields) > 0 {
-			for _, field := range id.Constraints.Fields {
-				if field.Predicate != nil && field.Filter != nil {
-					return errors.New("predicate feature not supported")
+		if id.Constraints != nil {
+			if len(id.Group) > 0 {
+				return errors.New(submissionRequirementsErr)
+			}
+			if len(id.Constraints.Fields) > 0 {
+				for _, field := range id.Constraints.Fields {
+					if field.Predicate != nil || field.Filter != nil {
+						return errors.New("predicate feature not supported")
+					}
 				}
 			}
 		}
