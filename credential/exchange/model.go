@@ -95,6 +95,30 @@ type ClaimFormat struct {
 	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty,dive"`
 }
 
+// FormatValue return the string value of the associated claim format type
+// NOTE: does not do error checking of any type.
+func (cf ClaimFormat) FormatValue() string {
+	if cf.JWT != nil {
+		return "jwt"
+	}
+	if cf.JWTVC != nil {
+		return "jwt_vc"
+	}
+	if cf.JWTVP != nil {
+		return "jwt_vp"
+	}
+	if cf.LDP != nil {
+		return "ldp"
+	}
+	if cf.LDPVC != nil {
+		return "ldp_vc"
+	}
+	if cf.LDPVP != nil {
+		return "ldp_vp"
+	}
+	return ""
+}
+
 type JWTType struct {
 	Alg []crypto.SignatureAlgorithm `json:"alg" validate:"required"`
 }
