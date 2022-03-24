@@ -46,14 +46,6 @@ func TestConstructLimitedClaim(t *testing.T) {
 			Data: nameValue,
 		})
 
-		addressPath := "$.credentialSubject.address.*"
-		addressValue, err := jsonpath.JsonPathLookup(claim, addressPath)
-		assert.NoError(t, err)
-		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
-			Path: addressPath,
-			Data: addressValue,
-		})
-
 		favoritesPath := "$.credentialSubject.favorites.citiesByState.CA"
 		favoritesValue, err := jsonpath.JsonPathLookup(claim, favoritesPath)
 		assert.NoError(t, err)
@@ -65,6 +57,29 @@ func TestConstructLimitedClaim(t *testing.T) {
 		result, err := constructLimitedClaim(limitedDescriptors)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, result)
+
+		issuerRes, ok := result["issuer"]
+		assert.True(t, ok)
+		assert.Equal(t, issuerRes, "did:example:123")
+
+		credSubjRes, ok := result["credentialSubject"]
+		assert.True(t, ok)
+
+		id, ok := credSubjRes.(map[string]interface{})["id"]
+		assert.True(t, ok)
+		assert.Contains(t, id, "test-id")
+
+		favoritesRes, ok := credSubjRes.(map[string]interface{})["favorites"]
+		assert.True(t, ok)
+		assert.NotEmpty(t, favoritesRes)
+
+		statesRes, ok := favoritesRes.(map[string]interface{})["citiesByState"]
+		assert.True(t, ok)
+		assert.Contains(t, statesRes, "CA")
+
+		citiesRes, ok := statesRes.(map[string]interface{})["CA"]
+		assert.True(t, ok)
+		assert.Contains(t, citiesRes, "Oakland")
 	})
 
 	t.Run("Complex Path Parsing", func(t *testing.T) {
@@ -82,8 +97,6 @@ func TestConstructLimitedClaim(t *testing.T) {
 		result, err := constructLimitedClaim(limitedDescriptors)
 		assert.NoError(t, err)
 
-		printerface(result)
-
 		// make sure the result contains a value
 		csValue, ok := result["credentialSubject"]
 		assert.True(t, ok)
@@ -91,7 +104,8 @@ func TestConstructLimitedClaim(t *testing.T) {
 
 		addressValue, ok := csValue.(map[string]interface{})["address"]
 		assert.True(t, ok)
-		assert.NotEmpty(t, addressValue)
+		assert.Contains(t, addressValue, "road street")
+		assert.Contains(t, addressValue, "USA")
 	})
 }
 
@@ -103,7 +117,7 @@ func getTestClaim() map[string]interface{} {
 		"issuer":       "did:example:123",
 		"issuanceDate": "2021-01-01T19:23:24Z",
 		"credentialSubject": map[string]interface{}{
-			"id":        "did:example:abcd",
+			"id":        "test-id",
 			"firstName": "Satoshi",
 			"lastName":  "Nakamoto",
 			"address": map[string]interface{}{

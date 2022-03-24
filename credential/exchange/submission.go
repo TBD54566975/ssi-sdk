@@ -282,12 +282,12 @@ func constructLimitedClaim(limitedDescriptors []limitedInputDescriptor) (map[str
 }
 
 func normalizeJSONPartPath(partPath string) string {
-	partRegex := regexp.MustCompile("[^a-zA-Z]")
+	partRegex := regexp.MustCompile(`[^a-zA-Z]`)
 	return partRegex.ReplaceAllString(partPath, "")
 }
 
 func normalizeJSONPath(path string) string {
-	pathRegex := regexp.MustCompile(`\\[.*\\]`)
+	pathRegex := regexp.MustCompile(`\[.*\]`)
 	return pathRegex.ReplaceAllString(path, "")
 }
 
