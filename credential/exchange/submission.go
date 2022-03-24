@@ -2,9 +2,11 @@ package exchange
 
 import (
 	"fmt"
+	"github.com/PaesslerAG/jsonpath"
 	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/TBD54566975/did-sdk/credential/signing"
 	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"reflect"
@@ -54,6 +56,23 @@ func (pc *PresentationClaim) GetClaimValue() (interface{}, error) {
 		return *pc.Token, nil
 	}
 	return nil, errors.New("claim is empty")
+}
+
+// GetClaimJSON gets the claim value and attempts to turn it into a generic go-JSON object represented by an interface{}
+func (pc *PresentationClaim) GetClaimJSON() (map[string]interface{}, error) {
+	claimValue, err := pc.GetClaimValue()
+	if err != nil {
+		return nil, err
+	}
+	jsonClaim := make(map[string]interface{})
+	claimBytes, err := json.Marshal(claimValue)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(claimBytes, &jsonClaim); err != nil {
+		return nil, err
+	}
+	return jsonClaim, nil
 }
 
 // processedClaim represents a claim that has been processed for an input descriptor along with relevant
@@ -109,15 +128,17 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []Presenta
 	// begin to process to presentation definition against the available claims
 	var processedClaims []processedClaim
 	for _, id := range def.InputDescriptors {
-		processedClaim, err := processInputDescriptor(id, claims)
+		processedInputDescriptor, err := processInputDescriptor(id, claims)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error processing input descriptor: %s", id.ID)
 		}
-		if processedClaim != nil {
-			processedClaims = append(processedClaims, *processedClaim)
-		} else {
+		if processedInputDescriptor == nil {
 			return nil, fmt.Errorf("input descrpitor<%s> could not be fulfilled; could not build a valid presentation submission", id.ID)
 		}
+		processedClaims = append(processedClaims, processedClaim{
+			PresentationClaim:    PresentationClaim{},
+			SubmissionDescriptor: SubmissionDescriptor{},
+		})
 	}
 
 	// set descriptor map in submission and credentials to the VP
@@ -140,10 +161,16 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []Presenta
 	return builder.Build()
 }
 
+// processedInputDescriptor is the claim data after being filtered / JSON-pathed
+type processedInputDescriptor struct {
+	Path string
+	Data interface{}
+}
+
 // processInputDescriptor runs the input evaluation algorithm described in the spec for a specific input descriptor
 // https://identity.foundation/presentation-exchange/#input-evaluation
 // TODO(gabe) consider normalization of claims before processing
-func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (*processedClaim, error) {
+func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (map[string]interface{}, error) {
 	constraints := id.Constraints
 	fields := constraints.Fields
 	if !(constraints == nil || len(fields) == 0) {
@@ -160,26 +187,33 @@ func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (*pr
 		limitDisclosure = true
 	}
 	for _, claim := range claims {
-		var processedClaims []processedClaim
+		claimValue, err := claim.GetClaimJSON()
+		var processedInputDescriptors []processedInputDescriptor
 		for _, field := range fields {
-			// if we were able to process a field for a given claim, we'll attempt to process the proceeding field
-			limitedClaim, fulfilled := processInputDescriptorField(field, limitDisclosure, claim)
+			if err != nil {
+				// problem JSONifying the claim, so we break out of processing this claim
+				break
+			}
+			// apply the field to the claim, and return the processed value, which we only care about for
+			// filtering and/or limit_disclosure settings
+			limitedClaim, fulfilled := processInputDescriptorField(field, claimValue)
 			if fulfilled && limitDisclosure {
-				processedClaims = append(processedClaims, *limitedClaim)
+				processedInputDescriptors = append(processedInputDescriptors, *limitedClaim)
 			}
 		}
 
 		// if a claim has matched all fields, we can fulfill the input descriptor with this claim
 		// because the `limit_disclosure` property may have been present, we must merge the claim values we've
 		// processed in order of processing.
-		if len(processedClaims) == fieldsToProcess {
-			// need to merge limited claims
-			var claim *processedClaim
+		if len(processedInputDescriptors) == fieldsToProcess {
+			var claim map[string]interface{}
 			var err error
+			// need to merge processed input descriptors, which contain limited claims
 			if limitDisclosure {
-
+				// TODO(gabe)
 			} else {
-				
+				// the unfiltered, non-limited claim
+				claim = claimValue
 			}
 			return claim, err
 		}
@@ -188,12 +222,21 @@ func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (*pr
 }
 
 // processInputDescriptorField applies all possible path values to a claim, and checks to see if any match.
-// if a path matches fulfilled will be set to true and no limitedClaim value will be returned. if limitDisclosure is
-// set to true, the limitedClaim value will be returned as well.
-func processInputDescriptorField(field Field, limitDisclosure bool, claim PresentationClaim) (limitedClaim *processedClaim, fulfilled bool) {
+// if a path matches fulfilled will be set to true and no processed value will be returned. if limitDisclosure is
+// set to true, the processed value will be returned as well.
+func processInputDescriptorField(field Field, claimData interface{}) (processed *processedInputDescriptor, fulfilled bool) {
 	for _, path := range field.Path {
-
+		pathedData, err := jsonpath.Get(path, claimData)
+		if err == nil {
+			processed = &processedInputDescriptor{
+				Path: path,
+				Data: pathedData,
+			}
+			fulfilled = true
+			return
+		}
 	}
+	return nil, false
 }
 
 // TODO(gabe) https://github.com/TBD54566975/did-sdk/issues/56
