@@ -1,15 +1,19 @@
+//go:build jwx_es256k
+
 package exchange
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/TBD54566975/did-sdk/credential/signing"
 	"github.com/TBD54566975/did-sdk/cryptosuite"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
+	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
 	"reflect"
+	"regexp"
+	"strings"
 )
 
 // EmbedTarget describes where a presentation_submission is located in an object model
@@ -182,9 +186,12 @@ type limitedInputDescriptor struct {
 // TODO(gabe) consider normalization of claims before processing
 func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (*processedInputDescriptor, error) {
 	constraints := id.Constraints
+	if constraints == nil {
+		return nil, fmt.Errorf("unable to process input descriptor without constraints")
+	}
 	fields := constraints.Fields
-	if !(constraints == nil || len(fields) == 0) {
-		return nil, fmt.Errorf("invalid input descriptor without constraints and/or fields: %s", id.ID)
+	if len(fields) != 0 {
+		return nil, fmt.Errorf("unable to process input descriptor without fields: %s", id.ID)
 	}
 
 	// bookkeeping to check whether we've fulfilled all required fields, and whether we need to limit disclosure
@@ -236,17 +243,60 @@ func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (*pr
 	return nil, fmt.Errorf("no claims could fulfill the input descriptor: %s", id.ID)
 }
 
+// constructLimitedClaim builds a limited disclosure/filtered claim from a set of filtered input descriptors
 func constructLimitedClaim(limitedDescriptors []limitedInputDescriptor) (map[string]interface{}, error) {
-	//res := make(map[string]interface{})
-	return nil, nil
+	result := make(map[string]interface{})
+	for _, ld := range limitedDescriptors {
+		curr := result
+
+		// normalize the current path to build JSON from
+		normalizedPath := normalizeJSONPath(ld.Path)
+		splitPath := strings.Split(normalizedPath, ".")
+		for i := 0; i < len(splitPath)-1; i++ {
+			// get and normalize the current section of the path
+			part := splitPath[i]
+			normalizedPart := normalizeJSONPartPath(part)
+
+			// if it's empty, we continue to the next piece of the path
+			if normalizedPart == "" {
+				continue
+			}
+
+			// if the path is not contained in the resulting JSON, create it
+			if _, ok := curr[normalizedPart]; !ok {
+				curr[normalizedPart] = make(map[string]interface{})
+			}
+
+			// make sure the value is represented in curr
+			currVal, _ := curr[normalizedPart]
+			curr = currVal.(map[string]interface{})
+		}
+
+		// since we've gone to one short of the end, we need to repeat the process for the last element in the path
+		// this is where we set the data value for the limited descriptor
+		lastPartName := normalizeJSONPartPath(splitPath[len(splitPath)-1])
+		curr[lastPartName] = ld.Data
+	}
+
+	return result, nil
+}
+
+func normalizeJSONPartPath(partPath string) string {
+	partRegex := regexp.MustCompile("[^a-zA-Z]")
+	return partRegex.ReplaceAllString(partPath, "")
+}
+
+func normalizeJSONPath(path string) string {
+	pathRegex := regexp.MustCompile(`\\[.*\\]`)
+	return pathRegex.ReplaceAllString(path, "")
 }
 
 // processInputDescriptorField applies all possible path values to a claim, and checks to see if any match.
 // if a path matches fulfilled will be set to true and no processed value will be returned. if limitDisclosure is
 // set to true, the processed value will be returned as well.
-func processInputDescriptorField(field Field, claimData interface{}) (limited *limitedInputDescriptor, fulfilled bool) {
+func processInputDescriptorField(field Field, claimData map[string]interface{}) (limited *limitedInputDescriptor, fulfilled bool) {
 	for _, path := range field.Path {
-		pathedData, err := jsonpath.Get(path, claimData)
+		pathedData, err := jsonpath.JsonPathLookup(claimData, path)
 		if err == nil {
 			limited = &limitedInputDescriptor{
 				Path: path,

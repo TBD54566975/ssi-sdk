@@ -45,6 +45,7 @@ require (
 	github.com/markbates/safe v1.0.1 // indirect
 	github.com/multiformats/go-base32 v0.0.3 // indirect
 	github.com/multiformats/go-base36 v0.1.0 // indirect
+	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
