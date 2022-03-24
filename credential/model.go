@@ -2,7 +2,6 @@ package credential
 
 import (
 	"github.com/TBD54566975/did-sdk/crypto"
-	"github.com/TBD54566975/did-sdk/cryptosuite"
 	"reflect"
 
 	"github.com/TBD54566975/did-sdk/util"
@@ -92,11 +91,6 @@ func (v *VerifiableCredential) IsEmpty() bool {
 
 func (v *VerifiableCredential) IsValid() error {
 	return util.NewValidator().Struct(v)
-}
-
-type VP interface {
-	util.Emptyable
-	cryptosuite.Provable
 }
 
 // VerifiablePresentation https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#presentations-0
