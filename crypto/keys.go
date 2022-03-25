@@ -17,19 +17,6 @@ import (
 	"github.com/lestrrat-go/jwx/x25519"
 )
 
-const (
-	Ed25519   KeyType = "Ed25519"
-	X25519    KeyType = "X25519"
-	Secp256k1 KeyType = "secp256k1"
-	P224      KeyType = "P-224"
-	P256      KeyType = "P-256"
-	P384      KeyType = "P-384"
-	P521      KeyType = "P-521"
-	RSA       KeyType = "RSA"
-
-	RSAKeySize int = 2048
-)
-
 // GenerateKeyByKeyType creates a brand-new key, returning the public and private key for the given key type
 func GenerateKeyByKeyType(kt KeyType) (crypto.PublicKey, crypto.PrivateKey, error) {
 	switch kt {
@@ -129,8 +116,4 @@ func GenerateRSA2048Key() (rsa.PublicKey, rsa.PrivateKey, error) {
 		return rsa.PublicKey{}, rsa.PrivateKey{}, err
 	}
 	return privKey.PublicKey, *privKey, nil
-}
-
-func GetSupportedKeyTypes() []KeyType {
-	return []KeyType{Ed25519, X25519, Secp256k1, P224, P256, P384, P521, RSA}
 }

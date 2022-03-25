@@ -159,13 +159,15 @@ func goPath() string {
 	return goPath
 }
 
-// Packr builds a binary using the packr2 tool https://github.com/gobuffalo/packr#building-a-binary
+// Packr builds a binary using the packr tool https://github.com/gobuffalo/packr#building-a-binary
 func Packr() error {
+	installIfNotPresent("go", "github.com/gobuffalo/packr/packr")
 	return runGo("github.com/gobuffalo/packr/packr")
 }
 
 // PackrClean removes all packr generated files https://github.com/gobuffalo/packr#cleaning-up
 func PackrClean() error {
+	installIfNotPresent("go", "github.com/gobuffalo/packr/packr")
 	return runGo("github.com/gobuffalo/packr/packr", "clean")
 }
 

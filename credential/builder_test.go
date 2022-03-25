@@ -46,15 +46,15 @@ func TestCredential(t *testing.T) {
 	assert.NoError(t, err)
 
 	// re-build with our builder
-	builder := NewCredentialBuilder()
+	builder := NewVerifiableCredentialBuilder()
 
-	err = builder.SetContext(knownContext)
+	err = builder.AddContext(knownContext)
 	assert.NoError(t, err)
 
 	err = builder.SetID(knownID)
 	assert.NoError(t, err)
 
-	err = builder.SetType(knownType)
+	err = builder.AddType(knownType)
 	assert.NoError(t, err)
 
 	err = builder.SetIssuer(knownIssuer)
@@ -75,7 +75,7 @@ func TestCredential(t *testing.T) {
 
 // Exercise all builder methods
 func TestCredentialBuilder(t *testing.T) {
-	builder := NewCredentialBuilder()
+	builder := NewVerifiableCredentialBuilder()
 	_, err := builder.Build()
 	assert.Error(t, err)
 	notReadyErr := "credential not ready to be built"
@@ -87,12 +87,12 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.NotEmpty(t, builder.Context)
 
 	// set context of a bad type
-	err = builder.SetContext(4)
+	err = builder.AddContext(4)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "malformed context")
 
 	// correct context
-	err = builder.SetContext("https://www.w3.org/2018/credentials/examples/v1")
+	err = builder.AddContext("https://www.w3.org/2018/credentials/examples/v1")
 	assert.NoError(t, err)
 
 	// there is a default id
@@ -104,16 +104,16 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// set bad type value
-	err = builder.SetType(5)
+	err = builder.AddType(5)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "malformed type")
 
 	// valid type as a string
-	err = builder.SetType("TestType")
+	err = builder.AddType("TestType")
 	assert.NoError(t, err)
 
 	// valid type as a []string
-	err = builder.SetType([]string{"TestType"})
+	err = builder.AddType([]string{"TestType"})
 	assert.NoError(t, err)
 
 	// set issuer as a string
@@ -242,6 +242,7 @@ func TestCredentialBuilder(t *testing.T) {
 	cred, err := builder.Build()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cred)
+
 	assert.Equal(t, id, cred.ID)
 	assert.Equal(t, issuedAt, cred.IssuanceDate)
 	assert.Equal(t, expiresAt, cred.ExpirationDate)
@@ -250,4 +251,80 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.Equal(t, subject, cred.CredentialSubject)
 	assert.Equal(t, evidence, cred.Evidence)
 	assert.Equal(t, terms, cred.TermsOfUse)
+}
+
+func TestVerifiablePresentationBuilder(t *testing.T) {
+	badBuilder := VerifiablePresentationBuilder{}
+	_, err := badBuilder.Build()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "builder cannot be empty")
+
+	badBuilder = VerifiablePresentationBuilder{
+		VerifiablePresentation: &VerifiablePresentation{
+			ID: "test-id",
+		},
+	}
+	_, err = badBuilder.Build()
+	assert.Contains(t, err.Error(), "presentation not ready to be built")
+
+	builder := NewVerifiablePresentationBuilder()
+	_, err = builder.Build()
+	assert.NoError(t, err)
+
+	// default context should be set
+	assert.NotEmpty(t, builder.Context)
+
+	// set context of a bad type
+	err = builder.AddContext(4)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "malformed context")
+
+	// correct context
+	err = builder.AddContext("https://www.w3.org/2018/credentials/examples/v1")
+	assert.NoError(t, err)
+
+	// there is a default id
+	assert.NotEmpty(t, builder.ID)
+
+	// set id
+	id := "test-id"
+	err = builder.SetID(id)
+	assert.NoError(t, err)
+
+	// set bad type value
+	err = builder.AddType(5)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "malformed type")
+
+	// valid type as a string
+	err = builder.AddType("TestType")
+	assert.NoError(t, err)
+
+	// valid type as a []string
+	err = builder.AddType([]string{"TestType"})
+	assert.NoError(t, err)
+
+	// add two credentials
+	creds := []interface{}{
+		VerifiableCredential{
+			ID:     "cred-1",
+			Type:   "type",
+			Issuer: "issuer-1",
+		},
+		VerifiableCredential{
+			ID:     "cred-2",
+			Type:   "type",
+			Issuer: "issuer-2",
+		},
+	}
+	err = builder.AddVerifiableCredentials(creds...)
+	assert.NoError(t, err)
+
+	// build it and verify some values
+	pres, err := builder.Build()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, pres)
+
+	assert.Equal(t, id, pres.ID)
+	assert.True(t, 2 == len(pres.VerifiableCredential))
 }

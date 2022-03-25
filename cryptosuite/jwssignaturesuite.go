@@ -8,14 +8,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/TBD54566975/did-sdk/crypto"
-	"strings"
-
-	"github.com/google/uuid"
-
-	"github.com/goccy/go-json"
-
 	. "github.com/TBD54566975/did-sdk/util"
+	"github.com/goccy/go-json"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 // https://w3c-ccg.github.io/ld-cryptosuite-registry/#jsonwebsignature2020

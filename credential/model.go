@@ -96,12 +96,15 @@ func (v *VerifiableCredential) IsValid() error {
 // VerifiablePresentation https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#presentations-0
 type VerifiablePresentation struct {
 	// Either a string or set of strings
-	Context              interface{}            `json:"@context,omitempty"`
-	ID                   string                 `json:"id,omitempty"`
-	Holder               string                 `json:"holder,omitempty"`
-	Type                 interface{}            `json:"type" validate:"required"`
-	VerifiableCredential []VerifiableCredential `json:"verifiableCredential,omitempty" validate:"omitempty,dive"`
-	Proof                *crypto.Proof          `json:"proof,omitempty"`
+	Context interface{} `json:"@context,omitempty"`
+	ID      string      `json:"id,omitempty"`
+	Holder  string      `json:"holder,omitempty"`
+	Type    interface{} `json:"type" validate:"required"`
+	// an optional field as a part of https://identity.foundation/presentation-exchange/#embed-targets
+	PresentationSubmission interface{} `json:"presentation_submission,omitempty"`
+	// Verifiable credential could be our object model, a JWT, or any other valid credential representation
+	VerifiableCredential []interface{} `json:"verifiableCredential,omitempty"`
+	Proof                *crypto.Proof `json:"proof,omitempty"`
 }
 
 func (v *VerifiablePresentation) IsEmpty() bool {

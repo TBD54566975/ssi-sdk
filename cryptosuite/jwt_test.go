@@ -3,65 +3,9 @@
 package cryptosuite
 
 import (
-	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
-
-func TestVerifiableCredentialJWT(t *testing.T) {
-	testCredential := credential.VerifiableCredential{
-		Context:           []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
-		Type:              []string{"VerifiableCredential"},
-		Issuer:            "did:example:123",
-		IssuanceDate:      "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]interface{}{},
-	}
-	signer, key := getTestVectorKey0Signer(t, AssertionMethod)
-	signed, err := signer.SignVerifiableCredentialJWT(testCredential)
-	assert.NoError(t, err)
-
-	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
-	assert.NoError(t, err)
-
-	token := string(signed)
-	err = verifier.VerifyJWT(token)
-	assert.NoError(t, err)
-
-	parsedCred, err := ParseVerifiableCredentialFromJWT(token)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, parsedCred)
-
-	cred, err := verifier.VerifyVerifiableCredentialJWT(token)
-	assert.NoError(t, err)
-	assert.Equal(t, parsedCred, cred)
-}
-
-func TestVerifiablePresentationJWT(t *testing.T) {
-	testPresentation := credential.VerifiablePresentation{
-		Context: []string{"https://www.w3.org/2018/credentials/v1",
-			"https://w3id.org/security/suites/jws-2020/v1"},
-		Type:   []string{"VerifiablePresentation"},
-		Holder: "did:example:123",
-	}
-	signer, key := getTestVectorKey0Signer(t, AssertionMethod)
-	signed, err := signer.SignVerifiablePresentationJWT(testPresentation)
-	assert.NoError(t, err)
-
-	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
-	assert.NoError(t, err)
-
-	token := string(signed)
-	err = verifier.VerifyJWT(token)
-	assert.NoError(t, err)
-
-	parsedPres, err := ParseVerifiablePresentationFromJWT(token)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, parsedPres)
-
-	pres, err := verifier.VerifyVerifiablePresentationJWT(token)
-	assert.NoError(t, err)
-	assert.Equal(t, parsedPres, pres)
-}
 
 func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
@@ -97,5 +41,46 @@ func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/implementations/transmute/presentation-2--key-0-ed25519.vp-jwt.json
 	presentation2 := "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpleGFtcGxlOjEyMyNrZXktMCJ9.eyJpc3MiOiJkaWQ6ZXhhbXBsZToxMjMiLCJzdWIiOiJkaWQ6ZXhhbXBsZToxMjMiLCJ2cCI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vdzNpZC5vcmcvc2VjdXJpdHkvc3VpdGVzL2p3cy0yMDIwL3YxIiwiaHR0cHM6Ly9pZGVudGl0eS5mb3VuZGF0aW9uL3ByZXNlbnRhdGlvbi1leGNoYW5nZS9zdWJtaXNzaW9uL3YxIl0sImlkIjoidXJuOnV1aWQ6Nzg5IiwidHlwZSI6WyJWZXJpZmlhYmxlUHJlc2VudGF0aW9uIiwiUHJlc2VudGF0aW9uU3VibWlzc2lvbiJdLCJob2xkZXIiOiJkaWQ6ZXhhbXBsZToxMjMiLCJwcmVzZW50YXRpb25fc3VibWlzc2lvbiI6eyJpZCI6ImEzMGUzYjkxLWZiNzctNGQyMi05NWZhLTg3MTY4OWMzMjJlMiIsImRlZmluaXRpb25faWQiOiIzMmY1NDE2My03MTY2LTQ4ZjEtOTNkOC1mZjIxN2JkYjA2NTMiLCJkZXNjcmlwdG9yX21hcCI6W3siaWQiOiJleGFtcGxlX2lucHV0XzEiLCJmb3JtYXQiOiJsZHBfdmMiLCJwYXRoIjoiJC52ZXJpZmlhYmxlQ3JlZGVudGlhbFswXSJ9XX0sInZlcmlmaWFibGVDcmVkZW50aWFsIjpbeyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vdzNpZC5vcmcvc2VjdXJpdHkvc3VpdGVzL2p3cy0yMDIwL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmV4YW1wbGU6MTIzIiwiaXNzdWFuY2VEYXRlIjoiMjAyMS0wMS0wMVQxOToyMzoyNFoiLCJjcmVkZW50aWFsU3ViamVjdCI6e30sInByb29mIjp7InR5cGUiOiJKc29uV2ViU2lnbmF0dXJlMjAyMCIsImNyZWF0ZWQiOiIyMDIxLTExLTA2VDE2OjQ5OjUwWiIsInZlcmlmaWNhdGlvbk1ldGhvZCI6ImRpZDpleGFtcGxlOjEyMyNrZXktMCIsInByb29mUHVycG9zZSI6ImFzc2VydGlvbk1ldGhvZCIsImp3cyI6ImV5SmhiR2NpT2lKRlpFUlRRU0lzSW1JMk5DSTZabUZzYzJVc0ltTnlhWFFpT2xzaVlqWTBJbDE5Li4tT003UF8xQVhUcUMycDhiNWJlak9id1A3cmMtcElGSDV2YkJKQ1V6TFhBcVNYdFRfbVBXMHdKSUVneUVQNEFJSV9CeWd4ZWZvQV9fZXp0d0p1NGZEdyJ9fV19LCJub25jZSI6IjEyMyJ9.px35BEehXQjsmBWOKx1Q4HvaoPemH-gZlI_2tu3Pd1h27ze9YBK6gtSPJp6iWZKXKUjinl1gr9tYHpBIYJFTBw"
 	err = verifier.VerifyJWT(presentation2)
+	assert.NoError(t, err)
+}
+
+func TestSignVerifyGenericJWT(t *testing.T) {
+	signer, key := getTestVectorKey0Signer(t, AssertionMethod)
+	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
+	assert.NoError(t, err)
+
+	jwtData := map[string]interface{}{
+		"id":   "abcd",
+		"jti":  "1234",
+		"data": []interface{}{"one", "two", "three"},
+		"more_data": map[string]int{
+			"a": 1,
+			"b": 2,
+			"c": 3,
+		},
+	}
+	token, err := signer.SignGenericJWT(jwtData)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, token)
+
+	err = verifier.VerifyJWT(string(token))
+	assert.NoError(t, err)
+
+	parsed, err := verifier.ParseJWT(string(token))
+	assert.NoError(t, err)
+
+	gotID, ok := parsed.Get("id")
+	assert.True(t, ok)
+	assert.EqualValues(t, "abcd", gotID)
+
+	gotJTI, ok := parsed.Get("jti")
+	assert.True(t, ok)
+	assert.EqualValues(t, "1234", gotJTI)
+
+	gotData, ok := parsed.Get("data")
+	assert.True(t, ok)
+	assert.EqualValues(t, []interface{}{"one", "two", "three"}, gotData)
+
+	_, err = verifier.VerifyAndParseJWT(string(token))
 	assert.NoError(t, err)
 }
