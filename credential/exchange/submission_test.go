@@ -9,6 +9,97 @@ import (
 	"testing"
 )
 
+func TestCanProcessDefinition(t *testing.T) {
+	t.Run("With Submission Requirements", func(t *testing.T) {
+		def := PresentationDefinition{
+			ID: "submission-requirements",
+			SubmissionRequirements: []SubmissionRequirement{{
+				Rule: All,
+				FromOption: FromOption{
+					From: "A",
+				},
+			}},
+		}
+		err := canProcessDefinition(def)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "submission requirements feature not supported")
+	})
+
+	t.Run("With Predicates", func(t *testing.T) {
+		def := PresentationDefinition{
+			ID: "with-predicate",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-with-predicate",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								Predicate: Allowed.ToPtr(),
+							},
+						},
+					},
+				},
+			},
+		}
+		err := canProcessDefinition(def)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "predicate feature not supported")
+	})
+
+	t.Run("With Relational Constraint", func(t *testing.T) {
+		def := PresentationDefinition{
+			ID: "with-relational-constraint",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-with-relational-constraint",
+					Constraints: &Constraints{
+						IsHolder: &RelationalConstraint{
+							FieldID:   "field-id",
+							Directive: Allowed.ToPtr(),
+						},
+					},
+				},
+			},
+		}
+		err := canProcessDefinition(def)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "relational constraint feature not supported")
+	})
+
+	t.Run("With Credential Status", func(t *testing.T) {
+		def := PresentationDefinition{
+			ID: "with-credential-status",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-with-credential-status",
+					Constraints: &Constraints{
+						Statuses: &CredentialStatus{
+							Active: &struct {
+								Directive Preference `json:"directive,omitempty"`
+							}{
+								Directive: Required,
+							},
+						},
+					},
+				},
+			},
+		}
+		err := canProcessDefinition(def)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "credential status constraint feature not supported")
+	})
+
+	t.Run("With LD Framing", func(t *testing.T) {
+		def := PresentationDefinition{
+			ID:    "with-ld-framing",
+			Frame: "@context",
+		}
+		err := canProcessDefinition(def)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "JSON-LD framing feature not supported")
+	})
+}
+
 func TestConstructLimitedClaim(t *testing.T) {
 	t.Run("Full Claim With Nesting", func(t *testing.T) {
 		claim := getTestClaim()

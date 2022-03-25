@@ -184,8 +184,8 @@ type Field struct {
 }
 
 type RelationalConstraint struct {
-	FieldID   string     `json:"field_id" validate:"required"`
-	Directive Preference `json:"directive" validate:"required"`
+	FieldID   string      `json:"field_id" validate:"required"`
+	Directive *Preference `json:"directive" validate:"required"`
 }
 
 type Filter struct {
@@ -277,4 +277,8 @@ type SubmissionDescriptor struct {
 	Format     string                `json:"format" validate:"required"`
 	Path       string                `json:"path" validate:"required"`
 	PathNested *SubmissionDescriptor `json:"path_nested,omitempty"`
+}
+
+func (p Preference) ToPtr() *Preference {
+	return &p
 }

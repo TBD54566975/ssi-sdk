@@ -332,14 +332,12 @@ func canProcessDefinition(def PresentationDefinition) error {
 		}
 	}
 	for _, id := range def.InputDescriptors {
-		constraints := id.Constraints
-		if constraints != nil && len(constraints.Fields) > 0 && constraints.IsHolder != nil ||
-			constraints.SameSubject != nil || constraints.SubjectIsIssuer != nil {
+		if hasRelationalConstraint(id.Constraints) {
 			return errors.New("relational constraint feature not supported")
 		}
 	}
 	for _, id := range def.InputDescriptors {
-		if id.Constraints != nil && len(id.Constraints.Fields) > 0 && id.Constraints.Statuses != nil {
+		if id.Constraints != nil && id.Constraints.Statuses != nil {
 			return errors.New("credential status constraint feature not supported")
 		}
 	}
@@ -347,6 +345,14 @@ func canProcessDefinition(def PresentationDefinition) error {
 		return errors.New("JSON-LD framing feature not supported")
 	}
 	return nil
+}
+
+// hasRelationalConstraint checks a constraints property for relational constraint field values
+func hasRelationalConstraint(constraints *Constraints) bool {
+	if constraints == nil {
+		return false
+	}
+	return constraints.IsHolder != nil || constraints.SameSubject != nil || constraints.SubjectIsIssuer != nil
 }
 
 func VerifyPresentationSubmission() error {
