@@ -97,28 +97,61 @@ type ClaimFormat struct {
 	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty,dive"`
 }
 
-// FormatValue return the string value of the associated claim format type
+// FormatValues return the string value of the associated claim format types
 // NOTE: does not do error checking of any type.
-func (cf ClaimFormat) FormatValue() string {
+func (cf ClaimFormat) FormatValues() []string {
+	var res []string
 	if cf.JWT != nil {
-		return string(JWT)
+		res = append(res, string(JWT))
 	}
 	if cf.JWTVC != nil {
-		return string(JWTVC)
+		res = append(res, string(JWTVC))
 	}
 	if cf.JWTVP != nil {
-		return string(JWTVP)
+		res = append(res, string(JWTVP))
 	}
 	if cf.LDP != nil {
-		return string(LDP)
+		res = append(res, string(LDP))
 	}
 	if cf.LDPVC != nil {
-		return string(LDPVC)
+		res = append(res, string(LDPVC))
 	}
 	if cf.LDPVP != nil {
-		return string(LDPVP)
+		res = append(res, string(LDPVP))
 	}
-	return ""
+	return res
+}
+
+// AlgOrProofTypePerFormat for a given format, return the supported alg or proof types. A nil response indicates
+// that the format is not supported.
+func (cf ClaimFormat) AlgOrProofTypePerFormat(format string) []string {
+	var res []string
+	if cf.JWT != nil {
+		for _, a := range cf.JWT.Alg {
+			res = append(res, string(a))
+		}
+	} else if cf.JWTVC != nil {
+		for _, a := range cf.JWTVC.Alg {
+			res = append(res, string(a))
+		}
+	} else if cf.JWTVP != nil {
+		for _, a := range cf.JWTVP.Alg {
+			res = append(res, string(a))
+		}
+	} else if cf.LDP != nil {
+		for _, pt := range cf.LDP.ProofType {
+			res = append(res, string(pt))
+		}
+	} else if cf.LDPVC != nil {
+		for _, pt := range cf.LDPVC.ProofType {
+			res = append(res, string(pt))
+		}
+	} else if cf.LDPVP != nil {
+		for _, pt := range cf.LDPVP.ProofType {
+			res = append(res, string(pt))
+		}
+	}
+	return res
 }
 
 type JWTType struct {

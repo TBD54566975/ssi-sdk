@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/TBD54566975/did-sdk/credential/signing"
-	"github.com/TBD54566975/did-sdk/crypto"
 	"github.com/TBD54566975/did-sdk/cryptosuite"
 	"github.com/TBD54566975/did-sdk/util"
 	"github.com/goccy/go-json"
@@ -46,8 +45,8 @@ type PresentationClaim struct {
 	Token     *string
 	JWTFormat *JWTFormat
 
-	// The algorithm by which the claim was signed must be present
-	SignatureAlgorithm crypto.SignatureAlgorithm
+	// The algorithm or Linked Data proof type by which the claim was signed must be present
+	SignatureAlgorithmOrProofType string
 }
 
 func (pc *PresentationClaim) IsEmpty() bool {
@@ -142,11 +141,12 @@ func BuildPresentationSubmission(signer cryptosuite.Signer, def PresentationDefi
 }
 
 type normalizedClaim struct {
-	claim map[string]interface{}
+	claimData map[string]interface{}
 	// JWT_VC, JWT_VP, LDP_VC, LDP_VP, etc.
 	format string
 	// Signing algorithm used for the claim (e.g. EdDSA, ES256, PS256, etc.).
-	alg crypto.SignatureAlgorithm
+	// OR the Linked Data Proof Type (e.g. JsonWebSignature2020)
+	algOrProofType string
 }
 
 // normalizePresentationClaims takes a set of Presentation Claims and turns them into map[string]interface{} as
@@ -169,9 +169,9 @@ func normalizePresentationClaims(claims []PresentationClaim) []normalizedClaim {
 			continue
 		}
 		normalizedClaims = append(normalizedClaims, normalizedClaim{
-			claim:  claimJSON,
-			format: claimFormat,
-			alg:    claim.SignatureAlgorithm,
+			claimData:      claimJSON,
+			format:         claimFormat,
+			algOrProofType: claim.SignatureAlgorithmOrProofType,
 		})
 	}
 	return normalizedClaims
@@ -279,13 +279,16 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 		limitDisclosure = true
 	}
 
+	// first, reduce the set of claims that conform with the format required by the input descriptor
+	filteredClaims := filterClaimsByFormat(claims, id.Format)
+
 	// for the input descriptor to be successfully processed each field needs to yield a result for a given claim,
 	// so we need to iterate through each claim, and test it against each field, and each path within each field.
 	// if we find a match for each field, we know a claim can fulfill the given input descriptor.
-	for _, claim := range claims {
+	for _, claim := range filteredClaims {
 		fieldsProcessed := 0
 		var limited []limitedInputDescriptor
-		claimValue := claim.claim
+		claimValue := claim.claimData
 		for _, field := range fields {
 			// apply the field to the claim, and return the processed value, which we only care about for
 			// filtering and/or limit_disclosure settings
@@ -313,11 +316,33 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 			return &processedInputDescriptor{
 				ID:     id.ID,
 				Claim:  resultClaim,
-				Format: id.Format.FormatValue(),
+				Format: claim.format,
 			}, nil
 		}
 	}
 	return nil, fmt.Errorf("no claims could fulfill the input descriptor: %s", id.ID)
+}
+
+// filterClaimsByFormat returns a set of claims that comply with a given ClaimFormat according to its
+// supported format(s) and signature types per format
+func filterClaimsByFormat(claims []normalizedClaim, format *ClaimFormat) []normalizedClaim {
+	// no format, which is an optional property
+	if format == nil {
+		return claims
+	}
+	formatValues := format.FormatValues()
+	var filteredClaims []normalizedClaim
+	for _, claim := range claims {
+		// if the format matches, check the alg type
+		if util.Contains(claim.format, formatValues) {
+			// get the supported alg or proof types for this format
+			algOrProofTypes := format.AlgOrProofTypePerFormat(claim.format)
+			if util.Contains(claim.algOrProofType, algOrProofTypes) {
+				filteredClaims = append(filteredClaims, claim)
+			}
+		}
+	}
+	return filteredClaims
 }
 
 // constructLimitedClaim builds a limited disclosure/filtered claim from a set of filtered input descriptors
