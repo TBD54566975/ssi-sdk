@@ -103,9 +103,16 @@ func (pc *PresentationClaim) GetClaimJSON() (map[string]interface{}, error) {
 		return nil, err
 	}
 	jsonClaim := make(map[string]interface{})
-	claimBytes, err := json.Marshal(claimValue)
-	if err != nil {
-		return nil, err
+
+	// need to handle the case where we already have a string, since we won't need to marshal it
+	var claimBytes []byte
+	if claimStr, ok := claimValue.(string); ok {
+		claimBytes = []byte(claimStr)
+	} else {
+		claimBytes, err = json.Marshal(claimValue)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if err := json.Unmarshal(claimBytes, &jsonClaim); err != nil {
 		return nil, err

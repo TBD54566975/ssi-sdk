@@ -3,9 +3,13 @@
 package exchange
 
 import (
+	"github.com/TBD54566975/did-sdk/credential"
+	"github.com/TBD54566975/did-sdk/crypto"
+	"github.com/TBD54566975/did-sdk/cryptosuite"
 	"github.com/TBD54566975/did-sdk/util"
 	"github.com/oliveagle/jsonpath"
 	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
@@ -121,7 +125,7 @@ func TestCanProcessDefinition(t *testing.T) {
 
 func TestConstructLimitedClaim(t *testing.T) {
 	t.Run("Full Claim With Nesting", func(t *testing.T) {
-		claim := getTestClaim()
+		claim := getGenericTestClaim()
 		var limitedDescriptors []limitedInputDescriptor
 
 		typePath := "$.type"
@@ -193,7 +197,7 @@ func TestConstructLimitedClaim(t *testing.T) {
 	})
 
 	t.Run("Complex Path Parsing", func(t *testing.T) {
-		claim := getTestClaim()
+		claim := getGenericTestClaim()
 		var limitedDescriptors []limitedInputDescriptor
 
 		filterPath := "$.credentialSubject.address[?(@.number > 0)]"
@@ -219,7 +223,128 @@ func TestConstructLimitedClaim(t *testing.T) {
 	})
 }
 
-func getTestClaim() map[string]interface{} {
+func getTestVerifiableCredential() credential.VerifiableCredential {
+	return credential.VerifiableCredential{
+		Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			"https://w3id.org/security/suites/jws-2020/v1"},
+		ID:           "test-verifiable-credential",
+		Type:         []string{"VerifiableCredential"},
+		Issuer:       "test-issuer",
+		IssuanceDate: "2021-01-01T19:23:24Z",
+		CredentialSubject: map[string]interface{}{
+			"id":      "test-vc-id",
+			"company": "Block",
+			"website": "https://block.xyz",
+		},
+	}
+}
+
+func getTestVerifiablePresentation() credential.VerifiablePresentation {
+	return credential.VerifiablePresentation{
+		Context: []string{"https://www.w3.org/2018/credentials/v1"},
+		ID:      "test-verifiable-presentation",
+		Type:    []string{"VerifiablePresentation"},
+		VerifiableCredential: []interface{}{
+			credential.VerifiableCredential{
+				Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+					"https://w3id.org/security/suites/jws-2020/v1"},
+				ID:           "test-vp-verifiable-credential",
+				Type:         []string{"VerifiableCredential"},
+				Issuer:       "test-issuer",
+				IssuanceDate: "2021-01-01T19:23:24Z",
+				CredentialSubject: map[string]interface{}{
+					"id":      "test-vp-vc-id",
+					"company": "TBD",
+					"github":  "https://github.com/TBD54566975",
+				},
+			},
+		},
+	}
+}
+
+func TestNormalizePresentationClaims(t *testing.T) {
+	t.Run("Normalize JWT Claim", func(tt *testing.T) {
+		jwtVC := getTestJWTVerifiableCredential()
+		assert.NotEmpty(tt, jwtVC)
+
+		presentationClaim := PresentationClaim{
+			Token:                         &jwtVC,
+			JWTFormat:                     JWTVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
+		}
+
+		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NotEmpty(tt, normalized)
+		assert.True(tt, len(normalized) == 1)
+		assert.NotEmpty(tt, normalized[0].claimData)
+		assert.EqualValues(tt, JWTVC, normalized[0].format)
+		assert.EqualValues(tt, string(crypto.EdDSA), normalized[0].algOrProofType)
+	})
+
+	t.Run("Normalize VP Claim", func(tt *testing.T) {
+		vpClaim := getTestVerifiablePresentation()
+		assert.NotEmpty(tt, vpClaim)
+
+		presentationClaim := PresentationClaim{
+			Presentation:                  &vpClaim,
+			LDPFormat:                     LDPVP.Ptr(),
+			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+
+		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NotEmpty(tt, normalized)
+		assert.True(tt, len(normalized) == 1)
+		assert.NotEmpty(tt, normalized[0].claimData)
+		assert.EqualValues(tt, LDPVP, normalized[0].format)
+		assert.EqualValues(tt, string(cryptosuite.JSONWebSignature2020), normalized[0].algOrProofType)
+	})
+
+	t.Run("Normalize VC Claim", func(tt *testing.T) {
+		vcClaim := getTestVerifiableCredential()
+		assert.NotEmpty(tt, vcClaim)
+
+		presentationClaim := PresentationClaim{
+			Credential:                    &vcClaim,
+			LDPFormat:                     LDPVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+
+		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NotEmpty(tt, normalized)
+		assert.True(tt, len(normalized) == 1)
+		assert.NotEmpty(tt, normalized[0].claimData)
+		assert.EqualValues(tt, LDPVC, normalized[0].format)
+		assert.EqualValues(tt, string(cryptosuite.JSONWebSignature2020), normalized[0].algOrProofType)
+	})
+}
+
+func getTestJWTVerifiableCredential() string {
+	literalToken := `{
+		"exp": 1925061804,
+		"iss": "did:example:123",
+		"nbf": 1609529004,
+		"sub": "did:example:456",
+		"vc": {
+			"@context": [
+				"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"
+			],
+			"credentialSubject": {
+				"id": "did:example:456",
+				"type": "Person"
+			},
+			"expirationDate": "2031-01-01T19:23:24Z",
+			"issuanceDate": "2021-01-01T19:23:24Z",
+			"issuer": "did:example:123",
+			"type": ["VerifiableCredential"]
+		}
+	}`
+	noNewLines := strings.ReplaceAll(literalToken, "\n", "")
+	noTabs := strings.ReplaceAll(noNewLines, "\t", "")
+	return strings.ReplaceAll(noTabs, " ", "")
+}
+
+func getGenericTestClaim() map[string]interface{} {
 	return map[string]interface{}{
 		"@context": []interface{}{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},

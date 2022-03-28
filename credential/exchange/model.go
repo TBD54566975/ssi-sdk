@@ -38,6 +38,14 @@ const (
 	Disallowed Preference = "disallowed"
 )
 
+func (f LinkedDataFormat) Ptr() *LinkedDataFormat {
+	return &f
+}
+
+func (f JWTFormat) Ptr() *JWTFormat {
+	return &f
+}
+
 // PresentationDefinition https://identity.foundation/presentation-exchange/#presentation-definition
 type PresentationDefinition struct {
 	ID                     string                  `json:"id,omitempty" validate:"required"`
