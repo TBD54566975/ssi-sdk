@@ -9,6 +9,25 @@ import (
 	"testing"
 )
 
+func TestBuildPresentationSubmission(t *testing.T) {
+
+}
+
+func TestBuildPresentationSubmissionVP(t *testing.T) {
+
+}
+
+func TestProcessInputDescriptor(t *testing.T) {
+	t.Run("Simple Descriptor with One VC Claim", func(t *testing.T) {
+		id := InputDescriptor{
+			ID:          "id-1",
+			Format:      nil,
+			Constraints: nil,
+		}
+		assert.NotEmpty(t, id)
+	})
+}
+
 func TestCanProcessDefinition(t *testing.T) {
 	t.Run("With Submission Requirements", func(t *testing.T) {
 		def := PresentationDefinition{

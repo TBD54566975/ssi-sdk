@@ -101,22 +101,22 @@ type ClaimFormat struct {
 // NOTE: does not do error checking of any type.
 func (cf ClaimFormat) FormatValue() string {
 	if cf.JWT != nil {
-		return "jwt"
+		return string(JWT)
 	}
 	if cf.JWTVC != nil {
-		return "jwt_vc"
+		return string(JWTVC)
 	}
 	if cf.JWTVP != nil {
-		return "jwt_vp"
+		return string(JWTVP)
 	}
 	if cf.LDP != nil {
-		return "ldp"
+		return string(LDP)
 	}
 	if cf.LDPVC != nil {
-		return "ldp_vc"
+		return string(LDPVC)
 	}
 	if cf.LDPVP != nil {
-		return "ldp_vp"
+		return string(LDPVP)
 	}
 	return ""
 }

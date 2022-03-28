@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/TBD54566975/did-sdk/credential/signing"
+	"github.com/TBD54566975/did-sdk/crypto"
 	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/TBD54566975/did-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/oliveagle/jsonpath"
@@ -33,11 +35,19 @@ const (
 
 // PresentationClaim 's may be of any claim format designation, including LD or JWT variations of VCs or VPs
 // https://identity.foundation/presentation-exchange/#claim-format-designations
+// This object must be constructed for each claim before processing of a Presentation Definition
 type PresentationClaim struct {
+	// If we have a Credential or Presentation value, we assume we have a LDP_VC or LDP_VP respectively
 	Credential   *credential.VerifiableCredential
 	Presentation *credential.VerifiablePresentation
-	Token        *string
-	Format       ClaimFormat
+	LDPFormat    *LinkedDataFormat
+
+	// If we have a token, we assume we have a JWT format value
+	Token     *string
+	JWTFormat *JWTFormat
+
+	// The algorithm by which the claim was signed must be present
+	SignatureAlgorithm crypto.SignatureAlgorithm
 }
 
 func (pc *PresentationClaim) IsEmpty() bool {
@@ -60,6 +70,31 @@ func (pc *PresentationClaim) GetClaimValue() (interface{}, error) {
 		return *pc.Token, nil
 	}
 	return nil, errors.New("claim is empty")
+}
+
+// GetClaimFormat returns the value of the format depending on the claim type.
+// Since PresentationClaim is a union type. An error is returned if
+// no value is present in any of the possible embedded types.
+func (pc *PresentationClaim) GetClaimFormat() (string, error) {
+	if pc.Credential != nil {
+		if pc.LDPFormat == nil {
+			return "", errors.New("credential claim has no LDP format set")
+		}
+		return string(*pc.LDPFormat), nil
+	}
+	if pc.Presentation != nil {
+		if pc.LDPFormat == nil {
+			return "", errors.New("presentation claim has no LDP format set")
+		}
+		return string(*pc.LDPFormat), nil
+	}
+	if pc.Token != nil {
+		if pc.JWTFormat == nil {
+			return "", errors.New("JWT claim has no JWT format set")
+		}
+		return string(*pc.JWTFormat), nil
+	}
+	return "", errors.New("claim is empty")
 }
 
 // GetClaimJSON gets the claim value and attempts to turn it into a generic go-JSON object represented by an interface{}
@@ -86,13 +121,17 @@ func BuildPresentationSubmission(signer cryptosuite.Signer, def PresentationDefi
 	if !IsSupportedEmbedTarget(et) {
 		return nil, fmt.Errorf("unsupported presentation submission embed target type: %s", et)
 	}
+	normalizedClaims := normalizePresentationClaims(claims)
+	if len(normalizedClaims) == 0 {
+		return nil, errors.New("no claims remain after normalization; cannot continue processing")
+	}
 	switch et {
 	case JWTVPTarget:
 		jwkSigner, ok := signer.(*cryptosuite.JSONWebKeySigner)
 		if !ok {
 			return nil, fmt.Errorf("signer not valid for request type: %s", et)
 		}
-		vpSubmission, err := BuildPresentationSubmissionVP(def, claims)
+		vpSubmission, err := BuildPresentationSubmissionVP(def, normalizedClaims)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
 		}
@@ -100,6 +139,42 @@ func BuildPresentationSubmission(signer cryptosuite.Signer, def PresentationDefi
 	default:
 		return nil, fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
 	}
+}
+
+type normalizedClaim struct {
+	claim map[string]interface{}
+	// JWT_VC, JWT_VP, LDP_VC, LDP_VP, etc.
+	format string
+	// Signing algorithm used for the claim (e.g. EdDSA, ES256, PS256, etc.).
+	alg crypto.SignatureAlgorithm
+}
+
+// normalizePresentationClaims takes a set of Presentation Claims and turns them into map[string]interface{} as
+// go-JSON representations. The claim format and signature algorithm type are noted as well.
+// This method is greedy, meaning it returns the set of claims it was able to normalize.
+func normalizePresentationClaims(claims []PresentationClaim) []normalizedClaim {
+	var normalizedClaims []normalizedClaim
+	for _, claim := range claims {
+		ae := util.NewAppendError()
+		claimJSON, err := claim.GetClaimJSON()
+		if err != nil {
+			ae.Append(err)
+		}
+		claimFormat, err := claim.GetClaimFormat()
+		if err != nil {
+			ae.Append(err)
+		}
+		if ae.Error() != nil {
+			// TODO(gabe) add logging for failed claim processing
+			continue
+		}
+		normalizedClaims = append(normalizedClaims, normalizedClaim{
+			claim:  claimJSON,
+			format: claimFormat,
+			alg:    claim.SignatureAlgorithm,
+		})
+	}
+	return normalizedClaims
 }
 
 // processedClaim represents a claim that has been processed for an input descriptor along with relevant
@@ -112,7 +187,7 @@ type processedClaim struct {
 // BuildPresentationSubmissionVP takes a presentation definition and a set of claims. According to the presentation
 // definition, and the algorithm defined - https://identity.foundation/presentation-exchange/#input-evaluation - in
 // the specification, a presentation submission is constructed as a Verifiable Presentation.
-func BuildPresentationSubmissionVP(def PresentationDefinition, claims []PresentationClaim) (*credential.VerifiablePresentation, error) {
+func BuildPresentationSubmissionVP(def PresentationDefinition, claims []normalizedClaim) (*credential.VerifiablePresentation, error) {
 	if err := canProcessDefinition(def); err != nil {
 		return nil, errors.Wrap(err, "feature not supported in processing given presentation definition")
 	}
@@ -158,6 +233,9 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []Presenta
 		}
 	}
 
+	// add the built descriptor map to the submission
+	submission.DescriptorMap = descriptorMap
+
 	// set submission in vp, build, and return
 	if err := builder.SetPresentationSubmission(submission); err != nil {
 		return nil, err
@@ -183,8 +261,7 @@ type limitedInputDescriptor struct {
 
 // processInputDescriptor runs the input evaluation algorithm described in the spec for a specific input descriptor
 // https://identity.foundation/presentation-exchange/#input-evaluation
-// TODO(gabe) consider normalization of claims before processing
-func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (*processedInputDescriptor, error) {
+func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*processedInputDescriptor, error) {
 	constraints := id.Constraints
 	if constraints == nil {
 		return nil, fmt.Errorf("unable to process input descriptor without constraints")
@@ -204,20 +281,20 @@ func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (*pr
 
 	// for the input descriptor to be successfully processed each field needs to yield a result for a given claim,
 	// so we need to iterate through each claim, and test it against each field, and each path within each field.
-	// if we find a match, we know a claim can fulfill the given input descriptor.
+	// if we find a match for each field, we know a claim can fulfill the given input descriptor.
 	for _, claim := range claims {
 		fieldsProcessed := 0
-		claimValue, err := claim.GetClaimJSON()
-		if err != nil {
-			// problem JSONifying the claim, so we break out of processing this claim
-			break
-		}
 		var limited []limitedInputDescriptor
+		claimValue := claim.claim
 		for _, field := range fields {
 			// apply the field to the claim, and return the processed value, which we only care about for
 			// filtering and/or limit_disclosure settings
 			limitedClaim, fulfilled := processInputDescriptorField(field, claimValue)
-			if fulfilled && limitDisclosure {
+			if !fulfilled {
+				// we know this claim is not sufficient to fulfill the input descriptor
+				break
+			}
+			if limitDisclosure {
 				limited = append(limited, *limitedClaim)
 			}
 		}
@@ -225,17 +302,17 @@ func processInputDescriptor(id InputDescriptor, claims []PresentationClaim) (*pr
 		// if a claim has matched all fields, we can fulfill the input descriptor with this claim
 		if fieldsProcessed == fieldsToProcess {
 			// because the `limit_disclosure` property is present, we must merge the limited fields
-			claim := claimValue
+			resultClaim := claimValue
 			if limitDisclosure {
 				limitedClaim, err := constructLimitedClaim(limited)
 				if err != nil {
 					return nil, errors.Wrap(err, "could not construct limited claim")
 				}
-				claim = limitedClaim
+				resultClaim = limitedClaim
 			}
 			return &processedInputDescriptor{
 				ID:     id.ID,
-				Claim:  claim,
+				Claim:  resultClaim,
 				Format: id.Format.FormatValue(),
 			}, nil
 		}
