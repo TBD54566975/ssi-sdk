@@ -148,6 +148,9 @@ func BuildPresentationSubmission(signer cryptosuite.Signer, def PresentationDefi
 }
 
 type normalizedClaim struct {
+	// id for the claim
+	claimID string
+	// go-json representation of the claim
 	claimData map[string]interface{}
 	// JWT_VC, JWT_VP, LDP_VC, LDP_VP, etc.
 	format string
@@ -175,7 +178,12 @@ func normalizePresentationClaims(claims []PresentationClaim) []normalizedClaim {
 			// TODO(gabe) add logging for failed claim processing
 			continue
 		}
+		var id string
+		if claimID, ok := claimJSON["id"]; ok {
+			id = claimID.(string)
+		}
 		normalizedClaims = append(normalizedClaims, normalizedClaim{
+			claimID:        id,
 			claimData:      claimJSON,
 			format:         claimFormat,
 			algOrProofType: claim.SignatureAlgorithmOrProofType,
@@ -213,7 +221,10 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []normaliz
 
 	// begin to process to presentation definition against the available claims
 	var processedClaims []processedClaim
-	for i, id := range def.InputDescriptors {
+	claimIndex := 0
+	// keep track of claims we've already added, to avoid duplicates
+	seenClaims := make(map[string]int)
+	for _, id := range def.InputDescriptors {
 		processedInputDescriptor, err := processInputDescriptor(id, claims)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error processing input descriptor: %s", id.ID)
@@ -221,12 +232,25 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []normaliz
 		if processedInputDescriptor == nil {
 			return nil, fmt.Errorf("input descrpitor<%s> could not be fulfilled; could not build a valid presentation submission", id.ID)
 		}
+
+		// check if claim already exists. if it has, we won't duplicate the claim
+		var currIndex int
+		var claim map[string]interface{}
+		claimID := processedInputDescriptor.ClaimID
+		if seen, ok := seenClaims[claimID]; ok {
+			currIndex = seen
+		} else {
+			currIndex = claimIndex
+			claimIndex++
+			claim = processedInputDescriptor.Claim
+			seenClaims[claimID] = currIndex
+		}
 		processedClaims = append(processedClaims, processedClaim{
-			Claim: processedInputDescriptor.Claim,
+			Claim: claim,
 			SubmissionDescriptor: SubmissionDescriptor{
 				ID:     processedInputDescriptor.ID,
 				Format: processedInputDescriptor.Format,
-				Path:   fmt.Sprintf("$.verifiableCredential[%d]", i),
+				Path:   fmt.Sprintf("$.verifiableCredential[%d]", currIndex),
 			},
 		})
 	}
@@ -235,8 +259,11 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []normaliz
 	var descriptorMap []SubmissionDescriptor
 	for _, claim := range processedClaims {
 		descriptorMap = append(descriptorMap, claim.SubmissionDescriptor)
-		if err := builder.AddVerifiableCredentials(claim.Claim); err != nil {
-			return nil, errors.Wrap(err, "could not add claim value to verifiable presentation")
+		// on the case we've seen the claim, we need to check as to not add a nil claim value
+		if len(claim.Claim) > 0 {
+			if err := builder.AddVerifiableCredentials(claim.Claim); err != nil {
+				return nil, errors.Wrap(err, "could not add claim value to verifiable presentation")
+			}
 		}
 	}
 
@@ -254,6 +281,8 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []normaliz
 type processedInputDescriptor struct {
 	// input descriptor id
 	ID string
+	// ID of the claim
+	ClaimID string
 	// generic claim
 	Claim map[string]interface{}
 	// claim format
@@ -326,9 +355,10 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 				resultClaim = limitedClaim
 			}
 			return &processedInputDescriptor{
-				ID:     id.ID,
-				Claim:  resultClaim,
-				Format: claim.format,
+				ID:      id.ID,
+				ClaimID: claim.claimID,
+				Claim:   resultClaim,
+				Format:  claim.format,
 			}, nil
 		}
 	}

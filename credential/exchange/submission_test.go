@@ -6,6 +6,7 @@ import (
 	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/TBD54566975/did-sdk/crypto"
 	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
 	"github.com/stretchr/testify/assert"
 	"strings"
@@ -17,7 +18,234 @@ func TestBuildPresentationSubmission(t *testing.T) {
 }
 
 func TestBuildPresentationSubmissionVP(t *testing.T) {
+	t.Run("Single input descriptor definition with single claim", func(tt *testing.T) {
+		def := PresentationDefinition{
+			ID: "test-id",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-1",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								Path:    []string{"$.vc.issuer", "$.issuer"},
+								ID:      "issuer-input-descriptor",
+								Purpose: "need to check the issuer",
+							},
+						},
+					},
+				},
+			},
+		}
 
+		assert.NoError(tt, def.IsValid())
+		testVC := getTestVerifiableCredential()
+		presentationClaim := PresentationClaim{
+			Credential:                    &testVC,
+			LDPFormat:                     LDPVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		vp, err := BuildPresentationSubmissionVP(def, normalized)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, vp)
+
+		// validate the submission is properly constructed
+		assert.NotEmpty(tt, vp.PresentationSubmission)
+		asSubmission, ok := vp.PresentationSubmission.(PresentationSubmission)
+		assert.True(tt, ok)
+		assert.NoError(tt, asSubmission.IsValid())
+		assert.Equal(tt, def.ID, asSubmission.DefinitionID)
+		assert.Equal(tt, 1, len(asSubmission.DescriptorMap))
+		assert.Equal(tt, def.InputDescriptors[0].ID, asSubmission.DescriptorMap[0].ID)
+		assert.EqualValues(tt, LDPVC, asSubmission.DescriptorMap[0].Format)
+
+		// validate the vc result exists in the VP
+		assert.Equal(tt, 1, len(vp.VerifiableCredential))
+		vcBytes, err := json.Marshal(vp.VerifiableCredential[0])
+		assert.NoError(tt, err)
+		var asVC credential.VerifiableCredential
+		err = json.Unmarshal(vcBytes, &asVC)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, asVC)
+
+		assert.Equal(tt, "test-verifiable-credential", asVC.ID)
+		assert.Equal(tt, "Block", asVC.CredentialSubject["company"])
+	})
+
+	t.Run("Single input descriptor definition with no matching claims", func(tt *testing.T) {
+		def := PresentationDefinition{
+			ID: "test-id",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-1",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								Path:    []string{"$.vc.issuer", "$.issuer"},
+								ID:      "issuer-input-descriptor",
+								Purpose: "need to check the issuer",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		assert.NoError(tt, def.IsValid())
+		vp, err := BuildPresentationSubmissionVP(def, nil)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "o claims match the required format, and signing alg/proof type requirements for input descriptor")
+		assert.Empty(tt, vp)
+	})
+
+	t.Run("Two input descriptors with single claim that matches both", func(tt *testing.T) {
+		def := PresentationDefinition{
+			ID: "test-id",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-1",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								Path:    []string{"$.vc.issuer", "$.issuer"},
+								ID:      "issuer-input-descriptor",
+								Purpose: "need to check the issuer",
+							},
+						},
+					},
+				},
+				{
+					ID: "id-2",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								Path:    []string{"$.vc.id", "$.id"},
+								ID:      "id-input-descriptor",
+								Purpose: "need to check the id",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		assert.NoError(tt, def.IsValid())
+		testVC := getTestVerifiableCredential()
+		presentationClaim := PresentationClaim{
+			Credential:                    &testVC,
+			LDPFormat:                     LDPVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		vp, err := BuildPresentationSubmissionVP(def, normalized)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, vp)
+
+		// validate the submission is properly constructed
+		assert.NotEmpty(tt, vp.PresentationSubmission)
+		asSubmission, ok := vp.PresentationSubmission.(PresentationSubmission)
+		assert.True(tt, ok)
+		assert.NoError(tt, asSubmission.IsValid())
+		assert.Equal(tt, def.ID, asSubmission.DefinitionID)
+		assert.Equal(tt, 2, len(asSubmission.DescriptorMap))
+		assert.Equal(tt, def.InputDescriptors[0].ID, asSubmission.DescriptorMap[0].ID)
+		assert.EqualValues(tt, LDPVC, asSubmission.DescriptorMap[0].Format)
+
+		// validate the vc result exists in the VP
+		assert.Equal(tt, 1, len(vp.VerifiableCredential))
+		vcBytes, err := json.Marshal(vp.VerifiableCredential[0])
+		assert.NoError(tt, err)
+		var asVC credential.VerifiableCredential
+		err = json.Unmarshal(vcBytes, &asVC)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, asVC)
+
+		assert.Equal(tt, "test-verifiable-credential", asVC.ID)
+		assert.Equal(tt, "Block", asVC.CredentialSubject["company"])
+	})
+
+	t.Run("Two input descriptors with two claims that match one input descriptor", func(tt *testing.T) {
+		def := PresentationDefinition{
+			ID: "test-id",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-1",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								Path:    []string{"$.vc.issuer", "$.issuer"},
+								ID:      "issuer-input-descriptor",
+								Purpose: "need to check the issuer",
+							},
+						},
+					},
+				},
+				{
+					ID: "id-2",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								Path:    []string{"$.vc.credentialSubject.color"},
+								ID:      "color-input-descriptor",
+								Purpose: "need to check the color",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		assert.NoError(tt, def.IsValid())
+		testVC := getTestVerifiableCredential()
+		presentationClaim := PresentationClaim{
+			Credential:                    &testVC,
+			LDPFormat:                     LDPVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+		testVCJWT := getTestJWTVerifiableCredential()
+		presentationClaimJWT := PresentationClaim{
+			Token:                         &testVCJWT,
+			JWTFormat:                     JWTVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
+		}
+
+		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim, presentationClaimJWT})
+		vp, err := BuildPresentationSubmissionVP(def, normalized)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, vp)
+
+		// validate the submission is properly constructed
+		assert.NotEmpty(tt, vp.PresentationSubmission)
+		asSubmission, ok := vp.PresentationSubmission.(PresentationSubmission)
+		assert.True(tt, ok)
+		assert.NoError(tt, asSubmission.IsValid())
+		assert.Equal(tt, def.ID, asSubmission.DefinitionID)
+		assert.Equal(tt, 2, len(asSubmission.DescriptorMap))
+		assert.Equal(tt, def.InputDescriptors[0].ID, asSubmission.DescriptorMap[0].ID)
+		assert.EqualValues(tt, LDPVC, asSubmission.DescriptorMap[0].Format)
+
+		// validate the vc result exists in the VP
+		assert.Equal(tt, 2, len(vp.VerifiableCredential))
+		vcBytes, err := json.Marshal(vp.VerifiableCredential[0])
+		assert.NoError(tt, err)
+		var asVC credential.VerifiableCredential
+		err = json.Unmarshal(vcBytes, &asVC)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, asVC)
+
+		assert.Equal(tt, "test-verifiable-credential", asVC.ID)
+		assert.Equal(tt, "Block", asVC.CredentialSubject["company"])
+
+		vcBytesJWT, err := json.Marshal(vp.VerifiableCredential[1])
+		assert.NoError(tt, err)
+		var asVCJWT map[string]interface{}
+		err = json.Unmarshal(vcBytesJWT, &asVCJWT)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, asVCJWT)
+
+		assert.Equal(tt, "did:example:456", asVCJWT["sub"])
+		assert.Equal(tt, "yellow", asVCJWT["vc"].(map[string]interface{})["credentialSubject"].(map[string]interface{})["color"])
+	})
 }
 
 func TestProcessInputDescriptor(t *testing.T) {
@@ -469,7 +697,7 @@ func getTestJWTVerifiableCredential() string {
 			],
 			"credentialSubject": {
 				"id": "did:example:456",
-				"type": "Person"
+				"color": "yellow"
 			},
 			"expirationDate": "2031-01-01T19:23:24Z",
 			"issuanceDate": "2021-01-01T19:23:24Z",
