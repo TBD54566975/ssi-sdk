@@ -38,6 +38,14 @@ const (
 	Disallowed Preference = "disallowed"
 )
 
+func (f LinkedDataFormat) Ptr() *LinkedDataFormat {
+	return &f
+}
+
+func (f JWTFormat) Ptr() *JWTFormat {
+	return &f
+}
+
 // PresentationDefinition https://identity.foundation/presentation-exchange/#presentation-definition
 type PresentationDefinition struct {
 	ID                     string                  `json:"id,omitempty" validate:"required"`
@@ -97,28 +105,61 @@ type ClaimFormat struct {
 	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty,dive"`
 }
 
-// FormatValue return the string value of the associated claim format type
+// FormatValues return the string value of the associated claim format types
 // NOTE: does not do error checking of any type.
-func (cf ClaimFormat) FormatValue() string {
+func (cf ClaimFormat) FormatValues() []string {
+	var res []string
 	if cf.JWT != nil {
-		return "jwt"
+		res = append(res, string(JWT))
 	}
 	if cf.JWTVC != nil {
-		return "jwt_vc"
+		res = append(res, string(JWTVC))
 	}
 	if cf.JWTVP != nil {
-		return "jwt_vp"
+		res = append(res, string(JWTVP))
 	}
 	if cf.LDP != nil {
-		return "ldp"
+		res = append(res, string(LDP))
 	}
 	if cf.LDPVC != nil {
-		return "ldp_vc"
+		res = append(res, string(LDPVC))
 	}
 	if cf.LDPVP != nil {
-		return "ldp_vp"
+		res = append(res, string(LDPVP))
 	}
-	return ""
+	return res
+}
+
+// AlgOrProofTypePerFormat for a given format, return the supported alg or proof types. A nil response indicates
+// that the format is not supported.
+func (cf ClaimFormat) AlgOrProofTypePerFormat(format string) []string {
+	var res []string
+	if cf.JWT != nil {
+		for _, a := range cf.JWT.Alg {
+			res = append(res, string(a))
+		}
+	} else if cf.JWTVC != nil {
+		for _, a := range cf.JWTVC.Alg {
+			res = append(res, string(a))
+		}
+	} else if cf.JWTVP != nil {
+		for _, a := range cf.JWTVP.Alg {
+			res = append(res, string(a))
+		}
+	} else if cf.LDP != nil {
+		for _, pt := range cf.LDP.ProofType {
+			res = append(res, string(pt))
+		}
+	} else if cf.LDPVC != nil {
+		for _, pt := range cf.LDPVC.ProofType {
+			res = append(res, string(pt))
+		}
+	} else if cf.LDPVP != nil {
+		for _, pt := range cf.LDPVP.ProofType {
+			res = append(res, string(pt))
+		}
+	}
+	return res
 }
 
 type JWTType struct {
@@ -184,8 +225,8 @@ type Field struct {
 }
 
 type RelationalConstraint struct {
-	FieldID   string     `json:"field_id" validate:"required"`
-	Directive Preference `json:"directive" validate:"required"`
+	FieldID   string      `json:"field_id" validate:"required"`
+	Directive *Preference `json:"directive" validate:"required"`
 }
 
 type Filter struct {
@@ -277,4 +318,8 @@ type SubmissionDescriptor struct {
 	Format     string                `json:"format" validate:"required"`
 	Path       string                `json:"path" validate:"required"`
 	PathNested *SubmissionDescriptor `json:"path_nested,omitempty"`
+}
+
+func (p Preference) Ptr() *Preference {
+	return &p
 }
