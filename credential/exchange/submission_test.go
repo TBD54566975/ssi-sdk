@@ -14,25 +14,12 @@ import (
 
 func TestBuildPresentationSubmission(t *testing.T) {
 	t.Run("Unsupported embed target", func(tt *testing.T) {
-		jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, jwk)
-
-		signer, err := cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.AssertionMethod)
-		assert.NoError(t, err)
-		_, err = BuildPresentationSubmission(signer, PresentationDefinition{}, nil, "badEmbedTarget")
+		_, err := BuildPresentationSubmission(&cryptosuite.JSONWebKeySigner{}, PresentationDefinition{}, nil, "badEmbedTarget")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported presentation submission embed target type")
 	})
 
 	t.Run("Supported embed target", func(tt *testing.T) {
-		jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, jwk)
-
-		signer, err := cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.AssertionMethod)
-		assert.NoError(t, err)
-
 		def := PresentationDefinition{
 			ID: "test-id",
 			InputDescriptors: []InputDescriptor{
@@ -50,8 +37,9 @@ func TestBuildPresentationSubmission(t *testing.T) {
 				},
 			},
 		}
-
 		assert.NoError(tt, def.IsValid())
+
+		signer, verifier := getJWKSignerVerifier(tt)
 		testVC := getTestVerifiableCredential()
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
@@ -62,8 +50,6 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		verifier, err := cryptosuite.NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
-		assert.NoError(tt, err)
 		vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submissionBytes))
 		assert.NoError(tt, err)
 
@@ -790,4 +776,18 @@ func getGenericTestClaim() map[string]interface{} {
 			},
 		},
 	}
+}
+
+func getJWKSignerVerifier(t *testing.T) (*cryptosuite.JSONWebKeySigner, *cryptosuite.JSONWebKeyVerifier) {
+	jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, jwk)
+
+	signer, err := cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.AssertionMethod)
+	assert.NoError(t, err)
+
+	verifier, err := cryptosuite.NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
+	assert.NoError(t, err)
+
+	return signer, verifier
 }

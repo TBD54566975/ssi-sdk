@@ -6,6 +6,7 @@ import (
 	"github.com/TBD54566975/did-sdk/credential/signing"
 	"github.com/TBD54566975/did-sdk/cryptosuite"
 	"github.com/TBD54566975/did-sdk/util"
+	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
 	"strings"
@@ -46,9 +47,9 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 	}
 
 	// first, validate the presentation submission in the VP
-	submission, ok := vp.PresentationSubmission.(PresentationSubmission)
-	if !ok {
-		return errors.New("unable to parse presentation submission from verifiable presentation")
+	submission, err := toPresentationSubmission(vp.PresentationSubmission)
+	if err != nil {
+		return errors.Wrap(err, "unable to parse presentation submission from verifiable presentation")
 	}
 	if err := submission.IsValid(); err != nil {
 		return errors.Wrap(err, "invalid presentation submission in provided verifiable presentation")
@@ -78,7 +79,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		}
 
 		// if the format on the submitted claim does not match the input descriptor, we cannot process
-		if !util.Contains(submissionDescriptor.Format, inputDescriptor.Format.FormatValues()) {
+		if inputDescriptor.Format != nil && !util.Contains(submissionDescriptor.Format, inputDescriptor.Format.FormatValues()) {
 			return fmt.Errorf("for input descriptor<%s>, the format of submission descriptor<%s> is not one"+
 				"  of the supported formats: %s", inputDescriptor.ID, submissionDescriptor.Format,
 				strings.Join(inputDescriptor.Format.FormatValues(), ", "))
@@ -88,12 +89,6 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		// https://github.com/TBD54566975/did-sdk/issues/73
 		if submissionDescriptor.PathNested != nil {
 			return fmt.Errorf("submission with nested paths not supported: %s", submissionDescriptor.ID)
-		}
-
-		// make sure the format is as expected
-		if !util.Contains(submissionDescriptor.Format, inputDescriptor.Format.FormatValues()) {
-			return fmt.Errorf("unsupported format<%s> for input descriptor which supports: %s",
-				submissionDescriptor.Format, strings.Join(inputDescriptor.Format.FormatValues(), ", "))
 		}
 
 		// resolve the claim from the JSON path expression in the submission descriptor
@@ -119,6 +114,18 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		}
 	}
 	return nil
+}
+
+func toPresentationSubmission(maybePresentationSubmission interface{}) (*PresentationSubmission, error) {
+	bytes, err := json.Marshal(maybePresentationSubmission)
+	if err != nil {
+		return nil, err
+	}
+	var submission PresentationSubmission
+	if err := json.Unmarshal(bytes, &submission); err != nil {
+		return nil, err
+	}
+	return &submission, nil
 }
 
 func findMatchingPath(claim interface{}, paths []string) error {
