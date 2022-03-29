@@ -274,7 +274,7 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 		return nil, fmt.Errorf("unable to process input descriptor without constraints")
 	}
 	fields := constraints.Fields
-	if len(fields) != 0 {
+	if len(fields) == 0 {
 		return nil, fmt.Errorf("unable to process input descriptor without fields: %s", id.ID)
 	}
 
@@ -288,6 +288,9 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 
 	// first, reduce the set of claims that conform with the format required by the input descriptor
 	filteredClaims := filterClaimsByFormat(claims, id.Format)
+	if len(filteredClaims) == 0 {
+		return nil, fmt.Errorf("no claims match the required format, and signing alg/proof type requirements for input descriptor: %s", id.ID)
+	}
 
 	// for the input descriptor to be successfully processed each field needs to yield a result for a given claim,
 	// so we need to iterate through each claim, and test it against each field, and each path within each field.
@@ -304,6 +307,8 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 				// we know this claim is not sufficient to fulfill the input descriptor
 				break
 			}
+			// we've fulfilled the field, so note it
+			fieldsProcessed++
 			if limitDisclosure {
 				limited = append(limited, *limitedClaim)
 			}

@@ -320,6 +320,6 @@ type SubmissionDescriptor struct {
 	PathNested *SubmissionDescriptor `json:"path_nested,omitempty"`
 }
 
-func (p Preference) ToPtr() *Preference {
+func (p Preference) Ptr() *Preference {
 	return &p
 }

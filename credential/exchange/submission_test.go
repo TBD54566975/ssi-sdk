@@ -6,7 +6,6 @@ import (
 	"github.com/TBD54566975/did-sdk/credential"
 	"github.com/TBD54566975/did-sdk/crypto"
 	"github.com/TBD54566975/did-sdk/cryptosuite"
-	"github.com/TBD54566975/did-sdk/util"
 	"github.com/oliveagle/jsonpath"
 	"github.com/stretchr/testify/assert"
 	"strings"
@@ -22,13 +21,152 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 }
 
 func TestProcessInputDescriptor(t *testing.T) {
-	t.Run("Simple Descriptor with One VC Claim", func(t *testing.T) {
+	t.Run("Simple Descriptor with One VC Claim", func(tt *testing.T) {
 		id := InputDescriptor{
-			ID:          "id-1",
-			Format:      nil,
-			Constraints: nil,
+			ID: "id-1",
+			Constraints: &Constraints{
+				Fields: []Field{
+					{
+						Path:    []string{"$.vc.issuer", "$.issuer"},
+						ID:      "issuer-input-descriptor",
+						Purpose: "need to check the issuer",
+					},
+				},
+			},
 		}
-		assert.NotEmpty(t, id)
+		testVC := getTestVerifiableCredential()
+		presentationClaim := PresentationClaim{
+			Credential:                    &testVC,
+			LDPFormat:                     LDPVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		processed, err := processInputDescriptor(id, normalized)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, processed)
+		assert.Equal(tt, id.ID, processed.ID)
+
+		// make sure it's not limited disclosure
+		assert.Equal(tt, "test-verifiable-credential", processed.Claim["id"])
+	})
+
+	t.Run("Simple Descriptor with One VC Claim and Limited Disclosure", func(tt *testing.T) {
+		id := InputDescriptor{
+			ID: "id-1",
+			Constraints: &Constraints{
+				LimitDisclosure: Required.Ptr(),
+				Fields: []Field{
+					{
+						Path:    []string{"$.vc.issuer", "$.issuer"},
+						ID:      "issuer-input-descriptor",
+						Purpose: "need to check the issuer",
+					},
+				},
+			},
+		}
+		testVC := getTestVerifiableCredential()
+		presentationClaim := PresentationClaim{
+			Credential:                    &testVC,
+			LDPFormat:                     LDPVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		processed, err := processInputDescriptor(id, normalized)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, processed)
+		assert.Equal(tt, id.ID, processed.ID)
+
+		// make sure it's limited disclosure
+		assert.NotEqual(tt, "test-verifiable-credential", processed.Claim["id"])
+	})
+
+	t.Run("Descriptor with no matching paths", func(tt *testing.T) {
+		id := InputDescriptor{
+			ID: "id-1",
+			Constraints: &Constraints{
+				LimitDisclosure: Required.Ptr(),
+				Fields: []Field{
+					{
+						Path:    []string{"$.vc.issuer"},
+						ID:      "issuer-input-descriptor",
+						Purpose: "need to check the issuer",
+					},
+				},
+			},
+		}
+		testVC := getTestVerifiableCredential()
+		presentationClaim := PresentationClaim{
+			Credential:                    &testVC,
+			LDPFormat:                     LDPVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		_, err := processInputDescriptor(id, normalized)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "no claims could fulfill the input descriptor")
+	})
+
+	t.Run("Descriptor with no matching format", func(tt *testing.T) {
+		id := InputDescriptor{
+			ID: "id-1",
+			Constraints: &Constraints{
+				LimitDisclosure: Required.Ptr(),
+				Fields: []Field{
+					{
+						Path:    []string{"$.issuer"},
+						ID:      "issuer-input-descriptor",
+						Purpose: "need to check the issuer",
+					},
+				},
+			},
+			Format: &ClaimFormat{
+				LDP: &LDPType{
+					ProofType: []cryptosuite.SignatureType{cryptosuite.JSONWebSignature2020},
+				},
+			},
+		}
+		testVC := getTestVerifiableCredential()
+		presentationClaim := PresentationClaim{
+			Credential:                    &testVC,
+			LDPFormat:                     LDPVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		_, err := processInputDescriptor(id, normalized)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "no claims match the required format, and signing alg/proof type requirements")
+	})
+
+	t.Run("Descriptor with matching format", func(tt *testing.T) {
+		id := InputDescriptor{
+			ID: "id-1",
+			Constraints: &Constraints{
+				LimitDisclosure: Required.Ptr(),
+				Fields: []Field{
+					{
+						Path:    []string{"$.issuer"},
+						ID:      "issuer-input-descriptor",
+						Purpose: "need to check the issuer",
+					},
+				},
+			},
+			Format: &ClaimFormat{
+				LDPVC: &LDPType{
+					ProofType: []cryptosuite.SignatureType{cryptosuite.JSONWebSignature2020},
+				},
+			},
+		}
+		testVC := getTestVerifiableCredential()
+		presentationClaim := PresentationClaim{
+			Credential:                    &testVC,
+			LDPFormat:                     LDPVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		processed, err := processInputDescriptor(id, normalized)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, processed)
+		assert.Equal(tt, id.ID, processed.ID)
 	})
 }
 
@@ -57,7 +195,7 @@ func TestCanProcessDefinition(t *testing.T) {
 					Constraints: &Constraints{
 						Fields: []Field{
 							{
-								Predicate: Allowed.ToPtr(),
+								Predicate: Allowed.Ptr(),
 							},
 						},
 					},
@@ -78,7 +216,7 @@ func TestCanProcessDefinition(t *testing.T) {
 					Constraints: &Constraints{
 						IsHolder: &RelationalConstraint{
 							FieldID:   "field-id",
-							Directive: Allowed.ToPtr(),
+							Directive: Allowed.Ptr(),
 						},
 					},
 				},
@@ -369,9 +507,4 @@ func getGenericTestClaim() map[string]interface{} {
 			},
 		},
 	}
-}
-
-func printerface(d interface{}) {
-	b, _ := util.PrettyJSON(d)
-	println(string(b))
 }
