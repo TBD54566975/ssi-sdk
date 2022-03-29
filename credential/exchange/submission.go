@@ -499,10 +499,6 @@ func hasRelationalConstraint(constraints *Constraints) bool {
 	return constraints.IsHolder != nil || constraints.SameSubject != nil || constraints.SubjectIsIssuer != nil
 }
 
-func VerifyPresentationSubmission() error {
-	return nil
-}
-
 func IsSupportedEmbedTarget(et EmbedTarget) bool {
 	supported := GetSupportedEmbedTargets()
 	for _, t := range supported {
