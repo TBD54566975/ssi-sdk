@@ -64,6 +64,8 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		submissionDescriptorLookup[d.ID] = d
 	}
 
+	// turn the vp into JSON so we can use the paths from the submission descriptor
+
 	credentials := vp.VerifiableCredential
 	// validate each input descriptor is fulfilled
 	for _, inputDescriptor := range def.InputDescriptors {
