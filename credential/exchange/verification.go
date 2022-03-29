@@ -1,5 +1,3 @@
-//go:build jwx_es256k
-
 package exchange
 
 import (
@@ -66,7 +64,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 
 	// turn the vp into JSON so we can use the paths from the submission descriptor
 
-	credentials := vp.VerifiableCredential
+	//credentials := vp.VerifiableCredential
 	// validate each input descriptor is fulfilled
 	for _, inputDescriptor := range def.InputDescriptors {
 		submissionDescriptor, ok := submissionDescriptorLookup[inputDescriptor.ID]
@@ -81,7 +79,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 
 		// get cred from index
 		// apply path and see if it checks out!
-		submissionDescriptor.Path
+		//submissionDescriptor.Path
 	}
 	return nil
 }
