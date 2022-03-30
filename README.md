@@ -1,5 +1,6 @@
 [![godoc](https://img.shields.io/badge/godoc-did--sdk-blue)](https://pkg.go.dev/github.com/TBD54566975/did-sdk)
 [![goversion](https://img.shields.io/badge/go_version-1.17.6-brightgreen)](https://golang.org/)
+[![Go Report Card](https://goreportcard.com/badge/github.com/TBD54566975/did-sdk)](https://goreportcard.com/report/github.com/TBD54566975/did-sdk)
 [![license](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/did-sdk/blob/main/LICENSE)
 [![issues](https://img.shields.io/github/issues/TBD54566975/did-sdk)](https://github.com/TBD54566975/did-sdk/issues)
 
@@ -39,9 +40,9 @@ change as the library evolves.
     - Supports [VC-JWT and VP-JWT](https://www.w3.org/TR/vc-data-model/#json-web-token) formats.
 - [Verifiable Credentials JSON Schema Specification](https://w3c-ccg.github.io/vc-json-schemas/v2/index.html) _Draft
   Community Group Report, 21 September 2021_
-- **WIP** [Credential Manifest](https://identity.foundation/credential-manifest/) _Strawman, March 2022_
-- **WIP** [Presentation Exchange 2.0.0](https://identity.foundation/presentation-exchange/) _Working Group Draft, March 2022_
+- [Presentation Exchange 2.0.0](https://identity.foundation/presentation-exchange/) _Working Group Draft, March 2022_
 - [Wallet Rendering](https://identity.foundation/wallet-rendering) _Strawman, March 2022_
+- **WIP** [Credential Manifest](https://identity.foundation/credential-manifest/) _Strawman, March 2022_
 
 ## signature suites
 
