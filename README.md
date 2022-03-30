@@ -41,6 +41,7 @@ change as the library evolves.
   Community Group Report, 21 September 2021_
 - **WIP** [Credential Manifest](https://identity.foundation/credential-manifest/) _Strawman, March 2022_
 - **WIP** [Presentation Exchange 2.0.0](https://identity.foundation/presentation-exchange/) _Working Group Draft, March 2022_
+- [Wallet Rendering](https://identity.foundation/wallet-rendering) _Strawman, March 2022_
 
 ## signature suites
 
