@@ -8,10 +8,9 @@
 
 # Introduction
 
-Named `ssi-sdk`, this SDK refers to "DID" as **D**ecentralized **ID**entity, not specifically the
-[did-core specification](https://www.w3.org/TR/did-core/). The `ssi-sdk` intends to provide a set of standards-based
-primitives for building decentralized identity applications in a modular manner: with limited dependencies between
-components.
+Named `ssi-sdk`, this SDK encapsulates a set of standards related to [Self Sovereign Identity](http://www.lifewithalacrity.com/2016/04/the-path-to-self-soverereign-identity.html). 
+The `ssi-sdk` intends to provide flexible functionality based on a set of standards-based primitives for building
+decentralized identity applications in a modular manner: with limited dependencies between components.
 
 ![ssi-sdk](docs/ssi-sdk.png)
 
