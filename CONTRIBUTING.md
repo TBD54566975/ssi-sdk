@@ -12,10 +12,10 @@ This guide is for you.
 
 ## Development Prerequisites
 
-| Requirement | Tested Version | Installation Instructions                            |
-|-------------|----------------|------------------------------------------------------|
-| Go          | 1.17.6         |[go.dev](https://go.dev/doc/tutorial/compile-install) |
-| Mage        | 1.12.1         |[magefile.org](https://magefile.org/)                 |
+| Requirement | Tested Version | Installation Instructions                             |
+|-------------|----------------|-------------------------------------------------------|
+| Go          | 1.17.6         | [go.dev](https://go.dev/doc/tutorial/compile-install) |
+| Mage        | 1.12.1         | [magefile.org](https://magefile.org/)                 |
 
 ### Go
 
@@ -95,7 +95,7 @@ Build and Test cycles are run on every commit to every branch on [CircleCI](http
 We review contributions to the codebase via GitHub's Pull Request mechanism. We have the following guidelines to ease your experience and help our leads respond quickly to your valuable work:
 
 * Start by proposing a change either in Issues (most appropriate for small change requests or bug fixes) or in Discussions (most appropriate for design and architecture considerations, proposing a new feature, or where you'd like insight and feedback)
-* Cultivate consensus around your ideas; the project leads will help you pre-flight how beneficial the proposal might be to the project. Developing early buy-in will help others understand what you're looking to do, and give you a a greater chance of your contributions making it into the codebase! No one wants to see work done in an area that's unlikely to be incorporated into the codebase.
+* Cultivate consensus around your ideas; the project leads will help you pre-flight how beneficial the proposal might be to the project. Developing early buy-in will help others understand what you're looking to do, and give you a greater chance of your contributions making it into the codebase! No one wants to see work done in an area that's unlikely to be incorporated into the codebase.
 * Fork the repo into your own namespace/remote
 * Work in a dedicated feature branch. Atlassian wrote a great [description of this workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow)
 * When you're ready to offer your work to the project, first:
