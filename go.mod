@@ -1,4 +1,4 @@
-module github.com/TBD54566975/did-sdk
+module github.com/TBD54566975/ssi-sdk
 
 go 1.17
 

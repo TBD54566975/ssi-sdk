@@ -9,11 +9,11 @@ import (
 
 	"github.com/mr-tron/base58"
 
-	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 
 	"github.com/pkg/errors"
 
-	"github.com/TBD54566975/did-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto"
 
 	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-multicodec"

@@ -1,7 +1,7 @@
 package exchange
 
 import (
-	"github.com/TBD54566975/did-sdk/schema"
+	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/gobuffalo/packr/v2"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"

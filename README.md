@@ -1,18 +1,18 @@
-[![godoc](https://img.shields.io/badge/godoc-did--sdk-blue)](https://pkg.go.dev/github.com/TBD54566975/did-sdk)
+[![godoc](https://img.shields.io/badge/godoc-ssi--sdk-blue)](https://pkg.go.dev/github.com/TBD54566975/ssi-sdk)
 [![goversion](https://img.shields.io/badge/go_version-1.17.6-brightgreen)](https://golang.org/)
-[![license](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/did-sdk/blob/main/LICENSE)
-[![issues](https://img.shields.io/github/issues/TBD54566975/did-sdk)](https://github.com/TBD54566975/did-sdk/issues)
+[![Go Report Card](https://goreportcard.com/badge/github.com/TBD54566975/ssi-sdk)](https://goreportcard.com/report/github.com/TBD54566975/ssi-sdk)
+[![license](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/ssi-sdk/blob/main/LICENSE)
+[![issues](https://img.shields.io/github/issues/TBD54566975/ssi-sdk)](https://github.com/TBD54566975/ssi-sdk/issues)
 
-# did-sdk
+# ssi-sdk
 
 # Introduction
 
-Named `did-sdk`, this SDK refers to "DID" as **D**ecentralized **ID**entity, not specifically the
-[did-core specification](https://www.w3.org/TR/did-core/). The `did-sdk` intends to provide a set of standards-based
-primitives for building decentralized identity applications in a modular manner: with limited dependencies between
-components.
+Named `ssi-sdk`, this SDK encapsulates a set of standards related to [Self Sovereign Identity](http://www.lifewithalacrity.com/2016/04/the-path-to-self-soverereign-identity.html). 
+The `ssi-sdk` intends to provide flexible functionality based on a set of standards-based primitives for building
+decentralized identity applications in a modular manner: with limited dependencies between components.
 
-![did-sdk](docs/did-sdk.png)
+![ssi-sdk](docs/ssi-sdk.png)
 
 The image above outlines the SDK's vision. Standards may be added and/or removed. The standards themselves are under
 active development, and as such, are subject to change. When possible we aim to call out which versions or revisions of
@@ -24,7 +24,7 @@ The SDK has not undergone any formal security review or audit, so please use wit
 
 This project is fully open source, and we welcome contributions! For more information please see
 [CONTRIBUTING](CONTRIBUTING.md). Our current thinking about the development of the library is captured in
-[GitHub Issues](https://github.com/TBD54566975/did-sdk/issues).
+[GitHub Issues](https://github.com/TBD54566975/ssi-sdk/issues).
 
 # Specifications
 
@@ -39,9 +39,9 @@ change as the library evolves.
     - Supports [VC-JWT and VP-JWT](https://www.w3.org/TR/vc-data-model/#json-web-token) formats.
 - [Verifiable Credentials JSON Schema Specification](https://w3c-ccg.github.io/vc-json-schemas/v2/index.html) _Draft
   Community Group Report, 21 September 2021_
-- **WIP** [Credential Manifest](https://identity.foundation/credential-manifest/) _Strawman, March 2022_
-- **WIP** [Presentation Exchange 2.0.0](https://identity.foundation/presentation-exchange/) _Working Group Draft, March 2022_
+- [Presentation Exchange 2.0.0](https://identity.foundation/presentation-exchange/) _Working Group Draft, March 2022_
 - [Wallet Rendering](https://identity.foundation/wallet-rendering) _Strawman, March 2022_
+- **WIP** [Credential Manifest](https://identity.foundation/credential-manifest/) _Strawman, March 2022_
 
 ## signature suites
 

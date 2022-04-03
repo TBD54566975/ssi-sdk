@@ -1,8 +1,8 @@
 package cryptosuite
 
 import (
-	"github.com/TBD54566975/did-sdk/crypto"
-	"github.com/TBD54566975/did-sdk/util"
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/util"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

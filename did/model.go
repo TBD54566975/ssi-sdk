@@ -3,9 +3,9 @@ package did
 import (
 	"reflect"
 
-	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 
-	"github.com/TBD54566975/did-sdk/util"
+	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 const (

@@ -3,8 +3,8 @@
 package signing
 
 import (
-	"github.com/TBD54566975/did-sdk/credential"
-	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

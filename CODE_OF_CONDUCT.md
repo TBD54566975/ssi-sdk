@@ -1,6 +1,10 @@
 # TBD Code of Conduct
 
-TBD builds infrastructure for the next wave of innovation in financial services — which we believe will be decentralized, permissionless, and non-custodial. This means opening the global economy to everyone. We extend the same principles of inclusion to our developer ecosystem. We are excited to build with you. So we will ensure our community is truly open, transparent and inclusive. Because of the global nature of our project, diversity and inclusivity is paramount to our success. We not only welcome diverse perspectives, we **need** them!
+TBD builds infrastructure for the next wave of innovation in financial services — which we believe will be decentralized,
+permissionless, and non-custodial. This means opening the global economy to everyone. We extend the same principles of
+inclusion to our developer ecosystem. We are excited to build with you. So we will ensure our community is truly open,
+transparent and inclusive. Because of the global nature of our project, diversity and inclusivity is paramount to our
+success. We not only welcome diverse perspectives, we **need** them!
 
 The code of conduct below reflects the expectations for ourselves and for our community.
 
@@ -8,10 +12,9 @@ The code of conduct below reflects the expectations for ourselves and for our co
 ## Our Pledge
 
 We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, physical appearance, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, caste, color, religion, or sexual
-identity and orientation.
+community a harassment-free experience for everyone, regardless of age, physical appearance, visible or invisible 
+disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, 
+socioeconomic status, nationality, personal appearance, race, caste, color, religion, or sexual identity and orientation.
 
 We pledge to act and interact in ways that contribute to an open, welcoming,
 diverse, inclusive, and healthy community.
@@ -54,7 +57,10 @@ decisions when appropriate.
 
 ## Scope
 
-This Code of Conduct applies within all project spaces, and it also applies when an individual is representing the project or its community in public spaces. Examples of representing a project or community include using an official project e-mail address, posting via an official social media account, or acting as an appointed representative at an online or offline event, or any space where the project is listed as part of your profile.
+This Code of Conduct applies within all project spaces, and it also applies when an individual is representing the 
+project or its community in public spaces. Examples of representing a project or community include using an official 
+project e-mail address, posting via an official social media account, or acting as an appointed representative at an 
+online or offline event, or any space where the project is listed as part of your profile.
 
 ## Enforcement
 
@@ -91,7 +97,10 @@ those enforcing the Code of Conduct, for a specified period of time. This
 includes avoiding interactions in community spaces as well as external channels
 like social media and forums. 
 
-Although this list cannot be exhaustive, we explicitly honor diversity in age, culture, ethnicity, gender identity or expression, language, national origin, political beliefs, profession, race, religion, sexual orientation, socioeconomic status, and technical ability. We will not tolerate discrimination based on any of the protected characteristics above, including participants with disabilities.
+Although this list cannot be exhaustive, we explicitly honor diversity in age, culture, ethnicity, gender identity or 
+expression, language, national origin, political beliefs, profession, race, religion, sexual orientation, socioeconomic 
+status, and technical ability. We will not tolerate discrimination based on any of the protected characteristics above, 
+including participants with disabilities.
 
 Violating these terms may lead to a temporary or permanent ban.
 

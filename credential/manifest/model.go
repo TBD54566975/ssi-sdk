@@ -1,8 +1,8 @@
 package manifest
 
 import (
-	"github.com/TBD54566975/did-sdk/credential/exchange"
-	"github.com/TBD54566975/did-sdk/util"
+	"github.com/TBD54566975/ssi-sdk/credential/exchange"
+	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/pkg/errors"
 	"reflect"
 )
@@ -41,7 +41,7 @@ type Issuer struct {
 	Name string `json:"name,omitempty"`
 	// an object or URI as defined by the DIF Entity Styles specification
 	// https://identity.foundation/wallet-rendering/#entity-styles
-	// TODO(gabe) https://github.com/TBD54566975/did-sdk/issues/52
+	// TODO(gabe) https://github.com/TBD54566975/ssi-sdk/issues/52
 	Styles interface{} `json:"styles,omitempty"`
 }
 
@@ -54,7 +54,7 @@ type OutputDescriptor struct {
 	Description string `json:"description,omitempty"`
 	// both below: an object or URI as defined by the DIF Entity Styles specification
 	// https://identity.foundation/wallet-rendering/#entity-styles
-	// TODO(gabe) https://github.com/TBD54566975/did-sdk/issues/52
+	// TODO(gabe) https://github.com/TBD54566975/ssi-sdk/issues/52
 	Styles  interface{} `json:"styles,omitempty"`
 	Display interface{} `json:"display,omitempty"`
 }
@@ -129,4 +129,4 @@ func (cf *CredentialFulfillment) IsValid() error {
 	return util.NewValidator().Struct(cf)
 }
 
-// TODO(gabe) support multiple embed targets https://github.com/TBD54566975/did-sdk/issues/57
+// TODO(gabe) support multiple embed targets https://github.com/TBD54566975/ssi-sdk/issues/57
