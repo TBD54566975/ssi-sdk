@@ -2,9 +2,9 @@ package cryptosuite
 
 import (
 	gocrypto "crypto"
-	"github.com/TBD54566975/did-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto"
 
-	. "github.com/TBD54566975/did-sdk/util"
+	. "github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 
 	"github.com/gobuffalo/packr/v2"

@@ -4,7 +4,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 
-	"github.com/TBD54566975/did-sdk/util"
+	"github.com/TBD54566975/ssi-sdk/util"
 
 	"github.com/xeipuuv/gojsonschema"
 )

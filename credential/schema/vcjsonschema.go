@@ -1,10 +1,10 @@
 package schema
 
 import (
-	"github.com/TBD54566975/did-sdk/schema"
+	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
 
-	"github.com/TBD54566975/did-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/gobuffalo/packr/v2"
 )
 

@@ -1,7 +1,7 @@
 package rendering
 
 import (
-	"github.com/TBD54566975/did-sdk/util"
+	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/pkg/errors"
 	"reflect"
 )

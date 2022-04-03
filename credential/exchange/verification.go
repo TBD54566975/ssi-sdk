@@ -2,10 +2,10 @@ package exchange
 
 import (
 	"fmt"
-	"github.com/TBD54566975/did-sdk/credential"
-	"github.com/TBD54566975/did-sdk/credential/signing"
-	"github.com/TBD54566975/did-sdk/cryptosuite"
-	"github.com/TBD54566975/did-sdk/util"
+	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/credential/signing"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
@@ -40,7 +40,7 @@ func VerifyPresentationSubmission(verifier cryptosuite.Verifier, et EmbedTarget,
 
 // VerifyPresentationSubmissionVP verifies whether a verifiable presentation is a valid presentation submission
 // for a given presentation definition.
-// TODO(gabe) handle signature validation of submission claims https://github.com/TBD54566975/did-sdk/issues/71
+// TODO(gabe) handle signature validation of submission claims https://github.com/TBD54566975/ssi-sdk/issues/71
 func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.VerifiablePresentation) error {
 	if err := vp.IsValid(); err != nil {
 		return errors.Wrap(err, "presentation submission does not contain a valid VP")
@@ -86,7 +86,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		}
 
 		// TODO(gabe) support nested paths in presentation submissions
-		// https://github.com/TBD54566975/did-sdk/issues/73
+		// https://github.com/TBD54566975/ssi-sdk/issues/73
 		if submissionDescriptor.PathNested != nil {
 			return fmt.Errorf("submission with nested paths not supported: %s", submissionDescriptor.ID)
 		}

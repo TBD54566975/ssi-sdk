@@ -12,14 +12,14 @@ import (
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
-	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 
 	"github.com/multiformats/go-multicodec"
 
 	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-varint"
 
-	"github.com/TBD54566975/did-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto"
 
 	"github.com/stretchr/testify/assert"
 )

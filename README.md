@@ -1,19 +1,19 @@
-[![godoc](https://img.shields.io/badge/godoc-did--sdk-blue)](https://pkg.go.dev/github.com/TBD54566975/did-sdk)
+[![godoc](https://img.shields.io/badge/godoc-did--sdk-blue)](https://pkg.go.dev/github.com/TBD54566975/ssi-sdk)
 [![goversion](https://img.shields.io/badge/go_version-1.17.6-brightgreen)](https://golang.org/)
-[![Go Report Card](https://goreportcard.com/badge/github.com/TBD54566975/did-sdk)](https://goreportcard.com/report/github.com/TBD54566975/did-sdk)
-[![license](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/did-sdk/blob/main/LICENSE)
-[![issues](https://img.shields.io/github/issues/TBD54566975/did-sdk)](https://github.com/TBD54566975/did-sdk/issues)
+[![Go Report Card](https://goreportcard.com/badge/github.com/TBD54566975/ssi-sdk)](https://goreportcard.com/report/github.com/TBD54566975/ssi-sdk)
+[![license](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/ssi-sdk/blob/main/LICENSE)
+[![issues](https://img.shields.io/github/issues/TBD54566975/ssi-sdk)](https://github.com/TBD54566975/ssi-sdk/issues)
 
-# did-sdk
+# ssi-sdk
 
 # Introduction
 
-Named `did-sdk`, this SDK refers to "DID" as **D**ecentralized **ID**entity, not specifically the
-[did-core specification](https://www.w3.org/TR/did-core/). The `did-sdk` intends to provide a set of standards-based
+Named `ssi-sdk`, this SDK refers to "DID" as **D**ecentralized **ID**entity, not specifically the
+[did-core specification](https://www.w3.org/TR/did-core/). The `ssi-sdk` intends to provide a set of standards-based
 primitives for building decentralized identity applications in a modular manner: with limited dependencies between
 components.
 
-![did-sdk](docs/did-sdk.png)
+![ssi-sdk](docs/ssi-sdk.png)
 
 The image above outlines the SDK's vision. Standards may be added and/or removed. The standards themselves are under
 active development, and as such, are subject to change. When possible we aim to call out which versions or revisions of
@@ -25,7 +25,7 @@ The SDK has not undergone any formal security review or audit, so please use wit
 
 This project is fully open source, and we welcome contributions! For more information please see
 [CONTRIBUTING](CONTRIBUTING.md). Our current thinking about the development of the library is captured in
-[GitHub Issues](https://github.com/TBD54566975/did-sdk/issues).
+[GitHub Issues](https://github.com/TBD54566975/ssi-sdk/issues).
 
 # Specifications
 

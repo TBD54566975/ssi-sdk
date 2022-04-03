@@ -2,8 +2,8 @@
 
 There are many ways to be an open source contributor, and we're here to help you on your way! You may:
 
-* Propose ideas in our [discussion forums](https://github.com/TBD54566975/did-sdk/discussions) 
-* Raise an issue or feature request in our [issue tracker](https://github.com/TBD54566975/did-sdk/issues)
+* Propose ideas in our [discussion forums](https://github.com/TBD54566975/ssi-sdk/discussions) 
+* Raise an issue or feature request in our [issue tracker](https://github.com/TBD54566975/ssi-sdk/issues)
 * Help another contributor with one of their questions, or a code review
 * Suggest improvements to our Getting Started documentation by supplying a Pull Request
 * Evangelize our work together in conferences, podcasts, and social media spaces.
@@ -78,17 +78,17 @@ $> mage test
 
 ### Issues
 
-Anyone from the community is welcome (and encouraged!) to raise issues via [GitHub Issues](https://github.com/TBD54566975/did-sdk/issues).
+Anyone from the community is welcome (and encouraged!) to raise issues via [GitHub Issues](https://github.com/TBD54566975/ssi-sdk/issues).
 
 ### Discussions
 
-Design discussions and proposals take place on [GitHub Discussions](https://github.com/TBD54566975/did-sdk/discussions). 
+Design discussions and proposals take place on [GitHub Discussions](https://github.com/TBD54566975/ssi-sdk/discussions). 
 
 We advocate an asynchronous, written debate model - so write up your thoughts and invite the community to join in!
 
 ### Continuous Integration
 
-Build and Test cycles are run on every commit to every branch on [CircleCI](https://app.circleci.com/pipelines/github/TBD54566975/did-sdk).
+Build and Test cycles are run on every commit to every branch on [CircleCI](https://app.circleci.com/pipelines/github/TBD54566975/ssi-sdk).
 
 ## Contribution
 

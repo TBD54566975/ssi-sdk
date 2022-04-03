@@ -1,7 +1,7 @@
 package schema
 
 import (
-	vc "github.com/TBD54566975/did-sdk/credential"
+	vc "github.com/TBD54566975/ssi-sdk/credential"
 	"testing"
 
 	"github.com/goccy/go-json"

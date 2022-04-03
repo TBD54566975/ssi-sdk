@@ -1,7 +1,7 @@
 package exchange
 
 import (
-	"github.com/TBD54566975/did-sdk/schema"
+	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

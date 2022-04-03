@@ -4,8 +4,8 @@ package signing
 
 import (
 	"fmt"
-	"github.com/TBD54566975/did-sdk/credential"
-	"github.com/TBD54566975/did-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwa"

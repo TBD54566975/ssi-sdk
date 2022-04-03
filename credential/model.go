@@ -1,10 +1,10 @@
 package credential
 
 import (
-	"github.com/TBD54566975/did-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"reflect"
 
-	"github.com/TBD54566975/did-sdk/util"
+	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 // VerifiableCredential is the verifiable credential model outlined in the
