@@ -52,8 +52,7 @@ jobs:
 
    
     - run: |
-       mage clean
-       mage build
+       go build -tags jwx_es256k
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
