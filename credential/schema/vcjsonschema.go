@@ -3,6 +3,7 @@ package schema
 import (
 	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
+	"github.com/pkg/errors"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/gobuffalo/packr/v2"
@@ -19,12 +20,18 @@ var (
 
 // StringToVCJSONCredentialSchema marshals a string into a credential json credential schema
 func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSONSchema, error) {
-	if err := schema.IsValidJSONSchema(maybeVCJSONCredentialSchema); err != nil {
-		return nil, err
-	}
 	var vcs VCJSONSchema
 	if err := json.Unmarshal([]byte(maybeVCJSONCredentialSchema), &vcs); err != nil {
 		return nil, err
+	}
+
+	schemaBytes, err := json.Marshal(vcs.Schema)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not marshal vc json schema's schema property")
+	}
+	maybeSchema := string(schemaBytes)
+	if err := schema.IsValidJSONSchema(maybeSchema); err != nil {
+		return nil, errors.Wrap(err, "VC JSON Schema did not contain a valid JSON Schema")
 	}
 	return &vcs, nil
 }
@@ -32,16 +39,20 @@ func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSON
 // IsValidCredentialSchema determines if a given credential schema is compliant with the specification's
 // JSON Schema https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
 func IsValidCredentialSchema(maybeCredentialSchema string) error {
-	if err := schema.IsValidJSONSchema(maybeCredentialSchema); err != nil {
-		return err
-	}
-
 	vcJSONSchemaSchema, err := getKnownSchema(verifiableCredentialJSONSchemaSchema)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "could not get known schema for VC JSON Schema")
 	}
 
-	return schema.IsJSONValidAgainstSchema(maybeCredentialSchema, vcJSONSchemaSchema)
+	if err := schema.IsJSONValidAgainstSchema(maybeCredentialSchema, vcJSONSchemaSchema); err != nil {
+		return errors.Wrap(err, "credential schema did not validate")
+	}
+
+	if _, err := StringToVCJSONCredentialSchema(maybeCredentialSchema); err != nil {
+		return errors.Wrap(err, "credential schema not valid")
+	}
+
+	return nil
 }
 
 func IsCredentialValidForVCJSONSchema(credential credential.VerifiableCredential, vcJSONSchema VCJSONSchema) error {

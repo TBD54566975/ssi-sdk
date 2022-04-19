@@ -28,6 +28,8 @@ jobs:
       actions: read
       contents: read
       security-events: write
+    env:
+      GOFLAGS: "-tags=jwx_es256k"
 
     strategy:
       fail-fast: false
@@ -50,10 +52,8 @@ jobs:
         # Prefix the list here with "+" to use these queries and those in the config file.
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
-   
-    - run: |
-       mage clean
-       mage build
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
