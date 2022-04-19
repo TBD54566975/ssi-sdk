@@ -52,7 +52,7 @@ jobs:
 
    
     - run: |
-       go build -tags jwx_es256k
+       go build -tags jwx_es256k ./...
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
