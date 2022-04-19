@@ -44,6 +44,7 @@ func TestIsCredentialValidForSchema(t *testing.T) {
 
 	vcJSONSchema, err := StringToVCJSONCredentialSchema(vcJSONSchemaString)
 	assert.NoError(t, err)
+	assert.NotEmpty(t, vcJSONSchema)
 
 	// Validate credential against vcJSONSchema
 	err = IsCredentialValidForVCJSONSchema(cred, *vcJSONSchema)

@@ -31,9 +31,36 @@ func TestJSONSchemaVectors(t *testing.T) {
 }
 
 func TestJSONSchemaValidation(t *testing.T) {
-	t.Run("Test Valid Address JSON Schema", func(t *testing.T) {
+	t.Run("Test Invalid JSON Schema", func(tt *testing.T) {
+		err := IsValidJSONSchema("bad")
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "input is not valid json")
+
+		badSchema := `{
+  "$id": "https://example.com/person.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Person",
+  "type": "object",
+  "properties": {
+    "firstName": {
+      "type": "string",
+      "description": "The person's first name."
+    },
+    "lastName": {
+      "type": "string",
+      "description": "The person's last name."
+    },
+    "required": ["middleName"]
+  },
+  "additionalProperties": false
+}`
+		err = IsValidJSONSchema(badSchema)
+		assert.Error(tt, err)
+	})
+
+	t.Run("Test Valid Address JSON Schema", func(tt *testing.T) {
 		addressJSONSchema, err := getTestVector(JSONSchemaTestVector1)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		addressData := map[string]interface{}{
 			"street-address": "1455 Market St.",
@@ -43,17 +70,17 @@ func TestJSONSchemaValidation(t *testing.T) {
 		}
 
 		addressDataBytes, err := json.Marshal(addressData)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		addressDataJSON := string(addressDataBytes)
-		assert.True(t, IsValidJSON(addressDataJSON))
+		assert.True(tt, IsValidJSON(addressDataJSON))
 
-		assert.NoError(t, IsJSONValidAgainstSchema(addressDataJSON, addressJSONSchema))
+		assert.NoError(tt, IsJSONValidAgainstSchema(addressDataJSON, addressJSONSchema))
 	})
 
-	t.Run("Test Invalid Address JSON Schema", func(t *testing.T) {
+	t.Run("Test Invalid Address JSON Schema", func(tt *testing.T) {
 		addressJSONSchema, err := getTestVector(JSONSchemaTestVector1)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		// Missing required field
 		addressData := map[string]interface{}{
@@ -63,19 +90,19 @@ func TestJSONSchemaValidation(t *testing.T) {
 		}
 
 		addressDataBytes, err := json.Marshal(addressData)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		addressDataJSON := string(addressDataBytes)
-		assert.True(t, IsValidJSON(addressDataJSON))
+		assert.True(tt, IsValidJSON(addressDataJSON))
 
 		err = IsJSONValidAgainstSchema(addressDataJSON, addressJSONSchema)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "postal-code is required")
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "postal-code is required")
 	})
 
-	t.Run("Test Valid Person JSON Schema", func(t *testing.T) {
+	t.Run("Test Valid Person JSON Schema", func(tt *testing.T) {
 		personJSONSchema, err := getTestVector(JSONSchemaTestVector2)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		// Additional field
 		personData := map[string]interface{}{
@@ -84,17 +111,17 @@ func TestJSONSchemaValidation(t *testing.T) {
 		}
 
 		personDataBytes, err := json.Marshal(personData)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		personDataJSON := string(personDataBytes)
-		assert.True(t, IsValidJSON(personDataJSON))
+		assert.True(tt, IsValidJSON(personDataJSON))
 
-		assert.NoError(t, IsJSONValidAgainstSchema(personDataJSON, personJSONSchema))
+		assert.NoError(tt, IsJSONValidAgainstSchema(personDataJSON, personJSONSchema))
 	})
 
-	t.Run("Test Invalid Person JSON Schema", func(t *testing.T) {
+	t.Run("Test Invalid Person JSON Schema", func(tt *testing.T) {
 		personJSONSchema, err := getTestVector(JSONSchemaTestVector2)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		// Additional field
 		personData := map[string]interface{}{
@@ -105,14 +132,14 @@ func TestJSONSchemaValidation(t *testing.T) {
 		}
 
 		personDataBytes, err := json.Marshal(personData)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		personDataJSON := string(personDataBytes)
-		assert.True(t, IsValidJSON(personDataJSON))
+		assert.True(tt, IsValidJSON(personDataJSON))
 
 		err = IsJSONValidAgainstSchema(personDataJSON, personJSONSchema)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Additional property middleName is not allowed")
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "Additional property middleName is not allowed")
 	})
 }
 

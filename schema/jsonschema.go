@@ -14,8 +14,12 @@ func IsValidJSONSchema(maybeSchema string) error {
 	if !IsValidJSON(maybeSchema) {
 		return errors.New("input is not valid json")
 	}
-	loader := gojsonschema.NewStringLoader(maybeSchema)
-	return gojsonschema.NewSchemaLoader().AddSchemas(loader)
+	stringLoader := gojsonschema.NewStringLoader(maybeSchema)
+	schemaLoader := gojsonschema.NewSchemaLoader()
+	schemaLoader.Validate = true
+	schemaLoader.Draft = gojsonschema.Draft7
+	_, err := schemaLoader.Compile(stringLoader)
+	return err
 }
 
 // IsValidJSON checks if a string is valid json https://stackoverflow.com/a/36922225
