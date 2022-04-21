@@ -3,6 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/TBD54566975/ssi-sdk)](https://goreportcard.com/report/github.com/TBD54566975/ssi-sdk)
 [![license](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/ssi-sdk/blob/main/LICENSE)
 [![issues](https://img.shields.io/github/issues/TBD54566975/ssi-sdk)](https://github.com/TBD54566975/ssi-sdk/issues)
+![push](https://github.com/TBD54566975/ssi-sdk/workflows/ssi-sdk-ci/badge.svg?branch=main&event=push)
 
 # ssi-sdk
 
