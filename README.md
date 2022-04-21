@@ -3,6 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/TBD54566975/ssi-sdk)](https://goreportcard.com/report/github.com/TBD54566975/ssi-sdk)
 [![license](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/ssi-sdk/blob/main/LICENSE)
 [![issues](https://img.shields.io/github/issues/TBD54566975/ssi-sdk)](https://github.com/TBD54566975/ssi-sdk/issues)
+![push](https://github.com/TBD54566975/ssi-sdk/workflows/ssi-sdk-ci/badge.svg?branch=main&event=push)
 
 # ssi-sdk
 
@@ -58,6 +59,22 @@ change as the library evolves.
 ## did methods
 
 - [The did:key Method v0.7](https://w3c-ccg.github.io/did-method-key/) _Unofficial Draft 14 February 2022_
+
+# Building
+
+This project uses [mage](https://magefile.org/), please view [CONTRIBUTING](CONTRIBUTING.md) for more information.
+
+After installing mage, you can build and test the SDK with the following commands:
+```
+mage build
+mage test
+```
+
+A utility is provided to run _clean, build, and test_ in sequence with:
+
+```
+mage cbt
+```
 
 # Project Resources
 
