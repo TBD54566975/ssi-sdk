@@ -11,6 +11,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"strconv"
 	"time"
 )
@@ -70,7 +71,12 @@ func SignVerifiableCredentialJWT(signer cryptosuite.JSONWebKeySigner, cred crede
 		return nil, errors.New("could not set credential value")
 	}
 
-	return jwt.Sign(t, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key)
+	signed, err := jwt.Sign(t, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key)
+	if err != nil {
+		logrus.WithError(err).Error("could not sign JWT credential")
+		return nil, err
+	}
+	return signed, nil
 }
 
 // VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
@@ -101,7 +107,9 @@ func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCrede
 	}
 	var cred credential.VerifiableCredential
 	if err := json.Unmarshal(vcBytes, &cred); err != nil {
-		return nil, errors.Wrap(err, "could not reconstruct Verifiable Credential")
+		errMsg := "could not reconstruct Verifiable Credential"
+		logrus.WithError(err).Error(errMsg)
+		return nil, errors.Wrap(err, errMsg)
 	}
 
 	// parse remaining JWT properties and set in the credential
@@ -172,7 +180,12 @@ func SignVerifiablePresentationJWT(signer cryptosuite.JSONWebKeySigner, pres cre
 		return nil, errors.Wrap(err, "could not set nonce value")
 	}
 
-	return jwt.Sign(t, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key)
+	signed, err := jwt.Sign(t, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key)
+	if err != nil {
+		logrus.WithError(err).Error("could not sign JWT presentation")
+		return nil, err
+	}
+	return signed, nil
 }
 
 // VerifyVerifiablePresentationJWT verifies the signature validity on the token.
@@ -182,7 +195,9 @@ func SignVerifiablePresentationJWT(signer cryptosuite.JSONWebKeySigner, pres cre
 // decoded VerifiablePresentation object is returned.
 func VerifyVerifiablePresentationJWT(verifier cryptosuite.JSONWebKeyVerifier, token string) (*credential.VerifiablePresentation, error) {
 	if err := verifier.VerifyJWT(token); err != nil {
-		return nil, errors.Wrap(err, "could not verify JWT and its signature")
+		errMsg := "could not verify JWT and its signature"
+		logrus.WithError(err).Error(errMsg)
+		return nil, errors.Wrap(err, errMsg)
 	}
 	return ParseVerifiablePresentationFromJWT(token)
 }
@@ -206,7 +221,9 @@ func ParseVerifiablePresentationFromJWT(token string) (*credential.VerifiablePre
 	}
 	var pres credential.VerifiablePresentation
 	if err := json.Unmarshal(vpBytes, &pres); err != nil {
-		return nil, errors.Wrap(err, "could not reconstruct Verifiable Presentation")
+		errMsg := "could not reconstruct Verifiable Presentation"
+		logrus.WithError(err).Error(errMsg)
+		return nil, errors.Wrap(err, errMsg)
 	}
 
 	// parse remaining JWT properties and set in the presentation

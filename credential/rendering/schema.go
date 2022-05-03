@@ -5,6 +5,7 @@ import (
 	"github.com/gobuffalo/packr/v2"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -27,7 +28,11 @@ func IsValidEntityStyle(esd EntityStyleDescriptor) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get entity styles schema")
 	}
-	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
+	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+		logrus.WithError(err).Error("entity style not valid against schema")
+		return err
+	}
+	return nil
 }
 
 // IsValidDisplayMappingObject validates a display mapping object against its known schema
@@ -40,7 +45,11 @@ func IsValidDisplayMappingObject(dmo DisplayMappingObject) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get display mapping object schema")
 	}
-	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
+	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+		logrus.WithError(err).Error("display mapping object not valid against schema")
+		return err
+	}
+	return nil
 }
 
 // IsValidLabeledDisplayMappingObject validates a labeled display mapping object against its known schema
@@ -53,7 +62,11 @@ func IsValidLabeledDisplayMappingObject(ldmo LabeledDisplayMappingObject) error 
 	if err != nil {
 		return errors.Wrap(err, "could not get labeled display mapping object schema")
 	}
-	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
+	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+		logrus.WithError(err).Error("labeled display mapping object not valid against schema")
+		return err
+	}
+	return nil
 }
 
 func getKnownSchema(fileName string) (string, error) {

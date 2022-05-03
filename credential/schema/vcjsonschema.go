@@ -4,6 +4,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/gobuffalo/packr/v2"
@@ -31,7 +32,9 @@ func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSON
 	}
 	maybeSchema := string(schemaBytes)
 	if err := schema.IsValidJSONSchema(maybeSchema); err != nil {
-		return nil, errors.Wrap(err, "VC JSON Schema did not contain a valid JSON Schema")
+		errMsg := "VC JSON Schema did not contain a valid JSON Schema"
+		logrus.WithError(err).Error(errMsg)
+		return nil, errors.Wrap(err, errMsg)
 	}
 	return &vcs, nil
 }
@@ -45,11 +48,15 @@ func IsValidCredentialSchema(maybeCredentialSchema string) error {
 	}
 
 	if err := schema.IsJSONValidAgainstSchema(maybeCredentialSchema, vcJSONSchemaSchema); err != nil {
-		return errors.Wrap(err, "credential schema did not validate")
+		errMsg := "credential schema did not validate"
+		logrus.WithError(err).Error(errMsg)
+		return errors.Wrap(err, errMsg)
 	}
 
 	if _, err := StringToVCJSONCredentialSchema(maybeCredentialSchema); err != nil {
-		return errors.Wrap(err, "credential schema not valid")
+		errMsg := "credential schema not valid"
+		logrus.WithError(err).Error(errMsg)
+		return errors.Wrap(err, errMsg)
 	}
 
 	return nil
@@ -76,7 +83,11 @@ func IsCredentialValidForSchema(credential credential.VerifiableCredential, s st
 		return err
 	}
 	subjectJSON := string(subjectBytes)
-	return schema.IsJSONValidAgainstSchema(subjectJSON, s)
+	if err := schema.IsJSONValidAgainstSchema(subjectJSON, s); err != nil {
+		logrus.WithError(err).Error("credential not valid for schema")
+		return err
+	}
+	return nil
 }
 
 func getKnownSchema(fileName string) (string, error) {
