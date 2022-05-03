@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // PresentationRequestType represents wrappers for Presentation Definitions submitted as requests
@@ -33,11 +34,15 @@ func BuildPresentationRequest(signer cryptosuite.Signer, pt PresentationRequestT
 	case JWTRequest:
 		jwkSigner, ok := signer.(*cryptosuite.JSONWebKeySigner)
 		if !ok {
-			return nil, fmt.Errorf("signer not valid for request type: %s", pt)
+			err := fmt.Errorf("signer not valid for request type: %s", pt)
+			logrus.WithError(err).Error()
+			return nil, err
 		}
 		return BuildJWTPresentationRequest(*jwkSigner, def, target)
 	default:
-		return nil, fmt.Errorf("presentation request type <%s> is not implemented", pt)
+		err := fmt.Errorf("presentation request type <%s> is not implemented", pt)
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 }
 
@@ -55,18 +60,22 @@ func BuildJWTPresentationRequest(signer cryptosuite.JSONWebKeySigner, def Presen
 // VerifyPresentationRequest finds the correct verifier and parser for a given presentation request type,
 // verifying the signature on the request, and returning the parsed Presentation Definition object.
 func VerifyPresentationRequest(verifier cryptosuite.Verifier, pt PresentationRequestType, request []byte) (*PresentationDefinition, error) {
+	err := fmt.Errorf("cannot verify unsupported presentation request type: %s", pt)
 	if !IsSupportedPresentationRequestType(pt) {
-		return nil, fmt.Errorf("cannot verify unsupported presentation request type: %s", pt)
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 	switch pt {
 	case JWTRequest:
 		jwkVerifier, ok := verifier.(*cryptosuite.JSONWebKeyVerifier)
 		if !ok {
-			return nil, fmt.Errorf("verifier not valid for request type: %s", pt)
+			err := fmt.Errorf("verifier not valid for request type: %s", pt)
+			logrus.WithError(err).Error()
+			return nil, err
 		}
 		return VerifyJWTPresentationRequest(*jwkVerifier, request)
 	default:
-		return nil, fmt.Errorf("cannot verify unsupported presentation request type: %s", pt)
+		return nil, err
 	}
 }
 
@@ -75,19 +84,27 @@ func VerifyPresentationRequest(verifier cryptosuite.Verifier, pt PresentationReq
 func VerifyJWTPresentationRequest(verifier cryptosuite.JSONWebKeyVerifier, request []byte) (*PresentationDefinition, error) {
 	parsed, err := verifier.VerifyAndParseJWT(string(request))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not verify and parse jwt presentation request")
+		err := errors.Wrap(err, "could not verify and parse jwt presentation request")
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 	presDefGeneric, ok := parsed.Get(PresentationDefinitionKey)
 	if !ok {
-		return nil, fmt.Errorf("presentation definition key<%s> not found in token", PresentationDefinitionKey)
+		err := fmt.Errorf("presentation definition key<%s> not found in token", PresentationDefinitionKey)
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 	presDefBytes, err := json.Marshal(presDefGeneric)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal token into bytes for presentation definition")
+		err := errors.Wrap(err, "could not marshal token into bytes for presentation definition")
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 	var def PresentationDefinition
 	if err := json.Unmarshal(presDefBytes, &def); err != nil {
-		return nil, errors.Wrap(err, "could not unmarshal token into presentation definition")
+		err := errors.Wrap(err, "could not unmarshal token into presentation definition")
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 	return &def, nil
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/gobuffalo/packr/v2"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -28,7 +29,11 @@ func IsValidCredentialManifest(manifest CredentialManifest) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get credential manifest schema")
 	}
-	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
+	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+		logrus.WithError(err).Errorf("credential manifest not valid against schema")
+		return err
+	}
+	return nil
 }
 
 // IsValidCredentialApplication validates a given credential application object against its known JSON schema
@@ -41,7 +46,11 @@ func IsValidCredentialApplication(application CredentialApplication) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get credential application schema")
 	}
-	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
+	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+		logrus.WithError(err).Error("credential application not valid against schema")
+		return err
+	}
+	return nil
 }
 
 // IsValidCredentialFulfillment validates a given credential fulfillment object against its known JSON schema
@@ -59,7 +68,11 @@ func IsValidCredentialFulfillment(fulfillment CredentialFulfillment) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get credential fulfillment schema")
 	}
-	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
+	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+		logrus.WithError(err).Error("credential fulfillment not valid against schema")
+		return err
+	}
+	return nil
 }
 
 // AreValidOutputDescriptors validates a set of output descriptor objects against its known JSON schema
@@ -77,7 +90,11 @@ func AreValidOutputDescriptors(descriptors []OutputDescriptor) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get output descriptors schema")
 	}
-	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
+	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+		logrus.WithError(err).Error("output descriptors not valid against schema")
+		return err
+	}
+	return nil
 }
 
 func getKnownSchema(fileName string) (string, error) {

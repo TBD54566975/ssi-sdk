@@ -439,8 +439,8 @@ func TestProcessInputDescriptor(t *testing.T) {
 	})
 }
 
-func TestCanProcessDefinition(t *testing.T) {
-	t.Run("With Submission Requirements", func(t *testing.T) {
+func TestCanProcessDefinition(tt *testing.T) {
+	tt.Run("With Submission Requirements", func(t *testing.T) {
 		def := PresentationDefinition{
 			ID: "submission-requirements",
 			SubmissionRequirements: []SubmissionRequirement{{
@@ -455,7 +455,7 @@ func TestCanProcessDefinition(t *testing.T) {
 		assert.Contains(t, err.Error(), "submission requirements feature not supported")
 	})
 
-	t.Run("With Predicates", func(t *testing.T) {
+	tt.Run("With Predicates", func(tt *testing.T) {
 		def := PresentationDefinition{
 			ID: "with-predicate",
 			InputDescriptors: []InputDescriptor{
@@ -472,11 +472,11 @@ func TestCanProcessDefinition(t *testing.T) {
 			},
 		}
 		err := canProcessDefinition(def)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "predicate feature not supported")
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "predicate feature not supported")
 	})
 
-	t.Run("With Relational Constraint", func(t *testing.T) {
+	tt.Run("With Relational Constraint", func(tt *testing.T) {
 		def := PresentationDefinition{
 			ID: "with-relational-constraint",
 			InputDescriptors: []InputDescriptor{
@@ -492,11 +492,11 @@ func TestCanProcessDefinition(t *testing.T) {
 			},
 		}
 		err := canProcessDefinition(def)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "relational constraint feature not supported")
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "relational constraint feature not supported")
 	})
 
-	t.Run("With Credential Status", func(t *testing.T) {
+	tt.Run("With Credential Status", func(tt *testing.T) {
 		def := PresentationDefinition{
 			ID: "with-credential-status",
 			InputDescriptors: []InputDescriptor{
@@ -515,11 +515,11 @@ func TestCanProcessDefinition(t *testing.T) {
 			},
 		}
 		err := canProcessDefinition(def)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "credential status constraint feature not supported")
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "credential status constraint feature not supported")
 	})
 
-	t.Run("With LD Framing", func(t *testing.T) {
+	tt.Run("With LD Framing", func(t *testing.T) {
 		def := PresentationDefinition{
 			ID:    "with-ld-framing",
 			Frame: "@context",
@@ -531,13 +531,13 @@ func TestCanProcessDefinition(t *testing.T) {
 }
 
 func TestConstructLimitedClaim(t *testing.T) {
-	t.Run("Full Claim With Nesting", func(t *testing.T) {
+	t.Run("Full Claim With Nesting", func(tt *testing.T) {
 		claim := getGenericTestClaim()
 		var limitedDescriptors []limitedInputDescriptor
 
 		typePath := "$.type"
 		typeValue, err := jsonpath.JsonPathLookup(claim, typePath)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
 			Path: typePath,
 			Data: typeValue,
@@ -545,7 +545,7 @@ func TestConstructLimitedClaim(t *testing.T) {
 
 		issuerPath := "$.issuer"
 		issuerValue, err := jsonpath.JsonPathLookup(claim, issuerPath)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
 			Path: issuerPath,
 			Data: issuerValue,
@@ -553,7 +553,7 @@ func TestConstructLimitedClaim(t *testing.T) {
 
 		idPath := "$.credentialSubject.id"
 		idValue, err := jsonpath.JsonPathLookup(claim, idPath)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
 			Path: idPath,
 			Data: idValue,
@@ -561,7 +561,7 @@ func TestConstructLimitedClaim(t *testing.T) {
 
 		namePath := "$.credentialSubject.firstName"
 		nameValue, err := jsonpath.JsonPathLookup(claim, namePath)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
 			Path: namePath,
 			Data: nameValue,
@@ -569,64 +569,63 @@ func TestConstructLimitedClaim(t *testing.T) {
 
 		favoritesPath := "$.credentialSubject.favorites.citiesByState.CA"
 		favoritesValue, err := jsonpath.JsonPathLookup(claim, favoritesPath)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
 			Path: favoritesPath,
 			Data: favoritesValue,
 		})
 
-		result, err := constructLimitedClaim(limitedDescriptors)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, result)
+		result := constructLimitedClaim(limitedDescriptors)
+		assert.NotEmpty(tt, result)
 
 		issuerRes, ok := result["issuer"]
-		assert.True(t, ok)
-		assert.Equal(t, issuerRes, "did:example:123")
+		assert.True(tt, ok)
+		assert.Equal(tt, issuerRes, "did:example:123")
 
 		credSubjRes, ok := result["credentialSubject"]
-		assert.True(t, ok)
+		assert.True(tt, ok)
 
 		id, ok := credSubjRes.(map[string]interface{})["id"]
-		assert.True(t, ok)
-		assert.Contains(t, id, "test-id")
+		assert.True(tt, ok)
+		assert.Contains(tt, id, "test-id")
 
 		favoritesRes, ok := credSubjRes.(map[string]interface{})["favorites"]
-		assert.True(t, ok)
-		assert.NotEmpty(t, favoritesRes)
+		assert.True(tt, ok)
+		assert.NotEmpty(tt, favoritesRes)
 
 		statesRes, ok := favoritesRes.(map[string]interface{})["citiesByState"]
-		assert.True(t, ok)
-		assert.Contains(t, statesRes, "CA")
+		assert.True(tt, ok)
+		assert.Contains(tt, statesRes, "CA")
 
 		citiesRes, ok := statesRes.(map[string]interface{})["CA"]
-		assert.True(t, ok)
-		assert.Contains(t, citiesRes, "Oakland")
+		assert.True(tt, ok)
+		assert.Contains(tt, citiesRes, "Oakland")
 	})
 
-	t.Run("Complex Path Parsing", func(t *testing.T) {
+	t.Run("Complex Path Parsing", func(tt *testing.T) {
 		claim := getGenericTestClaim()
 		var limitedDescriptors []limitedInputDescriptor
 
 		filterPath := "$.credentialSubject.address[?(@.number > 0)]"
 		filterValue, err := jsonpath.JsonPathLookup(claim, filterPath)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
 			Path: filterPath,
 			Data: filterValue,
 		})
 
-		result, err := constructLimitedClaim(limitedDescriptors)
-		assert.NoError(t, err)
+		result := constructLimitedClaim(limitedDescriptors)
+		assert.NotEmpty(tt, result)
 
 		// make sure the result contains a value
 		csValue, ok := result["credentialSubject"]
-		assert.True(t, ok)
-		assert.NotEmpty(t, csValue)
+		assert.True(tt, ok)
+		assert.NotEmpty(tt, csValue)
 
 		addressValue, ok := csValue.(map[string]interface{})["address"]
-		assert.True(t, ok)
-		assert.Contains(t, addressValue, "road street")
-		assert.Contains(t, addressValue, "USA")
+		assert.True(tt, ok)
+		assert.Contains(tt, addressValue, "road street")
+		assert.Contains(tt, addressValue, "USA")
 	})
 }
 

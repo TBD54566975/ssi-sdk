@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"reflect"
 	"regexp"
 	"strings"
@@ -123,25 +124,35 @@ func (pc *PresentationClaim) GetClaimJSON() (map[string]interface{}, error) {
 // https://identity.foundation/presentation-exchange/#presentation-submission
 func BuildPresentationSubmission(signer cryptosuite.Signer, def PresentationDefinition, claims []PresentationClaim, et EmbedTarget) ([]byte, error) {
 	if !IsSupportedEmbedTarget(et) {
-		return nil, fmt.Errorf("unsupported presentation submission embed target type: %s", et)
+		err := fmt.Errorf("unsupported presentation submission embed target type: %s", et)
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 	normalizedClaims := normalizePresentationClaims(claims)
 	if len(normalizedClaims) == 0 {
-		return nil, errors.New("no claims remain after normalization; cannot continue processing")
+		err := errors.New("no claims remain after normalization; cannot continue processing")
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 	switch et {
 	case JWTVPTarget:
 		jwkSigner, ok := signer.(*cryptosuite.JSONWebKeySigner)
 		if !ok {
-			return nil, fmt.Errorf("signer not valid for request type: %s", et)
+			err := fmt.Errorf("signer not valid for request type: %s", et)
+			logrus.WithError(err).Error()
+			return nil, err
 		}
 		vpSubmission, err := BuildPresentationSubmissionVP(def, normalizedClaims)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
+			err := errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
+			logrus.WithError(err).Error()
+			return nil, err
 		}
 		return signing.SignVerifiablePresentationJWT(*jwkSigner, *vpSubmission)
 	default:
-		return nil, fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
+		err := fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 }
 
@@ -173,7 +184,7 @@ func normalizePresentationClaims(claims []PresentationClaim) []normalizedClaim {
 			ae.Append(err)
 		}
 		if ae.Error() != nil {
-			// TODO(gabe) add logging for failed claim processing
+			logrus.WithError(ae.Error()).Error("could not normalize claim")
 			continue
 		}
 		var id string
@@ -225,10 +236,14 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []normaliz
 	for _, id := range def.InputDescriptors {
 		processedInputDescriptor, err := processInputDescriptor(id, claims)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error processing input descriptor: %s", id.ID)
+			err := errors.Wrapf(err, "error processing input descriptor: %s", id.ID)
+			logrus.WithError(err).Error()
+			return nil, err
 		}
 		if processedInputDescriptor == nil {
-			return nil, fmt.Errorf("input descrpitor<%s> could not be fulfilled; could not build a valid presentation submission", id.ID)
+			err := fmt.Errorf("input descrpitor<%s> could not be fulfilled; could not build a valid presentation submission", id.ID)
+			logrus.WithError(err).Error()
+			return nil, err
 		}
 
 		// check if claim already exists. if it has, we won't duplicate the claim
@@ -260,7 +275,9 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []normaliz
 		// on the case we've seen the claim, we need to check as to not add a nil claim value
 		if len(claim.Claim) > 0 {
 			if err := builder.AddVerifiableCredentials(claim.Claim); err != nil {
-				return nil, errors.Wrap(err, "could not add claim value to verifiable presentation")
+				err := errors.Wrap(err, "could not add claim value to verifiable presentation")
+				logrus.WithError(err).Error()
+				return nil, err
 			}
 		}
 	}
@@ -298,11 +315,15 @@ type limitedInputDescriptor struct {
 func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*processedInputDescriptor, error) {
 	constraints := id.Constraints
 	if constraints == nil {
-		return nil, fmt.Errorf("unable to process input descriptor without constraints")
+		err := fmt.Errorf("unable to process input descriptor without constraints")
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 	fields := constraints.Fields
 	if len(fields) == 0 {
-		return nil, fmt.Errorf("unable to process input descriptor without fields: %s", id.ID)
+		err := fmt.Errorf("unable to process input descriptor without fields: %s", id.ID)
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 
 	// bookkeeping to check whether we've fulfilled all required fields, and whether we need to limit disclosure
@@ -316,7 +337,10 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 	// first, reduce the set of claims that conform with the format required by the input descriptor
 	filteredClaims := filterClaimsByFormat(claims, id.Format)
 	if len(filteredClaims) == 0 {
-		return nil, fmt.Errorf("no claims match the required format, and signing alg/proof type requirements for input descriptor: %s", id.ID)
+		err := fmt.Errorf("no claims match the required format, and signing alg/proof type requirements "+
+			"for input descriptor: %s", id.ID)
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 
 	// for the input descriptor to be successfully processed each field needs to yield a result for a given claim,
@@ -346,10 +370,7 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 			// because the `limit_disclosure` property is present, we must merge the limited fields
 			resultClaim := claimValue
 			if limitDisclosure {
-				limitedClaim, err := constructLimitedClaim(limited)
-				if err != nil {
-					return nil, errors.Wrap(err, "could not construct limited claim")
-				}
+				limitedClaim := constructLimitedClaim(limited)
 				resultClaim = limitedClaim
 			}
 			return &processedInputDescriptor{
@@ -360,7 +381,9 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 			}, nil
 		}
 	}
-	return nil, fmt.Errorf("no claims could fulfill the input descriptor: %s", id.ID)
+	err := fmt.Errorf("no claims could fulfill the input descriptor: %s", id.ID)
+	logrus.WithError(err).Error("could not fulfill input descriptor")
+	return nil, err
 }
 
 // filterClaimsByFormat returns a set of claims that comply with a given ClaimFormat according to its
@@ -386,7 +409,7 @@ func filterClaimsByFormat(claims []normalizedClaim, format *ClaimFormat) []norma
 }
 
 // constructLimitedClaim builds a limited disclosure/filtered claim from a set of filtered input descriptors
-func constructLimitedClaim(limitedDescriptors []limitedInputDescriptor) (map[string]interface{}, error) {
+func constructLimitedClaim(limitedDescriptors []limitedInputDescriptor) map[string]interface{} {
 	result := make(map[string]interface{})
 	for _, ld := range limitedDescriptors {
 		curr := result
@@ -420,7 +443,7 @@ func constructLimitedClaim(limitedDescriptors []limitedInputDescriptor) (map[str
 		curr[lastPartName] = ld.Data
 	}
 
-	return result, nil
+	return result
 }
 
 func normalizeJSONPartPath(partPath string) string {
@@ -455,19 +478,23 @@ func processInputDescriptorField(field Field, claimData map[string]interface{}) 
 // check for certain features we may not support yet: submission requirements, predicates, relational constraints,
 // credential status, JSON-LD framing from https://identity.foundation/presentation-exchange/#features
 func canProcessDefinition(def PresentationDefinition) error {
-	submissionRequirementsErr := "submission requirements feature not supported"
+	submissionRequirementsErr := errors.New("submission requirements feature not supported")
 	if len(def.SubmissionRequirements) > 0 {
-		return errors.New(submissionRequirementsErr)
+		logrus.WithError(submissionRequirementsErr).Error("submission requirements present")
+		return submissionRequirementsErr
 	}
 	for _, id := range def.InputDescriptors {
 		if id.Constraints != nil {
 			if len(id.Group) > 0 {
-				return errors.New(submissionRequirementsErr)
+				logrus.WithError(submissionRequirementsErr).Error("input descriptor group present")
+				return submissionRequirementsErr
 			}
 			if len(id.Constraints.Fields) > 0 {
 				for _, field := range id.Constraints.Fields {
 					if field.Predicate != nil || field.Filter != nil {
-						return errors.New("predicate feature not supported")
+						err := errors.New("predicate feature not supported")
+						logrus.WithError(err).Error("predicate and/or filter present")
+						return err
 					}
 				}
 			}
@@ -475,21 +502,27 @@ func canProcessDefinition(def PresentationDefinition) error {
 	}
 	for _, id := range def.InputDescriptors {
 		if hasRelationalConstraint(id.Constraints) {
-			return errors.New("relational constraint feature not supported")
+			err := errors.New("relational constraint feature not supported")
+			logrus.WithError(err).Error()
+			return err
 		}
 	}
 	for _, id := range def.InputDescriptors {
 		if id.Constraints != nil && id.Constraints.Statuses != nil {
-			return errors.New("credential status constraint feature not supported")
+			err := errors.New("credential status constraint feature not supported")
+			logrus.WithError(err).Error()
+			return err
 		}
 	}
 	if def.Frame != nil {
-		return errors.New("JSON-LD framing feature not supported")
+		err := errors.New("JSON-LD framing feature not supported")
+		logrus.WithError(err).Error()
+		return err
 	}
 	return nil
 }
 
-// hasRelationalConstraint checks a constraints property for relational constraint field values
+// hasRelationalConstraint checks a constraint property for relational constraint field values
 func hasRelationalConstraint(constraints *Constraints) bool {
 	if constraints == nil {
 		return false

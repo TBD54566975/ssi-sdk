@@ -12,6 +12,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -242,12 +243,15 @@ func GenerateX25519JSONWebKey2020() (*JSONWebKey2020, error) {
 func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateSecp256k1Key()
 	if err != nil {
+		logrus.WithError(err).Error("could not generate secp256k1 key")
 		return nil, err
 	}
 	ecdsaPrivKey := privKey.ToECDSA()
 	secp256k1JWK := jwk.NewECDSAPrivateKey()
 	if err := secp256k1JWK.FromRaw(ecdsaPrivKey); err != nil {
-		return nil, errors.Wrap(err, "failed to generate secp256k1 jwk")
+		err := errors.Wrap(err, "failed to generate secp256k1 jwk")
+		logrus.WithError(err).Error("could not extract key from raw private key")
+		return nil, err
 	}
 	kty := secp256k1JWK.KeyType().String()
 	crv := secp256k1JWK.Crv().String()
@@ -276,11 +280,14 @@ func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
 func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateP256Key()
 	if err != nil {
+		logrus.WithError(err).Error("could not generate p-256 key")
 		return nil, err
 	}
 	p256JWK := jwk.NewECDSAPrivateKey()
 	if err := p256JWK.FromRaw(&privKey); err != nil {
-		return nil, errors.Wrap(err, "failed to generate p-256 jwk")
+		err := errors.Wrap(err, "failed to generate p-256 jwk")
+		logrus.WithError(err).Error("could not extract key from raw private key")
+		return nil, err
 	}
 	kty := p256JWK.KeyType().String()
 	crv := p256JWK.Crv().String()
@@ -309,11 +316,14 @@ func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
 func GenerateP384JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateP384Key()
 	if err != nil {
+		logrus.WithError(err).Error("could not generate p-384 key")
 		return nil, err
 	}
 	p384JWK := jwk.NewECDSAPrivateKey()
 	if err := p384JWK.FromRaw(&privKey); err != nil {
-		return nil, errors.Wrap(err, "failed to generate p-384 jwk")
+		err := errors.Wrap(err, "failed to generate p-384 jwk")
+		logrus.WithError(err).Error("could not extract key from raw private key")
+		return nil, err
 	}
 	kty := p384JWK.KeyType().String()
 	crv := p384JWK.Crv().String()
@@ -429,6 +439,9 @@ type JSONWebKeyVerifier struct {
 // and an error should it fail.
 func (v *JSONWebKeyVerifier) Verify(message, signature []byte) error {
 	_, err := jws.Verify(signature, v.SignatureAlgorithm, v.Key, jws.VerifyOption(jws.WithDetachedPayload(message)))
+	if err != nil {
+		logrus.WithError(err).Error("could not verify JWK")
+	}
 	return err
 }
 

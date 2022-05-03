@@ -5,6 +5,7 @@ import (
 	"github.com/gobuffalo/packr/v2"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -32,7 +33,11 @@ func IsValidPresentationDefinition(definition PresentationDefinition) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation definition schema")
 	}
-	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
+	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+		logrus.WithError(err).Error("presentation definition not valid against schema")
+		return err
+	}
+	return nil
 }
 
 // IsValidFormatDeclaration validates a given claim format object against its known JSON schema
@@ -45,7 +50,11 @@ func IsValidFormatDeclaration(format ClaimFormat) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get claim format schema")
 	}
-	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
+	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+		logrus.WithError(err).Error("format declaration not valid against schema")
+		return err
+	}
+	return nil
 }
 
 // AreValidSubmissionRequirements validates a set of submission requirement objects against its known JSON schema
@@ -63,7 +72,11 @@ func AreValidSubmissionRequirements(requirements []SubmissionRequirement) error 
 	if err != nil {
 		return errors.Wrap(err, "could not get submission requirements schema")
 	}
-	return schema.IsJSONValidAgainstSchema(string(jsonBytes), s)
+	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+		logrus.WithError(err).Error("submission requirements not valid against schema")
+		return err
+	}
+	return nil
 }
 
 func getKnownSchema(fileName string) (string, error) {
