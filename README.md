@@ -24,7 +24,7 @@ The SDK has not undergone any formal security review or audit, so please use wit
 # Contributing
 
 This project is fully open source, and we welcome contributions! For more information please see
-[CONTRIBUTING](CONTRIBUTING.md). Our current thinking about the development of the library is captured in
+[CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md). Our current thinking about the development of the library is captured in
 [GitHub Issues](https://github.com/TBD54566975/ssi-sdk/issues).
 
 # Specifications
@@ -62,7 +62,7 @@ change as the library evolves.
 
 # Building
 
-This project uses [mage](https://magefile.org/), please view [CONTRIBUTING](CONTRIBUTING.md) for more information.
+This project uses [mage](https://magefile.org/), please view [CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md) for more information.
 
 After installing mage, you can build and test the SDK with the following commands:
 ```
@@ -80,8 +80,8 @@ mage cbt
 
 | Resource                              | Description                                                                   |
 |---------------------------------------|-------------------------------------------------------------------------------|
-| [CODEOWNERS](CODEOWNERS)              | Outlines the project lead(s)                                                  |
-| [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) | Expected behavior for project contributors, promoting a welcoming environment |
-| [CONTRIBUTING](CONTRIBUTING.md)       | Developer guide to build, test, run, access CI, chat, discuss, file issues    |
-| [GOVERNANCE](GOVERNANCE.md)           | Project governance                                                            |
-| [LICENSE](LICENSE)                    | Apache License, Version 2.0                                                   |
+| [CODEOWNERS](https://github.com/TBD54566975/ssi-sdk/blob/main/CODEOWNERS)              | Outlines the project lead(s)                                                  |
+| [CODE_OF_CONDUCT](https://github.com/TBD54566975/ssi-sdk/blob/main/CODE_OF_CONDUCT.md) | Expected behavior for project contributors, promoting a welcoming environment |
+| [CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md)       | Developer guide to build, test, run, access CI, chat, discuss, file issues    |
+| [GOVERNANCE](https://github.com/TBD54566975/ssi-sdk/blob/main/GOVERNANCE.md)           | Project governance                                                            |
+| [LICENSE](https://github.com/TBD54566975/ssi-sdk/blob/main/LICENSE)                    | Apache License, Version 2.0                                                   |
