@@ -176,7 +176,7 @@ func SignVerifiablePresentationJWT(signer cryptosuite.JSONWebKeySigner, pres cre
 		return nil, errors.Wrap(err, "could not set vp value")
 	}
 
-	if err := t.Set(NonceProperty, uuid.New().String()); err != nil {
+	if err := t.Set(NonceProperty, uuid.NewString()); err != nil {
 		return nil, errors.Wrap(err, "could not set nonce value")
 	}
 

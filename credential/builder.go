@@ -36,7 +36,7 @@ func NewVerifiableCredentialBuilder() VerifiableCredentialBuilder {
 		contexts: contexts,
 		types:    types,
 		VerifiableCredential: &VerifiableCredential{
-			ID:           uuid.New().String(),
+			ID:           uuid.NewString(),
 			Context:      contexts,
 			Type:         types,
 			IssuanceDate: util.GetRFC3339Timestamp(),
@@ -252,7 +252,7 @@ func NewVerifiablePresentationBuilder() VerifiablePresentationBuilder {
 		contexts: contexts,
 		types:    types,
 		VerifiablePresentation: &VerifiablePresentation{
-			ID:      uuid.New().String(),
+			ID:      uuid.NewString(),
 			Context: contexts,
 			Type:    types,
 		},

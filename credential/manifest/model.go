@@ -28,12 +28,18 @@ func (cm *CredentialManifest) IsValid() error {
 	if cm.IsEmpty() {
 		return errors.New("manifest is empty")
 	}
+
+	// validate against json schema
 	if err := IsValidCredentialManifest(*cm); err != nil {
 		return errors.Wrap(err, "manifest failed json schema validation")
 	}
+
+	// validate against json schema
 	if err := AreValidOutputDescriptors(cm.OutputDescriptors); err != nil {
 		return errors.Wrap(err, "manifest's output descriptors failed json schema validation")
 	}
+
+	// validate against struct tags
 	return util.NewValidator().Struct(cm)
 }
 
