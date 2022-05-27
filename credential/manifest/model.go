@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
+	"github.com/TBD54566975/ssi-sdk/credential/rendering"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/pkg/errors"
 	"reflect"
@@ -41,8 +42,7 @@ type Issuer struct {
 	Name string `json:"name,omitempty"`
 	// an object or URI as defined by the DIF Entity Styles specification
 	// https://identity.foundation/wallet-rendering/#entity-styles
-	// TODO(gabe) https://github.com/TBD54566975/ssi-sdk/issues/52
-	Styles interface{} `json:"styles,omitempty"`
+	Styles *rendering.EntityStyleDescriptor `json:"styles,omitempty"`
 }
 
 // OutputDescriptor https://identity.foundation/credential-manifest/#output-descriptor
@@ -53,10 +53,8 @@ type OutputDescriptor struct {
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 	// both below: an object or URI as defined by the DIF Entity Styles specification
-	// https://identity.foundation/wallet-rendering/#entity-styles
-	// TODO(gabe) https://github.com/TBD54566975/ssi-sdk/issues/52
-	Styles  interface{} `json:"styles,omitempty"`
-	Display interface{} `json:"display,omitempty"`
+	Display *rendering.DataDisplay           `json:"display,omitempty"`
+	Styles  *rendering.EntityStyleDescriptor `json:"styles,omitempty"`
 }
 
 func (od *OutputDescriptor) IsEmpty() bool {
