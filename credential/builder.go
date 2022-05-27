@@ -52,7 +52,7 @@ func (vcb *VerifiableCredentialBuilder) Build() (*VerifiableCredential, error) {
 	}
 
 	if err := vcb.VerifiableCredential.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "credential not ready to be built")
+		return nil, util.LoggingErrorMsg(err, "credential not ready to be built")
 	}
 
 	return vcb.VerifiableCredential, nil
