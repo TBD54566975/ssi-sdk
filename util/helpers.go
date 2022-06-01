@@ -24,6 +24,13 @@ func NewValidator() *validator.Validate {
 	return validator.New()
 }
 
+func IsValidStruct(data interface{}) error {
+	if t := reflect.TypeOf(data).Kind(); t != reflect.Struct {
+		return fmt.Errorf("provided data is not of Kind struct: %+v", data)
+	}
+	return NewValidator().Struct(data)
+}
+
 func NewLDProcessor() LDProcessor {
 	// JSON LD processing
 	proc := ld.NewJsonLdProcessor()

@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
+	"github.com/TBD54566975/ssi-sdk/credential/rendering"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/pkg/errors"
 	"reflect"
@@ -27,12 +28,18 @@ func (cm *CredentialManifest) IsValid() error {
 	if cm.IsEmpty() {
 		return errors.New("manifest is empty")
 	}
+
+	// validate against json schema
 	if err := IsValidCredentialManifest(*cm); err != nil {
 		return errors.Wrap(err, "manifest failed json schema validation")
 	}
+
+	// validate against json schema
 	if err := AreValidOutputDescriptors(cm.OutputDescriptors); err != nil {
 		return errors.Wrap(err, "manifest's output descriptors failed json schema validation")
 	}
+
+	// validate against struct tags
 	return util.NewValidator().Struct(cm)
 }
 
@@ -41,8 +48,7 @@ type Issuer struct {
 	Name string `json:"name,omitempty"`
 	// an object or URI as defined by the DIF Entity Styles specification
 	// https://identity.foundation/wallet-rendering/#entity-styles
-	// TODO(gabe) https://github.com/TBD54566975/ssi-sdk/issues/52
-	Styles interface{} `json:"styles,omitempty"`
+	Styles *rendering.EntityStyleDescriptor `json:"styles,omitempty"`
 }
 
 // OutputDescriptor https://identity.foundation/credential-manifest/#output-descriptor
@@ -53,10 +59,8 @@ type OutputDescriptor struct {
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 	// both below: an object or URI as defined by the DIF Entity Styles specification
-	// https://identity.foundation/wallet-rendering/#entity-styles
-	// TODO(gabe) https://github.com/TBD54566975/ssi-sdk/issues/52
-	Styles  interface{} `json:"styles,omitempty"`
-	Display interface{} `json:"display,omitempty"`
+	Display *rendering.DataDisplay           `json:"display,omitempty"`
+	Styles  *rendering.EntityStyleDescriptor `json:"styles,omitempty"`
 }
 
 func (od *OutputDescriptor) IsEmpty() bool {

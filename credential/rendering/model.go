@@ -35,10 +35,10 @@ type ColorResource struct {
 
 // DataDisplay https://identity.foundation/wallet-rendering/#data-display
 type DataDisplay struct {
-	Title       *DisplayMappingObject        `json:"title,omitempty"`
-	Subtitle    *DisplayMappingObject        `json:"subtitle,omitempty"`
-	Description *DisplayMappingObject        `json:"description,omitempty"`
-	Properties  *LabeledDisplayMappingObject `json:"properties,omitempty"`
+	Title       *DisplayMappingObject         `json:"title,omitempty"`
+	Subtitle    *DisplayMappingObject         `json:"subtitle,omitempty"`
+	Description *DisplayMappingObject         `json:"description,omitempty"`
+	Properties  []LabeledDisplayMappingObject `json:"properties,omitempty"`
 }
 
 // DisplayMappingObject https://identity.foundation/wallet-rendering/#display-mapping-object

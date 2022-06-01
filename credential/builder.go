@@ -36,7 +36,7 @@ func NewVerifiableCredentialBuilder() VerifiableCredentialBuilder {
 		contexts: contexts,
 		types:    types,
 		VerifiableCredential: &VerifiableCredential{
-			ID:           uuid.New().String(),
+			ID:           uuid.NewString(),
 			Context:      contexts,
 			Type:         types,
 			IssuanceDate: util.GetRFC3339Timestamp(),
@@ -52,7 +52,7 @@ func (vcb *VerifiableCredentialBuilder) Build() (*VerifiableCredential, error) {
 	}
 
 	if err := vcb.VerifiableCredential.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "credential not ready to be built")
+		return nil, util.LoggingErrorMsg(err, "credential not ready to be built")
 	}
 
 	return vcb.VerifiableCredential, nil
@@ -252,7 +252,7 @@ func NewVerifiablePresentationBuilder() VerifiablePresentationBuilder {
 		contexts: contexts,
 		types:    types,
 		VerifiablePresentation: &VerifiablePresentation{
-			ID:      uuid.New().String(),
+			ID:      uuid.NewString(),
 			Context: contexts,
 			Type:    types,
 		},
@@ -340,6 +340,9 @@ func (vpb *VerifiablePresentationBuilder) SetPresentationSubmission(ps interface
 func (vpb *VerifiablePresentationBuilder) AddVerifiableCredentials(creds ...interface{}) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
+	}
+	if creds == nil {
+		return errors.New("cannot set no verifiable credentials")
 	}
 	vpb.VerifiableCredential = append(vpb.VerifiableCredential, creds...)
 	return nil

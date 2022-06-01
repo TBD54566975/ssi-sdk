@@ -224,7 +224,7 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []normaliz
 	}
 
 	submission := PresentationSubmission{
-		ID:           uuid.New().String(),
+		ID:           uuid.NewString(),
 		DefinitionID: def.ID,
 	}
 

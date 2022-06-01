@@ -360,7 +360,7 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 func (j JWSSignatureSuite) createProof(verificationMethod string, purpose ProofPurpose) JsonWebSignature2020Proof {
 	var challenge string
 	if purpose == Authentication {
-		challenge = uuid.New().String()
+		challenge = uuid.NewString()
 	}
 	return JsonWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
