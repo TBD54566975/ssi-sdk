@@ -44,6 +44,10 @@ func (f JWTFormat) Ptr() *JWTFormat {
 	return &f
 }
 
+type PresentationDefinitionEnvelope struct {
+	PresentationDefinition `json:"presentation_definition"`
+}
+
 // PresentationDefinition https://identity.foundation/presentation-exchange/#presentation-definition
 type PresentationDefinition struct {
 	ID                     string                  `json:"id,omitempty" validate:"required"`
@@ -79,7 +83,7 @@ func (pd *PresentationDefinition) IsValid() error {
 		}
 	}
 	if pd.Format != nil {
-		if err := IsValidFormatDeclaration(*pd.Format); err != nil {
+		if err := pd.Format.IsValid(); err != nil {
 			return errors.Wrap(err, "presentation definition's claim format failed json schema validation")
 		}
 	}
@@ -103,9 +107,26 @@ type ClaimFormat struct {
 	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty,dive"`
 }
 
+func (cf *ClaimFormat) IsEmpty() bool {
+	if cf == nil {
+		return true
+	}
+	return reflect.DeepEqual(cf, &ClaimFormat{})
+}
+
+func (cf *ClaimFormat) IsValid() error {
+	if cf.IsEmpty() {
+		return errors.New("claim format is empty")
+	}
+	if err := IsValidFormatDeclaration(*cf); err != nil {
+		return errors.Wrap(err, "claim format not valid against schema")
+	}
+	return util.NewValidator().Struct(cf)
+}
+
 // FormatValues return the string value of the associated claim format types
 // NOTE: does not do error checking of any type.
-func (cf ClaimFormat) FormatValues() []string {
+func (cf *ClaimFormat) FormatValues() []string {
 	var res []string
 	if cf.JWT != nil {
 		res = append(res, string(JWT))
@@ -130,7 +151,7 @@ func (cf ClaimFormat) FormatValues() []string {
 
 // AlgOrProofTypePerFormat for a given format, return the supported alg or proof types. A nil response indicates
 // that the format is not supported.
-func (cf ClaimFormat) AlgOrProofTypePerFormat(format string) []string {
+func (cf *ClaimFormat) AlgOrProofTypePerFormat(format string) []string {
 	var res []string
 	if cf.JWT != nil {
 		for _, a := range cf.JWT.Alg {
@@ -192,7 +213,7 @@ func (id *InputDescriptor) IsValid() error {
 		return errors.New("input descriptor is empty")
 	}
 	if id.Format != nil {
-		if err := IsValidFormatDeclaration(*id.Format); err != nil {
+		if err := id.Format.IsValid(); err != nil {
 			return errors.Wrap(err, "input descriptor's claim format failed json schema validation")
 		}
 	}
@@ -283,6 +304,12 @@ func (sr *SubmissionRequirement) IsEmpty() bool {
 }
 
 func (sr *SubmissionRequirement) IsValid() error {
+	if sr.IsEmpty() {
+		return errors.New("submission requirement is empty and not valid")
+	}
+	if err := IsValidSubmissionRequirement(*sr); err != nil {
+		return errors.Wrap(err, "submission requirement not valid against JSON schema")
+	}
 	return util.NewValidator().Struct(sr)
 }
 
@@ -306,6 +333,12 @@ func (ps *PresentationSubmission) IsEmpty() bool {
 }
 
 func (ps *PresentationSubmission) IsValid() error {
+	if ps.IsEmpty() {
+		return errors.New("presentation is empty and not valid")
+	}
+	if err := IsValidPresentationSubmission(*ps); err != nil {
+		return errors.Wrap(err, "presentation submission not valid against JSON schema")
+	}
 	return util.NewValidator().Struct(ps)
 }
 

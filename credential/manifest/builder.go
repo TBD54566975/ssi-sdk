@@ -61,6 +61,10 @@ func (cmb *CredentialManifestBuilder) SetOutputDescriptors(descriptors []OutputD
 		return errors.New(BuilderEmptyError)
 	}
 
+	if len(descriptors) == 0 {
+		return errors.New("cannot set no output descriptors")
+	}
+
 	// validate all descriptors, fail if >= 1 is invalid
 	for _, descriptor := range descriptors {
 		if err := util.IsValidStruct(descriptor); err != nil {
@@ -77,6 +81,10 @@ func (cmb *CredentialManifestBuilder) SetClaimFormat(format exchange.ClaimFormat
 		return errors.New(BuilderEmptyError)
 	}
 
+	if len(format.FormatValues()) == 0 {
+		return errors.New("cannot set claim format with no values")
+	}
+
 	if err := util.IsValidStruct(format); err != nil {
 		return errors.Wrapf(err, "cannot set invalid claim format: %+v", format)
 	}
@@ -90,6 +98,10 @@ func (cmb *CredentialManifestBuilder) SetPresentationDefinition(definition excha
 		return errors.New(BuilderEmptyError)
 	}
 
+	if definition.IsEmpty() {
+		return errors.New("cannot set empty presentation definition")
+	}
+	
 	if err := util.IsValidStruct(definition); err != nil {
 		return errors.Wrapf(err, "cannot set invalid presentatino definition: %+v", definition)
 	}
@@ -209,6 +221,10 @@ func (cfb *CredentialFulfillmentBuilder) SetManifestID(manifestID string) error 
 func (cfb *CredentialFulfillmentBuilder) SetDescriptorMap(descriptors []exchange.SubmissionDescriptor) error {
 	if cfb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
+	}
+
+	if len(descriptors) == 0 {
+		return errors.New("cannot set no submission descriptors")
 	}
 
 	// validate all descriptors, fail if >= 1 is invalid

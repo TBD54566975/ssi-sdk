@@ -341,6 +341,9 @@ func (vpb *VerifiablePresentationBuilder) AddVerifiableCredentials(creds ...inte
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
+	if creds == nil {
+		return errors.New("cannot set no verifiable credentials")
+	}
 	vpb.VerifiableCredential = append(vpb.VerifiableCredential, creds...)
 	return nil
 }
