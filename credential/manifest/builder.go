@@ -1,11 +1,13 @@
 package manifest
 
 import (
-	"github.com/TBD54566975/ssi-sdk/credential/exchange"
-	"github.com/TBD54566975/ssi-sdk/util"
+	"reflect"
+
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"reflect"
+
+	"github.com/TBD54566975/ssi-sdk/credential/exchange"
+	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 const (
@@ -101,7 +103,7 @@ func (cmb *CredentialManifestBuilder) SetPresentationDefinition(definition excha
 	if definition.IsEmpty() {
 		return errors.New("cannot set empty presentation definition")
 	}
-	
+
 	if err := util.IsValidStruct(definition); err != nil {
 		return errors.Wrapf(err, "cannot set invalid presentatino definition: %+v", definition)
 	}
@@ -155,6 +157,10 @@ func (cab *CredentialApplicationBuilder) SetApplicationManifestID(manifestID str
 func (cab *CredentialApplicationBuilder) SetApplicationClaimFormat(format exchange.ClaimFormat) error {
 	if cab.IsEmpty() {
 		return errors.New(BuilderEmptyError)
+	}
+
+	if len(format.FormatValues()) == 0 {
+		return errors.New("cannot set claim format with no values")
 	}
 
 	if err := util.IsValidStruct(format); err != nil {

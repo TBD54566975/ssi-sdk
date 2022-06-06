@@ -1,10 +1,12 @@
 package manifest
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestCredentialManifestBuilder(t *testing.T) {
@@ -102,9 +104,90 @@ func TestCredentialManifestBuilder(t *testing.T) {
 }
 
 func TestCredentialApplicationBuilder(t *testing.T) {
+	builder := NewCredentialApplicationBuilder()
+	_, err := builder.Build()
+	assert.Error(t, err)
+	notReadyErr := "credential application not ready to be built"
+	assert.Contains(t, err.Error(), notReadyErr)
 
+	assert.False(t, builder.IsEmpty())
+
+	err = builder.SetApplicationManifestID("manifest-id")
+	assert.NoError(t, err)
+
+	// set bad claim format
+	err = builder.SetApplicationClaimFormat(exchange.ClaimFormat{})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot set claim format with no values")
+
+	// set good claim format
+	err = builder.SetApplicationClaimFormat(exchange.ClaimFormat{
+		JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+	})
+	assert.NoError(t, err)
+
+	// set bad submission
+	err = builder.SetPresentationSubmission(exchange.PresentationSubmission{})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot set invalid presentation submission")
+
+	// set good submission
+	err = builder.SetPresentationSubmission(exchange.PresentationSubmission{
+		ID:           "submission-id",
+		DefinitionID: "definition-id",
+		DescriptorMap: []exchange.SubmissionDescriptor{
+			{
+				ID:     "descriptor-id",
+				Format: "jwt",
+				Path:   "descriptor-path",
+			},
+		},
+	})
+	assert.NoError(t, err)
+
+	application, err := builder.Build()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, application)
 }
 
 func TestCredentialFulfillmentBuilder(t *testing.T) {
+	builder := NewCredentialFulfillmentBuilder()
+	_, err := builder.Build()
+	assert.Error(t, err)
+	notReadyErr := "credential fulfillment not ready to be built"
+	assert.Contains(t, err.Error(), notReadyErr)
 
+	assert.False(t, builder.IsEmpty())
+
+	err = builder.SetManifestID("manifest-id")
+	assert.NoError(t, err)
+
+	// bad map
+	err = builder.SetDescriptorMap(nil)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot set no submission descriptors")
+
+	// another bad map
+	err = builder.SetDescriptorMap([]exchange.SubmissionDescriptor{
+		{
+			ID:   "bad",
+			Path: "bad",
+		},
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot set descriptor map; invalid descriptor")
+
+	// good map
+	err = builder.SetDescriptorMap([]exchange.SubmissionDescriptor{
+		{
+			ID:     "descriptor-id",
+			Format: "jwt",
+			Path:   "path",
+		},
+	})
+	assert.NoError(t, err)
+
+	fulfillment, err := builder.Build()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, fulfillment)
 }
