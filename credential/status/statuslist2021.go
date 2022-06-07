@@ -1,5 +1,9 @@
 package status
 
+import (
+	"github.com/TBD54566975/ssi-sdk/credential"
+)
+
 type StatusPurpose string
 
 const (
@@ -26,4 +30,16 @@ type StatusList2021Credential struct {
 	Type          string        `json:"type"`
 	StatusPurpose StatusPurpose `json:"statusPurpose"`
 	EncodedList   string        `json:"encodedList"`
+}
+
+// GenerateStatusList2021Credential generates a status list credential given an ID (the URI where this entity will
+// be hosted), the purpose of the list, and a set of credentials to include in the list.
+// https://w3c-ccg.github.io/vc-status-list-2021/#generate-algorithm
+func GenerateStatusList2021Credential(id string, purpose StatusPurpose, credentials []credential.VerifiableCredential) (*credential.VerifiableCredential, error) {
+	rlc := StatusList2021Credential{
+		ID:            id,
+		Type:          StatusList2021Type,
+		StatusPurpose: purpose,
+	}
+	return nil, nil
 }

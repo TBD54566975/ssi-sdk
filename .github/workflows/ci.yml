@@ -15,18 +15,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.17
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.17
 
-    - name: Install mage
-      run: go install github.com/magefile/mage
+      - name: Install mage
+        run: go install github.com/magefile/mage
 
-    - name: Build
-      run: mage build
+      - name: Build
+        run: mage build
 
-    - name: Test
-      run: mage test
+      - name: Test
+        run: mage test

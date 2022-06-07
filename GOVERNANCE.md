@@ -18,19 +18,23 @@ Anyone may be a contributor to TBD projects. Contribution may take the form of:
 * Suggesting documentation improvements
 * ...and more!
 
-Anyone with a GitHub account may use the project issue trackers and communications channels. We welcome newcomers, so don't hesitate to say hi!
+Anyone with a GitHub account may use the project issue trackers and communications channels. We welcome newcomers, so
+don't hesitate to say hi!
 
 ## Maintainers
 
-Maintainers have write access to GitHub repositories and act as project administrators. They approve and merge pull requests, cut releases, and guide collaboration with the community. They have:
+Maintainers have write access to GitHub repositories and act as project administrators. They approve and merge pull
+requests, cut releases, and guide collaboration with the community. They have:
 
 * Commit access to their project's repositories
 * Write access to continuous integration (CI) jobs
 
-Both maintainers and non-maintainers may propose changes to 
-source code. The mechanism to propose such a change is a GitHub pull request. Maintainers review and merge (_land_) pull requests.
+Both maintainers and non-maintainers may propose changes to
+source code. The mechanism to propose such a change is a GitHub pull request. Maintainers review and merge (_land_) pull
+requests.
 
-If a maintainer opposes a proposed change, then the change cannot land. The exception is if the Governance Committee (GC) votes to approve the change despite the opposition. Usually, involving the GC is unnecessary.
+If a maintainer opposes a proposed change, then the change cannot land. The exception is if the Governance Committee (
+GC) votes to approve the change despite the opposition. Usually, involving the GC is unnecessary.
 
 See:
 
@@ -64,4 +68,7 @@ The current GC members are:
 * Andrew Lee Rubinger, Head of Open Source, TBD
 * Max Sills, Counsel for Intellectual Property, Block
 
-Members are not to be contacted individually. The GC may be reached through `tbd-open-source-governance@squareup.com` and is an available resource in mediation or for sensitive cases beyond the scope of project maintainers. It operates as a "Self-appointing council or board" as defined by Red Hat: [Open Source Governance Models](https://www.redhat.com/en/blog/understanding-open-source-governance-models).
+Members are not to be contacted individually. The GC may be reached through `tbd-open-source-governance@squareup.com`
+and is an available resource in mediation or for sensitive cases beyond the scope of project maintainers. It operates as
+a "Self-appointing council or board" as defined by Red
+Hat: [Open Source Governance Models](https://www.redhat.com/en/blog/understanding-open-source-governance-models).

@@ -3,8 +3,9 @@ package did
 import (
 	gocrypto "crypto"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/lestrrat-go/jwx/jwk"
 

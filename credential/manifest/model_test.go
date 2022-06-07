@@ -1,10 +1,11 @@
 package manifest
 
 import (
+	"testing"
+
 	"github.com/gobuffalo/packr/v2"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 const (

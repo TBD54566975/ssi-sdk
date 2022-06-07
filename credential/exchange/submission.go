@@ -2,18 +2,20 @@ package exchange
 
 import (
 	"fmt"
-	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
-	"github.com/TBD54566975/ssi-sdk/util"
+	"reflect"
+	"regexp"
+	"strings"
+
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"reflect"
-	"regexp"
-	"strings"
+
+	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/credential/signing"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 // EmbedTarget describes where a presentation_submission is located in an object model
@@ -24,8 +26,8 @@ const (
 	// JWTVPTarget is an embed target where a presentation submission is represented alongside a Verifiable Presentation
 	// in a JWT value. `presentation_submission` is a top-level claim alongside `vc` for the VP
 	JWTVPTarget EmbedTarget = "jwt_vp"
-	//JWTTarget   EmbedTarget = "jwt"
-	//LDPVPTarget EmbedTarget = "ldp_vp"
+	// JWTTarget   EmbedTarget = "jwt"
+	// LDPVPTarget EmbedTarget = "ldp_vp"
 
 	PresentationSubmissionContext string = "https://identity.foundation/presentation-exchange/submission/v1"
 	PresentationSubmissionType    string = "PresentationSubmission"

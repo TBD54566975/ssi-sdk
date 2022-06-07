@@ -3,10 +3,12 @@
 package signing
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
-	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestVerifiableCredentialJWT(t *testing.T) {
