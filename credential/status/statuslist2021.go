@@ -104,27 +104,48 @@ func GenerateStatusList2021Credential(id string, issuer string, purpose StatusPu
 // prepareCredentialsForStatusList does two things
 // 1. validates that all credentials are using the StatusList2021 in the credentialStatus property
 // 2. assembles a list of `statusListIndex` values for the bitstring generation algorithm
+// NOTE: this process does not fail fast, and enumerates all failed credential values
 func prepareCredentialsForStatusList(credentials []credential.VerifiableCredential) ([]string, error) {
-	// track non-compliant creds for a nice error message
-	var failedValues []string
 	var statusListIndices []string
+
+	// make sure there are no duplicate index values
+	duplicateCheck := make(map[string]bool)
+	var errorResults []string
+
 	for _, cred := range credentials {
 		entry, ok := cred.CredentialStatus.(StatusList2021Entry)
 		if !ok {
-			failedValues = append(failedValues, cred.ID)
+			errorResults = append(errorResults, fmt.Sprintf("credential<%s> not using the StatusList2021 credentialStatus property", cred.ID))
 		} else {
-			statusListIndices = append(statusListIndices, entry.StatusListIndex)
+			// if a duplicate is found, we have an error
+			if _, ok := duplicateCheck[entry.StatusListIndex]; ok {
+				errorResults = append(errorResults, fmt.Sprintf("credential<%s> has a duplicate status list index value", cred.ID))
+			}
+			duplicateCheck[entry.StatusListIndex] = true
+
+			// if we have an error, no need to build this list
+			if len(errorResults) == 0 {
+				statusListIndices = append(statusListIndices, entry.StatusListIndex)
+			}
 		}
 	}
-	numFailed := len(failedValues)
+
+	numFailed := len(errorResults)
 	if numFailed > 0 {
-		return nil, fmt.Errorf("%d credential(s) are not using the StatusList2021 credentialStatus property: %s", numFailed, strings.Join(failedValues, ","))
+		return nil, fmt.Errorf("%d credential(s) were in error: %s", numFailed, strings.Join(errorResults, ","))
 	}
 	return statusListIndices, nil
 }
 
 // https://w3c-ccg.github.io/vc-status-list-2021/#bitstring-generation-algorithm
 func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
+	if len(statusListCredentialIndices) == 0 {
+		return "", errors.New("cannot create a status list bitstring with no credential indices")
+	}
+
+	// check to see there are no duplicate index values
+	duplicateCheck := make(map[uint]bool)
+
 	// 1. Let bitstring be a list of bits with a minimum size of 16KB, where each bit is initialized to 0 (zero).
 	b := bitset.New(16 * KB)
 
@@ -135,7 +156,12 @@ func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
 		if indexInt < 0 || err != nil {
 			return "", fmt.Errorf("invalid status list index value, not a valid positive integer: %s", index)
 		}
-		b.Set(uint(indexInt))
+		indexValue := uint(indexInt)
+		if _, ok := duplicateCheck[indexValue]; ok {
+			return "", fmt.Errorf("duplicate status list index value found: %d", indexValue)
+		}
+		duplicateCheck[indexValue] = true
+		b.Set(indexValue)
 	}
 	bitstring := b.String()
 
@@ -143,10 +169,14 @@ func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
 	// base64-encoding [RFC4648] the result.
 	var buf bytes.Buffer
 	zw := gzip.NewWriter(&buf)
-	defer zw.Close()
 	if _, err := zw.Write([]byte(bitstring)); err != nil {
 		return "", errors.New("could not compress status list bitstring using GZIP")
 	}
+
+	if err := zw.Close(); err != nil {
+		return "", errors.Wrap(err, "could not close gzip writer")
+	}
+
 	base64Bitstring := base64.StdEncoding.EncodeToString(buf.Bytes())
 
 	// 4. Return the compressed bitstring.
@@ -164,8 +194,8 @@ func bitstringExpansion(compressedBitstring string) (string, error) {
 		return "", errors.Wrap(err, "could not decode compressed bitstring")
 	}
 
-	zr, err := gzip.NewReader(bytes.NewReader(decoded))
-	defer zr.Close()
+	bitstringReader := bytes.NewReader(decoded)
+	zr, err := gzip.NewReader(bitstringReader)
 	if err != nil {
 		return "", errors.Wrap(err, "could not unzip status list bitstring using GZIP")
 	}
@@ -174,5 +204,10 @@ func bitstringExpansion(compressedBitstring string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "could not expand status list bitstring using GZIP")
 	}
+
+	if err := zr.Close(); err != nil {
+		return "", errors.Wrap(err, "could not close gzip reader")
+	}
+
 	return string(unzipped), nil
 }
