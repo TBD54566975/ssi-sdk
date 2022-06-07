@@ -1,6 +1,7 @@
 package status
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,15 +10,18 @@ import (
 func TestBitstringGeneration(t *testing.T) {
 	t.Run("happy path", func(tt *testing.T) {
 		credIndices := []string{"123", "112", "440185", "52058", "9999"}
-		bitString, err := bitstringGeneration(credIndices)
+		compressedBitstring, err := bitstringGeneration(credIndices)
 		assert.NoError(tt, err)
-		assert.NotEmpty(tt, bitString)
+		assert.NotEmpty(tt, compressedBitstring)
 
-		expanded, err := bitstringExpansion(bitString)
+		expandedBitstring, err := bitstringExpansion(compressedBitstring)
 		assert.NoError(tt, err)
-		assert.NotEmpty(tt, expanded)
+		assert.NotEmpty(tt, expandedBitstring)
 
-		assert.Equal(tt, bitString, expanded)
+		// sort and compare
+		sort.Strings(credIndices)
+		sort.Strings(expandedBitstring)
+		assert.EqualValues(tt, credIndices, expandedBitstring)
 	})
 
 	t.Run("no elements", func(tt *testing.T) {

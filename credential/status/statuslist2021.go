@@ -163,14 +163,18 @@ func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
 		duplicateCheck[indexValue] = true
 		b.Set(indexValue)
 	}
-	bitstring := b.String()
+
+	bitstringBinary, err := b.MarshalBinary()
+	if err != nil {
+		return "", errors.Wrap(err, "could not generate bitstring binary representation")
+	}
 
 	// 3. Generate a compressed bitstring by using the GZIP compression algorithm [RFC1952] on the bitstring and then
 	// base64-encoding [RFC4648] the result.
 	var buf bytes.Buffer
 	zw := gzip.NewWriter(&buf)
-	if _, err := zw.Write([]byte(bitstring)); err != nil {
-		return "", errors.New("could not compress status list bitstring using GZIP")
+	if _, err := zw.Write(bitstringBinary); err != nil {
+		return "", errors.Wrap(err, "could not compress status list bitstring using GZIP")
 	}
 
 	if err := zw.Close(); err != nil {
@@ -184,30 +188,43 @@ func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
 }
 
 // https://w3c-ccg.github.io/vc-status-list-2021/#bitstring-expansion-algorithm
-func bitstringExpansion(compressedBitstring string) (string, error) {
+func bitstringExpansion(compressedBitstring string) ([]string, error) {
 	// 1. Let compressed bitstring be a compressed status list bitstring.
 
 	// 2. Generate an uncompressed bitstring by using the base64-decoding [RFC4648] algorithm on the compressed
 	// bitstring and then expanding the output using the GZIP decompression algorithm [RFC1952].
 	decoded, err := base64.StdEncoding.DecodeString(compressedBitstring)
 	if err != nil {
-		return "", errors.Wrap(err, "could not decode compressed bitstring")
+		return nil, errors.Wrap(err, "could not decode compressed bitstring")
 	}
 
 	bitstringReader := bytes.NewReader(decoded)
 	zr, err := gzip.NewReader(bitstringReader)
 	if err != nil {
-		return "", errors.Wrap(err, "could not unzip status list bitstring using GZIP")
+		return nil, errors.Wrap(err, "could not unzip status list bitstring using GZIP")
 	}
 
 	unzipped, err := ioutil.ReadAll(zr)
 	if err != nil {
-		return "", errors.Wrap(err, "could not expand status list bitstring using GZIP")
+		return nil, errors.Wrap(err, "could not expand status list bitstring using GZIP")
 	}
 
 	if err := zr.Close(); err != nil {
-		return "", errors.Wrap(err, "could not close gzip reader")
+		return nil, errors.Wrap(err, "could not close gzip reader")
 	}
 
-	return string(unzipped), nil
+	b := bitset.New(uint(len(unzipped)))
+	if err := b.UnmarshalBinary(unzipped); err != nil {
+		return nil, errors.Wrap(err, "could not unmarshal binary bitstring")
+	}
+
+	// find set bits to reconstruct the status list indices
+	var expanded []string
+	var i uint
+	for i = 0; i < b.Len(); i++ {
+		if b.Test(i) {
+			expanded = append(expanded, strconv.Itoa(int(i)))
+		}
+	}
+	return expanded, nil
 }
