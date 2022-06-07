@@ -50,6 +50,7 @@ require (
 )
 
 require (
+	github.com/bits-and-blooms/bitset v1.2.2 // indirect
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/gobuffalo/packr v1.30.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
