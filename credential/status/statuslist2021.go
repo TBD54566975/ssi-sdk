@@ -1,11 +1,16 @@
 package status
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"strconv"
 	"strings"
 
 	"github.com/bits-and-blooms/bitset"
+	"github.com/pkg/errors"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/util"
@@ -55,11 +60,16 @@ func GenerateStatusList2021Credential(id string, issuer string, purpose StatusPu
 		return nil, util.LoggingErrorMsg(err, "could not generate status list credential")
 	}
 
+	bitString, err := bitstringGeneration(statusListIndices)
+	if err != nil {
+		return nil, util.LoggingErrorMsg(err, "could not generate bitstring for status list credential")
+	}
+
 	rlc := StatusList2021Credential{
 		ID:            id,
 		Type:          StatusList2021Type,
 		StatusPurpose: purpose,
-		EncodedList:   bitstringGeneration(statusListIndices),
+		EncodedList:   bitString,
 	}
 
 	builder := credential.NewVerifiableCredentialBuilder()
@@ -115,7 +125,11 @@ func prepareCredentialsForStatusList(credentials []credential.VerifiableCredenti
 
 // https://w3c-ccg.github.io/vc-status-list-2021/#bitstring-generation-algorithm
 func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
+	// 1. Let bitstring be a list of bits with a minimum size of 16KB, where each bit is initialized to 0 (zero).
 	b := bitset.New(16 * KB)
+
+	// 2. For each bit in bitstring, if there is a corresponding statusListIndex value in a revoked credential in
+	// issuedCredentials, set the bit to 1 (one), otherwise set the bit to 0 (zero).
 	for _, index := range statusListCredentialIndices {
 		indexInt, err := strconv.Atoi(index)
 		if indexInt < 0 || err != nil {
@@ -123,5 +137,42 @@ func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
 		}
 		b.Set(uint(indexInt))
 	}
-	return b.String(), nil
+	bitstring := b.String()
+
+	// 3. Generate a compressed bitstring by using the GZIP compression algorithm [RFC1952] on the bitstring and then
+	// base64-encoding [RFC4648] the result.
+	var buf bytes.Buffer
+	zw := gzip.NewWriter(&buf)
+	defer zw.Close()
+	if _, err := zw.Write([]byte(bitstring)); err != nil {
+		return "", errors.New("could not compress status list bitstring using GZIP")
+	}
+	base64Bitstring := base64.StdEncoding.EncodeToString(buf.Bytes())
+
+	// 4. Return the compressed bitstring.
+	return base64Bitstring, nil
+}
+
+// https://w3c-ccg.github.io/vc-status-list-2021/#bitstring-expansion-algorithm
+func bitstringExpansion(compressedBitstring string) (string, error) {
+	// 1. Let compressed bitstring be a compressed status list bitstring.
+
+	// 2. Generate an uncompressed bitstring by using the base64-decoding [RFC4648] algorithm on the compressed
+	// bitstring and then expanding the output using the GZIP decompression algorithm [RFC1952].
+	decoded, err := base64.StdEncoding.DecodeString(compressedBitstring)
+	if err != nil {
+		return "", errors.Wrap(err, "could not decode compressed bitstring")
+	}
+
+	zr, err := gzip.NewReader(bytes.NewReader(decoded))
+	defer zr.Close()
+	if err != nil {
+		return "", errors.Wrap(err, "could not unzip status list bitstring using GZIP")
+	}
+
+	unzipped, err := ioutil.ReadAll(zr)
+	if err != nil {
+		return "", errors.Wrap(err, "could not expand status list bitstring using GZIP")
+	}
+	return string(unzipped), nil
 }
