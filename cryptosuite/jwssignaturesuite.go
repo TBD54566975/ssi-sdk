@@ -5,13 +5,15 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"github.com/TBD54566975/ssi-sdk/crypto"
-	. "github.com/TBD54566975/ssi-sdk/util"
+	"strings"
+
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"strings"
+
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	. "github.com/TBD54566975/ssi-sdk/util"
 )
 
 // https://w3c-ccg.github.io/ld-cryptosuite-registry/#jsonwebsignature2020

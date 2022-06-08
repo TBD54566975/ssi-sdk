@@ -1,8 +1,9 @@
 package credential
 
 import (
-	"github.com/TBD54566975/ssi-sdk/crypto"
 	"reflect"
+
+	"github.com/TBD54566975/ssi-sdk/crypto"
 
 	"github.com/TBD54566975/ssi-sdk/util"
 )
@@ -18,9 +19,9 @@ type VerifiableCredential struct {
 	// either a URI or an object containing an `id` property.
 	Issuer interface{} `json:"issuer" validate:"required"`
 	// https://www.w3.org/TR/xmlschema11-2/#dateTimes
-	IssuanceDate     string            `json:"issuanceDate" validate:"required"`
-	ExpirationDate   string            `json:"expirationDate,omitempty"`
-	CredentialStatus *CredentialStatus `json:"credentialStatus,omitempty" validate:"omitempty,dive"`
+	IssuanceDate     string      `json:"issuanceDate" validate:"required"`
+	ExpirationDate   string      `json:"expirationDate,omitempty"`
+	CredentialStatus interface{} `json:"credentialStatus,omitempty" validate:"omitempty,dive"`
 	// This is where the subject's ID *may* be present
 	CredentialSubject CredentialSubject `json:"credentialSubject" validate:"required"`
 	CredentialSchema  *CredentialSchema `json:"credentialSchema,omitempty" validate:"omitempty,dive"`
@@ -40,8 +41,8 @@ func (v *VerifiableCredential) SetProof(p *crypto.Proof) {
 	v.Proof = p
 }
 
-// CredentialStatus https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#status
-type CredentialStatus struct {
+// DefaultCredentialStatus https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#status
+type DefaultCredentialStatus struct {
 	ID   string `json:"id" validate:"required"`
 	Type string `json:"type" validate:"required"`
 }

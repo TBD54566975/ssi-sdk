@@ -4,11 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/goccy/go-json"
-
-	"strings"
 
 	"github.com/piprate/json-gold/ld"
 

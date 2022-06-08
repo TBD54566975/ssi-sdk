@@ -1,11 +1,13 @@
 package manifest
 
 import (
+	"reflect"
+
+	"github.com/pkg/errors"
+
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/rendering"
 	"github.com/TBD54566975/ssi-sdk/util"
-	"github.com/pkg/errors"
-	"reflect"
 )
 
 // CredentialManifest https://identity.foundation/credential-manifest/#general-composition

@@ -9,7 +9,8 @@
 
 # Introduction
 
-Named `ssi-sdk`, this SDK encapsulates a set of standards related to [Self Sovereign Identity](http://www.lifewithalacrity.com/2016/04/the-path-to-self-soverereign-identity.html). 
+Named `ssi-sdk`, this SDK encapsulates a set of standards related
+to [Self Sovereign Identity](http://www.lifewithalacrity.com/2016/04/the-path-to-self-soverereign-identity.html).
 The `ssi-sdk` intends to provide flexible functionality based on a set of standards-based primitives for building
 decentralized identity applications in a modular manner: with limited dependencies between components.
 
@@ -24,7 +25,8 @@ The SDK has not undergone any formal security review or audit, so please use wit
 # Contributing
 
 This project is fully open source, and we welcome contributions! For more information please see
-[CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md). Our current thinking about the development of the library is captured in
+[CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md). Our current thinking about the
+development of the library is captured in
 [GitHub Issues](https://github.com/TBD54566975/ssi-sdk/issues).
 
 # Specifications
@@ -62,9 +64,11 @@ change as the library evolves.
 
 # Building
 
-This project uses [mage](https://magefile.org/), please view [CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md) for more information.
+This project uses [mage](https://magefile.org/), please
+view [CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md) for more information.
 
 After installing mage, you can build and test the SDK with the following commands:
+
 ```
 mage build
 mage test

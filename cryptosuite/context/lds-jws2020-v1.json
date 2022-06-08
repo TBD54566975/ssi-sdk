@@ -20,10 +20,8 @@
       "@id": "https://w3id.org/security#JsonWebSignature2020",
       "@context": {
         "@protected": true,
-
         "id": "@id",
         "type": "@type",
-
         "challenge": "https://w3id.org/security#challenge",
         "created": {
           "@id": "http://purl.org/dc/terms/created",
@@ -41,10 +39,8 @@
           "@type": "@vocab",
           "@context": {
             "@protected": true,
-
             "id": "@id",
             "type": "@type",
-
             "assertionMethod": {
               "@id": "https://w3id.org/security#assertionMethod",
               "@type": "@id",

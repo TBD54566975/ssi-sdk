@@ -23,9 +23,17 @@
       "type": "string"
     }
   },
-  "required": [ "street-address", "state", "postal-code" ],
+  "required": [
+    "street-address",
+    "state",
+    "postal-code"
+  ],
   "dependentRequired": {
-    "post-office-box": [ "street-address" ],
-    "extended-address": [ "street-address" ]
+    "post-office-box": [
+      "street-address"
+    ],
+    "extended-address": [
+      "street-address"
+    ]
   }
 }

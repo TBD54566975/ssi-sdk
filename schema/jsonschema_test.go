@@ -1,8 +1,9 @@
 package schema
 
 import (
-	"github.com/gobuffalo/packr/v2"
 	"testing"
+
+	"github.com/gobuffalo/packr/v2"
 
 	"github.com/goccy/go-json"
 

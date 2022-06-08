@@ -153,15 +153,15 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// incomplete credential status
-	badStatus := CredentialStatus{
+	badStatus := DefaultCredentialStatus{
 		Type: "StatusObject",
 	}
 	err = builder.SetCredentialStatus(badStatus)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "credential status not valid")
+	assert.Contains(t, err.Error(), "status must contain an `id` property")
 
 	// good status
-	status := CredentialStatus{
+	status := DefaultCredentialStatus{
 		ID:   "status-id",
 		Type: "status-type",
 	}

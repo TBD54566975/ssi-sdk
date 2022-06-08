@@ -1,8 +1,9 @@
 package cryptosuite
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {

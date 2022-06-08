@@ -4,16 +4,18 @@ package signing
 
 import (
 	"fmt"
-	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"strconv"
+	"time"
+
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"strconv"
-	"time"
+
+	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 )
 
 const (

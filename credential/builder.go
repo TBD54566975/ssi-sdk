@@ -160,16 +160,25 @@ func (vcb *VerifiableCredentialBuilder) SetExpirationDate(dateTime string) error
 	return nil
 }
 
-func (vcb *VerifiableCredentialBuilder) SetCredentialStatus(status CredentialStatus) error {
+func (vcb *VerifiableCredentialBuilder) SetCredentialStatus(status interface{}) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
 
-	if err := util.NewValidator().Struct(status); err != nil {
-		return errors.Wrap(err, "credential status not valid")
+	statusMap, err := util.ToJSONMap(status)
+	if err != nil {
+		return errors.Wrap(err, "status value not of required type map[string]interface{}")
 	}
 
-	vcb.CredentialStatus = &status
+	// check required properties
+	if v, ok := statusMap["id"]; !ok || v == "" {
+		return errors.New("status must contain an `id` property")
+	}
+	if v, ok := statusMap["type"]; !ok || v == "" {
+		return errors.New("status must contain a `type` property")
+	}
+
+	vcb.CredentialStatus = statusMap
 	return nil
 }
 

@@ -1,9 +1,11 @@
 package exchange
 
 import (
-	"github.com/TBD54566975/ssi-sdk/schema"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/TBD54566975/ssi-sdk/schema"
 )
 
 // Get all schemas, make sure they're valid

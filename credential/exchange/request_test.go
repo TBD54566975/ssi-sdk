@@ -1,11 +1,13 @@
 package exchange
 
 import (
-	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"testing"
+
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
-	"testing"
+
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 )
 
 func TestBuildPresentationRequest(t *testing.T) {
