@@ -141,7 +141,7 @@ func prepareCredentialsForStatusList(purpose StatusPurpose, credentials []creden
 
 	numFailed := len(errorResults)
 	if numFailed > 0 {
-		return nil, fmt.Errorf("%d credential(s) were in error: %s", numFailed, strings.Join(errorResults, ","))
+		return nil, fmt.Errorf("%d credential(s) in error: %s", numFailed, strings.Join(errorResults, ","))
 	}
 	return statusListIndices, nil
 }
@@ -264,6 +264,9 @@ func ValidateCredentialInStatusList(credentialToValidate credential.VerifiableCr
 	if err := json.Unmarshal(subjectBytes, &statusCredentialValue); err != nil {
 		return false, errors.Wrapf(err, "could not unmarshal status credential<%s> subject value into "+
 			"StatusList2021Credential", statusCredential.ID)
+	}
+	if err := util.IsValidStruct(statusCredentialValue); err != nil {
+		return false, errors.Wrapf(err, "credential<%s> is not a valid status credential", statusCredential.ID)
 	}
 	if statusPurpose != statusCredentialValue.StatusPurpose {
 		return false, fmt.Errorf("purpose of credential to validate<%s>: %s, did not match purpose of status "+
