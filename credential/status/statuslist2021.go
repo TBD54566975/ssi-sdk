@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/bits-and-blooms/bitset"
+	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -227,4 +228,58 @@ func bitstringExpansion(compressedBitstring string) ([]string, error) {
 		}
 	}
 	return expanded, nil
+}
+
+// ValidateCredential runs a check to determine whether a credential is contained in a status list 2021 credential
+// https://w3c-ccg.github.io/vc-status-list-2021/#validate-algorithm
+// NOTE: this method does perform credential signature/proof block verification
+func ValidateCredential(credentialToValidate credential.VerifiableCredential, statusCredential credential.VerifiableCredential) (bool, error) {
+	// 1. Let credentialToValidate be a verifiable credentials containing a credentialStatus entry that is a StatusList2021Entry.
+	statusListEntryValue, ok := credentialToValidate.CredentialStatus.(StatusList2021Entry)
+	if !ok {
+		return false, fmt.Errorf("credential to validate<%s> not using the StatusList2021 credentialStatus "+
+			"property", credentialToValidate.ID)
+	}
+
+	// 2. Let status purpose be the value of statusPurpose in the credentialStatus entry in the credentialToValidate.
+	statusPurpose := statusListEntryValue.StatusPurpose
+
+	// 3. Verify all proofs associated with the credentialToValidate. If a proof fails, return a validation error.
+	// NOTE: this step is assumed to be done *external* to this method call
+
+	// 4. Verify that the status purpose matches the statusPurpose value in the statusListCredential.
+	var statusCredentialValue StatusList2021Credential
+	subjectBytes, err := json.Marshal(statusCredential.CredentialSubject)
+	if err != nil {
+		return false, errors.Wrapf(err, "could not marshal status credential<%s> subject value", statusCredential.ID)
+	}
+	if err := json.Unmarshal(subjectBytes, &statusCredentialValue); err != nil {
+		return false, errors.Wrapf(err, "could not unmarshal status credential<%s> subject value into "+
+			"StatusList2021Credential", statusCredential.ID)
+	}
+	if statusPurpose != statusCredentialValue.StatusPurpose {
+		return false, fmt.Errorf("purpose of credential to validate<%s>: %s, did not match purpose of status "+
+			"credential<%s>: %s", credentialToValidate.ID, statusPurpose, statusCredential.ID, statusCredentialValue.StatusPurpose)
+	}
+
+	// 5. Let compressed bitstring be the value of the encodedList property of the StatusList2021Credential.
+	compressedBitstring := statusCredentialValue.EncodedList
+
+	// 6. Let credentialIndex be the value of the statusListIndex property of the StatusList2021Entry.
+	credentialIndex := statusListEntryValue.StatusListIndex
+
+	// 7. Generate a revocation bitstring by passing compressed bitstring to the Bitstring Expansion Algorithm.
+	expandedValues, err := bitstringExpansion(compressedBitstring)
+	if err != nil {
+		return false, errors.Wrapf(err, "could not expand compressed bitstring of status credential<%s>", statusCredential.ID)
+	}
+
+	// 8. Let status be the value of the bit at position credentialIndex in the revocation bitstring.
+	// 9. Return true if status is 1, false otherwise.
+	for _, idx := range expandedValues {
+		if idx == credentialIndex {
+			return true, nil
+		}
+	}
+	return false, nil
 }
