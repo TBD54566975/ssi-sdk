@@ -56,7 +56,7 @@ type StatusList2021Credential struct {
 // be hosted), the issuer DID, the purpose of the list, and a set of credentials to include in the list.
 // https://w3c-ccg.github.io/vc-status-list-2021/#generate-algorithm
 func GenerateStatusList2021Credential(id string, issuer string, purpose StatusPurpose, issuedCredentials []credential.VerifiableCredential) (*credential.VerifiableCredential, error) {
-	statusListIndices, err := prepareCredentialsForStatusList(issuedCredentials)
+	statusListIndices, err := prepareCredentialsForStatusList(purpose, issuedCredentials)
 	if err != nil {
 		return nil, util.LoggingErrorMsg(err, "could not generate status list credential")
 	}
@@ -106,7 +106,7 @@ func GenerateStatusList2021Credential(id string, issuer string, purpose StatusPu
 // 1. validates that all credentials are using the StatusList2021 in the credentialStatus property
 // 2. assembles a list of `statusListIndex` values for the bitstring generation algorithm
 // NOTE: this process does not fail fast, and enumerates all failed credential values
-func prepareCredentialsForStatusList(credentials []credential.VerifiableCredential) ([]string, error) {
+func prepareCredentialsForStatusList(purpose StatusPurpose, credentials []credential.VerifiableCredential) ([]string, error) {
 	var statusListIndices []string
 
 	// make sure there are no duplicate index values
@@ -116,11 +116,19 @@ func prepareCredentialsForStatusList(credentials []credential.VerifiableCredenti
 	for _, cred := range credentials {
 		entry, ok := cred.CredentialStatus.(StatusList2021Entry)
 		if !ok {
-			errorResults = append(errorResults, fmt.Sprintf("credential<%s> not using the StatusList2021 credentialStatus property", cred.ID))
+			errorResults = append(errorResults, fmt.Sprintf("credential<%s> not using the StatusList2021 "+
+				"credentialStatus property", cred.ID))
 		} else {
+			// check to see if the purpose matches the credential's purpose
+			if entry.StatusPurpose != purpose {
+				errorResults = append(errorResults, fmt.Sprintf("credential<%s> has a different status "+
+					"purpose<%s> value than the status credential<%s>", cred.ID, entry.StatusPurpose, purpose))
+			}
+
 			// if a duplicate is found, we have an error
 			if _, ok := duplicateCheck[entry.StatusListIndex]; ok {
-				errorResults = append(errorResults, fmt.Sprintf("credential<%s> has a duplicate status list index value", cred.ID))
+				errorResults = append(errorResults, fmt.Sprintf("credential<%s> has a duplicate status list "+
+					"index value", cred.ID))
 			}
 			duplicateCheck[entry.StatusListIndex] = true
 
@@ -230,10 +238,10 @@ func bitstringExpansion(compressedBitstring string) ([]string, error) {
 	return expanded, nil
 }
 
-// ValidateCredential runs a check to determine whether a credential is contained in a status list 2021 credential
+// ValidateCredentialInStatusList determines whether a credential is contained in a status list 2021 credential
 // https://w3c-ccg.github.io/vc-status-list-2021/#validate-algorithm
 // NOTE: this method does perform credential signature/proof block verification
-func ValidateCredential(credentialToValidate credential.VerifiableCredential, statusCredential credential.VerifiableCredential) (bool, error) {
+func ValidateCredentialInStatusList(credentialToValidate credential.VerifiableCredential, statusCredential credential.VerifiableCredential) (bool, error) {
 	// 1. Let credentialToValidate be a verifiable credentials containing a credentialStatus entry that is a StatusList2021Entry.
 	statusListEntryValue, ok := credentialToValidate.CredentialStatus.(StatusList2021Entry)
 	if !ok {

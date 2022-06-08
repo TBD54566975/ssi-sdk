@@ -4,10 +4,246 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/TBD54566975/ssi-sdk/credential"
 )
 
-func TestBitstringGeneration(t *testing.T) {
+func TestGenerateStatusList2021Credential(t *testing.T) {
+	t.Run("happy path generation", func(tt *testing.T) {
+		revocationID := "revocation-id"
+		testIssuer := "test-issuer"
+		testCred1 := credential.VerifiableCredential{
+			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"},
+			ID:           "test-verifiable-credential-2",
+			Type:         []string{"VerifiableCredential"},
+			Issuer:       testIssuer,
+			IssuanceDate: "2021-01-01T19:23:24Z",
+			CredentialSubject: map[string]interface{}{
+				"id":      "test-vc-id-1",
+				"company": "Block",
+				"website": "https://block.xyz",
+			},
+			CredentialStatus: StatusList2021Entry{
+				ID:                   revocationID,
+				Type:                 StatusList2021EntryType,
+				StatusPurpose:        StatusRevocation,
+				StatusListIndex:      "123",
+				StatusListCredential: "test-cred",
+			},
+		}
+		testCred2 := credential.VerifiableCredential{
+			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"},
+			ID:           "test-verifiable-credential-2",
+			Type:         []string{"VerifiableCredential"},
+			Issuer:       testIssuer,
+			IssuanceDate: "2021-01-01T19:23:24Z",
+			CredentialSubject: map[string]interface{}{
+				"id":      "test-vc-id-2",
+				"company": "Block",
+				"website": "https://block.xyz",
+			},
+			CredentialStatus: StatusList2021Entry{
+				ID:                   revocationID,
+				Type:                 StatusList2021EntryType,
+				StatusPurpose:        StatusRevocation,
+				StatusListIndex:      "124",
+				StatusListCredential: "test-cred",
+			},
+		}
+
+		statusListCredential, err := GenerateStatusList2021Credential(revocationID, testIssuer, StatusRevocation, []credential.VerifiableCredential{testCred1, testCred2})
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, statusListCredential)
+
+		subjectBytes, err := json.Marshal(statusListCredential.CredentialSubject)
+		assert.NoError(tt, err)
+
+		var statusListCred StatusList2021Credential
+		err = json.Unmarshal(subjectBytes, &statusListCred)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, statusListCred)
+
+		assert.Equal(tt, statusListCred.ID, revocationID)
+		assert.Equal(tt, statusListCred.Type, StatusList2021Type)
+		assert.True(tt, len(statusListCred.EncodedList) > 0)
+		assert.Equal(tt, statusListCred.StatusPurpose, StatusRevocation)
+	})
+
+	t.Run("mismatched credential purposes", func(tt *testing.T) {
+		revocationID := "revocation-id"
+		testIssuer := "test-issuer"
+		testCred1 := credential.VerifiableCredential{
+			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"},
+			ID:           "test-verifiable-credential-2",
+			Type:         []string{"VerifiableCredential"},
+			Issuer:       testIssuer,
+			IssuanceDate: "2021-01-01T19:23:24Z",
+			CredentialSubject: map[string]interface{}{
+				"id":      "test-vc-id-1",
+				"company": "Block",
+				"website": "https://block.xyz",
+			},
+			CredentialStatus: StatusList2021Entry{
+				ID:                   revocationID,
+				Type:                 StatusList2021EntryType,
+				StatusPurpose:        StatusRevocation,
+				StatusListIndex:      "123",
+				StatusListCredential: "test-cred",
+			},
+		}
+		testCred2 := credential.VerifiableCredential{
+			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"},
+			ID:           "test-verifiable-credential-2",
+			Type:         []string{"VerifiableCredential"},
+			Issuer:       testIssuer,
+			IssuanceDate: "2021-01-01T19:23:24Z",
+			CredentialSubject: map[string]interface{}{
+				"id":      "test-vc-id-2",
+				"company": "Block",
+				"website": "https://block.xyz",
+			},
+			CredentialStatus: StatusList2021Entry{
+				ID:                   revocationID,
+				Type:                 StatusList2021EntryType,
+				StatusPurpose:        StatusSuspension,
+				StatusListIndex:      "124",
+				StatusListCredential: "test-cred",
+			},
+		}
+
+		_, err := GenerateStatusList2021Credential(revocationID, testIssuer, StatusRevocation, []credential.VerifiableCredential{testCred1, testCred2})
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "credential<test-verifiable-credential-2> has a different "+
+			"status purpose<suspension> value than the status credential<revocation>")
+	})
+
+	t.Run("duplicate credential status index values", func(tt *testing.T) {
+		revocationID := "revocation-id"
+		testIssuer := "test-issuer"
+		testCred1 := credential.VerifiableCredential{
+			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"},
+			ID:           "test-verifiable-credential-2",
+			Type:         []string{"VerifiableCredential"},
+			Issuer:       testIssuer,
+			IssuanceDate: "2021-01-01T19:23:24Z",
+			CredentialSubject: map[string]interface{}{
+				"id":      "test-vc-id-1",
+				"company": "Block",
+				"website": "https://block.xyz",
+			},
+			CredentialStatus: StatusList2021Entry{
+				ID:                   revocationID,
+				Type:                 StatusList2021EntryType,
+				StatusPurpose:        StatusRevocation,
+				StatusListIndex:      "123",
+				StatusListCredential: "test-cred",
+			},
+		}
+		testCred2 := credential.VerifiableCredential{
+			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"},
+			ID:           "test-verifiable-credential-2",
+			Type:         []string{"VerifiableCredential"},
+			Issuer:       testIssuer,
+			IssuanceDate: "2021-01-01T19:23:24Z",
+			CredentialSubject: map[string]interface{}{
+				"id":      "test-vc-id-2",
+				"company": "Block",
+				"website": "https://block.xyz",
+			},
+			CredentialStatus: StatusList2021Entry{
+				ID:                   revocationID,
+				Type:                 StatusList2021EntryType,
+				StatusPurpose:        StatusRevocation,
+				StatusListIndex:      "123",
+				StatusListCredential: "test-cred",
+			},
+		}
+
+		_, err := GenerateStatusList2021Credential(revocationID, testIssuer, StatusRevocation, []credential.VerifiableCredential{testCred1, testCred2})
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "has a duplicate status list index value")
+	})
+
+	t.Run("no credentials", func(tt *testing.T) {
+		revocationID := "revocation-id"
+		testIssuer := "test-issuer"
+
+		_, err := GenerateStatusList2021Credential(revocationID, testIssuer, StatusRevocation, []credential.VerifiableCredential{})
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "cannot create a status list bitstring with no credential indices")
+	})
+
+	t.Run("invalid index value", func(tt *testing.T) {
+		revocationID := "revocation-id"
+		testIssuer := "test-issuer"
+		testCred1 := credential.VerifiableCredential{
+			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"},
+			ID:           "test-verifiable-credential-2",
+			Type:         []string{"VerifiableCredential"},
+			Issuer:       testIssuer,
+			IssuanceDate: "2021-01-01T19:23:24Z",
+			CredentialSubject: map[string]interface{}{
+				"id":      "test-vc-id-1",
+				"company": "Block",
+				"website": "https://block.xyz",
+			},
+			CredentialStatus: StatusList2021Entry{
+				ID:                   revocationID,
+				Type:                 StatusList2021EntryType,
+				StatusPurpose:        StatusRevocation,
+				StatusListIndex:      "-1",
+				StatusListCredential: "test-cred",
+			},
+		}
+
+		_, err := GenerateStatusList2021Credential(revocationID, testIssuer, StatusRevocation, []credential.VerifiableCredential{testCred1})
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "invalid status list index value, not a valid positive integer: -1")
+	})
+
+	t.Run("missing index value", func(tt *testing.T) {
+		revocationID := "revocation-id"
+		testIssuer := "test-issuer"
+		testCred1 := credential.VerifiableCredential{
+			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"},
+			ID:           "test-verifiable-credential-2",
+			Type:         []string{"VerifiableCredential"},
+			Issuer:       testIssuer,
+			IssuanceDate: "2021-01-01T19:23:24Z",
+			CredentialSubject: map[string]interface{}{
+				"id":      "test-vc-id-1",
+				"company": "Block",
+				"website": "https://block.xyz",
+			},
+			CredentialStatus: StatusList2021Entry{
+				ID:                   revocationID,
+				Type:                 StatusList2021EntryType,
+				StatusPurpose:        StatusRevocation,
+				StatusListCredential: "test-cred",
+			},
+		}
+
+		_, err := GenerateStatusList2021Credential(revocationID, testIssuer, StatusRevocation, []credential.VerifiableCredential{testCred1})
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "not a valid positive integer")
+	})
+}
+
+func TestValidateCredentialInStatusList(t *testing.T) {
+
+}
+
+func TestBitstringGenerationAndExpansion(t *testing.T) {
 	t.Run("happy path", func(tt *testing.T) {
 		credIndices := []string{"123", "112", "440185", "52058", "9999"}
 		compressedBitstring, err := bitstringGeneration(credIndices)
