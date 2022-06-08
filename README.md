@@ -43,8 +43,9 @@ change as the library evolves.
 - [Verifiable Credentials JSON Schema Specification](https://w3c-ccg.github.io/vc-json-schemas/v2/index.html) _Draft
   Community Group Report, 21 September 2021_
 - [Presentation Exchange 2.0.0](https://identity.foundation/presentation-exchange/) _Working Group Draft, March 2022_
-- [Wallet Rendering](https://identity.foundation/wallet-rendering) _Strawman, March 2022_
-- **WIP** [Credential Manifest](https://identity.foundation/credential-manifest/) _Strawman, March 2022_
+- [Wallet Rendering](https://identity.foundation/wallet-rendering) _Strawman, June 2022_
+- [Credential Manifest](https://identity.foundation/credential-manifest/) _Strawman, June 2022_
+- [Status List 2021](https://w3c-ccg.github.io/vc-status-list-2021/) _Draft Community Group Report 04 April 2022_
 
 ## signature suites
 
