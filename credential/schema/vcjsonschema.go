@@ -42,7 +42,7 @@ func IsValidCredentialSchema(maybeCredentialSchema string) error {
 		return errors.Wrap(err, "could not get known schema for VC JSON Schema")
 	}
 
-	if err := schema.IsJSONValidAgainstSchema(maybeCredentialSchema, string(vcJSONSchemaSchema)); err != nil {
+	if err := schema.IsJSONValidAgainstSchema(maybeCredentialSchema, vcJSONSchemaSchema); err != nil {
 		errMsg := "credential schema did not validate"
 		logrus.WithError(err).Error(errMsg)
 		return errors.Wrap(err, errMsg)
