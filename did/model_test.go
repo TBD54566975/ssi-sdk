@@ -22,7 +22,6 @@ var (
 	testVectors  = []string{TestVector1, TestVector2, TestVector3}
 )
 
-// Before running, you'll need to execute `mage packr`
 func TestDIDVectors(t *testing.T) {
 	// round trip serialize and de-serialize from json to our object model
 	for _, tv := range testVectors {
