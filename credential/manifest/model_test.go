@@ -1,9 +1,9 @@
 package manifest
 
 import (
+	"embed"
 	"testing"
 
-	"github.com/gobuffalo/packr/v2"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,7 +16,8 @@ const (
 )
 
 var (
-	manifestBox = packr.New("Credential Manifest Test Vectors", "../test_vectors")
+	//go:embed testdata
+	testVectors embed.FS
 )
 
 // Round trip de/serialize to test our object models, and check validity
@@ -104,5 +105,6 @@ func TestCredentialFulfillment(t *testing.T) {
 }
 
 func getTestVector(fileName string) (string, error) {
-	return manifestBox.FindString(fileName)
+	b, err := testVectors.ReadFile("testdata/" + fileName)
+	return string(b), err
 }

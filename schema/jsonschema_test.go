@@ -1,9 +1,8 @@
 package schema
 
 import (
+	"embed"
 	"testing"
-
-	"github.com/gobuffalo/packr/v2"
 
 	"github.com/goccy/go-json"
 
@@ -16,11 +15,11 @@ const (
 )
 
 var (
-	box                   = packr.New("JSON Schema Test Vectors", "./test_vectors")
+	//go:embed testdata
+	testVectors           embed.FS
 	jsonSchemaTestVectors = []string{JSONSchemaTestVector1, JSONSchemaTestVector2}
 )
 
-// Before running, you'll need to execute `mage packr`
 func TestJSONSchemaVectors(t *testing.T) {
 	for _, tv := range jsonSchemaTestVectors {
 		gotTestVector, err := getTestVector(tv)
@@ -184,5 +183,6 @@ func TestLoadJSONSchema(t *testing.T) {
 }
 
 func getTestVector(fileName string) (string, error) {
-	return box.FindString(fileName)
+	b, err := testVectors.ReadFile("testdata/" + fileName)
+	return string(b), err
 }

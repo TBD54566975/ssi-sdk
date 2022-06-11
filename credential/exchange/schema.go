@@ -1,7 +1,6 @@
 package exchange
 
 import (
-	"github.com/gobuffalo/packr/v2"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -18,17 +17,13 @@ const (
 	submissionRequirementsSchema         string = "pe-submission-requirements.json"
 )
 
-var (
-	schemaBox = packr.New("Presentation Exchange JSON Schemas", "../known_schemas")
-)
-
 // IsValidPresentationDefinition validates a given presentation definition object against its known JSON schema
 func IsValidPresentationDefinition(definition PresentationDefinition) error {
 	jsonBytes, err := json.Marshal(definition)
 	if err != nil {
 		return errors.Wrap(err, "could not marshal presentation definition to JSON")
 	}
-	s, err := getKnownSchema(presentationDefinitionSchema)
+	s, err := schema.GetKnownSchema(presentationDefinitionSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation definition schema")
 	}
@@ -45,7 +40,7 @@ func IsValidPresentationDefinitionEnvelope(definition PresentationDefinitionEnve
 	if err != nil {
 		return errors.Wrap(err, "could not marshal presentation definition to JSON")
 	}
-	s, err := getKnownSchema(presentationDefinitionEnvelopeSchema)
+	s, err := schema.GetKnownSchema(presentationDefinitionEnvelopeSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation definition schema")
 	}
@@ -67,7 +62,7 @@ func IsValidPresentationSubmission(submission PresentationSubmission) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal presentation submission to JSON")
 	}
-	s, err := getKnownSchema(presentationSubmissionSchema)
+	s, err := schema.GetKnownSchema(presentationSubmissionSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation submission schema")
 	}
@@ -84,7 +79,7 @@ func IsValidFormatDeclaration(format ClaimFormat) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal claim format to JSON")
 	}
-	s, err := getKnownSchema(formatDeclarationSchema)
+	s, err := schema.GetKnownSchema(formatDeclarationSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get claim format schema")
 	}
@@ -101,7 +96,7 @@ func IsValidSubmissionRequirement(requirement SubmissionRequirement) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal submission requirement to JSON")
 	}
-	s, err := getKnownSchema(submissionRequirementSchema)
+	s, err := schema.GetKnownSchema(submissionRequirementSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get submission requirement schema")
 	}
@@ -123,7 +118,7 @@ func AreValidSubmissionRequirements(requirements []SubmissionRequirement) error 
 	if err != nil {
 		return errors.Wrap(err, "could not marshal submission requirements to JSON")
 	}
-	s, err := getKnownSchema(submissionRequirementsSchema)
+	s, err := schema.GetKnownSchema(submissionRequirementsSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get submission requirements schema")
 	}
@@ -132,8 +127,4 @@ func AreValidSubmissionRequirements(requirements []SubmissionRequirement) error 
 		return err
 	}
 	return nil
-}
-
-func getKnownSchema(fileName string) (string, error) {
-	return schemaBox.FindString(fileName)
 }

@@ -1,7 +1,6 @@
 package manifest
 
 import (
-	"github.com/gobuffalo/packr/v2"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -16,17 +15,13 @@ const (
 	outputDescriptorsSchema     string = "cm-output-descriptors.json"
 )
 
-var (
-	schemaBox = packr.New("Credential Manifest JSON Schemas", "../known_schemas")
-)
-
 // IsValidCredentialManifest validates a given credential manifest object against its known JSON schema
 func IsValidCredentialManifest(manifest CredentialManifest) error {
 	jsonBytes, err := json.Marshal(manifest)
 	if err != nil {
 		return errors.Wrap(err, "could not marshal manifest to JSON")
 	}
-	s, err := getKnownSchema(credentialManifestSchema)
+	s, err := schema.GetKnownSchema(credentialManifestSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential manifest schema")
 	}
@@ -43,7 +38,7 @@ func IsValidCredentialApplication(application CredentialApplication) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal application to JSON")
 	}
-	s, err := getKnownSchema(credentialApplicationSchema)
+	s, err := schema.GetKnownSchema(credentialApplicationSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential application schema")
 	}
@@ -65,7 +60,7 @@ func IsValidCredentialFulfillment(fulfillment CredentialFulfillment) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal fulfillment to JSON")
 	}
-	s, err := getKnownSchema(credentialFulfillmentSchema)
+	s, err := schema.GetKnownSchema(credentialFulfillmentSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential fulfillment schema")
 	}
@@ -87,7 +82,7 @@ func AreValidOutputDescriptors(descriptors []OutputDescriptor) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal output descriptors to JSON")
 	}
-	s, err := getKnownSchema(outputDescriptorsSchema)
+	s, err := schema.GetKnownSchema(outputDescriptorsSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get output descriptors schema")
 	}
@@ -96,8 +91,4 @@ func AreValidOutputDescriptors(descriptors []OutputDescriptor) error {
 		return err
 	}
 	return nil
-}
-
-func getKnownSchema(fileName string) (string, error) {
-	return schemaBox.FindString(fileName)
 }

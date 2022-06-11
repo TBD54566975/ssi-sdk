@@ -1,11 +1,11 @@
 package credential
 
 import (
+	"embed"
 	"testing"
 
 	"github.com/goccy/go-json"
 
-	"github.com/gobuffalo/packr/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,12 +21,12 @@ const (
 )
 
 var (
-	box           = packr.New("VC & VP Test Vectors", "/test_vectors")
+	//go:embed testdata
+	testVectors   embed.FS
 	vcTestVectors = []string{VCTestVector1, VCTestVector2, VCTestVector3, VCTestVector4}
 	vpTestVectors = []string{VPTestVector1, VPTestVector2}
 )
 
-// Before running, you'll need to execute `mage packr`
 func TestVCVectors(t *testing.T) {
 	// round trip serialize and de-serialize from json to our object model
 	for _, tv := range vcTestVectors {
@@ -46,7 +46,6 @@ func TestVCVectors(t *testing.T) {
 	}
 }
 
-// Before running, you'll need to execute `mage packr`
 func TestVPVectors(t *testing.T) {
 	// round trip serialize and de-serialize from json to our object model
 	for _, tv := range vpTestVectors {
@@ -67,5 +66,6 @@ func TestVPVectors(t *testing.T) {
 }
 
 func getTestVector(fileName string) (string, error) {
-	return box.FindString(fileName)
+	b, err := testVectors.ReadFile("testdata/" + fileName)
+	return string(b), err
 }
