@@ -33,11 +33,15 @@ func IsValidStruct(data interface{}) error {
 func NewLDProcessor() LDProcessor {
 	// JSON LD processing
 	proc := ld.NewJsonLdProcessor()
+	// Initialize a new doc loader with caching capability
+	// LDProcessor is expected to be re-used for multiple json-ld operations
+	docLoader := ld.NewRFC7324CachingDocumentLoader(nil)
 	options := ld.NewJsonLdOptions("")
 	options.Format = "application/n-quads"
 	options.Algorithm = "URDNA2015"
 	options.ProcessingMode = ld.JsonLd_1_1
 	options.ProduceGeneralizedRdf = true
+	options.DocumentLoader = docLoader
 	return LDProcessor{
 		JsonLdProcessor: proc,
 		JsonLdOptions:   options,
@@ -46,6 +50,22 @@ func NewLDProcessor() LDProcessor {
 
 func (l LDProcessor) GetOptions() *ld.JsonLdOptions {
 	return l.JsonLdOptions
+}
+
+func (l LDProcessor) GetContextFromMap(dataMap map[string]interface{}) (*ld.Context, error) {
+	var activeCtx *ld.Context
+	var err error
+	ldCtx := ld.NewContext(nil, l.JsonLdOptions)
+	contextMap, ok := dataMap["@context"].(map[string]interface{})
+	if !ok {
+		activeCtx, err = ldCtx.Parse(dataMap)
+	} else {
+		activeCtx, err = ldCtx.Parse(contextMap)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return activeCtx, nil
 }
 
 func LDNormalize(document interface{}) (interface{}, error) {
