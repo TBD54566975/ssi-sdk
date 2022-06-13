@@ -2,14 +2,12 @@ package cryptosuite
 
 import (
 	gocrypto "crypto"
-
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"embed"
 
 	"github.com/goccy/go-json"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	. "github.com/TBD54566975/ssi-sdk/util"
-
-	"github.com/gobuffalo/packr/v2"
 )
 
 type (
@@ -30,7 +28,8 @@ const (
 )
 
 var (
-	contextBox = packr.New("Known JSON-LD Contexts", "./context")
+	//go:embed context
+	knownContexts embed.FS
 )
 
 // CryptoSuite encapsulates the behavior of a proof type as per the W3C specification
@@ -148,5 +147,6 @@ func ensureRequiredContexts(context []interface{}, requiredContexts []string) []
 }
 
 func getKnownContext(fileName string) (string, error) {
-	return contextBox.FindString(fileName)
+	b, err := knownContexts.ReadFile("context/" + fileName)
+	return string(b), err
 }

@@ -1,9 +1,9 @@
 package exchange
 
 import (
+	"embed"
 	"testing"
 
-	"github.com/gobuffalo/packr/v2"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +21,8 @@ const (
 )
 
 var (
-	peBox = packr.New("Presentation Exchange Test Vectors", "../test_vectors")
+	//go:embed testdata
+	testVectors embed.FS
 )
 
 // Round trip de/serialize to test our object models
@@ -179,5 +180,6 @@ func TestPresentationSubmission(t *testing.T) {
 }
 
 func getTestVector(fileName string) (string, error) {
-	return peBox.FindString(fileName)
+	b, err := testVectors.ReadFile("testdata/" + fileName)
+	return string(b), err
 }

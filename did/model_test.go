@@ -1,11 +1,10 @@
 package did
 
 import (
+	"embed"
 	"testing"
 
 	"github.com/goccy/go-json"
-
-	"github.com/gobuffalo/packr/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,11 +17,11 @@ const (
 )
 
 var (
-	box         = packr.New("DID Test Vectors", "./test_vectors")
-	testVectors = []string{TestVector1, TestVector2, TestVector3}
+	//go:embed testdata
+	testVectorFS embed.FS
+	testVectors  = []string{TestVector1, TestVector2, TestVector3}
 )
 
-// Before running, you'll need to execute `mage packr`
 func TestDIDVectors(t *testing.T) {
 	// round trip serialize and de-serialize from json to our object model
 	for _, tv := range testVectors {
@@ -43,5 +42,6 @@ func TestDIDVectors(t *testing.T) {
 }
 
 func getTestVector(fileName string) (string, error) {
-	return box.FindString(fileName)
+	b, err := testVectorFS.ReadFile("testdata/" + fileName)
+	return string(b), err
 }

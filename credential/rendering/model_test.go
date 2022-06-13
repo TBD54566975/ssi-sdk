@@ -1,9 +1,9 @@
 package rendering
 
 import (
+	"embed"
 	"testing"
 
-	"github.com/gobuffalo/packr/v2"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +17,8 @@ const (
 )
 
 var (
-	wrBox = packr.New("Wallet Rendering Test Vectors", "../test_vectors")
+	//go:embed testdata
+	testVectors embed.FS
 )
 
 func TestEntityStyleDescriptor(t *testing.T) {
@@ -103,5 +104,6 @@ func TestLabeledDisplayMappingObject(t *testing.T) {
 }
 
 func getTestVector(fileName string) (string, error) {
-	return wrBox.FindString(fileName)
+	b, err := testVectors.ReadFile("testdata/" + fileName)
+	return string(b), err
 }

@@ -26,10 +26,6 @@ var (
 
 // Build builds the library.
 func Build() error {
-	fmt.Println("Running packr...")
-	if err := Packr(); err != nil {
-		return err
-	}
 	fmt.Println("Building...")
 	return sh.Run(Go, "build", "-tags", "jwx_es256k", "./...")
 }
@@ -37,7 +33,6 @@ func Build() error {
 // Clean deletes any build artifacts.
 func Clean() {
 	fmt.Println("Cleaning...")
-	PackrClean()
 	os.RemoveAll("bin")
 }
 
@@ -157,18 +152,6 @@ func goPath() string {
 		goPath = filepath.Join(usr.HomeDir, Go)
 	}
 	return goPath
-}
-
-// Packr builds a binary using the packr tool https://github.com/gobuffalo/packr#building-a-binary
-func Packr() error {
-	installIfNotPresent("go", "github.com/gobuffalo/packr/packr")
-	return runGo("github.com/gobuffalo/packr/packr")
-}
-
-// PackrClean removes all packr generated files https://github.com/gobuffalo/packr#cleaning-up
-func PackrClean() error {
-	installIfNotPresent("go", "github.com/gobuffalo/packr/packr")
-	return runGo("github.com/gobuffalo/packr/packr", "clean")
 }
 
 // CBT runs clean; build; test

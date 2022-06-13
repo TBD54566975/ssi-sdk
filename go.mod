@@ -3,17 +3,14 @@ module github.com/TBD54566975/ssi-sdk
 go 1.17
 
 require (
+	github.com/bits-and-blooms/bitset v1.2.2
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.0
-	github.com/gobuffalo/logger v1.0.6 // indirect
-	github.com/gobuffalo/packd v1.0.1 // indirect
-	github.com/gobuffalo/packr/v2 v2.8.3
 	github.com/goccy/go-json v0.9.7
 	github.com/google/uuid v1.3.0
-	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.0 // indirect
@@ -22,9 +19,6 @@ require (
 	github.com/lestrrat-go/jwx v1.2.25
 	github.com/lestrrat-go/option v1.0.0 // indirect
 	github.com/magefile/mage v1.13.0
-	github.com/markbates/errx v1.1.0 // indirect
-	github.com/markbates/oncer v1.0.0 // indirect
-	github.com/markbates/safe v1.0.1 // indirect
 	github.com/mr-tron/base58 v1.1.3
 	github.com/multiformats/go-base32 v0.0.3 // indirect
 	github.com/multiformats/go-base36 v0.1.0 // indirect
@@ -46,14 +40,4 @@ require (
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	github.com/bits-and-blooms/bitset v1.2.2 // indirect
-	github.com/gobuffalo/envy v1.7.0 // indirect
-	github.com/gobuffalo/packr v1.30.1 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/joho/godotenv v1.3.0 // indirect
-	github.com/rogpeppe/go-internal v1.8.0 // indirect
-	github.com/spf13/cobra v1.2.1 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/objx v0.1.1 // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 )

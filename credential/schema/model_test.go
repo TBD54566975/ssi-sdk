@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Before running, you'll need to execute `mage packr`
 // Round trip to and from our data model
 func TestVCJSONSchema(t *testing.T) {
 	schema, err := getTestVector(vcJSONTestVector1)

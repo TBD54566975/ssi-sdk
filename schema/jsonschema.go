@@ -1,12 +1,18 @@
 package schema
 
 import (
+	"embed"
+
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
+	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/TBD54566975/ssi-sdk/util"
+)
 
-	"github.com/xeipuuv/gojsonschema"
+var (
+	//go:embed known_schemas
+	knownSchemas embed.FS
 )
 
 // IsValidJSONSchema returns an error if the schema is not a valid JSON Schema, nil otherwise
@@ -50,4 +56,9 @@ func IsJSONValidAgainstSchema(json, schema string) error {
 		err = ae.Error()
 	}
 	return err
+}
+
+func GetKnownSchema(fileName string) (string, error) {
+	b, err := knownSchemas.ReadFile("known_schemas/" + fileName)
+	return string(b), err
 }

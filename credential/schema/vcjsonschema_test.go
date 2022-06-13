@@ -1,15 +1,13 @@
 package schema
 
 import (
+	"embed"
 	"testing"
 
-	vc "github.com/TBD54566975/ssi-sdk/credential"
-
 	"github.com/goccy/go-json"
-
 	"github.com/stretchr/testify/assert"
 
-	"github.com/gobuffalo/packr/v2"
+	vc "github.com/TBD54566975/ssi-sdk/credential"
 )
 
 const (
@@ -18,11 +16,11 @@ const (
 )
 
 var (
-	testSchemaBox     = packr.New("VC JSON Schema Test Vectors", "../test_vectors")
+	//go:embed testdata
+	testVectors       embed.FS
 	vcJSONTestVectors = []string{vcJSONTestVector1}
 )
 
-// Before running, you'll need to execute `mage packr`
 func TestIsValidCredentialSchema(t *testing.T) {
 	for _, tv := range vcJSONTestVectors {
 		schema, err := getTestVector(tv)
@@ -53,5 +51,6 @@ func TestIsCredentialValidForSchema(t *testing.T) {
 }
 
 func getTestVector(fileName string) (string, error) {
-	return testSchemaBox.FindString(fileName)
+	b, err := testVectors.ReadFile("testdata/" + fileName)
+	return string(b), err
 }

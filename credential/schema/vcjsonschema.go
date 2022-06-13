@@ -5,20 +5,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/TBD54566975/ssi-sdk/schema"
-
-	"github.com/gobuffalo/packr/v2"
-
 	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/schema"
 )
 
 const (
 	verifiableCredentialJSONSchemaSchema string = "vc-json-schema.json"
 	verifiableCredentialIDProperty       string = "id"
-)
-
-var (
-	schemaBox = packr.New("Known JSON Schemas", "../known_schemas")
 )
 
 // StringToVCJSONCredentialSchema marshals a string into a credential json credential schema
@@ -44,7 +37,7 @@ func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSON
 // IsValidCredentialSchema determines if a given credential schema is compliant with the specification's
 // JSON Schema https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
 func IsValidCredentialSchema(maybeCredentialSchema string) error {
-	vcJSONSchemaSchema, err := getKnownSchema(verifiableCredentialJSONSchemaSchema)
+	vcJSONSchemaSchema, err := schema.GetKnownSchema(verifiableCredentialJSONSchemaSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get known schema for VC JSON Schema")
 	}
@@ -90,8 +83,4 @@ func IsCredentialValidForSchema(credential credential.VerifiableCredential, s st
 		return err
 	}
 	return nil
-}
-
-func getKnownSchema(fileName string) (string, error) {
-	return schemaBox.FindString(fileName)
 }
