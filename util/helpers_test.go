@@ -94,7 +94,7 @@ func TestMergeUniqueValues(t *testing.T) {
 }
 
 func TestLDProcessor(t *testing.T) {
-	testJsonDLContextUrlStr := "http://schema.org/"
+	testJSONDLContextURLStr := "http://schema.org/"
 	ldProcessor := NewLDProcessor()
 
 	t.Run("caching document loader", func(tt *testing.T) {
@@ -102,7 +102,7 @@ func TestLDProcessor(t *testing.T) {
 		nonCachedLoader := ld.NewDefaultDocumentLoader(nil)
 		t0 := time.Now()
 		for i := 0; i < numOfLoads; i++ {
-			doc, err := nonCachedLoader.LoadDocument(testJsonDLContextUrlStr)
+			doc, err := nonCachedLoader.LoadDocument(testJSONDLContextURLStr)
 			assert.NoError(tt, err)
 			assert.NotNil(tt, doc)
 		}
@@ -112,7 +112,7 @@ func TestLDProcessor(t *testing.T) {
 		ldProcessor := NewLDProcessor()
 		t1 := time.Now()
 		for i := 0; i < numOfLoads; i++ {
-			doc, err := ldProcessor.DocumentLoader.LoadDocument(testJsonDLContextUrlStr)
+			doc, err := ldProcessor.DocumentLoader.LoadDocument(testJSONDLContextURLStr)
 			assert.NoError(tt, err)
 			assert.NotNil(tt, doc)
 		}
@@ -132,7 +132,7 @@ func TestLDProcessor(t *testing.T) {
 		}
 
 		activeCtx, err := ldProcessor.GetContextFromMap(contextMap)
-		//activeCtx: &{values:map[@base: processingMode:json-ld-1.1] options:0xc0001288f0 termDefinitions:map[dc:map[@id:http://purl.org/dc/elements/1.1/ @reverse:false _prefix:true] ex:map[@id:http://example.org/vocab# @reverse:false _prefix:true] ex:contains:map[@id:http://example.org/vocab#contains @reverse:false @type:@id]] inverse:map[] protected:map[] previousContext:<nil>}
+		//expected activeCtx output is &{values:map[@base: processingMode:json-ld-1.1] options:0xc0001288f0 termDefinitions:map[dc:map[@id:http://purl.org/dc/elements/1.1/ @reverse:false _prefix:true] ex:map[@id:http://example.org/vocab# @reverse:false _prefix:true] ex:contains:map[@id:http://example.org/vocab#contains @reverse:false @type:@id]] inverse:map[] protected:map[] previousContext:<nil>}
 		assert.NoError(tt, err)
 		assert.NotNil(tt, activeCtx)
 	})
