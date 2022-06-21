@@ -11,7 +11,7 @@ require (
 	github.com/lestrrat-go/jwx v1.2.25
 	github.com/magefile/mage v1.13.0
 	github.com/mr-tron/base58 v1.1.3
-	github.com/multiformats/go-multibase v0.1.0
+	github.com/multiformats/go-multibase v0.1.1
 	github.com/multiformats/go-multicodec v0.5.0
 	github.com/multiformats/go-varint v0.0.6
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
