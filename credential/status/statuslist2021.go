@@ -115,8 +115,8 @@ func prepareCredentialsForStatusList(purpose StatusPurpose, credentials []creden
 	var errorResults []string
 
 	for _, cred := range credentials {
-		entry, ok := cred.CredentialStatus.(StatusList2021Entry)
-		if !ok {
+		entry, err := getStatusEntry(cred.CredentialStatus)
+		if err != nil {
 			errorResults = append(errorResults, fmt.Sprintf("credential<%s> not using the StatusList2021 "+
 				"credentialStatus property", cred.ID))
 		} else {
@@ -145,6 +145,20 @@ func prepareCredentialsForStatusList(purpose StatusPurpose, credentials []creden
 		return nil, fmt.Errorf("%d credential(s) in error: %s", numFailed, strings.Join(errorResults, ","))
 	}
 	return statusListIndices, nil
+}
+
+// determine whether the credential status property is of the expected format
+// additionally makes sure the status list has all required properties
+func getStatusEntry(maybeCredentialStatus interface{}) (*StatusList2021Entry, error) {
+	statusBytes, err := json.Marshal(maybeCredentialStatus)
+	if err != nil {
+		return nil, util.LoggingErrorMsg(err, "could not marshal credential status property")
+	}
+	var statusEntry StatusList2021Entry
+	if err := json.Unmarshal(statusBytes, &statusEntry); err != nil {
+		return nil, util.LoggingErrorMsg(err, "could not unmarshal credential status property")
+	}
+	return &statusEntry, util.IsValidStruct(statusEntry)
 }
 
 // https://w3c-ccg.github.io/vc-status-list-2021/#bitstring-generation-algorithm
