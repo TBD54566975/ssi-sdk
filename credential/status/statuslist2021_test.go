@@ -380,9 +380,8 @@ func TestBitstringGenerationAndExpansion(t *testing.T) {
 	t.Run("no elements", func(tt *testing.T) {
 		var credIndices []string
 		bitString, err := bitstringGeneration(credIndices)
-		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "cannot create a status list bitstring with no credential indices")
-		assert.Empty(tt, bitString)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, bitString)
 	})
 
 	t.Run("invalid elements", func(tt *testing.T) {
