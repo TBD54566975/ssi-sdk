@@ -148,6 +148,7 @@ func prepareCredentialsForStatusList(purpose StatusPurpose, credentials []creden
 }
 
 // determine whether the credential status property is of the expected format
+// additionally makes sure the status list has all required properties
 func getStatusEntry(maybeCredentialStatus interface{}) (*StatusList2021Entry, error) {
 	statusBytes, err := json.Marshal(maybeCredentialStatus)
 	if err != nil {
@@ -157,7 +158,7 @@ func getStatusEntry(maybeCredentialStatus interface{}) (*StatusList2021Entry, er
 	if err := json.Unmarshal(statusBytes, &statusEntry); err != nil {
 		return nil, util.LoggingErrorMsg(err, "could not unmarshal credential status property")
 	}
-	return &statusEntry, nil
+	return &statusEntry, util.IsValidStruct(statusEntry)
 }
 
 // https://w3c-ccg.github.io/vc-status-list-2021/#bitstring-generation-algorithm
