@@ -229,6 +229,7 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 				ID:                   revocationID,
 				Type:                 StatusList2021EntryType,
 				StatusPurpose:        StatusRevocation,
+				StatusListIndex:      "-1",
 				StatusListCredential: "test-cred",
 			},
 		}
