@@ -176,9 +176,9 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 		revocationID := "revocation-id"
 		testIssuer := "test-issuer"
 
-		_, err := GenerateStatusList2021Credential(revocationID, testIssuer, StatusRevocation, []credential.VerifiableCredential{})
-		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "cannot create a status list bitstring with no credential indices")
+		emptyStatusListCred, err := GenerateStatusList2021Credential(revocationID, testIssuer, StatusRevocation, []credential.VerifiableCredential{})
+		assert.NotEmpty(tt, emptyStatusListCred)
+		assert.NoError(tt, err)
 	})
 
 	t.Run("invalid index value", func(tt *testing.T) {
@@ -380,9 +380,8 @@ func TestBitstringGenerationAndExpansion(t *testing.T) {
 	t.Run("no elements", func(tt *testing.T) {
 		var credIndices []string
 		bitString, err := bitstringGeneration(credIndices)
-		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "cannot create a status list bitstring with no credential indices")
-		assert.Empty(tt, bitString)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, bitString)
 	})
 
 	t.Run("invalid elements", func(tt *testing.T) {
