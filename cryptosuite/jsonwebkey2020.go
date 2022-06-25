@@ -1,5 +1,3 @@
-//go:build jwx_es256k
-
 package cryptosuite
 
 import (
