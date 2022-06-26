@@ -7,6 +7,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 )
@@ -18,7 +19,7 @@ import (
 // https://github.com/TBD54566975/ssi-sdk/blob/main/credential/builder.go
 // and https://github.com/TBD54566975/ssi-sdk/blob/main/credential/builder.go#L24
 // for more information on specifically thee builder model
-func buildVerifiableCredential() (*credential.VerifiableCredential, error) {
+func buildVerifiableCredential() (cred *credential.VerifiableCredential, err error) {
 
 	knownContext := []string{"https://www.w3.org/2018/credentials/v1",
 		"https://www.w3.org/2018/credentials/examples/v1"} // JSON-LD context statement
@@ -41,45 +42,33 @@ func buildVerifiableCredential() (*credential.VerifiableCredential, error) {
 		},
 	}
 
-	var err error
 	builder := credential.NewVerifiableCredentialBuilder()
 
-	err = builder.AddContext(knownContext)
-	if err != nil {
-		return nil, err
+	if err = builder.AddContext(knownContext); err != nil {
+		return
 	}
 
-	err = builder.SetID(knownID)
-	if err != nil {
-		return nil, err
+	if err = builder.SetID(knownID); err != nil {
+		return
 	}
 
-	err = builder.AddType(knownType)
-	if err != nil {
-		return nil, err
+	if err = builder.AddType(knownType); err != nil {
+		return
 	}
 
-	err = builder.SetIssuer(knownIssuer)
-	if err != nil {
-		return nil, err
+	if err = builder.SetIssuer(knownIssuer); err != nil {
+		return
 	}
 
-	err = builder.SetIssuanceDate(knownIssuanceDate)
-	if err != nil {
-		return nil, err
+	if err = builder.SetIssuanceDate(knownIssuanceDate); err != nil {
+		return
 	}
 
-	err = builder.SetCredentialSubject(knownSubject)
-	if err != nil {
-		return nil, err
+	if err = builder.SetCredentialSubject(knownSubject); err != nil {
+		return
 	}
 
-	cred, err := builder.Build()
-	if err != nil {
-		return nil, err
-	}
-
-	return cred, nil
+	return builder.Build()
 }
 
 // Make a Verifiable Credential
@@ -143,6 +132,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	print(string(dat))
 
+	fmt.Printf("Created Verifiable Credential:\n %s", string(dat))
 }
