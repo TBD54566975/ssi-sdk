@@ -6,13 +6,18 @@
 package main
 
 import (
+	"crypto/ecdsa"
+	"crypto/rand"
+	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	gocrypto "crypto"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
+	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 )
 
 // Prints a DID into a JSON format
@@ -31,7 +36,7 @@ func printDIDDDocument(didKey *did.DIDKey) error {
 	if dat, err := json.MarshalIndent(didDoc, "", "   "); err != nil {
 		return err
 	} else {
-		fmt.Printf("Generated DID document:\n%s", string(dat)) // Some basic DID information printed out here.
+		fmt.Printf("Generated DID document:\n%s\n", string(dat)) // Some basic DID information printed out here.
 	}
 	return nil
 }
@@ -43,22 +48,63 @@ func printDIDDDocument(didKey *did.DIDKey) error {
 // Seee https://github.com/TBD54566975/ssi-sdk/blob/main/did/key.go#L51
 // for more information on how to make it over the SSI-SDK.
 func generateDID() (privKey gocrypto.PrivateKey, didKey *did.DIDKey, err error) {
-	privKey, didKey, err = did.GenerateDIDKey(crypto.Secp256k1) // Create a DID Key and Private Key from the private key
+
+	// Create a DID Key and Private Key from the private key
+	// GenerateDIDKey takes in a key type value that this library supports and constructs a conformant did:key identifier.
+	// To use the private key, it is recommended to re-cast to the associated type.
+	// The function returns the associated private key value cast to the generic golang crypto.PrivateKey interface.
+	// See more here: https://github.com/TBD54566975/ssi-sdk/blob/main/did/key.go#L51
+	privKey, didKey, err = did.GenerateDIDKey(crypto.Secp256k1)
 	return
+}
+
+// Verifies the DID Document is not corrupted
+// Given a private key and a did Key
+// FIXME: What's the correct way to determine a tampered DID Document
+func validateDIDDocument(privKey gocrypto.PrivateKey, didKey *did.DIDKey) error {
+
+	secp256k1PrivKey, ok := privKey.(secp.PrivateKey)
+	if !ok {
+		return errors.New("Failed to convert private key")
+	}
+
+	// Convert to ECDSA
+	// TODO: Better documentation as to why
+	ecdsaPrivKey := secp256k1PrivKey.ToECDSA()
+	ecdsaPubKey := ecdsaPrivKey.PublicKey
+	msg := []byte("hello world")
+	digest := sha256.Sum256(msg)
+	r, s, err := ecdsa.Sign(rand.Reader, ecdsaPrivKey, digest[:])
+	if err != nil {
+		return err
+	}
+
+	verified := ecdsa.Verify(&ecdsaPubKey, digest[:], r, s)
+	if !verified {
+		return errors.New("Could not verify DID")
+	}
+
+	return nil
 }
 
 func main() {
 
-	// Generate a DID
-	// Check out the method for more information
-	var err error
-	_, did, err := generateDID()
-	if err != nil {
-		panic(err)
-	}
+	if pk, did, err := generateDID(); err == nil {
 
-	// Pretty Print it
-	if err = printDIDDDocument(did); err != nil {
+		// Print the did to stdout
+		if err = printDIDDDocument(did); err != nil {
+			panic(err)
+		}
+
+		// Verify the document
+		if err := validateDIDDocument(pk, did); err != nil {
+			fmt.Errorf("Failed to validate DID Document: %s", err.Error())
+
+		} else {
+			fmt.Println("Congrats! DID document is not corrupted")
+		}
+
+	} else {
 		panic(err)
 	}
 }
