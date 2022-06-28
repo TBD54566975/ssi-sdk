@@ -292,7 +292,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 }
 
 func TestProcessInputDescriptor(t *testing.T) {
-	t.Run("Simple Descriptor with One VC claim", func(tt *testing.T) {
+	t.Run("Simple Descriptor with One VC Claim", func(tt *testing.T) {
 		id := InputDescriptor{
 			ID: "id-1",
 			Constraints: &Constraints{
@@ -321,7 +321,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 		assert.Equal(tt, "test-verifiable-credential", processed.Claim["id"])
 	})
 
-	t.Run("Simple Descriptor with One VC claim and Limited Disclosure", func(tt *testing.T) {
+	t.Run("Simple Descriptor with One VC Claim and Limited Disclosure", func(tt *testing.T) {
 		id := InputDescriptor{
 			ID: "id-1",
 			Constraints: &Constraints{
@@ -533,7 +533,7 @@ func TestCanProcessDefinition(tt *testing.T) {
 }
 
 func TestConstructLimitedClaim(t *testing.T) {
-	t.Run("Full claim With Nesting", func(tt *testing.T) {
+	t.Run("Full Claim With Nesting", func(tt *testing.T) {
 		claim := getGenericTestClaim()
 		var limitedDescriptors []limitedInputDescriptor
 
@@ -671,7 +671,7 @@ func getTestVerifiablePresentation() credential.VerifiablePresentation {
 }
 
 func TestNormalizePresentationClaims(t *testing.T) {
-	t.Run("Normalize JWT claim", func(tt *testing.T) {
+	t.Run("Normalize JWT Claim", func(tt *testing.T) {
 		jwtVC := getTestJWTVerifiableCredential()
 		assert.NotEmpty(tt, jwtVC)
 
@@ -689,7 +689,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		assert.EqualValues(tt, string(crypto.EdDSA), normalized[0].AlgOrProofType)
 	})
 
-	t.Run("Normalize VP claim", func(tt *testing.T) {
+	t.Run("Normalize VP Claim", func(tt *testing.T) {
 		vpClaim := getTestVerifiablePresentation()
 		assert.NotEmpty(tt, vpClaim)
 
@@ -707,7 +707,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		assert.EqualValues(tt, string(cryptosuite.JSONWebSignature2020), normalized[0].AlgOrProofType)
 	})
 
-	t.Run("Normalize VC claim", func(tt *testing.T) {
+	t.Run("Normalize VC Claim", func(tt *testing.T) {
 		vcClaim := getTestVerifiableCredential()
 		assert.NotEmpty(tt, vcClaim)
 
