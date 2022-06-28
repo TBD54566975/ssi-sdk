@@ -6,6 +6,45 @@
 // graduated from the university. They will request
 // for the information, the student will respond.
 
+// InitalizationStep: Initialize the Wallet/Holder and the University
+// Step 0: Univesity issues a VC to the Holder and sends it over
+// Step 1: Verifier requests data from the holder
+// Step 2: Holder sends credential
+// Step 3: Verifier grants access based on the result
+
+//                          |--------------------------|
+//                          |                          |
+//                          |   Verifier (University)  |
+//                          |                          |
+//                          |__________________________|
+//                             /                       \
+//                            /                          \ Trusts University
+//      -----------------    / Issues VC               -------------------------
+//     |                |   /                         |                         |
+//     |   Holder       |  / <--------------------->  |    Verifier (Employer)  |
+//     |      \Wallet   |      PresentationRequest    |                         |
+//     |----------------|                              --------------------------
+//
+//     In more complicated scenarios, a ledge is present which the verifier will interact with
+//                              Ledge Based Scenario
+//
+//                          |--------------------------|
+//                          |                          |
+//                          |   Verifier (University)  |
+//                          |                          |
+//                          |__________________________|
+//                            |                       \
+//                            |                          \ Trusts University
+//      -----------------     | Issues VC to ledger   -------------------------
+//     |                |     |                       |                         |
+//     |   Holder       | <------------------------>  |    Verifier (Employer)  |
+//     |      \Wallet   |     | PresentationRequest   |                         |
+//     |----------------|     |                        --------------------------
+//             | DID stored on|ledger                           | VC
+//     |--------------------------------------------------------------------------|
+//     |                               Ledger                                     |
+//     ----------------------------------------------------------------------------
+
 package main
 
 import (
@@ -450,6 +489,7 @@ func makePresentationRequest(presentationData exchange.PresentationDefinition) (
 		return nil, err
 	}
 
+	// Verifies and parses a JSON Web Token
 	_, err = verifier.VerifyAndParseJWT(string(requestJWTBytes))
 	if err != nil {
 		return nil, err
@@ -463,6 +503,7 @@ func makePresentationRequest(presentationData exchange.PresentationDefinition) (
 // 2. Timestamps are valid
 // 3. Credntial is trusted
 func validateAccess(data []byte) error {
+
 	jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
 	if err != nil {
 		return err
@@ -507,30 +548,33 @@ func handleError(err error) {
 // 3. An employer sends a request to verify that the student graduated
 // the university.
 func main() {
+	cw.Write("Starting University Flow")
 
 	// Wallet initialization
-	cw.Write("Holder initiates a simple wallet with a DID")
+	cw.Write("Initializing Wallet")
 	var wallet = NewSimpleWallet()
-	cw.WriteAction("Wallet Created")
-	cw.WriteAction("Wallet Initialized")
 	err := wallet.Init()
 	handleError(err)
+
 	cw.Write("Initializing University Credentials")
 	vcDID := initUniversity()
+
+	// Creates the VC
 	cw.Write("Example University Creates VC for Holder")
 	cw.WriteNote("DID is shared from holder")
 	did, err := wallet.GetDID("main")
 	handleError(err)
 	vc, err := buildExampleUniversityVC(string(*vcDID), did)
 	handleError(err)
-	cw.WriteAction("VC Created")
+	cw.WriteAction("Example University Issued VC to Student")
 
-	// Verification
+	// Send to user
 	cw.Write("Example University Sends VC to Holder")
 	wallet.AddCredentials(vc)
 	msg := fmt.Sprintf("VC puts into wallet. Wallet size is now: %d", wallet.Size())
 	cw.WriteNote(msg)
 
+	// Presentation Request
 	cw.Write("Employer wants to verify student graduated from Example University. Sends a presentation request")
 	cw.WriteNote("Student shares proof via a Presentation Request")
 	presentationData := makePresentationData()
@@ -539,6 +583,9 @@ func main() {
 		panic(err)
 	}
 	cw.WriteNote(fmt.Sprintf("Presentation Request:%s", string(data)))
+
+	cw.WriteNote(fmt.Sprintf(""))
+
 	// Access
 	err = validateAccess(data)
 	cw.Write(fmt.Sprintf("Employer Attempting to Grant Access"))
