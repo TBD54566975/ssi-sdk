@@ -25,8 +25,9 @@
 //     |      \Wallet   |      PresentationRequest    |                         |
 //     |----------------|                              --------------------------
 //
-//     In more complicated scenarios, a ledge is present which the verifier will interact with
+//     In more complicated scenarios, a ledger is present which the verifier will interact with
 //                              Ledge Based Scenario
+//                              // TODO: Verify this
 //
 //                          |--------------------------|
 //                          |                          |
@@ -44,6 +45,22 @@
 //     |--------------------------------------------------------------------------|
 //     |                               Ledger                                     |
 //     ----------------------------------------------------------------------------
+
+//  A couple nuances that are necessary to understand at a high level before
+//  digging into this code.
+//
+// 1. A DID can be used against different method types. Each method has
+// different funtions. For example, bitcoin works differently than peer.
+// did:btcn vs. did:peer is how these methods specified.
+//
+// 2. A Verified Credential (VC) contains a cyrptographic proof, either explicit
+//  or embedded into the VC. For the purposes of this demo, the proof is
+//  embedded in a JSON Web Token (JTW)
+//
+//  3. When the Verifier wants to validate a user, they send a Presentation Request.
+//  The response will contain the VC. The Verifier will be able to determine if the VC
+//  has been tampered with due to the proof.
+//
 
 package main
 
