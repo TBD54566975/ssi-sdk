@@ -117,7 +117,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		assert.NoError(tt, err)
 	})
 
-	t.Run("Missing Claim in Submission", func(tt *testing.T) {
+	t.Run("Missing claim in Submission", func(tt *testing.T) {
 		def := PresentationDefinition{
 			ID: "test-id",
 			InputDescriptors: []InputDescriptor{

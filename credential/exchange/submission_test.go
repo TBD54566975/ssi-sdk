@@ -137,7 +137,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		assert.NoError(tt, def.IsValid())
 		vp, err := BuildPresentationSubmissionVP(def, nil)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "o claims match the required format, and signing alg/proof type requirements for input descriptor")
+		assert.Contains(tt, err.Error(), "no claims match the required format, and signing alg/proof type requirements for input descriptor")
 		assert.Empty(tt, vp)
 	})
 
@@ -292,7 +292,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 }
 
 func TestProcessInputDescriptor(t *testing.T) {
-	t.Run("Simple Descriptor with One VC Claim", func(tt *testing.T) {
+	t.Run("Simple Descriptor with One VC claim", func(tt *testing.T) {
 		id := InputDescriptor{
 			ID: "id-1",
 			Constraints: &Constraints{
@@ -321,7 +321,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 		assert.Equal(tt, "test-verifiable-credential", processed.Claim["id"])
 	})
 
-	t.Run("Simple Descriptor with One VC Claim and Limited Disclosure", func(tt *testing.T) {
+	t.Run("Simple Descriptor with One VC claim and Limited Disclosure", func(tt *testing.T) {
 		id := InputDescriptor{
 			ID: "id-1",
 			Constraints: &Constraints{
@@ -533,7 +533,7 @@ func TestCanProcessDefinition(tt *testing.T) {
 }
 
 func TestConstructLimitedClaim(t *testing.T) {
-	t.Run("Full Claim With Nesting", func(tt *testing.T) {
+	t.Run("Full claim With Nesting", func(tt *testing.T) {
 		claim := getGenericTestClaim()
 		var limitedDescriptors []limitedInputDescriptor
 
@@ -671,7 +671,7 @@ func getTestVerifiablePresentation() credential.VerifiablePresentation {
 }
 
 func TestNormalizePresentationClaims(t *testing.T) {
-	t.Run("Normalize JWT Claim", func(tt *testing.T) {
+	t.Run("Normalize JWT claim", func(tt *testing.T) {
 		jwtVC := getTestJWTVerifiableCredential()
 		assert.NotEmpty(tt, jwtVC)
 
@@ -684,12 +684,12 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NotEmpty(tt, normalized)
 		assert.True(tt, len(normalized) == 1)
-		assert.NotEmpty(tt, normalized[0].claimData)
-		assert.EqualValues(tt, JWTVC, normalized[0].format)
-		assert.EqualValues(tt, string(crypto.EdDSA), normalized[0].algOrProofType)
+		assert.NotEmpty(tt, normalized[0].Data)
+		assert.EqualValues(tt, JWTVC, normalized[0].Format)
+		assert.EqualValues(tt, string(crypto.EdDSA), normalized[0].AlgOrProofType)
 	})
 
-	t.Run("Normalize VP Claim", func(tt *testing.T) {
+	t.Run("Normalize VP claim", func(tt *testing.T) {
 		vpClaim := getTestVerifiablePresentation()
 		assert.NotEmpty(tt, vpClaim)
 
@@ -702,12 +702,12 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NotEmpty(tt, normalized)
 		assert.True(tt, len(normalized) == 1)
-		assert.NotEmpty(tt, normalized[0].claimData)
-		assert.EqualValues(tt, LDPVP, normalized[0].format)
-		assert.EqualValues(tt, string(cryptosuite.JSONWebSignature2020), normalized[0].algOrProofType)
+		assert.NotEmpty(tt, normalized[0].Data)
+		assert.EqualValues(tt, LDPVP, normalized[0].Format)
+		assert.EqualValues(tt, string(cryptosuite.JSONWebSignature2020), normalized[0].AlgOrProofType)
 	})
 
-	t.Run("Normalize VC Claim", func(tt *testing.T) {
+	t.Run("Normalize VC claim", func(tt *testing.T) {
 		vcClaim := getTestVerifiableCredential()
 		assert.NotEmpty(tt, vcClaim)
 
@@ -720,9 +720,9 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NotEmpty(tt, normalized)
 		assert.True(tt, len(normalized) == 1)
-		assert.NotEmpty(tt, normalized[0].claimData)
-		assert.EqualValues(tt, LDPVC, normalized[0].format)
-		assert.EqualValues(tt, string(cryptosuite.JSONWebSignature2020), normalized[0].algOrProofType)
+		assert.NotEmpty(tt, normalized[0].Data)
+		assert.EqualValues(tt, LDPVC, normalized[0].Format)
+		assert.EqualValues(tt, string(cryptosuite.JSONWebSignature2020), normalized[0].AlgOrProofType)
 	})
 }
 

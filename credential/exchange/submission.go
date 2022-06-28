@@ -158,23 +158,23 @@ func BuildPresentationSubmission(signer cryptosuite.Signer, def PresentationDefi
 	}
 }
 
-type normalizedClaim struct {
+type NormalizedClaim struct {
 	// id for the claim
-	claimID string
+	ID string
 	// go-json representation of the claim
-	claimData map[string]interface{}
+	Data map[string]interface{}
 	// JWT_VC, JWT_VP, LDP_VC, LDP_VP, etc.
-	format string
+	Format string
 	// Signing algorithm used for the claim (e.g. EdDSA, ES256, PS256, etc.).
 	// OR the Linked Data Proof Type (e.g. JsonWebSignature2020)
-	algOrProofType string
+	AlgOrProofType string
 }
 
 // normalizePresentationClaims takes a set of Presentation Claims and turns them into map[string]interface{} as
 // go-JSON representations. The claim format and signature algorithm type are noted as well.
 // This method is greedy, meaning it returns the set of claims it was able to normalize.
-func normalizePresentationClaims(claims []PresentationClaim) []normalizedClaim {
-	var normalizedClaims []normalizedClaim
+func normalizePresentationClaims(claims []PresentationClaim) []NormalizedClaim {
+	var normalizedClaims []NormalizedClaim
 	for _, claim := range claims {
 		ae := util.NewAppendError()
 		claimJSON, err := claim.GetClaimJSON()
@@ -193,11 +193,11 @@ func normalizePresentationClaims(claims []PresentationClaim) []normalizedClaim {
 		if claimID, ok := claimJSON["id"]; ok {
 			id = claimID.(string)
 		}
-		normalizedClaims = append(normalizedClaims, normalizedClaim{
-			claimID:        id,
-			claimData:      claimJSON,
-			format:         claimFormat,
-			algOrProofType: claim.SignatureAlgorithmOrProofType,
+		normalizedClaims = append(normalizedClaims, NormalizedClaim{
+			ID:             id,
+			Data:           claimJSON,
+			Format:         claimFormat,
+			AlgOrProofType: claim.SignatureAlgorithmOrProofType,
 		})
 	}
 	return normalizedClaims
@@ -206,14 +206,14 @@ func normalizePresentationClaims(claims []PresentationClaim) []normalizedClaim {
 // processedClaim represents a claim that has been processed for an input descriptor along with relevant
 // information for building a valid descriptor_map in the resulting presentation submission
 type processedClaim struct {
-	Claim map[string]interface{}
+	claim map[string]interface{}
 	SubmissionDescriptor
 }
 
 // BuildPresentationSubmissionVP takes a presentation definition and a set of claims. According to the presentation
 // definition, and the algorithm defined - https://identity.foundation/presentation-exchange/#input-evaluation - in
 // the specification, a presentation submission is constructed as a Verifiable Presentation.
-func BuildPresentationSubmissionVP(def PresentationDefinition, claims []normalizedClaim) (*credential.VerifiablePresentation, error) {
+func BuildPresentationSubmissionVP(def PresentationDefinition, claims []NormalizedClaim) (*credential.VerifiablePresentation, error) {
 	if err := canProcessDefinition(def); err != nil {
 		return nil, errors.Wrap(err, "feature not supported in processing given presentation definition")
 	}
@@ -261,7 +261,7 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []normaliz
 			seenClaims[claimID] = currIndex
 		}
 		processedClaims = append(processedClaims, processedClaim{
-			Claim: claim,
+			claim: claim,
 			SubmissionDescriptor: SubmissionDescriptor{
 				ID:     processedInputDescriptor.ID,
 				Format: processedInputDescriptor.Format,
@@ -275,8 +275,8 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []normaliz
 	for _, claim := range processedClaims {
 		descriptorMap = append(descriptorMap, claim.SubmissionDescriptor)
 		// on the case we've seen the claim, we need to check as to not add a nil claim value
-		if len(claim.Claim) > 0 {
-			if err := builder.AddVerifiableCredentials(claim.Claim); err != nil {
+		if len(claim.claim) > 0 {
+			if err := builder.AddVerifiableCredentials(claim.claim); err != nil {
 				err := errors.Wrap(err, "could not add claim value to verifiable presentation")
 				logrus.WithError(err).Error()
 				return nil, err
@@ -314,7 +314,7 @@ type limitedInputDescriptor struct {
 
 // processInputDescriptor runs the input evaluation algorithm described in the spec for a specific input descriptor
 // https://identity.foundation/presentation-exchange/#input-evaluation
-func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*processedInputDescriptor, error) {
+func processInputDescriptor(id InputDescriptor, claims []NormalizedClaim) (*processedInputDescriptor, error) {
 	constraints := id.Constraints
 	if constraints == nil {
 		err := fmt.Errorf("unable to process input descriptor without constraints")
@@ -351,7 +351,7 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 	for _, claim := range filteredClaims {
 		fieldsProcessed := 0
 		var limited []limitedInputDescriptor
-		claimValue := claim.claimData
+		claimValue := claim.Data
 		for _, field := range fields {
 			// apply the field to the claim, and return the processed value, which we only care about for
 			// filtering and/or limit_disclosure settings
@@ -377,9 +377,9 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 			}
 			return &processedInputDescriptor{
 				ID:      id.ID,
-				ClaimID: claim.claimID,
+				ClaimID: claim.ID,
 				Claim:   resultClaim,
-				Format:  claim.format,
+				Format:  claim.Format,
 			}, nil
 		}
 	}
@@ -390,19 +390,19 @@ func processInputDescriptor(id InputDescriptor, claims []normalizedClaim) (*proc
 
 // filterClaimsByFormat returns a set of claims that comply with a given ClaimFormat according to its
 // supported format(s) and signature types per format
-func filterClaimsByFormat(claims []normalizedClaim, format *ClaimFormat) []normalizedClaim {
+func filterClaimsByFormat(claims []NormalizedClaim, format *ClaimFormat) []NormalizedClaim {
 	// no format, which is an optional property
 	if format == nil {
 		return claims
 	}
 	formatValues := format.FormatValues()
-	var filteredClaims []normalizedClaim
+	var filteredClaims []NormalizedClaim
 	for _, claim := range claims {
 		// if the format matches, check the alg type
-		if util.Contains(claim.format, formatValues) {
+		if util.Contains(claim.Format, formatValues) {
 			// get the supported alg or proof types for this format
-			algOrProofTypes := format.AlgOrProofTypePerFormat(claim.format)
-			if util.Contains(claim.algOrProofType, algOrProofTypes) {
+			algOrProofTypes := format.AlgOrProofTypePerFormat(claim.Format)
+			if util.Contains(claim.AlgOrProofType, algOrProofTypes) {
 				filteredClaims = append(filteredClaims, claim)
 			}
 		}
