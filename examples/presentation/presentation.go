@@ -87,12 +87,12 @@ func makePresentationRequest(presentationData exchange.PresentationDefinition) (
 	// Seems like needed to know more of: https://github.com/lestrrat-go/jwx/tree/develop/v2/jwt
 	verifier, err := cryptosuite.NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	parsed, err := verifier.VerifyAndParseJWT(string(requestJWTBytes))
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	if dat, err := json.MarshalIndent(parsed, " ", "   "); err == nil {
@@ -117,7 +117,7 @@ func main() {
 		}
 		fmt.Printf("Presentation Request:\n%s", string(dat))
 	} else {
-		panic(err)
+		fmt.Errorf("Presentation Request building failed: %v", err)
 	}
 
 }

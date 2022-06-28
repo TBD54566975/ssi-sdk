@@ -89,7 +89,8 @@ func validateDIDDocument(privKey gocrypto.PrivateKey, didKey *did.DIDKey) error 
 
 func main() {
 
-	if pk, did, err := generateDID(); err != nil {
+	pk, did, err := generateDID()
+	if err != nil {
 		panic(err)
 	}
 
