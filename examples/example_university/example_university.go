@@ -1,10 +1,12 @@
-// A dead simple example of a full
-// Simulates that a student has graduated
-// from a university. They are given a VC
-// from the university and it is registered.
-// An employer wants to ascertain if the student
-// graduated from the university. They will request
-// for the information, the student will respond.
+// A dead simple example of a full Simulates that a student has graduated from a
+// university. They are given a VC from the university and it is registered. An
+// employer wants to ascertain if the student graduated from the university.
+// They will request for the information, the student will respond.
+//
+//
+// We use two different did methods here. did:key and a custom did method specified
+// in this file: did:example. The university uses did:example and the
+// user uses did:key.
 
 // InitalizationStep: Initialize the Wallet/Holder and the University
 // Step 0: Univesity issues a VC to the Holder and sends it over
@@ -14,7 +16,7 @@
 
 //                          |--------------------------|
 //                          |                          |
-//                          |   Verifier (University)  |
+//                          |   Issuer (University)    |
 //                          |                          |
 //                          |__________________________|
 //                             /                       \
@@ -31,7 +33,7 @@
 //
 //                          |--------------------------|
 //                          |                          |
-//                          |   Verifier (University)  |
+//                          |   Issuer (University)    |
 //                          |                          |
 //                          |__________________________|
 //                            |                       \
@@ -57,10 +59,19 @@
 //  or embedded into the VC. For the purposes of this demo, the proof is
 //  embedded in a JSON Web Token (JTW)
 //
-//  3. When the Verifier wants to validate a user, they send a Presentation Request.
+// 3. When the Verifier wants to validate a user, they send a Presentation Request.
 //  The response will contain the VC. The Verifier will be able to determine if the VC
 //  has been tampered with due to the proof.
 //
+//  The objects being created are in the following order:
+//
+//
+//  1. DID for the Holder
+//  2. DID for the issuer
+//  3. VC for the Holder from the verifier
+//  4. PresentationRequest for the Verifier
+//  5. PresentationSubmission from the Holder
+//  6. Authorization from the Verifier.
 
 package main
 
@@ -212,6 +223,9 @@ func initUniversity() *ExampleDID {
 	return vcDID
 }
 
+// This validates the VC.
+// TODO: Expand on this more
+// Simplify it?
 func validateVC(vc credential.VerifiableCredential) error {
 
 	issuer := "https://example.edu/issuers/565049"
@@ -317,6 +331,9 @@ func buildExampleUniversityVC(universityID string, recipient string) (*credentia
 // A sample wallet
 // This would NOT be how it would be stored in production
 // But serves for demonstrative purposes
+// This holds the assigned dids
+// private keys
+// and vCs
 type SimpleWallet struct {
 	vCs  map[string]*credential.VerifiableCredential
 	keys map[string]gocrypto.PrivateKey
@@ -345,7 +362,6 @@ func (s *SimpleWallet) AddPrivateKey(k string, key gocrypto.PrivateKey) error {
 	return nil
 }
 
-// Adds a DID Key to a wallet
 func (s *SimpleWallet) AddDIDKey(k string, key string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
@@ -357,7 +373,6 @@ func (s *SimpleWallet) AddDIDKey(k string, key string) error {
 	return nil
 }
 
-// Get DID
 func (s *SimpleWallet) GetDID(k string) (string, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
@@ -369,7 +384,6 @@ func (s *SimpleWallet) GetDID(k string) (string, error) {
 	return "", nil
 }
 
-// Adds a Verifable Credential to a wallet
 func (s *SimpleWallet) AddCredentials(cred *credential.VerifiableCredential) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
@@ -386,7 +400,7 @@ func (s *SimpleWallet) AddCredentials(cred *credential.VerifiableCredential) err
 // adds it to the registry
 func (s *SimpleWallet) Init() error {
 
-	s.mux.Lock()
+	s.mux.Lock() // TODO: remove the muxes?
 	s.mux.Unlock()
 
 	privKey, didKey, err := did.GenerateDIDKey(crypto.Secp256k1)
@@ -515,6 +529,29 @@ func makePresentationRequest(presentationData exchange.PresentationDefinition) (
 	return requestJWTBytes, err
 }
 
+// https://github.com/TBD54566975/ssi-sdk/blob/d279ca2779361091a70b8aa3c685a388067409a9/credential/exchange/submission.go#L126
+func buildPresentationSubmission(def exchange.PresentationDefinition, vc credential.VerifiableCredential) (*exchange.PresentationSubmission, error) {
+
+	presentationClaim := exchange.PresentationClaim{
+		Credential:                    &vc,
+		LDPFormat:                     exchange.LDPVC.Ptr(),
+		SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+	}
+
+	vp, err := exchange.BuildPresentationSubmissionVP(def, presentationClaim)
+
+	if err != nil {
+		return nil, err
+	}
+
+	asSubmission, ok := vp.PresentationSubmission.(exchange.PresentationSubmission)
+	if !ok {
+		return nil, errors.New("Failed to convert presentation submission")
+	}
+
+	return &asSubmission, nil
+}
+
 // Verification can be a number of things:
 // 1. Signature is Valid
 // 2. Timestamps are valid
@@ -596,12 +633,8 @@ func main() {
 	cw.WriteNote("Student shares proof via a Presentation Request")
 	presentationData := makePresentationData()
 	data, err := makePresentationRequest(presentationData)
-	if err != nil {
-		panic(err)
-	}
+	handleError(err)
 	cw.WriteNote(fmt.Sprintf("Presentation Request:%s", string(data)))
-
-	cw.WriteNote(fmt.Sprintf(""))
 
 	// Access
 	err = validateAccess(data)
