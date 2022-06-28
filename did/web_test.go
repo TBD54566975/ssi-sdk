@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	didKey01 DIDWeb = "did:key:z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp"
-	didWebBasic DIDWeb = "did:web:example.com"
-	didWebWithPort DIDWeb = "did:web:localhost%3A8443"
-	didWebOptionalPath DIDWeb = "did:web:example.com:user:alice"
-	didWebToBeResolved DIDWeb = "did:web:demo.spruceid.com" //TODO: replace this with a demo domain from ssi-sdk
+	didKey01               DIDWeb = "did:key:z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp"
+	didWebBasic            DIDWeb = "did:web:example.com"
+	didWebWithPort         DIDWeb = "did:web:localhost%3A8443"
+	didWebOptionalPath     DIDWeb = "did:web:example.com:user:alice"
+	didWebToBeResolved     DIDWeb = "did:web:demo.spruceid.com" //TODO: replace this with a demo domain from ssi-sdk
 	didWebCannotBeResolved DIDWeb = "did:web:doesnotexist.com"
 )
 

@@ -20,7 +20,7 @@ type DIDWeb string
 
 const (
 	DID_WEB_WELL_KNOWN_URL_PATH = ".well-known/"
-	DID_WEB_DID_DOC_NAME = "did.json"
+	DID_WEB_DID_DOC_NAME        = "did.json"
 )
 
 // CreateDoc constructs a did:web DIDDocument from a specific key type and its corresponding public key
@@ -142,5 +142,5 @@ func (did DIDWeb) Resolve() (*DIDDocument, error) {
 	if !did.IsValidDoc(doc) {
 		return nil, fmt.Errorf("Invalid doc for %+v: %+v", did, did)
 	}
-	return &doc, nil	
+	return &doc, nil
 }
