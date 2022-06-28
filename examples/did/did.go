@@ -89,22 +89,19 @@ func validateDIDDocument(privKey gocrypto.PrivateKey, didKey *did.DIDKey) error 
 
 func main() {
 
-	if pk, did, err := generateDID(); err == nil {
-
-		// Print the did to stdout
-		if err = printDIDDDocument(did); err != nil {
-			panic(err)
-		}
-
-		// Verify the document
-		if err := validateDIDDocument(pk, did); err != nil {
-			fmt.Errorf("Failed to validate DID Document: %s", err.Error())
-
-		} else {
-			fmt.Println("Congrats! DID document is not corrupted")
-		}
-
-	} else {
+	if pk, did, err := generateDID(); err != nil {
 		panic(err)
 	}
+
+	// Print the did to stdout
+	if err = printDIDDDocument(did); err != nil {
+		panic(err)
+	}
+	// Verify the document
+	if err := validateDIDDocument(pk, did); err != nil {
+		fmt.Errorf("Failed to validate DID Document: %s", err.Error())
+	} else {
+		fmt.Println("Congrats! DID document is not corrupted")
+	}
+
 }
