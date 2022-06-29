@@ -13,7 +13,7 @@ import (
 
 // did:web method specification
 // https://w3c-ccg.github.io/did-method-web/
-// DID Web create and resolve mothods are implemented in this package
+// DID Web create and resolve methods are implemented in this package
 // but NOT the update and deactivate methods
 // please refer to web_test.go for example and test cases
 type DIDWeb string
