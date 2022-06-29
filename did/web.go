@@ -19,13 +19,13 @@ import (
 type DIDWeb string
 
 const (
-	DID_WEB_WELL_KNOWN_URL_PATH = ".well-known/"
-	DID_WEB_DID_DOC_NAME        = "did.json"
+	DIDWebWellKnownURLPath   = ".well-known/"
+	DIDWebDIDDocFilename        = "did.json"
 )
 
 // CreateDoc constructs a did:web DIDDocument from a specific key type and its corresponding public key
 // This method does not attempt to validate that the provided public key is of the specified key type
-// The returned DIDDoucment is expected further turned into a JSON file named did.json
+// The returned DIDDocument is expected further turned into a JSON file named did.json
 // and stored under the expected path of the target web domain
 // specification: https://w3c-ccg.github.io/did-method-web/#create-register
 func (did DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*DIDDocument, error) {
@@ -135,8 +135,7 @@ func (did DIDWeb) Resolve() (*DIDDocument, error) {
 		return nil, err
 	}
 	var doc DIDDocument
-	err = json.Unmarshal(docBytes, &doc)
-	if err != nil {
+	if err = json.Unmarshal(docBytes, &doc); err != nil {
 		return nil, err
 	}
 	if !did.IsValidDoc(doc) {
