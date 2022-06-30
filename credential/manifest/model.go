@@ -115,6 +115,7 @@ type Application struct {
 type CredentialFulfillment struct {
 	ID            string                          `json:"id" validate:"required"`
 	ManifestID    string                          `json:"manifest_id" validate:"required"`
+	ApplicationID string                          `json:"application_id"`
 	DescriptorMap []exchange.SubmissionDescriptor `json:"descriptor_map" validate:"required"`
 }
 

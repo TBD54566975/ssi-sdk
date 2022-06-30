@@ -224,6 +224,15 @@ func (cfb *CredentialFulfillmentBuilder) SetManifestID(manifestID string) error 
 	return nil
 }
 
+func (cfb *CredentialFulfillmentBuilder) SetApplicationID(applicationID string) error {
+	if cfb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+
+	cfb.ApplicationID = applicationID
+	return nil
+}
+
 func (cfb *CredentialFulfillmentBuilder) SetDescriptorMap(descriptors []exchange.SubmissionDescriptor) error {
 	if cfb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
