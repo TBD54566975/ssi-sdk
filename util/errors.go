@@ -23,3 +23,11 @@ func LoggingErrorMsg(err error, msg string) error {
 	logrus.WithError(err).Error(msg)
 	return errors.Wrap(err, msg)
 }
+
+// Error messages
+var (
+	UNSUPPORTED_ERROR     = errors.New("not supported")
+	NOT_IMPLEMENTED_ERROR = errors.New("not implemented")
+	INVALID_FORMAT_ERROR  = errors.New("invalid format")
+	UNDEFINED_ERROR       = errors.New("undefined")
+)
