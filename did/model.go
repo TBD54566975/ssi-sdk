@@ -54,6 +54,8 @@ type Service struct {
 	// A string, map, or set composed of one or more strings and/or maps
 	// All string values must be valid URIs
 	ServiceEndpoint interface{} `json:"serviceEndpoint" validate:"required"`
+	RoutingKeys     []string    `json:"routingKeys"`
+	Accept          []string    `json:"accept"`
 }
 
 func (d *DIDDocument) IsEmpty() bool {
@@ -65,6 +67,17 @@ func (d *DIDDocument) IsEmpty() bool {
 
 func (d *DIDDocument) IsValid() error {
 	return util.NewValidator().Struct(d)
+}
+
+func NewDIDDocument() *DIDDocument {
+	return &DIDDocument{
+		Authentication:       make([]VerificationMethodSet, 0),
+		AssertionMethod:      make([]VerificationMethodSet, 0),
+		KeyAgreement:         make([]VerificationMethodSet, 0),
+		CapabilityDelegation: make([]VerificationMethodSet, 0),
+		CapabilityInvocation: make([]VerificationMethodSet, 0),
+		Services:             make([]Service, 0),
+	}
 }
 
 // TODO(gabe) DID Resolution Metadata
