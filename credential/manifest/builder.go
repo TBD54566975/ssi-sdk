@@ -116,11 +116,12 @@ type CredentialApplicationBuilder struct {
 	*CredentialApplication
 }
 
-func NewCredentialApplicationBuilder() CredentialApplicationBuilder {
+func NewCredentialApplicationBuilder(manifestID string) CredentialApplicationBuilder {
 	return CredentialApplicationBuilder{
 		CredentialApplication: &CredentialApplication{
 			Application: Application{
-				ID: uuid.NewString(),
+				ID:         uuid.NewString(),
+				ManifestID: manifestID,
 			},
 		},
 	}
@@ -188,10 +189,11 @@ type CredentialFulfillmentBuilder struct {
 	*CredentialFulfillment
 }
 
-func NewCredentialFulfillmentBuilder() CredentialFulfillmentBuilder {
+func NewCredentialFulfillmentBuilder(manifestID string) CredentialFulfillmentBuilder {
 	return CredentialFulfillmentBuilder{
 		CredentialFulfillment: &CredentialFulfillment{
-			ID: uuid.NewString(),
+			ID:         uuid.NewString(),
+			ManifestID: manifestID,
 		},
 	}
 }
