@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/sirupsen/logrus"
 )
 
 // did:web method specification
@@ -19,9 +21,28 @@ import (
 type DIDWeb string
 
 const (
-	DIDWebWellKnownURLPath   = ".well-known/"
-	DIDWebDIDDocFilename        = "did.json"
+	DIDWebWellKnownURLPath = ".well-known/"
+	DIDWebDIDDocFilename   = "did.json"
+	DIDWebPrefix           = "did:web:"
 )
+
+// keyTypeToLDKeyType converts crypto.KeyType to cryptosuite.LDKeyType
+func keyTypeToLDKeyType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
+	switch kt {
+	case crypto.Ed25519:
+		return Ed25519VerificationKey2018, nil
+	case crypto.X25519:
+		return X25519KeyAgreementKey2019, nil
+	case crypto.Secp256k1:
+		return EcdsaSecp256k1VerificationKey2019, nil
+	case crypto.P256, crypto.P384, crypto.P521, crypto.RSA:
+		return cryptosuite.JsonWebKey2020, nil
+	default:
+		err := fmt.Errorf("unsupported keyType: %+v", kt)
+		logrus.WithError(err).Errorf("keyType %+v failed to convert to LDKeyType", kt)
+		return "", err
+	}
+}
 
 // CreateDoc constructs a did:web DIDDocument from a specific key type and its corresponding public key
 // This method does not attempt to validate that the provided public key is of the specified key type
@@ -29,31 +50,38 @@ const (
 // and stored under the expected path of the target web domain
 // specification: https://w3c-ccg.github.io/did-method-web/#create-register
 func (did DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*DIDDocument, error) {
-	//create DIDKey with publicKey
-	didKey, err := CreateDIDKey(kt, publicKey)
+	ldKeyType, err := keyTypeToLDKeyType(kt)
 	if err != nil {
-		return nil, err
-	}
-	//create DIDDocument
-	didDoc, err := didKey.Expand()
-	if err != nil {
+		logrus.WithError(err).Error()
 		return nil, err
 	}
 	didWebStr := string(did)
-	didDoc.ID = didWebStr
-	verMethodID := didWebStr + "#owner"
-	didDoc.VerificationMethod[0].ID = verMethodID
-	didDoc.VerificationMethod[0].Controller = didWebStr
-	didDoc.Authentication[0] = verMethodID
-	didDoc.AssertionMethod[0] = verMethodID
+	keyReference := didWebStr + "#owner"
 
-	return didDoc, nil
+	verificationMethod, err := constructVerificationMethod(didWebStr, keyReference, publicKey, ldKeyType)
+	if err != nil {
+		logrus.WithError(err).Errorf("could not construct verification method for DIDWeb %+v", did)
+		return nil, err
+	}
+
+	verificationMethodSet := []VerificationMethodSet{
+		[]string{keyReference},
+	}
+
+	return &DIDDocument{
+		Context:            KnownDIDContext,
+		ID:                 didWebStr,
+		VerificationMethod: []VerificationMethod{*verificationMethod},
+		Authentication:     verificationMethodSet,
+		AssertionMethod:    verificationMethodSet,
+	}, nil
 }
 
 // CreateDocBytes simply takes the output from CreateDoc and returns the bytes of the JSON DID document
 func (did DIDWeb) CreateDocBytes(kt crypto.KeyType, publicKey []byte) ([]byte, error) {
 	doc, err := did.CreateDoc(kt, publicKey)
 	if err != nil {
+		logrus.WithError(err).Errorf("could not create DIDDocument for DIDWeb %+v", did)
 		return nil, err
 	}
 	return json.Marshal(doc)
@@ -63,38 +91,50 @@ func (did DIDWeb) CreateDocBytes(kt crypto.KeyType, publicKey []byte) ([]byte, e
 // where https:// prefix is required by the specification
 // optional path supported
 func (did DIDWeb) GetDocURL() (string, error) {
-	//DIDWeb must be prefixed with did:web:
-	if !strings.HasPrefix(string(did), "did:web:") {
-		return "", fmt.Errorf("%+v not a valid did:web", did)
+	// DIDWeb must be prefixed with did:web:
+	if !strings.HasPrefix(string(did), DIDWebPrefix) {
+		err := fmt.Errorf("DIDWeb %+v is missing prefix %s", did, DIDWebPrefix)
+		logrus.WithError(err).Error()
+		return "", err
 	}
 
 	subStrs := strings.Split(string(did), ":")
 	numSubStrs := len(subStrs)
-	if numSubStrs < 3 || subStrs[0] != "did" || subStrs[1] != "web" {
-		return "", fmt.Errorf("%+v not a valid did:web", did)
-	}
-	decodedDomain, err := url.QueryUnescape(subStrs[2])
-	if err != nil {
+	if numSubStrs < 3 {
+		err := fmt.Errorf("DIDWeb %+v is missing the required domain", did)
+		logrus.WithError(err).Error()
 		return "", err
 	}
 
-	//with well-known path
+	// Specification https://w3c-ccg.github.io/did-method-web/#read-resolve
+	// 2. If the domain contains a port percent decode the colon.
+	decodedDomain, err := url.QueryUnescape(subStrs[2])
+	if err != nil {
+		logrus.WithError(err).Errorf("url.QueryUnescape failed for subStr %s", subStrs[2])
+		return "", err
+	}
+
+	// 3. Generate an HTTPS URL to the expected location of the DID document by prepending https://.
 	if numSubStrs == 3 {
-		urlStr := "https://" + decodedDomain + "/" + DID_WEB_WELL_KNOWN_URL_PATH + DID_WEB_DID_DOC_NAME
+		// 4. If no path has been specified in the URL, append /.well-known.
+		// 5. Append /did.json to complete the URL.
+		urlStr := "https://" + decodedDomain + "/" + DIDWebWellKnownURLPath + DIDWebDIDDocFilename
 		return urlStr, nil
 	}
 
-	//with optional path
+	// https://w3c-ccg.github.io/did-method-web/#optional-path-considerations
+	// Optional Path Considerations
 	var sb strings.Builder
 	sb.WriteString("https://" + decodedDomain + "/")
 	for i := 3; i < numSubStrs; i++ {
 		str, err := url.QueryUnescape(subStrs[i])
 		if err != nil {
+			logrus.WithError(err).Errorf("url.QueryUnescape failed for subStr %s", subStrs[i])
 			return "", err
 		}
 		sb.WriteString(str + "/")
 	}
-	sb.WriteString(DID_WEB_DID_DOC_NAME)
+	sb.WriteString(DIDWebDIDDocFilename)
 	return sb.String(), nil
 }
 
@@ -102,29 +142,25 @@ func (did DIDWeb) GetDocURL() (string, error) {
 // on the expected URL of the DID Document from GetDocURL
 // and returns the bytes of the fetched file
 func (did DIDWeb) ResolveDocBytes() ([]byte, error) {
-	docUrl, err := did.GetDocURL()
+	docURL, err := did.GetDocURL()
 	if err != nil {
+		logrus.WithError(err).Errorf("could not resolve DIDWeb %+v", did)
 		return nil, err
 	}
-	resp, err := http.Get(docUrl)
+	// Specification https://w3c-ccg.github.io/did-method-web/#read-resolve
+	// 6. Perform an HTTP GET request to the URL using an agent that can successfully negotiate a secure HTTPS connection, which enforces the security requirements as described in 2.5 Security and privacy considerations.
+	resp, err := http.Get(docURL)
 	if err != nil {
+		logrus.WithError(err).Errorf("could not resolve with docURL %+v", docURL)
 		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		logrus.WithError(err).Errorf("could not resolve with response %+v", resp)
 		return nil, err
 	}
 	return body, nil
-}
-
-// IsValidDoc performs a minimal check on the DIDDocument
-// and make sure the Document's ID is the same as the DIDWeb
-func (did DIDWeb) IsValidDoc(doc DIDDocument) bool {
-	if len(doc.ID) == 0 || len(doc.VerificationMethod) == 0 || len(doc.Authentication) == 0 || len(doc.AssertionMethod) == 0 {
-		return false
-	}
-	return DIDWeb(doc.ID) == did
 }
 
 // Resolve fetchs and returns the DIDDocument from the expected URL
@@ -132,14 +168,18 @@ func (did DIDWeb) IsValidDoc(doc DIDDocument) bool {
 func (did DIDWeb) Resolve() (*DIDDocument, error) {
 	docBytes, err := did.ResolveDocBytes()
 	if err != nil {
+		logrus.WithError(err).Errorf("could not resolve DIDWeb %+v", did)
 		return nil, err
 	}
 	var doc DIDDocument
 	if err = json.Unmarshal(docBytes, &doc); err != nil {
+		logrus.WithError(err).Errorf("could not resolve with docBytes %s", docBytes)
 		return nil, err
 	}
-	if !did.IsValidDoc(doc) {
-		return nil, fmt.Errorf("Invalid doc for %+v: %+v", did, did)
+	if doc.ID != string(did) {
+		err = fmt.Errorf("doc.ID %+v does not match DIDWeb %+v", doc.ID, did)
+		logrus.WithError(err).Error()
+		return nil, err
 	}
 	return &doc, nil
 }

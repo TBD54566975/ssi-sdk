@@ -18,7 +18,8 @@ const (
 
 func TestDIDWebGetURL(t *testing.T) {
 	_, err := didKey01.GetDocURL()
-	assert.NotNil(t, err)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "did:key:z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp is missing prefix did:web:")
 	docUrl, err := didWebBasic.GetDocURL()
 	assert.NoError(t, err)
 	assert.Equal(t, "https://example.com/.well-known/did.json", docUrl)
@@ -31,8 +32,9 @@ func TestDIDWebGetURL(t *testing.T) {
 }
 
 func TestDIDWebResolveDocBytes(t *testing.T) {
-	_, err := didWebToBeResolved.ResolveDocBytes()
+	docBytes, err := didWebToBeResolved.ResolveDocBytes()
 	assert.NoError(t, err)
+	assert.Contains(t, string(docBytes), "did:web:demo.spruceid.com")
 }
 
 func TestDIDWebResolve(t *testing.T) {
@@ -40,7 +42,8 @@ func TestDIDWebResolve(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, string(didWebToBeResolved), doc.ID)
 	_, err = didWebCannotBeResolved.Resolve()
-	assert.NotNil(t, err)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), `Get "https://doesnotexist.com/.well-known/did.json"`)
 }
 
 func TestDIDWebCreateDoc(t *testing.T) {
@@ -56,5 +59,5 @@ func TestDIDWebCreateDocFileBytes(t *testing.T) {
 	assert.NoError(t, err)
 	docBytes, err := didWebBasic.CreateDocBytes(crypto.Ed25519, pk)
 	assert.NoError(t, err)
-	assert.NotNil(t, docBytes)
+	assert.NotEmpty(t, docBytes)
 }
