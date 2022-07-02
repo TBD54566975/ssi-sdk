@@ -58,6 +58,10 @@ type Service struct {
 	Accept          []string    `json:"accept"`
 }
 
+func (s *Service) IsValid() bool {
+	return !(s.ID == "" || s.Type == "" || s.ServiceEndpoint == "")
+}
+
 func (d *DIDDocument) IsEmpty() bool {
 	if d == nil {
 		return true
