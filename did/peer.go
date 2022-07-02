@@ -9,6 +9,9 @@
 // private relationships between people, organizations, and things. We expect
 // that peer-to-peer relationships in every blockchain ecosystem can benefit by
 // offloading pairwise and n-wise relationships to peer DIDs.
+//
+// Currently only methods 0 and 2 are supported.
+// Method 1 will be supported in a future date
 package did
 
 import (
@@ -20,20 +23,17 @@ import (
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/util"
-	"github.com/multiformats/go-multibase"
-	"github.com/multiformats/go-multicodec"
-	"github.com/multiformats/go-varint"
 	"github.com/pkg/errors"
 )
 
 type DIDPeer string
+type PurposeType string
 
-var availablePeerMethods = map[string]peerDIDMethod{
-	"0": method0{},
-	"1": method1{},
-	"2": method2{},
+var availablePeerMethods = map[string]Resolver{
+	"0": PeerMethod0{},
+	"1": PeerMethod1{},
+	"2": PeerMethod2{},
 }
 
 // ANBF specified here:
@@ -47,14 +47,8 @@ const (
 	PeerKnownContext                = "https://w3id.org/did/v1"
 	PeerDIDCommMessagingAbbr string = "dm"
 	PeerDIDCommMessaging     string = "DIDCommMessaging"
+	Hash                            = "#"
 )
-
-// Peer Method Schema:
-// did:<method-prefix><nuumalgo><transform><multicodec><numericbasis>
-func buildPeerDID(method int, transform, multicodec, numericbasis string) DIDPeer {
-	return DIDPeer(fmt.Sprintf("%s:%s:%d%s%s%s", DIDPrefix, PeerMethodPrefix,
-		method, transform, multicodec, numericbasis))
-}
 
 // Checks if peer DID is valid
 // https://identity.foundation/peer-did-method-spec/index.html#recognizing-and-handling-peer-dids
@@ -72,22 +66,29 @@ func (d DIDPeer) IsValid() bool {
 	return isPeerDID(string(d))
 }
 
-func (d DIDPeer) ToString() string {
-	return string(d)
-}
-
 func (d DIDPeer) Parse() (string, error) {
+
 	s, err := ParseDID(d, DIDPrefix+":"+PeerMethodPrefix+":")
+
 	if err != nil {
 		return "", err
 	}
-	// Return without the method
-	return s[2:], nil
-}
 
-type peerDIDMethod interface {
-	Generate() (gocrypto.PrivateKey, *DIDPeer, error)
-	Decode(d DIDPeer) (*DIDDocument, error)
+	method, err := d.GetMethodId()
+	if err != nil {
+		return "", err
+	}
+
+	var index int
+	switch method {
+	case "0":
+		index = 1
+	case "1":
+		return "", errors.Wrap(util.NOT_IMPLEMENTED_ERROR, "parsing method 1")
+	case "2":
+		index = 2
+	}
+	return s[index:], nil
 }
 
 // Method 0: inception key without doc
@@ -96,11 +97,11 @@ type peerDIDMethod interface {
 // a did:key value For example,
 // did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH is equivalent to
 // did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH
-type method0 struct {
+type PeerMethod0 struct {
 	kt crypto.KeyType
 }
 
-func makeDIDPeerFromEncoded(method int, encoded string) DIDPeer {
+func buildDIDPeerFromEncoded(method int, encoded string) DIDPeer {
 	return DIDPeer(fmt.Sprintf("%s:%s:%d%s", DIDPrefix, PeerMethodPrefix, method, encoded))
 }
 
@@ -123,47 +124,6 @@ func (a DIDPeer) Delta(b DIDPeer) (PeerDelta, error) {
 // TODO: CRDT
 // https://identity.foundation/peer-did-method-spec/#crdts
 
-// decode public key with type
-func decodePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyType, error) {
-
-	encoding, decoded, err := multibase.Decode(string(data))
-	if err != nil {
-		return nil, "", errors.Wrap(err, "failed to decode public key for did:peer")
-	}
-
-	if encoding != Base58BTCMultiBase {
-		err := fmt.Errorf("expected %d encoding but found %d", Base58BTCMultiBase, encoding)
-		return nil, "", err
-	}
-
-	// n = # bytes for the int, which we expect to be two from our multicodec
-	multiCodec, n, err := varint.FromUvarint(decoded)
-	if err != nil {
-		return nil, "", err
-	}
-
-	if n != 2 {
-		errMsg := "error parsing did:peer varint"
-		return nil, "", errors.New(errMsg)
-	}
-
-	pubKeyBytes := decoded[n:]
-	multiCodecValue := multicodec.Code(multiCodec)
-	switch multiCodecValue {
-	case Ed25519MultiCodec:
-		return pubKeyBytes, Ed25519VerificationKey2020, nil
-	case X25519MultiCodec:
-		return pubKeyBytes, X25519KeyAgreementKey2020, nil
-	case Secp256k1MultiCodec:
-		return pubKeyBytes, EcdsaSecp256k1VerificationKey2019, nil
-	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
-		return pubKeyBytes, cryptosuite.JsonWebKey2020, nil
-	default:
-		err := fmt.Errorf("unknown multicodec for did:peer: %d", multiCodecValue)
-		return nil, "", err
-	}
-}
-
 // Generates the key by types
 func (d DIDPeer) generateKeyByType(kt crypto.KeyType) (gocrypto.PublicKey, gocrypto.PrivateKey, error) {
 	if !isSupportedKeyType(kt) {
@@ -173,35 +133,24 @@ func (d DIDPeer) generateKeyByType(kt crypto.KeyType) (gocrypto.PublicKey, gocry
 	return crypto.GenerateKeyByKeyType(kt)
 }
 
-// Method 0 Generation Method
-func (m method0) Generate() (gocrypto.PrivateKey, *DIDPeer, error) {
-
+func (m PeerMethod0) Generate(kt crypto.KeyType, publicKey gocrypto.PublicKey) (*DIDPeer, error) {
 	var did DIDPeer
-
-	pubKey, privKey, err := did.generateKeyByType(m.kt)
+	encoded, err := encodePublicKeyWithKeyMultiCodecType(kt, publicKey)
 	if err != nil {
-		return nil, nil, err
+		return nil, errors.Wrap(err, "could not encode public key for did:peer")
 	}
-
-	encoded, err := encodePublicKeyWithKeyMultiCodecType(m.kt, pubKey)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not encode public key for did:peer")
-	}
-
-	did = makeDIDPeerFromEncoded(0, encoded)
-	return privKey, &did, err
+	did = buildDIDPeerFromEncoded(0, encoded)
+	return &did, err
 }
 
 // Method 1: genesis doc
-type method1 struct{}
+type PeerMethod1 struct{}
 
 // Method 2: multiple inception key without doc
-type method2 struct {
-	kt   crypto.KeyType
-	keys []PeerMethod2Declaration
+type PeerMethod2 struct {
+	KT     crypto.KeyType
+	Values []interface{}
 }
-
-type PurposeType string
 
 // https://identity.foundation/peer-did-method-spec/index.html#generation-method
 const (
@@ -213,6 +162,7 @@ const (
 	PeerPurposeCapabilityServiceCode    PurposeType = "S"
 )
 
+// For a quick lookup of supported DID purposes
 var supportedDIDPeerPurposes = map[PurposeType]bool{
 	PeerPurposeEncryptionCode:           true,
 	PeerPurposeAssertionCode:            true,
@@ -222,39 +172,59 @@ var supportedDIDPeerPurposes = map[PurposeType]bool{
 	PeerPurposeCapabilityServiceCode:    true,
 }
 
-type PeerMethod2Declaration struct {
-	Purpose PurposeType
-	Key     gocrypto.PublicKey
-	Service Service
-}
-
-// You could hardcode this, which would reduce the # of puproses and
-// possibly speed things up.
-// But you'd also have to maintain it
-// and lookups are harder for checking valid purposes
-// we are going to build the list on the fly
-func (d DIDPeer) getSupportedPurposes() []PurposeType {
-	var i = 0
-	var purposes = make([]PurposeType, len(supportedDIDPeerPurposes))
-	for purpose, _ := range supportedDIDPeerPurposes {
-		purposes[i] = purpose
-		i += 1
-	}
-	return purposes
-}
-
-func (d DIDPeer) isValidPurpose(p PurposeType) bool {
+func (d DIDPeer) IsValidPurpose(p PurposeType) bool {
 	if _, ok := supportedDIDPeerPurposes[p]; ok {
 		return true
 	}
 	return false
 }
 
-func (m method0) Decode(d DIDPeer) (*DIDDocument, error) {
-	return nil, util.NOT_IMPLEMENTED_ERROR
+func (m PeerMethod0) Resolve(did DID) (*DIDDocument, error) {
+
+	d, ok := did.(DIDPeer)
+	if !ok {
+		return nil, errors.Wrap(util.CASTING_ERROR, "did:peer")
+	}
+
+	v, err := d.Parse()
+	if err != nil {
+		return nil, err
+	}
+
+	pubKey, keyType, err := decodeEncodedKey(v)
+	if err != nil {
+		return nil, err
+	}
+
+	keyReference := Hash + v
+	id := string(d)
+
+	verificationMethod, err := constructVerificationMethod(id, keyReference, pubKey, keyType)
+	if err != nil {
+		return nil, err
+	}
+
+	verificationMethodSet := []VerificationMethodSet{
+		[]string{keyReference},
+	}
+
+	return &DIDDocument{
+		Context:              KnownDIDContext,
+		ID:                   id,
+		VerificationMethod:   []VerificationMethod{*verificationMethod},
+		Authentication:       verificationMethodSet,
+		AssertionMethod:      verificationMethodSet,
+		KeyAgreement:         verificationMethodSet,
+		CapabilityDelegation: verificationMethodSet,
+	}, nil
 }
 
-func (m method1) Decode(d DIDPeer) (*DIDDocument, error) {
+func (m PeerMethod1) Resolve(d DID) (*DIDDocument, error) {
+	d, ok := d.(DIDPeer)
+	if !ok {
+		return nil, errors.Wrap(util.CASTING_ERROR, "did:peer")
+	}
+
 	return nil, util.NOT_IMPLEMENTED_ERROR
 
 }
@@ -279,7 +249,13 @@ func (d DIDPeer) buildVerificationMethod(data, did string) (*VerificationMethod,
 // Split the DID string into element.
 // Extract element purpose and decode each key or service.
 // Insert each key or service into the document according to the designated pu
-func (m method2) Decode(d DIDPeer) (*DIDDocument, error) {
+func (m PeerMethod2) Resolve(did DID) (*DIDDocument, error) {
+
+	d, ok := did.(DIDPeer)
+
+	if !ok {
+		return nil, errors.Wrap(util.CASTING_ERROR, "did:peer")
+	}
 
 	parsed, err := d.Parse()
 	if err != nil {
@@ -305,14 +281,12 @@ func (m method2) Decode(d DIDPeer) (*DIDDocument, error) {
 		switch serviceType {
 
 		case PeerPurposeCapabilityServiceCode:
-
 			service, err := d.decodeServiceBlock("." + entry)
 			if err != nil {
 				return nil, err
 			}
 			service.ID = string(d) + "#didcommmessaging-0"
 			doc.Services = append(doc.Services, *service)
-
 		case PeerPurposeEncryptionCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
@@ -341,7 +315,6 @@ func (m method2) Decode(d DIDPeer) (*DIDDocument, error) {
 			return nil, errors.Wrap(util.UNSUPPORTED_ERROR, string(entry[0]))
 		}
 	}
-
 	return doc, nil
 }
 
@@ -350,6 +323,7 @@ func (m method2) Decode(d DIDPeer) (*DIDDocument, error) {
 // Document. This method is necessary when both an encryption key and a signing
 // key are required.
 //
+// It determines the purpose implicitly by looking at the type of object
 //
 // Start with the did prefix
 // did:peer:2
@@ -357,44 +331,63 @@ func (m method2) Decode(d DIDPeer) (*DIDDocument, error) {
 // Prefix each encoded key with a period character (.) and single character from the purpose codes table below.
 // Append the encoded key to the DID.
 // Encode and append a service type to the end of the peer DID if desired as described below.
-func (m method2) Generate() (gocrypto.PrivateKey, *DIDPeer, error) {
+func (m PeerMethod2) Generate() (*DIDPeer, error) {
 
-	var encoded string
 	var did DIDPeer
 
-	if len(m.keys) == 0 {
-		return nil, nil, errors.New("no keys specified for did:peer. could not build.")
+	if len(m.Values) == 0 {
+		return nil, errors.New("no keys specified for did:peer. could not build.")
 	}
 
-	for i, k := range m.keys {
+	var encoded string
+	var err error
+
+	for i, value := range m.Values {
 
 		var enc string
-		var err error
+		var purpose PurposeType
 
-		// Service must be appended last
-		if k.Purpose == PeerPurposeCapabilityServiceCode && i < len(m.keys)-1 {
-			return nil, nil, fmt.Errorf("failed to created did for %s. service must be appended last!", "did:peer")
+		switch tt := value.(type) {
+		case Service:
+			purpose = PeerPurposeCapabilityServiceCode
+			service := value.(Service)
+
+			if i < len(m.Values)-1 {
+				return nil, fmt.Errorf("failed to created did for %s. service must be appended last!", "did:peer")
+			}
+
+			if !service.IsValid() {
+				return nil, errors.New("service purpose provided but invalid service definition given")
+			}
+
+			enc, err = did.encodeService(service)
+
+			if err != nil {
+				return nil, errors.Wrap(err, "could not encode service for did:peer")
+			}
+
+		case gocrypto.PublicKey:
+
+			purpose = PeerPurposeEncryptionCode
+			key := value.(gocrypto.PublicKey)
+			enc, err = encodePublicKeyWithKeyMultiCodecType(m.KT, key)
+			if err != nil {
+				return nil, errors.Wrap(err, "could not encode public key for did:peer")
+			}
+
+		default:
+			return nil, errors.Wrap(util.NOT_IMPLEMENTED_ERROR, fmt.Sprintf("encoding of %s did:peer", tt))
 		}
 
-		if k.Purpose == PeerPurposeCapabilityServiceCode {
-			enc, err = did.encodeService(k.Service)
-			if err != nil {
-				return nil, nil, errors.Wrap(err, "could not encode service for did:peer")
-			}
-		} else {
-			enc, err = encodePublicKeyWithKeyMultiCodecType(m.kt, k.Key)
-			if err != nil {
-				return nil, nil, errors.Wrap(err, "could not encode public key for did:peer")
-			}
-		}
-		encoded += "." + string(k.Purpose) + enc
+		encoded += "." + string(purpose) + enc
 	}
 
-	did = makeDIDPeerFromEncoded(2, encoded)
+	did = buildDIDPeerFromEncoded(2, encoded)
 
-	return nil, &did, nil
+	return &did, nil
 }
 
+// Remaps the servce block for encoding
 type PeerServiceBlockEncoded struct {
 	ServiceType     string   `json:"t"`
 	ServiceEndpoint string   `json:"s"`
@@ -478,7 +471,7 @@ func (d DIDPeer) decodeServiceBlock(s string) (*Service, error) {
 
 type ServiceTypeAbbreviationMap map[string]string
 
-func (m method2) Encode() ([]byte, error) {
+func (m PeerMethod2) Encode() ([]byte, error) {
 	return nil, util.NOT_IMPLEMENTED_ERROR
 
 }
@@ -499,26 +492,48 @@ func (m method2) Encode() ([]byte, error) {
 // genesis version of the DID doc, and make this value the new DID's numeric
 // basis.
 //
-func (m method1) Generate() (gocrypto.PrivateKey, *DIDPeer, error) {
+func (m PeerMethod1) Generate() (*DIDPeer, error) {
 	// Create a Genesis Version
-	return nil, nil, util.NOT_IMPLEMENTED_ERROR
+	return nil, util.NOT_IMPLEMENTED_ERROR
+}
+
+func (d DIDPeer) GetMethodId() (string, error) {
+	m := string(d[9])
+	if _, ok := availablePeerMethods[m]; ok {
+		return m, nil
+	}
+	return "", errors.New(fmt.Sprintf("%s method not supported", m))
 }
 
 // id:peer:<method>
-func (d DIDPeer) GetMethod() (peerDIDMethod, error) {
+func (d DIDPeer) GetMethod() (Resolver, error) {
+
 	m := string(d[9])
-	if v, ok := availablePeerMethods[m]; ok {
-		return v, nil
+
+	if _, ok := availablePeerMethods[m]; ok {
+		switch m {
+		case "0":
+			return PeerMethod0{}, nil
+		case "1":
+			return PeerMethod1{}, nil
+		case "2":
+			return PeerMethod2{}, nil
+		default:
+			return nil, errors.New(fmt.Sprintf("%s method not supported", m))
+		}
 	}
+
 	return nil, errors.New(fmt.Sprintf("%s method not supported", m))
 }
 
 func (d DIDPeer) Resolve() (*DIDDocument, error) {
-
 	m, err := d.GetMethod()
 	if err != nil {
 		return nil, err
 	}
+	return m.Resolve(d)
+}
 
-	return m.Decode(d)
+func (d DIDPeer) ToString() string {
+	return string(d)
 }

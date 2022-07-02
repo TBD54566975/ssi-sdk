@@ -14,37 +14,42 @@ func TestDIDPeerValid(t *testing.T) {
 	assert.False(t, DIDPeer(invalid).IsValid())
 }
 
+func TestPeerMethod0(t *testing.T) {
+
+	var kt = crypto.Ed25519
+	var m0 PeerMethod0
+
+	pubKey, _, err := crypto.GenerateKeyByKeyType(kt)
+	assert.NoError(t, err)
+
+	did, err := m0.Generate(kt, pubKey)
+	assert.NoError(t, err)
+
+	_, err = m0.Resolve(*did)
+	assert.NoError(t, err)
+
+}
+
 func TestPeerMethod2(t *testing.T) {
 
 	var d DIDPeer
+	var kt = crypto.Ed25519
+
 	pubKey, _, err := d.generateKeyByType(crypto.Ed25519)
-	if err != nil {
-		t.Fatal(err)
+	assert.NoError(t, err)
+
+	service := Service{
+		ID:              "myid",
+		Type:            PeerDIDCommMessagingAbbr,
+		ServiceEndpoint: "https://example.com/endpoint",
+		RoutingKeys:     []string{"did:example:somemediator#somekey"},
+		Accept:          []string{"didcomm/v2"},
 	}
 
-	k1 := PeerMethod2Declaration{
-		Key:     pubKey,
-		Purpose: PeerPurposeEncryptionCode,
-	}
+	m2 := PeerMethod2{KT: kt, Values: []interface{}{pubKey, service}}
 
-	k2 := PeerMethod2Declaration{
-		Service: Service{
-			Type:            PeerDIDCommMessagingAbbr,
-			ServiceEndpoint: "https://example.com/endpoint",
-			RoutingKeys:     []string{"did:example:somemediator#somekey"},
-			Accept:          []string{"didcomm/v2"},
-		},
-		Purpose: PeerPurposeCapabilityServiceCode,
-	}
-
-	m2 := method2{
-		kt:   crypto.Ed25519,
-		keys: []PeerMethod2Declaration{k1, k2},
-	}
-	_, did, err := m2.Generate()
-	if err != nil {
-		t.Fatal(err)
-	}
+	did, err := m2.Generate()
+	assert.NoError(t, err)
 	assert.True(t, did.IsValid())
 }
 
@@ -83,6 +88,22 @@ func makeSamplePeerDIDDocument() *DIDDocument {
 			Accept:          []string{"didcomm/v2", "didcomm/aip2;env=rfc587"},
 		}},
 	}
+}
+
+func getSampleDIDDocumentMethod0() *DIDDocument {
+	return &DIDDocument{
+		Context: "https://www.w3.org/ns/did/v1",
+		ID:      "did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH",
+	}
+}
+
+func TestPeerResolveMethod0(t *testing.T) {
+	did := DIDPeer("did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH")
+	didDoc, err := PeerMethod0{}.Resolve(did)
+	assert.NoError(t, err)
+	gtDoc := getSampleDIDDocumentMethod0()
+	assert.Equal(t, gtDoc.Context, didDoc.Context)
+	assert.Equal(t, gtDoc.ID, didDoc.ID)
 }
 
 // Encoded Encryption Key: .Ez6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH

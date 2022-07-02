@@ -11,8 +11,8 @@ import (
 // Define the interface more clearly
 type DID interface {
 	IsValid() bool
-	Resolve() (*DIDDocument, error)
 	ToString() string
+	Parse() (string, error)
 }
 
 type DIDURL interface {
@@ -25,4 +25,8 @@ func ParseDID(did DID, prefix string) (string, error) {
 		return "", errors.Wrap(util.INVALID_FORMAT_ERROR, "did can't split correctly")
 	}
 	return split[1], nil
+}
+
+type Resolver interface {
+	Resolve(d DID) (*DIDDocument, error)
 }
