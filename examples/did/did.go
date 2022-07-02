@@ -33,7 +33,7 @@ func printDIDDDocument(didKey *did.DIDKey) error {
 	}
 
 	// Marshal out the DID Document into JSON
-	if dat, err := json.MarshalIndent(didDoc, "", "   "); err != nil {
+	if dat, err := util.PrettyJSON(didDoc); err != nil {
 		return err
 	} else {
 		fmt.Printf("Generated DID document:\n%s\n", string(dat)) // Some basic DID information printed out here.
