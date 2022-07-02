@@ -100,9 +100,9 @@ func main() {
 	}
 	// Verify the document
 	if err := validateDIDDocument(pk, did); err != nil {
-		fmt.Errorf("Failed to validate DID Document: %s", err.Error())
+		fmt.Errorf("failed to validate DID Document: %s", err.Error())
 	} else {
-		fmt.Println("Congrats! DID document is not corrupted")
+		fmt.Println("congrats! DID document is not corrupted")
 	}
 
 }
