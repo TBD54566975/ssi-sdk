@@ -45,7 +45,7 @@ func printDIDDDocument(didKey *did.DIDKey) error {
 // Makes a DID, or decentralized identifier.
 // The DID syntax and additional information can be found here:
 // https://www.w3.org/TR/did-core/#did-syntax
-// Seee https://github.com/TBD54566975/ssi-sdk/blob/main/did/key.go#L51
+// See https://github.com/TBD54566975/ssi-sdk/blob/main/did/key.go#L51
 // for more information on how to make it over the SSI-SDK.
 func generateDID() (privKey gocrypto.PrivateKey, didKey *did.DIDKey, err error) {
 
