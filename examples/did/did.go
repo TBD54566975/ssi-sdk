@@ -81,7 +81,7 @@ func validateDIDDocument(privKey gocrypto.PrivateKey, didKey *did.DIDKey) error 
 
 	verified := ecdsa.Verify(&ecdsaPubKey, digest[:], r, s)
 	if !verified {
-		return errors.New("Could not verify DID")
+		return errors.New("could not verify DID")
 	}
 
 	return nil
