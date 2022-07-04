@@ -14,19 +14,48 @@ func TestDIDPeerValid(t *testing.T) {
 	assert.False(t, DIDPeer(invalid).IsValid())
 }
 
+func makeSamplePeerDIDDocument1() *DIDDocument {
+
+	return &DIDDocument{
+		Context: "https://www.w3.org/ns/did/v1",
+		ID:      "did:peer:0z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs",
+		Authentication: []VerificationMethodSet{
+			VerificationMethod{
+				ID:              "#z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs6",
+				Type:            "Ed25519VerificationKey2018",
+				Controller:      "id:peer:0z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs6",
+				PublicKeyBase58: "FhV92MLqMGanvJbgnGY2Kjxi4tbXZWZbauHW58R9315i",
+			},
+		},
+		KeyAgreement: []VerificationMethodSet{
+			[]string{"#z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs6"},
+		},
+		AssertionMethod: []VerificationMethodSet{
+			[]string{"#z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs6"},
+		},
+		CapabilityDelegation: []VerificationMethodSet{
+			[]string{"#z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs6"},
+		},
+	}
+}
+
 func TestPeerMethod0(t *testing.T) {
 
 	var kt = crypto.Ed25519
 	var m0 PeerMethod0
 
+	// TODO: Add known key so reproducible results
 	pubKey, _, err := crypto.GenerateKeyByKeyType(kt)
 	assert.NoError(t, err)
 
 	did, err := m0.Generate(kt, pubKey)
 	assert.NoError(t, err)
 
-	_, err = m0.Resolve(*did)
+	doc, err := m0.Resolve(*did)
 	assert.NoError(t, err)
+	tDoc := makeSamplePeerDIDDocument1()
+
+	assert.Equal(t, tDoc.Context, doc.Context)
 
 }
 
