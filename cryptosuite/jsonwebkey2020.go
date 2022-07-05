@@ -1,5 +1,3 @@
-//go:build jwx_es256k
-
 package cryptosuite
 
 import (
@@ -349,6 +347,9 @@ func GenerateP384JSONWebKey2020() (*JSONWebKey2020, error) {
 	}, nil
 }
 
+// JSONWebKeySigner constructs a signer for a JSONWebKey2020 object.
+// Given a signature algorithm (e.g. ES256, PS384) and a JSON Web Key (private key), the signer is able to accept
+// a message and provide a valid JSON Web Signature (JWS) value as a result.
 type JSONWebKeySigner struct {
 	jwa.SignatureAlgorithm
 	jwk.Key
@@ -432,6 +433,9 @@ func NewJSONWebKeySigner(kid string, key PrivateKeyJWK, purpose ProofPurpose) (*
 	}, nil
 }
 
+// JSONWebKeyVerifier constructs a verifier for a JSONWebKey2020 object.
+// Given a signature algorithm (e.g. ES256, PS384) and a JSON Web Key (pub key), the verifier is able to accept
+// a message and signature, and provide a result to whether the signature is valid.
 type JSONWebKeyVerifier struct {
 	jwa.SignatureAlgorithm
 	jwk.Key
