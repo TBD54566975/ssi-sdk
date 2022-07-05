@@ -6,7 +6,7 @@ require (
 	github.com/bits-and-blooms/bitset v1.2.2
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1
 	github.com/go-playground/validator/v10 v10.11.0
-	github.com/goccy/go-json v0.9.7
+	github.com/goccy/go-json v0.9.8
 	github.com/google/uuid v1.3.0
 	github.com/lestrrat-go/jwx v1.2.25
 	github.com/magefile/mage v1.13.0
