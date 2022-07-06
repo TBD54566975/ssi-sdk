@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// These test vectors are taken from the did-core spec examples
+// These test vectors are taken from the did-core spec example
 // e.g. https://www.w3.org/TR/did-core/#example-30-did-document-with-1-verification-method-type
 const (
 	TestVector1 string = "did-example-30.json"

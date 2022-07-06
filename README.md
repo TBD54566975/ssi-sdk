@@ -62,6 +62,7 @@ change as the library evolves.
 ## did methods
 
 - [The did:key Method v0.7](https://w3c-ccg.github.io/did-method-key/) _Unofficial Draft 14 February 2022_
+- [The did:web Method](https://w3c-ccg.github.io/did-method-web/) _20 December 2021_
 
 # Building
 
@@ -81,10 +82,18 @@ A utility is provided to run _clean, build, and test_ in sequence with:
 mage cbt
 ```
 
+# Examples
+
+A set of code examples can be found in the [examples directory](example). We welcome
+contributions for additional examples.
+
+- [Decentralized Identifiers Example](example/did)
+- [Verifiable Credentials Example](example/vc)
+
 # Project Resources
 
-| Resource                              | Description                                                                   |
-|---------------------------------------|-------------------------------------------------------------------------------|
+| Resource                                                                               | Description                                                                   |
+|----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
 | [CODEOWNERS](https://github.com/TBD54566975/ssi-sdk/blob/main/CODEOWNERS)              | Outlines the project lead(s)                                                  |
 | [CODE_OF_CONDUCT](https://github.com/TBD54566975/ssi-sdk/blob/main/CODE_OF_CONDUCT.md) | Expected behavior for project contributors, promoting a welcoming environment |
 | [CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md)       | Developer guide to build, test, run, access CI, chat, discuss, file issues    |
