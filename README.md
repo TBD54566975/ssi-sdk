@@ -63,6 +63,7 @@ change as the library evolves.
 
 - [The did:key Method v0.7](https://w3c-ccg.github.io/did-method-key/) _Unofficial Draft 14 February 2022_
 - [The did:web Method](https://w3c-ccg.github.io/did-method-web/) _20 December 2021_
+- [The did:peer Method](https://identity.foundation/peer-did-method-spec/) _W3C Document 12 October 2021_
 
 # Building
 

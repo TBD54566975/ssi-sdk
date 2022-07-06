@@ -29,13 +29,6 @@ type (
 const (
 	// DIDKeyPrefix did:key prefix
 	DIDKeyPrefix = "did:key"
-
-	// DID Key Types
-	X25519KeyAgreementKey2020         cryptosuite.LDKeyType = "X25519KeyAgreementKey2020"
-	Ed25519VerificationKey2020        cryptosuite.LDKeyType = "Ed25519VerificationKey2020"
-	X25519KeyAgreementKey2019         cryptosuite.LDKeyType = "X25519KeyAgreementKey2019"
-	Ed25519VerificationKey2018        cryptosuite.LDKeyType = "Ed25519VerificationKey2018"
-	EcdsaSecp256k1VerificationKey2019 cryptosuite.LDKeyType = "EcdsaSecp256k1VerificationKey2019"
 )
 
 // GenerateDIDKey takes in a key type value that this library supports and constructs a conformant did:key identifier.
