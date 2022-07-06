@@ -54,8 +54,8 @@ type Service struct {
 	// A string, map, or set composed of one or more strings and/or maps
 	// All string values must be valid URIs
 	ServiceEndpoint interface{} `json:"serviceEndpoint" validate:"required"`
-	RoutingKeys     []string    `json:"routingKeys"`
-	Accept          []string    `json:"accept"`
+	RoutingKeys     []string    `json:"routingKeys,omitempty"`
+	Accept          []string    `json:"accept,omitempty"`
 }
 
 func (s *Service) IsValid() bool {
