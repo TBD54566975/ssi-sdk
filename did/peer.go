@@ -182,6 +182,12 @@ func (d DIDPeer) IsValidPurpose(p PurposeType) bool {
 	return false
 }
 
+// Resolves a did:peer into a DID Document
+// To do so, it decodes the key, constructs a verification
+// method, and returns a DID Document
+//
+// This allows PeerMethod0 to implement the DID Resolver
+// interface and be used to expand the did into the DID Document.
 func (m PeerMethod0) Resolve(did DID) (*DIDDocument, error) {
 
 	d, ok := did.(DIDPeer)
