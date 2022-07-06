@@ -26,9 +26,9 @@ func LoggingErrorMsg(err error, msg string) error {
 
 // Error messages
 var (
-	UNSUPPORTED_ERROR     = errors.New("not supported")
-	NOT_IMPLEMENTED_ERROR = errors.New("not implemented")
-	INVALID_FORMAT_ERROR  = errors.New("invalid format")
-	UNDEFINED_ERROR       = errors.New("undefined")
-	CASTING_ERROR         = errors.New("failed to convert")
+	UnsupportedError    = errors.New("not supported")
+	NotImplementedError = errors.New("not implemented")
+	InvalidFormatError  = errors.New("invalid format")
+	UndefinedError      = errors.New("undefined")
+	CastingError        = errors.New("failed to convert")
 )
