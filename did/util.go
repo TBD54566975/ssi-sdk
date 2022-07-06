@@ -19,7 +19,7 @@ import (
 func encodePublicKeyWithKeyMultiCodecType(kt crypto.KeyType, pubKey gocrypto.PublicKey) (string, error) {
 
 	if !isSupportedKeyType(kt) {
-		return "", errors.Wrap(util.UNSUPPORTED_ERROR, "not a supported key type")
+		return "", errors.Wrap(util.UnsupportedError, "not a supported key type")
 	}
 
 	publicKey, err := crypto.PubKeyToBytes(pubKey)

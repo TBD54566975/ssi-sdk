@@ -59,7 +59,7 @@ type Service struct {
 }
 
 func (s *Service) IsValid() bool {
-	return !(s.ID == "" || s.Type == "" || s.ServiceEndpoint == "")
+	return util.NewValidator().Struct(s) == nil
 }
 
 func (d *DIDDocument) IsEmpty() bool {

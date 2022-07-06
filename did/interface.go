@@ -22,7 +22,7 @@ type DIDURL interface {
 func ParseDID(did DID, prefix string) (string, error) {
 	split := strings.Split(did.ToString(), prefix)
 	if len(split) != 2 {
-		return "", errors.Wrap(util.INVALID_FORMAT_ERROR, "did can't split correctly")
+		return "", errors.Wrap(util.InvalidFormatError, "did can't split correctly")
 	}
 	return split[1], nil
 }

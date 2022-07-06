@@ -84,7 +84,7 @@ func (d DIDPeer) Parse() (string, error) {
 	case "0":
 		index = 1
 	case "1":
-		return "", errors.Wrap(util.NOT_IMPLEMENTED_ERROR, "parsing method 1")
+		return "", errors.Wrap(util.NotImplementedError, "parsing method 1")
 	case "2":
 		index = 2
 	}
@@ -118,7 +118,7 @@ type PeerDelta struct {
 }
 
 func (a DIDPeer) Delta(b DIDPeer) (PeerDelta, error) {
-	return PeerDelta{}, errors.Wrap(util.NOT_IMPLEMENTED_ERROR, "peer:did delta")
+	return PeerDelta{}, errors.Wrap(util.NotImplementedError, "peer:did delta")
 }
 
 // TODO: CRDT
@@ -127,7 +127,7 @@ func (a DIDPeer) Delta(b DIDPeer) (PeerDelta, error) {
 // Generates the key by types
 func (d DIDPeer) generateKeyByType(kt crypto.KeyType) (gocrypto.PublicKey, gocrypto.PrivateKey, error) {
 	if !isSupportedKeyType(kt) {
-		err := fmt.Errorf("%s : %s for did:peer", util.UNSUPPORTED_ERROR, kt)
+		err := fmt.Errorf("%s : %s for did:peer", util.UnsupportedError, kt)
 		return nil, nil, err
 	}
 	return crypto.GenerateKeyByKeyType(kt)
@@ -183,7 +183,7 @@ func (m PeerMethod0) Resolve(did DID) (*DIDDocument, error) {
 
 	d, ok := did.(DIDPeer)
 	if !ok {
-		return nil, errors.Wrap(util.CASTING_ERROR, "did:peer")
+		return nil, errors.Wrap(util.CastingError, "did:peer")
 	}
 
 	v, err := d.Parse()
@@ -222,10 +222,10 @@ func (m PeerMethod0) Resolve(did DID) (*DIDDocument, error) {
 func (m PeerMethod1) Resolve(d DID) (*DIDDocument, error) {
 	d, ok := d.(DIDPeer)
 	if !ok {
-		return nil, errors.Wrap(util.CASTING_ERROR, "did:peer")
+		return nil, errors.Wrap(util.CastingError, "did:peer")
 	}
 
-	return nil, util.NOT_IMPLEMENTED_ERROR
+	return nil, util.NotImplementedError
 
 }
 
@@ -254,7 +254,7 @@ func (m PeerMethod2) Resolve(did DID) (*DIDDocument, error) {
 	d, ok := did.(DIDPeer)
 
 	if !ok {
-		return nil, errors.Wrap(util.CASTING_ERROR, "did:peer")
+		return nil, errors.Wrap(util.CastingError, "did:peer")
 	}
 
 	parsed, err := d.Parse()
@@ -312,7 +312,7 @@ func (m PeerMethod2) Resolve(did DID) (*DIDDocument, error) {
 			}
 			doc.CapabilityDelegation = append(doc.CapabilityDelegation, *vm)
 		default:
-			return nil, errors.Wrap(util.UNSUPPORTED_ERROR, string(entry[0]))
+			return nil, errors.Wrap(util.UnsupportedError, string(entry[0]))
 		}
 	}
 	return doc, nil
@@ -376,7 +376,7 @@ func (m PeerMethod2) Generate() (*DIDPeer, error) {
 			}
 
 		default:
-			return nil, errors.Wrap(util.NOT_IMPLEMENTED_ERROR, fmt.Sprintf("encoding of %s did:peer", tt))
+			return nil, errors.Wrap(util.NotImplementedError, fmt.Sprintf("encoding of %s did:peer", tt))
 		}
 
 		encoded += "." + string(purpose) + enc
@@ -403,7 +403,7 @@ type PeerServiceBlockEncoded struct {
 func (d DIDPeer) encodeService(p Service) (string, error) {
 
 	if p.ServiceEndpoint == nil {
-		return "", errors.Wrap(util.UNDEFINED_ERROR, "service endpoint is not defined")
+		return "", errors.Wrap(util.UndefinedError, "service endpoint is not defined")
 	}
 
 	var serviceBlock = PeerServiceBlockEncoded{
@@ -472,7 +472,7 @@ func (d DIDPeer) decodeServiceBlock(s string) (*Service, error) {
 type ServiceTypeAbbreviationMap map[string]string
 
 func (m PeerMethod2) Encode() ([]byte, error) {
-	return nil, util.NOT_IMPLEMENTED_ERROR
+	return nil, util.NotImplementedError
 
 }
 
@@ -494,7 +494,7 @@ func (m PeerMethod2) Encode() ([]byte, error) {
 //
 func (m PeerMethod1) Generate() (*DIDPeer, error) {
 	// Create a Genesis Version
-	return nil, util.NOT_IMPLEMENTED_ERROR
+	return nil, util.NotImplementedError
 }
 
 func (d DIDPeer) GetMethodId() (string, error) {
