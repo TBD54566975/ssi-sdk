@@ -78,6 +78,12 @@ type Service struct {
 	// A string, map, or set composed of one or more strings and/or maps
 	// All string values must be valid URIs
 	ServiceEndpoint interface{} `json:"serviceEndpoint" validate:"required"`
+	RoutingKeys     []string    `json:"routingKeys,omitempty"`
+	Accept          []string    `json:"accept,omitempty"`
+}
+
+func (s *Service) IsValid() bool {
+	return util.NewValidator().Struct(s) == nil
 }
 
 func (d *DIDDocument) IsEmpty() bool {
@@ -106,6 +112,17 @@ func KeyTypeToLDKeyType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
 		err := fmt.Errorf("unsupported keyType: %+v", kt)
 		errMsg := fmt.Sprintf("keyType %+v failed to convert to LDKeyType", kt)
 		return "", util.LoggingErrorMsg(err, errMsg)
+	}
+}
+
+func NewDIDDocument() *DIDDocument {
+	return &DIDDocument{
+		Authentication:       make([]VerificationMethodSet, 0),
+		AssertionMethod:      make([]VerificationMethodSet, 0),
+		KeyAgreement:         make([]VerificationMethodSet, 0),
+		CapabilityDelegation: make([]VerificationMethodSet, 0),
+		CapabilityInvocation: make([]VerificationMethodSet, 0),
+		Services:             make([]Service, 0),
 	}
 }
 
