@@ -25,10 +25,13 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
-type DIDPeer string
-type PurposeType string
+type (
+	DIDPeer     string
+	PurposeType string
+)
 
 var availablePeerMethods = map[string]Resolver{
 	"0": PeerMethod0{},
@@ -55,7 +58,8 @@ const (
 func isPeerDID(did string) bool {
 	r, err := regexp.Compile(PeerDIDRegex)
 	if err != nil {
-		panic(err)
+		logrus.WithError(err).Error() // this should never happen
+		return false
 	}
 	return r.MatchString(did)
 }
@@ -68,13 +72,12 @@ func (d DIDPeer) IsValid() bool {
 
 func (d DIDPeer) Parse() (string, error) {
 
-	s, err := ParseDID(d, DIDPrefix+":"+PeerMethodPrefix+":")
-
+	s, err := ParseDID(d, strings.Join([]string{DIDPrefix, PeerMethodPrefix}, ":")+":")
 	if err != nil {
 		return "", err
 	}
 
-	method, err := d.GetMethodId()
+	method, err := d.GetMethodID()
 	if err != nil {
 		return "", err
 	}
@@ -117,8 +120,8 @@ type PeerDelta struct {
 	When   int64     `json:"when"`   //<ISO8601/RFC3339 UTC timestamp with at least second precision>
 }
 
-func (a DIDPeer) Delta(b DIDPeer) (PeerDelta, error) {
-	return PeerDelta{}, errors.Wrap(util.NotImplementedError, "peer:did delta")
+func (d DIDPeer) Delta(b DIDPeer) (*PeerDelta, error) {
+	return nil, errors.Wrap(util.NotImplementedError, "peer:did delta")
 }
 
 // TODO: CRDT
@@ -471,11 +474,6 @@ func (d DIDPeer) decodeServiceBlock(s string) (*Service, error) {
 
 type ServiceTypeAbbreviationMap map[string]string
 
-func (m PeerMethod2) Encode() ([]byte, error) {
-	return nil, util.NotImplementedError
-
-}
-
 // https://identity.foundation/peer-did-method-spec/#generation-method Create a
 // genesis version of JSON text of the DID doc for the DID. This inception key
 // is the key that creates the DID and authenticates when exchanging it with the
@@ -497,7 +495,7 @@ func (m PeerMethod1) Generate() (*DIDPeer, error) {
 	return nil, util.NotImplementedError
 }
 
-func (d DIDPeer) GetMethodId() (string, error) {
+func (d DIDPeer) GetMethodID() (string, error) {
 	m := string(d[9])
 	if _, ok := availablePeerMethods[m]; ok {
 		return m, nil
