@@ -23,3 +23,12 @@ func LoggingErrorMsg(err error, msg string) error {
 	logrus.WithError(err).Error(msg)
 	return errors.Wrap(err, msg)
 }
+
+// Error messages
+var (
+	UnsupportedError    = errors.New("not supported")
+	NotImplementedError = errors.New("not implemented")
+	InvalidFormatError  = errors.New("invalid format")
+	UndefinedError      = errors.New("undefined")
+	CastingError        = errors.New("failed to convert")
+)
