@@ -12,6 +12,9 @@ const (
 	KnownDIDContext string = "https://www.w3.org/ns/did/v1"
 )
 
+type DIDDocumentMetadata map[string]interface{}
+type DIDResolutionMetadata map[string]interface{}
+
 // DIDDocument is a representation of the did core specification https://www.w3.org/TR/did-core
 // TODO(gabe) enforce validation of DID syntax https://www.w3.org/TR/did-core/#did-syntax
 type DIDDocument struct {

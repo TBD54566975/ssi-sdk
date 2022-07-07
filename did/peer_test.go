@@ -51,7 +51,7 @@ func TestPeerMethod0(t *testing.T) {
 	did, err := m0.Generate(kt, pubKey)
 	assert.NoError(t, err)
 
-	doc, err := m0.Resolve(*did)
+	doc, _, _, err := m0.Resolve(*did, nil)
 	assert.NoError(t, err)
 	testDoc := makeSamplePeerDIDDocument1()
 
@@ -128,7 +128,7 @@ func getSampleDIDDocumentMethod0() *DIDDocument {
 
 func TestPeerResolveMethod0(t *testing.T) {
 	did := DIDPeer("did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH")
-	didDoc, err := PeerMethod0{}.Resolve(did)
+	didDoc, _, _, err := PeerMethod0{}.Resolve(did, nil)
 	assert.NoError(t, err)
 	gtestDoc := getSampleDIDDocumentMethod0()
 	assert.Equal(t, gtestDoc.Context, didDoc.Context)
@@ -153,7 +153,7 @@ func TestPeerResolveMethod2(t *testing.T) {
 	testDoc := makeSamplePeerDIDDocument()
 	did := DIDPeer(testDoc.ID)
 
-	doc, err := did.Resolve()
+	doc, _, _, err := did.Resolve()
 	if err != nil {
 		t.Fatal(err)
 	}
