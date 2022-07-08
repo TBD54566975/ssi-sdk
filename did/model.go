@@ -12,8 +12,30 @@ const (
 	KnownDIDContext string = "https://www.w3.org/ns/did/v1"
 )
 
-type DIDDocumentMetadata map[string]interface{}
-type DIDResolutionMetadata map[string]interface{}
+// https://www.w3.org/TR/did-core/#did-document-metadata
+type DIDDocumentMetadata struct {
+	Created       string `json:"created,omitempty"`
+	Updated       string `json:"updated,omitempty"`
+	Deactivated   bool   `json:"deactivated"`
+	NextUpdate    string `json:"nextUpdate,omitempty"`
+	VersionID     string `json:"versionId,omitempty"`
+	NextVersionID string `json:"nextVersionId,omitempty"`
+	EquivalentId  string `json:"equivalentId,omitempty"`
+	CanonicalID   string `json:"canonicalId"`
+}
+
+// https://www.w3.org/TR/did-core/#did-resolution-metadata
+type ResolutionError struct {
+	InvalidDID                 bool
+	NotFound                   bool
+	RepresentationNotSupported bool
+}
+
+// https://www.w3.org/TR/did-core/#did-resolution-metadata
+type DIDResolutionMetadata struct {
+	contentType string
+	error       ResolutionError
+}
 
 // DIDDocument is a representation of the did core specification https://www.w3.org/TR/did-core
 // TODO(gabe) enforce validation of DID syntax https://www.w3.org/TR/did-core/#did-syntax
