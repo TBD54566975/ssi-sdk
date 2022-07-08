@@ -154,9 +154,7 @@ func TestPeerResolveMethod2(t *testing.T) {
 	did := DIDPeer(testDoc.ID)
 
 	doc, _, _, err := did.Resolve()
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	assert.Equal(t, testDoc.Context, doc.Context)
 	assert.Equal(t, testDoc.ID, doc.ID)
