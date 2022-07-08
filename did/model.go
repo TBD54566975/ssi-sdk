@@ -35,7 +35,7 @@ type ResolutionError struct {
 // https://www.w3.org/TR/did-core/#did-resolution-metadata
 type DIDResolutionMetadata struct {
 	contentType string
-	error       ResolutionError
+	error       *ResolutionError
 }
 
 // DIDDocument is a representation of the did core specification https://www.w3.org/TR/did-core
