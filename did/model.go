@@ -21,14 +21,15 @@ type DIDDocumentMetadata struct {
 	VersionID     string `json:"versionId,omitempty"`
 	NextVersionID string `json:"nextVersionId,omitempty"`
 	EquivalentId  string `json:"equivalentId,omitempty"`
-	CanonicalID   string `json:"canonicalId"`
+	CanonicalID   string `json:"canonicalId,omitempty"`
 }
 
 // https://www.w3.org/TR/did-core/#did-resolution-metadata
 type ResolutionError struct {
-	InvalidDID                 bool
-	NotFound                   bool
-	RepresentationNotSupported bool
+	Code                       string `json:"code"`
+	InvalidDID                 bool   `json:"invalidDid"`
+	NotFound                   bool   `json:"notFound"`
+	RepresentationNotSupported bool   `json:"representationNotSupported"`
 }
 
 // https://www.w3.org/TR/did-core/#did-resolution-metadata
