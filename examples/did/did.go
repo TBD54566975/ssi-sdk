@@ -29,7 +29,7 @@ func main() {
 	handleError(err, "failed to generate key")
 
 	// Expand the DID into a DID Document
-	// Expanding is how did:key is reolved in the sdk
+	// Expanding is how did:key is resolved in the sdk
 	// https://www.w3.org/TR/did-core/#did-document-properties
 	didDoc, err := didKey.Expand()
 	handleError(err, "failed to expand did:key")
