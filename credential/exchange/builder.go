@@ -4,6 +4,7 @@ import (
     "fmt"
     "reflect"
 
+    "github.com/goccy/go-json"
     "github.com/google/uuid"
     "github.com/pkg/errors"
 
@@ -30,6 +31,9 @@ func (pdb *PresentationDefinitionBuilder) Build() (*PresentationDefinition, erro
     if pdb.IsEmpty() {
         return nil, errors.New(BuilderEmptyError)
     }
+
+    b, _ := json.Marshal(pdb)
+    println(string(b))
 
     if err := pdb.PresentationDefinition.IsValid(); err != nil {
         return nil, util.LoggingErrorMsg(err, "presentation definition not ready to be built")
