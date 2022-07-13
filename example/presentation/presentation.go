@@ -1,14 +1,11 @@
-// A simple example of making a presentation request
-// and a presentation definition with various comments.
-// Please see the acutal source code documentation
-// for more detialed information and specifications for the specific
-// methods. This is intended to give an overview and basic
-// idea of how things work.
+// A simple example of making a presentation request and a presentation definition with various comments.
+// Please see the actual source code documentation for more detailed information and specifications
+// for the specific methods. This is intended to give an overview and basic idea of how things work.
 
 //
 // |------------|       |----------------------|        |------------|
-// |  Verifier  | ----> | Presentation Request | -----> |   Holder   |
-// |            |       |      \Definition     |        |            |
+// |  Verifier   | ----> | Presentation Request | -----> |   Holder   |
+// |            |       |      \Definition      |        |            |
 // |------------|       |----------------------|        |------------|
 //
 package main
@@ -16,11 +13,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
@@ -75,14 +72,14 @@ func makePresentationRequest(presentationData exchange.PresentationDefinition) (
 	}
 
 	// Builds a presentation request
-	// Requires a signeer, the presentation data, and the target
+	// Requires a signer, the presentation data, and a target
 	// Target is the Audience Key
 	requestJWTBytes, err := exchange.BuildJWTPresentationRequest(*signer, presentationData, "did:test")
 	if err != nil {
 		return
 	}
 
-	// TODO: Add better documentation on the verification prcoess
+	// TODO: Add better documentation on the verification process
 	// Seems like needed to know more of: https://github.com/lestrrat-go/jwx/tree/develop/v2/jwt
 	verifier, err := cryptosuite.NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
 	if err != nil {
@@ -101,18 +98,11 @@ func makePresentationRequest(presentationData exchange.PresentationDefinition) (
 	return requestJWTBytes, err
 }
 
-func handleError(err error, msg string) {
-	if err != nil {
-		os.Stderr.WriteString(fmt.Sprintf("%s: %v", msg, err))
-		os.Exit(1)
-	}
-}
-
 func main() {
 	data := makePresentationData()
 	pr, err := makePresentationRequest(data)
-	handleError(err, "faild to make presentation request")
+	example.HandleExampleError(err, "failed to make presentation request")
 	dat, err := json.Marshal(pr)
-	handleError(err, "failed to marshal presentation request")
+	example.HandleExampleError(err, "failed to marshal presentation request")
 	fmt.Printf("Presentation Request:\n%s", string(dat))
 }
