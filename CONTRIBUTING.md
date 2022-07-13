@@ -2,7 +2,7 @@
 
 There are many ways to be an open source contributor, and we're here to help you on your way! You may:
 
-* Propose ideas in our [discussion forums](https://github.com/TBD54566975/ssi-sdk/discussions)
+* Propose ideas in our [discussion forums](https://forums.tbd.website/)
 * Raise an issue or feature request in our [issue tracker](https://github.com/TBD54566975/ssi-sdk/issues)
 * Help another contributor with one of their questions, or a code review
 * Suggest improvements to our Getting Started documentation by supplying a Pull Request
@@ -85,14 +85,13 @@ via [GitHub Issues](https://github.com/TBD54566975/ssi-sdk/issues).
 
 ### Discussions
 
-Design discussions and proposals take place on [GitHub Discussions](https://github.com/TBD54566975/ssi-sdk/discussions).
+Design discussions and proposals take place on the [TBD Forum](https://forums.tbd.website/).
 
 We advocate an asynchronous, written debate model - so write up your thoughts and invite the community to join in!
 
 ### Continuous Integration
 
-Build and Test cycles are run on every commit to every branch
-on [CircleCI](https://app.circleci.com/pipelines/github/TBD54566975/ssi-sdk).
+Build and Test cycles are run on every commit to every branch using [GitHub Actions](https://github.com/TBD54566975/ssi-sdk/actions).
 
 ## Contribution
 
