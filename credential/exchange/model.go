@@ -120,7 +120,7 @@ func (cf *ClaimFormat) IsValid() error {
 	if cf.IsEmpty() {
 		return errors.New("claim format is empty")
 	}
-	if err := IsValidFormatDeclaration(*cf); err != nil {
+	if err := IsValidDefinitionClaimFormatDesignation(*cf); err != nil {
 		return errors.Wrap(err, "claim format not valid against schema")
 	}
 	return util.NewValidator().Struct(cf)
@@ -223,7 +223,7 @@ func (id *InputDescriptor) IsValid() error {
 }
 
 type Constraints struct {
-	Fields          []Field     `json:"fields,omitempty"`
+	Fields          []Field     `json:"fields,omitempty" validate:"omitempty,dive"`
 	LimitDisclosure *Preference `json:"limit_disclosure,omitempty"`
 
 	// https://identity.foundation/presentation-exchange/#relational-constraint-feature

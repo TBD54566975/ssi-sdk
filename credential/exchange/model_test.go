@@ -28,7 +28,7 @@ var (
 // Round trip de/serialize to test our object models
 
 func TestPresentationDefinition(t *testing.T) {
-	// examples here https://identity.foundation/presentation-exchange/#presentation-definition
+	// example here https://identity.foundation/presentation-exchange/#presentation-definition
 
 	t.Run("Definition Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(DefinitionVector1)
@@ -144,7 +144,7 @@ func TestPresentationDefinition(t *testing.T) {
 }
 
 func TestPresentationSubmission(t *testing.T) {
-	// examples here and after https://identity.foundation/presentation-exchange/#basic-presentation-submission-object-1
+	// example here and after https://identity.foundation/presentation-exchange/#basic-presentation-submission-object-1
 
 	t.Run("Presentation Submission Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(SubmissionVector1)
