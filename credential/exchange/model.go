@@ -223,7 +223,7 @@ func (id *InputDescriptor) IsValid() error {
 }
 
 type Constraints struct {
-	Fields          []Field     `json:"fields,omitempty"`
+	Fields          []Field     `json:"fields,omitempty" validate:"omitempty,dive"`
 	LimitDisclosure *Preference `json:"limit_disclosure,omitempty"`
 
 	// https://identity.foundation/presentation-exchange/#relational-constraint-feature

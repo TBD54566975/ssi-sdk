@@ -227,7 +227,7 @@ func (idb *InputDescriptorBuilder) SetConstraints(constraints Constraints) error
 	}
 
 	if err := util.IsValidStruct(constraints); err != nil {
-		return errors.Wrapf(err, "cannot set invali constraints: %+v", constraints)
+		return errors.Wrapf(err, "cannot set invalid constraints: %+v", constraints)
 	}
 
 	idb.Constraints = &constraints
