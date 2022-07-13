@@ -24,9 +24,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
-// This can also be called via the exchange package.
-var PresentationDefinitionKey string = "presentation_definition"
-
 // Makes a dummy presentation definition. These are
 // eventually transported via Presentation Request.
 // For more information on presentation definitions go
@@ -112,7 +109,7 @@ func handleError(err error, msg string) {
 }
 
 func main() {
-	var data = makePresentationData()
+	data := makePresentationData()
 	pr, err := makePresentationRequest(data)
 	handleError(err, "faild to make presentation request")
 	dat, err := json.Marshal(pr)
