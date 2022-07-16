@@ -1,34 +1,20 @@
-// This is a very simple application which can create
-// a Verifiable Credential.
-// It can do so via a builder or directly
-// initializing a VerifiedCredentials struct
-// from the credentials package
+// This is a simple application which creates a Verifiable Credential.
+// It can do so via a builder or directly initializing a VerifiedCredentials struct from the credentials package.
 package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
-func handleError(err error, msg string) {
-	if err != nil {
-		os.Stderr.WriteString(fmt.Sprintf("%s: %v", msg, err))
-		os.Exit(1)
-	}
-}
-
 func main() {
 
-	// Make a Verifiable Credential
-	// using the VC data type directly.
-	// Alternatively, use the builder
-	// A VC is set of tamper-evident claims and metadata
-	// that cryptographically prove who issued it
-	// Building a VC means using the CredentialBuilder
-	// as part of the credentials package in the ssk-sdk.
+	// Make a Verifiable Credential using the VC data type directly. Alternatively, use the builder
+	// A VC is set of tamper-evident claims and metadata that cryptographically prove who issued it
+	// Building a VC means using the CredentialBuilder as part of the credentials package in the ssk-sdk.
 	// VerifiableCredential is the verifiable credential model outlined in the
 	// vc-data-model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concept
 	knownContext := []string{"https://www.w3.org/2018/credentials/v1",
@@ -38,7 +24,7 @@ func main() {
 	knownIssuer := "https://example.edu/issuers/565049"
 	knownIssuanceDate := "2010-01-01T19:23:24Z"
 	knownSubject := map[string]interface{}{
-		"id": "did:example:ebfeb1f712ebc6f1c276e12ec21", //did:<method-name>:<method-specific-id>
+		"id": "did:example:ebfeb1f712ebc6f1c276e12ec21", // did:<method-name>:<method-specific-id>
 		"alumniOf": map[string]interface{}{ // claims are here
 			"id": "did:example:c276e12ec21ebfeb1f712ebc6f1",
 			"name": []interface{}{
@@ -63,11 +49,13 @@ func main() {
 		CredentialSubject: knownSubject,
 	}
 
-	err := vc.IsValid()
-	handleError(err, "verifiable credential is not valid")
+	// Make sure the VC is valid
+	if err := vc.IsValid(); err != nil {
+		example.HandleExampleError(err, "Verifiable Credential is not valid")
+	}
 
 	if dat, err := util.PrettyJSON(vc); err != nil {
-		handleError(err, "failed to marshal did document")
+		example.HandleExampleError(err, "failed to marshal DID document")
 	} else {
 		fmt.Printf("Created Verifiable Credential:\n %s", string(dat))
 	}

@@ -16,7 +16,7 @@ func TestPresentationExchangeSchemas(t *testing.T) {
 	err = schema.IsValidJSONSchema(pdSchema)
 	assert.NoError(t, err)
 
-	fdSchema, err := schema.GetKnownSchema(formatDeclarationSchema)
+	fdSchema, err := schema.GetKnownSchema(presentationClaimFormatDesignationsSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, fdSchema)
 	err = schema.IsValidJSONSchema(fdSchema)
