@@ -26,27 +26,6 @@
 //     |      \Wallet   |      PresentationRequest    |                         |
 //     |----------------|                              --------------------------
 //
-//     In more complicated scenarios, a ledger is present which the verifier will interact with
-//                              Ledge Based Scenario
-//                              // TODO: Verify this
-//
-//                          |--------------------------|
-//                          |                          |
-//                          |   Issuer (University)    |
-//                          |                          |
-//                          |__________________________|
-//                            |                       \
-//                            |                          \ Trusts University
-//      -----------------     | Issues VC to ledger   -------------------------
-//     |                |     |                       |                         |
-//     |   Holder       | <------------------------>  |    Verifier (Employer)  |
-//     |      \Wallet   |     | PresentationRequest   |                         |
-//     |----------------|     |                        --------------------------
-//             | DID stored on|ledger                           | VC
-//     |--------------------------------------------------------------------------|
-//     |                               Ledger                                     |
-//     ----------------------------------------------------------------------------
-
 //  A couple nuances that are necessary to understand at a high level before
 //  digging into this code.
 //
@@ -569,38 +548,57 @@ func buildPresentationSubmission(presentationRequest []byte, signer cryptosuite.
 	return submissionBytes, nil
 }
 
-// // Verification can be a number of things:
-// 1. Signature is Valid
-// 2. Timestamps are valid
-// 3. Credntial is trusted
-func validateAccess(data []byte) error {
+type trustedEntitiesStore struct {
+	issuers map[string]bool
+}
 
-	jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
+func (t *trustedEntitiesStore) isTrusted(did string) bool {
+	if v, ok := t.issuers[did]; ok {
+		return v
+	}
+	return false
+}
+
+var trustedEntities = trustedEntitiesStore{
+	issuers: make(map[string]bool),
+}
+
+// This is a very simple validation process.
+// against a Presentation Submission
+// It checks:
+// 1. That the VC is valid
+// 2. That the VC was issued by a trusted entity
+func validateAccess(verifier cryptosuite.JSONWebKeyVerifier, data []byte) error {
+
+	var authorizationError = errors.New("insufficient claims provided")
+
+	vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(data))
 	if err != nil {
 		return err
 	}
-	verifier, err := cryptosuite.NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
-	if err != nil {
-		return err
+
+	if err := vp.IsValid(); err != nil {
+		return fmt.Errorf("failed to vaildate vp: %s", err.Error())
 	}
 
-	// Verify the signature
-	_, err = verifier.VerifyAndParseJWT(string(data))
-	if err != nil {
-		return err
+	for _, untypedCredential := range vp.VerifiableCredential {
+		var vc credential.VerifiableCredential
+
+		if dat, err := json.Marshal(untypedCredential); err == nil {
+
+			if err := json.Unmarshal(dat, &vc); err != nil {
+				logrus.Error(err)
+			}
+
+			if issuer, ok := vc.CredentialSubject["id"]; ok {
+				if trustedEntities.isTrusted(issuer.(string)) {
+					authorizationError = nil
+				}
+			}
+
+		}
 	}
-
-	var vp exchange.PresentationSubmission
-	err = json.Unmarshal(data, &vp)
-	if err != nil {
-		return err
-	}
-
-	// TODO: Add check for VC Schema
-	// TODO: Add check for Timestamps
-
-	// Check various fields.
-	return nil
+	return authorizationError
 }
 
 func handleError(err error) {
@@ -638,6 +636,7 @@ func main() {
 	vcDID, err := university.wallet.GetDID("main")
 	handleError(err)
 	cw.WriteNote(fmt.Sprintf("Initialized Verifier DID: %s and registered it", vcDID))
+	trustedEntities.issuers[vcDID] = true
 
 	// Creates the VC
 	cw.Write("Example University Creates VC for Holder")
@@ -691,7 +690,7 @@ func main() {
 	}
 
 	// Access
-	err = validateAccess(submission)
+	err = validateAccess(*verifier, submission)
 	cw.Write(fmt.Sprintf("Employer Attempting to Grant Access"))
 	if err != nil {
 		cw.WriteError(fmt.Sprintf("Access was not granted! Reason: %s", err))
