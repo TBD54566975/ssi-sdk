@@ -151,6 +151,31 @@ func PrivKeyToBytes(key crypto.PrivateKey) ([]byte, error) {
 	return nil, errors.New("unknown private key type; could not convert to bytes")
 }
 
+// BytesToPrivKey reconstructs a private key given some bytes and a target key type
+// It is assumed the key was turned into byte form using the sibling method `PrivKeyToBytes`
+func BytesToPrivKey(keyBytes []byte, kt KeyType) (crypto.PrivateKey, error) {
+	switch kt {
+	case Ed25519, X25519:
+		return keyBytes, nil
+	case Secp256k1:
+		return *secp.PrivKeyFromBytes(keyBytes), nil
+	case P224, P256, P384, P521:
+		privKey, err := x509.ParseECPrivateKey(keyBytes)
+		if err != nil {
+			return nil, err
+		}
+		return *privKey, nil
+	case RSA:
+		privKey, err := x509.ParsePKCS1PrivateKey(keyBytes)
+		if err != nil {
+			return nil, err
+		}
+		return *privKey, nil
+	default:
+		return nil, fmt.Errorf("unsupported key type: %s", kt)
+	}
+}
+
 func GenerateEd25519Key() (ed25519.PublicKey, ed25519.PrivateKey, error) {
 	return ed25519.GenerateKey(rand.Reader)
 }
