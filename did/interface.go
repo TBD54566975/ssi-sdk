@@ -27,6 +27,8 @@ func ParseDID(did DID, prefix string) (string, error) {
 	return split[1], nil
 }
 
-type Resolver interface {
-	Resolve(d DID) (*DIDDocument, error)
+type ResolutionOptions interface{}
+
+type DIDResolver interface {
+	Resolve(d DID, opts ResolutionOptions) (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMetadata, error)
 }

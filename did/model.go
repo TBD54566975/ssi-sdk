@@ -38,6 +38,32 @@ const (
 	EcdsaSecp256k1VerificationKey2019 cryptosuite.LDKeyType = "EcdsaSecp256k1VerificationKey2019"
 )
 
+// https://www.w3.org/TR/did-core/#did-document-metadata
+type DIDDocumentMetadata struct {
+	Created       string `json:"created,omitempty"`
+	Updated       string `json:"updated,omitempty"`
+	Deactivated   bool   `json:"deactivated"`
+	NextUpdate    string `json:"nextUpdate,omitempty"`
+	VersionID     string `json:"versionId,omitempty"`
+	NextVersionID string `json:"nextVersionId,omitempty"`
+	EquivalentId  string `json:"equivalentId,omitempty"`
+	CanonicalID   string `json:"canonicalId,omitempty"`
+}
+
+// https://www.w3.org/TR/did-core/#did-resolution-metadata
+type ResolutionError struct {
+	Code                       string `json:"code"`
+	InvalidDID                 bool   `json:"invalidDid"`
+	NotFound                   bool   `json:"notFound"`
+	RepresentationNotSupported bool   `json:"representationNotSupported"`
+}
+
+// https://www.w3.org/TR/did-core/#did-resolution-metadata
+type DIDResolutionMetadata struct {
+	contentType string
+	error       *ResolutionError
+}
+
 // DIDDocument is a representation of the did core specification https://www.w3.org/TR/did-core
 // TODO(gabe) enforce validation of DID syntax https://www.w3.org/TR/did-core/#did-syntax
 type DIDDocument struct {

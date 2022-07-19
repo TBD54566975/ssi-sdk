@@ -33,7 +33,7 @@ type (
 	PurposeType string
 )
 
-var availablePeerMethods = map[string]Resolver{
+var availablePeerMethods = map[string]DIDResolver{
 	"0": PeerMethod0{},
 	"1": PeerMethod1{},
 	"2": PeerMethod2{},
@@ -188,21 +188,21 @@ func (d DIDPeer) IsValidPurpose(p PurposeType) bool {
 //
 // This allows PeerMethod0 to implement the DID Resolver
 // interface and be used to expand the did into the DID Document.
-func (m PeerMethod0) Resolve(did DID) (*DIDDocument, error) {
+func (m PeerMethod0) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMetadata, error) {
 
 	d, ok := did.(DIDPeer)
 	if !ok {
-		return nil, errors.Wrap(util.CastingError, "did:peer")
+		return nil, nil, nil, errors.Wrap(util.CastingError, "did:peer")
 	}
 
 	v, err := d.Parse()
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 
 	pubKey, keyType, err := decodeEncodedKey(v)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 
 	keyReference := Hash + v
@@ -210,7 +210,7 @@ func (m PeerMethod0) Resolve(did DID) (*DIDDocument, error) {
 
 	verificationMethod, err := constructVerificationMethod(id, keyReference, pubKey, keyType)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 
 	verificationMethodSet := []VerificationMethodSet{
@@ -225,16 +225,16 @@ func (m PeerMethod0) Resolve(did DID) (*DIDDocument, error) {
 		AssertionMethod:      verificationMethodSet,
 		KeyAgreement:         verificationMethodSet,
 		CapabilityDelegation: verificationMethodSet,
-	}, nil
+	}, nil, nil, nil
 }
 
-func (m PeerMethod1) Resolve(d DID) (*DIDDocument, error) {
+func (m PeerMethod1) Resolve(d DID, opts ResolutionOptions) (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMetadata, error) {
 	d, ok := d.(DIDPeer)
 	if !ok {
-		return nil, errors.Wrap(util.CastingError, "did:peer")
+		return nil, nil, nil, errors.Wrap(util.CastingError, "did:peer")
 	}
 
-	return nil, util.NotImplementedError
+	return nil, nil, nil, util.NotImplementedError
 
 }
 
@@ -258,22 +258,22 @@ func (d DIDPeer) buildVerificationMethod(data, did string) (*VerificationMethod,
 // Split the DID string into element.
 // Extract element purpose and decode each key or service.
 // Insert each key or service into the document according to the designated pu
-func (m PeerMethod2) Resolve(did DID) (*DIDDocument, error) {
+func (m PeerMethod2) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMetadata, error) {
 
 	d, ok := did.(DIDPeer)
 
 	if !ok {
-		return nil, errors.Wrap(util.CastingError, "did:peer")
+		return nil, nil, nil, errors.Wrap(util.CastingError, "did:peer")
 	}
 
 	parsed, err := d.Parse()
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 
 	entries := strings.Split(parsed, ".")
 	if len(entries) == 0 {
-		return nil, errors.New("no entries found")
+		return nil, nil, nil, errors.New("no entries found")
 	}
 
 	doc := NewDIDDocument()
@@ -292,39 +292,39 @@ func (m PeerMethod2) Resolve(did DID) (*DIDDocument, error) {
 		case PeerPurposeCapabilityServiceCode:
 			service, err := d.decodeServiceBlock("." + entry)
 			if err != nil {
-				return nil, err
+				return nil, nil, nil, err
 			}
 			service.ID = string(d) + "#didcommmessaging-0"
 			doc.Services = append(doc.Services, *service)
 		case PeerPurposeEncryptionCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to build encryption code")
+				return nil, nil, nil, errors.Wrap(err, "failed to build encryption code")
 			}
 			doc.KeyAgreement = append(doc.KeyAgreement, *vm)
 		case PeerPurposeVerificationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to build verification code")
+				return nil, nil, nil, errors.Wrap(err, "failed to build verification code")
 			}
 			doc.Authentication = append(doc.Authentication, *vm)
 		case PeerPurposeCapabilityInvocationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to build capabilities invocation code")
+				return nil, nil, nil, errors.Wrap(err, "failed to build capabilities invocation code")
 			}
 			doc.CapabilityInvocation = append(doc.CapabilityInvocation, *vm)
 		case PeerPurposeCapabilityDelegationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to build capability delegation code")
+				return nil, nil, nil, errors.Wrap(err, "failed to build capability delegation code")
 			}
 			doc.CapabilityDelegation = append(doc.CapabilityDelegation, *vm)
 		default:
-			return nil, errors.Wrap(util.UnsupportedError, string(entry[0]))
+			return nil, nil, nil, errors.Wrap(util.UnsupportedError, string(entry[0]))
 		}
 	}
-	return doc, nil
+	return doc, nil, nil, nil
 }
 
 // If numalgo == 2, the generation mode is similar to Method 0 (and therefore
@@ -510,7 +510,7 @@ func (d DIDPeer) GetMethodID() (string, error) {
 }
 
 // id:peer:<method>
-func (d DIDPeer) GetMethod() (Resolver, error) {
+func (d DIDPeer) GetMethod() (DIDResolver, error) {
 
 	m := string(d[9])
 
@@ -530,12 +530,13 @@ func (d DIDPeer) GetMethod() (Resolver, error) {
 	return nil, errors.New(fmt.Sprintf("%s method not supported", m))
 }
 
-func (d DIDPeer) Resolve() (*DIDDocument, error) {
+func (d DIDPeer) Resolve() (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMetadata, error) {
 	m, err := d.GetMethod()
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
-	return m.Resolve(d)
+	did, rm, dm, err := m.Resolve(d, nil)
+	return did, rm, dm, err
 }
 
 func (d DIDPeer) ToString() string {
