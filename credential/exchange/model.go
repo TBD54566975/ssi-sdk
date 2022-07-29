@@ -239,6 +239,7 @@ type Field struct {
 	Path    []string `json:"path,omitempty" validate:"required"`
 	ID      string   `json:"id,omitempty"`
 	Purpose string   `json:"purpose,omitempty"`
+	Name    string   `json:"name,omitempty"`
 	// If a predicate property is present, filter must be too
 	// https://identity.foundation/presentation-exchange/#predicate-feature
 	Predicate *Preference `json:"predicate,omitempty"`
