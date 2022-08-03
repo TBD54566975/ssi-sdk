@@ -12,6 +12,7 @@ import (
 	"github.com/bits-and-blooms/bitset"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/util"
@@ -114,8 +115,8 @@ func prepareCredentialsForStatusList(purpose StatusPurpose, credentials []creden
 	var errorResults []string
 
 	for _, cred := range credentials {
-		entry, ok := cred.CredentialStatus.(StatusList2021Entry)
-		if !ok {
+		entry, err := getStatusEntry(cred.CredentialStatus)
+		if err != nil {
 			errorResults = append(errorResults, fmt.Sprintf("credential<%s> not using the StatusList2021 "+
 				"credentialStatus property", cred.ID))
 		} else {
@@ -146,31 +147,45 @@ func prepareCredentialsForStatusList(purpose StatusPurpose, credentials []creden
 	return statusListIndices, nil
 }
 
+// determine whether the credential status property is of the expected format
+// additionally makes sure the status list has all required properties
+func getStatusEntry(maybeCredentialStatus interface{}) (*StatusList2021Entry, error) {
+	statusBytes, err := json.Marshal(maybeCredentialStatus)
+	if err != nil {
+		return nil, util.LoggingErrorMsg(err, "could not marshal credential status property")
+	}
+	var statusEntry StatusList2021Entry
+	if err := json.Unmarshal(statusBytes, &statusEntry); err != nil {
+		return nil, util.LoggingErrorMsg(err, "could not unmarshal credential status property")
+	}
+	return &statusEntry, util.IsValidStruct(statusEntry)
+}
+
 // https://w3c-ccg.github.io/vc-status-list-2021/#bitstring-generation-algorithm
 func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
-	if len(statusListCredentialIndices) == 0 {
-		return "", errors.New("cannot create a status list bitstring with no credential indices")
-	}
-
 	// check to see there are no duplicate index values
 	duplicateCheck := make(map[uint]bool)
 
 	// 1. Let bitstring be a list of bits with a minimum size of 16KB, where each bit is initialized to 0 (zero).
 	b := bitset.New(16 * KB)
 
-	// 2. For each bit in bitstring, if there is a corresponding statusListIndex value in a revoked credential in
-	// issuedCredentials, set the bit to 1 (one), otherwise set the bit to 0 (zero).
-	for _, index := range statusListCredentialIndices {
-		indexInt, err := strconv.Atoi(index)
-		if indexInt < 0 || err != nil {
-			return "", fmt.Errorf("invalid status list index value, not a valid positive integer: %s", index)
+	if len(statusListCredentialIndices) == 0 {
+		logrus.Info("creating a status list with no revoked credentials")
+	} else {
+		// 2. For each bit in bitstring, if there is a corresponding statusListIndex value in a revoked credential in
+		// issuedCredentials, set the bit to 1 (one), otherwise set the bit to 0 (zero).
+		for _, index := range statusListCredentialIndices {
+			indexInt, err := strconv.Atoi(index)
+			if indexInt < 0 || err != nil {
+				return "", fmt.Errorf("invalid status list index value, not a valid positive integer: %s", index)
+			}
+			indexValue := uint(indexInt)
+			if _, ok := duplicateCheck[indexValue]; ok {
+				return "", fmt.Errorf("duplicate status list index value found: %d", indexValue)
+			}
+			duplicateCheck[indexValue] = true
+			b.Set(indexValue)
 		}
-		indexValue := uint(indexInt)
-		if _, ok := duplicateCheck[indexValue]; ok {
-			return "", fmt.Errorf("duplicate status list index value found: %d", indexValue)
-		}
-		duplicateCheck[indexValue] = true
-		b.Set(indexValue)
 	}
 
 	bitstringBinary, err := b.MarshalBinary()

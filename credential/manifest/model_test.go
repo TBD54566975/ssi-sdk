@@ -23,7 +23,7 @@ var (
 // Round trip de/serialize to test our object models, and check validity
 
 func TestCredentialManifest(t *testing.T) {
-	// examples here https://identity.foundation/credential-manifest/#credential-manifest---all-features-exercised
+	// example here https://identity.foundation/credential-manifest/#credential-manifest---all-features-exercised
 
 	t.Run("Credential Manifest Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(ManifestVector1)
@@ -65,7 +65,7 @@ func TestCredentialManifest(t *testing.T) {
 }
 
 func TestCredentialApplication(t *testing.T) {
-	// examples here https://identity.foundation/credential-manifest/#credential-application---simple-example
+	// example here https://identity.foundation/credential-manifest/#credential-application---simple-example
 
 	t.Run("Credential Application Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(ApplicationVector1)
@@ -85,7 +85,7 @@ func TestCredentialApplication(t *testing.T) {
 }
 
 func TestCredentialFulfillment(t *testing.T) {
-	// examples here https://identity.foundation/credential-manifest/#credential-fulfillment---simple-example
+	// example here https://identity.foundation/credential-manifest/#credential-fulfillment---simple-example
 
 	t.Run("Credential Fulfillment Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(FulfillmentExample1)

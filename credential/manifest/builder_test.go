@@ -104,7 +104,7 @@ func TestCredentialManifestBuilder(t *testing.T) {
 }
 
 func TestCredentialApplicationBuilder(t *testing.T) {
-	builder := NewCredentialApplicationBuilder()
+	builder := NewCredentialApplicationBuilder("manifest-id")
 	_, err := builder.Build()
 	assert.Error(t, err)
 	notReadyErr := "credential application not ready to be built"
@@ -151,7 +151,7 @@ func TestCredentialApplicationBuilder(t *testing.T) {
 }
 
 func TestCredentialFulfillmentBuilder(t *testing.T) {
-	builder := NewCredentialFulfillmentBuilder()
+	builder := NewCredentialFulfillmentBuilder("manifest-id")
 	_, err := builder.Build()
 	assert.Error(t, err)
 	notReadyErr := "credential fulfillment not ready to be built"
@@ -160,6 +160,9 @@ func TestCredentialFulfillmentBuilder(t *testing.T) {
 	assert.False(t, builder.IsEmpty())
 
 	err = builder.SetManifestID("manifest-id")
+	assert.NoError(t, err)
+
+	err = builder.SetApplicationID("application-id")
 	assert.NoError(t, err)
 
 	// bad map

@@ -9,12 +9,13 @@ import (
 )
 
 const (
-	presentationDefinitionSchema         string = "pe-presentation-definition.json"
-	presentationDefinitionEnvelopeSchema string = "pe-presentation-definition-envelope.json"
-	presentationSubmissionSchema         string = "pe-presentation-submission.json"
-	formatDeclarationSchema              string = "pe-format-declaration.json"
-	submissionRequirementSchema          string = "pe-submission-requirement.json"
-	submissionRequirementsSchema         string = "pe-submission-requirements.json"
+	presentationDefinitionSchema              string = "pe-presentation-definition.json"
+	presentationDefinitionEnvelopeSchema      string = "pe-presentation-definition-envelope.json"
+	presentationSubmissionSchema              string = "pe-presentation-submission.json"
+	presentationClaimFormatDesignationsSchema string = "pe-definition-claim-format-designations.json"
+	submissionClaimFormatDesignationsSchema   string = "pe-submission-claim-format-designations.json"
+	submissionRequirementSchema               string = "pe-submission-requirement.json"
+	submissionRequirementsSchema              string = "pe-submission-requirements.json"
 )
 
 // IsValidPresentationDefinition validates a given presentation definition object against its known JSON schema
@@ -73,13 +74,13 @@ func IsValidPresentationSubmission(submission PresentationSubmission) error {
 	return nil
 }
 
-// IsValidFormatDeclaration validates a given claim format object against its known JSON schema
-func IsValidFormatDeclaration(format ClaimFormat) error {
+// IsValidDefinitionClaimFormatDesignation validates a given claim format object against its known JSON schema
+func IsValidDefinitionClaimFormatDesignation(format ClaimFormat) error {
 	jsonBytes, err := json.Marshal(format)
 	if err != nil {
 		return errors.Wrap(err, "could not marshal claim format to JSON")
 	}
-	s, err := schema.GetKnownSchema(formatDeclarationSchema)
+	s, err := schema.GetKnownSchema(presentationClaimFormatDesignationsSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get claim format schema")
 	}

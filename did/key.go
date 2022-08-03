@@ -22,30 +22,13 @@ import (
 	"github.com/multiformats/go-varint"
 )
 
-type DIDKey string
+type (
+	DIDKey string
+)
 
 const (
-	// Base58BTCMultiBase Base58BTC https://github.com/multiformats/go-multibase/blob/master/multibase.go
-	Base58BTCMultiBase = multibase.Base58BTC
-
-	// Multicodec reference https://github.com/multiformats/multicodec/blob/master/table.csv
-
-	Ed25519MultiCodec   = multicodec.Ed25519Pub
-	X25519MultiCodec    = multicodec.X25519Pub
-	Secp256k1MultiCodec = multicodec.Secp256k1Pub
-	P256MultiCodec      = multicodec.P256Pub
-	P384MultiCodec      = multicodec.P384Pub
-	P521MultiCodec      = multicodec.P521Pub
-	RSAMultiCodec       = multicodec.RsaPub
-
 	// DIDKeyPrefix did:key prefix
 	DIDKeyPrefix = "did:key"
-
-	// DID Key Types
-
-	X25519KeyAgreementKey2019         cryptosuite.LDKeyType = "X25519KeyAgreementKey2019"
-	Ed25519VerificationKey2018        cryptosuite.LDKeyType = "Ed25519VerificationKey2018"
-	EcdsaSecp256k1VerificationKey2019 cryptosuite.LDKeyType = "EcdsaSecp256k1VerificationKey2019"
 )
 
 // GenerateDIDKey takes in a key type value that this library supports and constructs a conformant did:key identifier.
@@ -229,28 +212,6 @@ func (d DIDKey) Parse() string {
 		return ""
 	}
 	return split[1]
-}
-
-func keyTypeToMultiCodec(kt crypto.KeyType) (multicodec.Code, error) {
-	switch kt {
-	case crypto.Ed25519:
-		return Ed25519MultiCodec, nil
-	case crypto.X25519:
-		return X25519MultiCodec, nil
-	case crypto.Secp256k1:
-		return Secp256k1MultiCodec, nil
-	case crypto.P256:
-		return P256MultiCodec, nil
-	case crypto.P384:
-		return P384MultiCodec, nil
-	case crypto.P521:
-		return P521MultiCodec, nil
-	case crypto.RSA:
-		return RSAMultiCodec, nil
-	}
-	err := fmt.Errorf("unknown multicodec for key type: %s", kt)
-	logrus.WithError(err).Error()
-	return 0, err
 }
 
 func isSupportedKeyType(kt crypto.KeyType) bool {

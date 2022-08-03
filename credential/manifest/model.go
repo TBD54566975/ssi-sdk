@@ -98,7 +98,7 @@ func (ca *CredentialApplication) IsValid() error {
 		return errors.Wrap(err, "application failed json schema validation")
 	}
 	if ca.Application.Format != nil {
-		if err := exchange.IsValidFormatDeclaration(*ca.Application.Format); err != nil {
+		if err := exchange.IsValidDefinitionClaimFormatDesignation(*ca.Application.Format); err != nil {
 			return errors.Wrap(err, "application's claim format failed json schema validation")
 		}
 	}
@@ -115,6 +115,7 @@ type Application struct {
 type CredentialFulfillment struct {
 	ID            string                          `json:"id" validate:"required"`
 	ManifestID    string                          `json:"manifest_id" validate:"required"`
+	ApplicationID string                          `json:"application_id"`
 	DescriptorMap []exchange.SubmissionDescriptor `json:"descriptor_map" validate:"required"`
 }
 

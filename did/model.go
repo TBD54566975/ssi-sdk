@@ -1,8 +1,13 @@
 package did
 
 import (
+	"fmt"
 	"reflect"
 
+	"github.com/multiformats/go-multibase"
+	"github.com/multiformats/go-multicodec"
+
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 
 	"github.com/TBD54566975/ssi-sdk/util"
@@ -10,6 +15,27 @@ import (
 
 const (
 	KnownDIDContext string = "https://www.w3.org/ns/did/v1"
+
+	// Base58BTCMultiBase Base58BTC https://github.com/multiformats/go-multibase/blob/master/multibase.go
+	Base58BTCMultiBase = multibase.Base58BTC
+
+	// Multicodec reference https://github.com/multiformats/multicodec/blob/master/table.csv
+
+	Ed25519MultiCodec   = multicodec.Ed25519Pub
+	X25519MultiCodec    = multicodec.X25519Pub
+	Secp256k1MultiCodec = multicodec.Secp256k1Pub
+	P256MultiCodec      = multicodec.P256Pub
+	P384MultiCodec      = multicodec.P384Pub
+	P521MultiCodec      = multicodec.P521Pub
+	RSAMultiCodec       = multicodec.RsaPub
+
+	// DID Key Types
+
+	X25519KeyAgreementKey2020         cryptosuite.LDKeyType = "X25519KeyAgreementKey2020"
+	Ed25519VerificationKey2020        cryptosuite.LDKeyType = "Ed25519VerificationKey2020"
+	X25519KeyAgreementKey2019         cryptosuite.LDKeyType = "X25519KeyAgreementKey2019"
+	Ed25519VerificationKey2018        cryptosuite.LDKeyType = "Ed25519VerificationKey2018"
+	EcdsaSecp256k1VerificationKey2019 cryptosuite.LDKeyType = "EcdsaSecp256k1VerificationKey2019"
 )
 
 // DIDDocument is a representation of the did core specification https://www.w3.org/TR/did-core
@@ -54,6 +80,12 @@ type Service struct {
 	// A string, map, or set composed of one or more strings and/or maps
 	// All string values must be valid URIs
 	ServiceEndpoint interface{} `json:"serviceEndpoint" validate:"required"`
+	RoutingKeys     []string    `json:"routingKeys,omitempty"`
+	Accept          []string    `json:"accept,omitempty"`
+}
+
+func (s *Service) IsValid() bool {
+	return util.NewValidator().Struct(s) == nil
 }
 
 func (d *DIDDocument) IsEmpty() bool {
@@ -65,6 +97,35 @@ func (d *DIDDocument) IsEmpty() bool {
 
 func (d *DIDDocument) IsValid() error {
 	return util.NewValidator().Struct(d)
+}
+
+// KeyTypeToLDKeyType converts crypto.KeyType to cryptosuite.LDKeyType
+func KeyTypeToLDKeyType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
+	switch kt {
+	case crypto.Ed25519:
+		return Ed25519VerificationKey2018, nil
+	case crypto.X25519:
+		return X25519KeyAgreementKey2019, nil
+	case crypto.Secp256k1:
+		return EcdsaSecp256k1VerificationKey2019, nil
+	case crypto.P256, crypto.P384, crypto.P521, crypto.RSA:
+		return cryptosuite.JsonWebKey2020, nil
+	default:
+		err := fmt.Errorf("unsupported keyType: %+v", kt)
+		errMsg := fmt.Sprintf("keyType %+v failed to convert to LDKeyType", kt)
+		return "", util.LoggingErrorMsg(err, errMsg)
+	}
+}
+
+func NewDIDDocument() *DIDDocument {
+	return &DIDDocument{
+		Authentication:       make([]VerificationMethodSet, 0),
+		AssertionMethod:      make([]VerificationMethodSet, 0),
+		KeyAgreement:         make([]VerificationMethodSet, 0),
+		CapabilityDelegation: make([]VerificationMethodSet, 0),
+		CapabilityInvocation: make([]VerificationMethodSet, 0),
+		Services:             make([]Service, 0),
+	}
 }
 
 // TODO(gabe) DID Resolution Metadata
