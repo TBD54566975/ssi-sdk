@@ -23,6 +23,7 @@
         {
           "properties": {
             "id": { "type": "string" },
+            "name": {"type": "string"},
             "path": {
               "type": "array",
               "items": { "type": "string" }
@@ -36,6 +37,7 @@
         {
           "properties": {
             "id": { "type": "string" },
+            "name": {"type": "string"},
             "path": {
               "type": "array",
               "items": { "type": "string" }
