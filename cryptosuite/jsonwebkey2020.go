@@ -1,6 +1,7 @@
 package cryptosuite
 
 import (
+	"crypto/ed25519"
 	"encoding/base64"
 	"fmt"
 
@@ -180,6 +181,12 @@ func GenerateEd25519JSONWebKey2020() (*JSONWebKey2020, error) {
 	if err != nil {
 		return nil, err
 	}
+	return GetEd25519JSONWebKey2020(privKey)
+}
+
+// GetEd25519JSONWebKey2020 returns a JsonWebKey2020 value, containing both public and
+// private keys for an Ed25519 key. This function coverts a ed25519.PrivateKey to a JsonWebKey2020
+func GetEd25519JSONWebKey2020(privKey ed25519.PrivateKey) (*JSONWebKey2020, error) {
 	ed25519JWK := jwk.NewOKPPrivateKey()
 	if err := ed25519JWK.FromRaw(privKey); err != nil {
 		return nil, errors.Wrap(err, "failed to generate ed25519 jwk")
