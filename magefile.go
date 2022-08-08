@@ -165,7 +165,6 @@ func CBT() error {
 	return nil
 }
 
-
 // CITest runs unit tests with coverage as a part of CI.
 // The mage `-v` option will trigger a verbose output of the test
 func CITest() error {
