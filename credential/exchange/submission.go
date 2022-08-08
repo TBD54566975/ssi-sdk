@@ -316,6 +316,10 @@ type limitedInputDescriptor struct {
 // https://identity.foundation/presentation-exchange/#input-evaluation
 func processInputDescriptor(id InputDescriptor, claims []NormalizedClaim) (*processedInputDescriptor, error) {
 	constraints := id.Constraints
+	// NOTE(gabe): the specification does not require input descriptors to have a constraint; however,
+	// without a constraint it is ambiguous what fulfilling an input descriptor means. As such, we fail processing
+	// until the specification provides more clarity.
+	// https://github.com/decentralized-identity/presentation-exchange/issues/361
 	if constraints == nil {
 		err := fmt.Errorf("unable to process input descriptor without constraints")
 		logrus.WithError(err).Error()
