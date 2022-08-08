@@ -53,7 +53,7 @@ type PresentationDefinitionEnvelope struct {
 // PresentationDefinition https://identity.foundation/presentation-exchange/#presentation-definition
 type PresentationDefinition struct {
 	ID                     string                  `json:"id,omitempty" validate:"required"`
-	InputDescriptors       []InputDescriptor       `json:"input_descriptors,omitempty" validate:"required,dive"`
+	InputDescriptors       []InputDescriptor       `json:"input_descriptors,omitempty" validate:"omitempty,dive"`
 	Name                   string                  `json:"name,omitempty"`
 	Purpose                string                  `json:"purpose,omitempty"`
 	Format                 *ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`
