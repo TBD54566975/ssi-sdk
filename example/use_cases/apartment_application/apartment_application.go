@@ -1,13 +1,13 @@
-// This is a full example flow of an apartment verifying the age of a potential tenant.
+// This is a full example flow of an apartment's manager verifying the age of a potential tenant.
 
-// The apartment will create a Presentation Request that is to be fulfilled by the tenant.
+// The apartment manager will create a Presentation Request that is to be fulfilled by the tenant.
 // The tenant will fulfil the Presentation Request by submitting a Presentation Submission.
 // This presentation submission will contain a verifiable credential that has been previously issued and signed from the government issuer.
 
 // The tenant will verify that the apartment's presentation request is valid and the apartment will also verify that the tenant's
 // presentation submission is valid.
 
-// At the end the apartment will verify the authenticity of the presentation submission and will be able to verify the birthdate of the tenant.
+// At the end the apartment manager will verify the authenticity of the presentation submission and will be able to verify the birthdate of the tenant.
 
 package main
 
@@ -20,33 +20,39 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
-	"github.com/stretchr/testify/assert"
 )
 
 func main() {
 
 	/**
-		 Step 1: Create new entities as DIDs. Govt Issuer, User Holder, and Apartment Verifier
+		 Step 1: Create new entities as DIDs. Govt Issuer, User Holder, and Apartment Verifier.
 	**/
 
 	// User Holder
-	holderDIDPrivateKey, holderDIDKey, _ := did.GenerateDIDKey(crypto.Ed25519)
+	holderDIDPrivateKey, holderDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	holderJWK, _ := cryptosuite.JSONWebKey2020FromEd25519(holderDIDPrivateKey.(ed25519.PrivateKey))
 	holderSigner, _ := cryptosuite.NewJSONWebKeySigner(holderJWK.ID, holderJWK.PrivateKeyJWK, cryptosuite.Authentication)
 	holderVerifier, _ := cryptosuite.NewJSONWebKeyVerifier(holderJWK.ID, holderJWK.PublicKeyJWK)
 
+	example.HandleExampleError(err, "Failed to generate key")
+
 	// Apt Verifier
-	aptDidPrivateKey, aptDIDKey, _ := did.GenerateDIDKey(crypto.Ed25519)
-	aptJWK, _ := cryptosuite.JSONWebKey2020FromEd25519(aptDidPrivateKey.(ed25519.PrivateKey))
+	aptDIDPrivateKey, aptDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
+	aptJWK, _ := cryptosuite.JSONWebKey2020FromEd25519(aptDIDPrivateKey.(ed25519.PrivateKey))
 	aptSigner, _ := cryptosuite.NewJSONWebKeySigner(aptJWK.ID, aptJWK.PrivateKeyJWK, cryptosuite.Authentication)
 	aptVerifier, _ := cryptosuite.NewJSONWebKeyVerifier(aptJWK.ID, aptJWK.PublicKeyJWK)
 
+	example.HandleExampleError(err, "Failed to generate key")
+
 	// Government Issuer
-	govtDidPrivateKey, govtDIDKey, _ := did.GenerateDIDKey(crypto.Ed25519)
-	govtJWK, _ := cryptosuite.JSONWebKey2020FromEd25519(govtDidPrivateKey.(ed25519.PrivateKey))
+	govtDIDPrivateKey, govtDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
+	govtJWK, _ := cryptosuite.JSONWebKey2020FromEd25519(govtDIDPrivateKey.(ed25519.PrivateKey))
 	govtSigner, _ := cryptosuite.NewJSONWebKeySigner(govtJWK.ID, govtJWK.PrivateKeyJWK, cryptosuite.Authentication)
+
+	example.HandleExampleError(err, "Failed to generate key")
 
 	fmt.Print("\n\nStep 1: Create new DIDs for entities\n\n")
 	fmt.Printf("Tenant: %s\n", string(*holderDIDKey))
@@ -54,7 +60,7 @@ func main() {
 	fmt.Printf("Government: %s\n", string(*govtDIDKey))
 
 	/**
-		 Step 2: Government issuer issues credentials to holder claiming age. The government issuer then signs the verifiable credentials to holder claiming age
+		 Step 2: Government issuer issues a credential to the holder providing their age. The government issuer then signs the verifiable credentials to holder claiming age.
 	**/
 
 	knownIssuer := govtDIDKey
@@ -70,10 +76,13 @@ func main() {
 	vcBuilder.SetIssuanceDate(knownIssuanceDate)
 	vcBuilder.SetCredentialSubject(knownSubject)
 
-	vc, _ := vcBuilder.Build()
-	assert.NoError(nil, vc.IsValid())
+	vc, err := vcBuilder.Build()
+	example.HandleExampleError(err, "Failed to make verifiable credential")
+	example.HandleExampleError(vc.IsValid(), "Verifiable credential is not valid")
 
-	signedVCBytes, _ := signing.SignVerifiableCredentialJWT(*govtSigner, *vc)
+	signedVCBytes, err := signing.SignVerifiableCredentialJWT(*govtSigner, *vc)
+
+	example.HandleExampleError(err, "Failed to sign vc")
 
 	fmt.Print("\n\nStep 2: Government issues Verifiable Credential new for tenant verifying birthdate and signs\n\n")
 	if dat, err := util.PrettyJSON(vc); err == nil {
@@ -81,8 +90,8 @@ func main() {
 	}
 
 	/**
-		Step 3: Create presentation definition from the apartment to the holder which goes into a presentation request.
-		The apartment is saying "here tenant, here is my what information I am requesting from you"
+		Step 3: Create presentation definition from the apartment manager to the holder which goes into a presentation request.
+		The apartment manager is saying "here tenant, here is my what information I am requesting from you."
 	**/
 
 	presentationDefinitionBuilder := exchange.NewPresentationDefinitionBuilder()
@@ -103,10 +112,12 @@ func main() {
 		},
 	})
 
-	presentationDefinition, _ := presentationDefinitionBuilder.Build()
-	assert.NoError(nil, presentationDefinition.IsValid())
+	presentationDefinition, err := presentationDefinitionBuilder.Build()
+	example.HandleExampleError(err, "Failed to make presentation definition")
+	example.HandleExampleError(presentationDefinition.IsValid(), "Presentation definition is not valid")
 
-	presentationRequestBytes, _ := exchange.BuildPresentationRequest(aptSigner, exchange.JWTRequest, *presentationDefinition, string(*holderDIDKey))
+	presentationRequestBytes, err := exchange.BuildPresentationRequest(aptSigner, exchange.JWTRequest, *presentationDefinition, string(*holderDIDKey))
+	example.HandleExampleError(err, "Failed to make presentation request")
 
 	fmt.Print("\n\nStep 3: The apartment creates a presentation request that confirms which information is required from the tenant\n\n")
 	if dat, err := util.PrettyJSON(presentationDefinition); err == nil {
@@ -114,13 +125,15 @@ func main() {
 	}
 
 	/**
-		Step 4: Tenant holder verifies the presentation request from the apt is valid and then constructs and signs a presentation submission
+		Step 4: Tenant holder verifies the presentation request from the apt is valid and then constructs and signs a presentation submission.
 	**/
 
 	verifiedPresentationDefinition, err := exchange.VerifyPresentationRequest(aptVerifier, exchange.JWTRequest, presentationRequestBytes)
-	assert.NoError(nil, verifiedPresentationDefinition.IsValid())
+	example.HandleExampleError(err, "Failed to verify presentation request")
+	example.HandleExampleError(verifiedPresentationDefinition.IsValid(), "Verified presentation definition is not valid")
 
-	// TODO: Have the presentation claim's token format support signedVCBytes for the BuildPresentationSubmission function
+	// TODO: (neal) (issue https://github.com/TBD54566975/ssi-sdk/issues/165)
+	// Have the presentation claim's token format support signedVCBytes for the BuildPresentationSubmission function
 	testOutput, err := signing.ParseVerifiableCredentialFromJWT(string(signedVCBytes))
 	testOutputBytes, _ := json.Marshal(testOutput)
 
@@ -130,7 +143,8 @@ func main() {
 		SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 	}
 
-	presentationSubmissionBytes, _ := exchange.BuildPresentationSubmission(holderSigner, *presentationDefinition, []exchange.PresentationClaim{presentationClaim}, exchange.JWTVPTarget)
+	presentationSubmissionBytes, err := exchange.BuildPresentationSubmission(holderSigner, *presentationDefinition, []exchange.PresentationClaim{presentationClaim}, exchange.JWTVPTarget)
+	example.HandleExampleError(err, "Failed to create presentation submission")
 
 	fmt.Print("\n\nStep 4: The holder creates a presentation submission to give to the apartment\n\n")
 	if dat, err := util.PrettyJSON(presentationClaim); err == nil {
@@ -142,7 +156,7 @@ func main() {
 	**/
 
 	err = exchange.VerifyPresentationSubmission(holderVerifier, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
-	assert.NoError(nil, err)
+	example.HandleExampleError(err, "Failed to verify presentation submission")
 
 	fmt.Print("\n\nStep 5: The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic\n\n")
 
