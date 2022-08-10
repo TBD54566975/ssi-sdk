@@ -33,26 +33,31 @@ func main() {
 
 	// User Holder
 	holderDIDPrivateKey, holderDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
-	holderJWK, _ := cryptosuite.JSONWebKey2020FromEd25519(holderDIDPrivateKey.(ed25519.PrivateKey))
-	holderSigner, _ := cryptosuite.NewJSONWebKeySigner(holderJWK.ID, holderJWK.PrivateKeyJWK, cryptosuite.Authentication)
-	holderVerifier, _ := cryptosuite.NewJSONWebKeyVerifier(holderJWK.ID, holderJWK.PublicKeyJWK)
-
-	example.HandleExampleError(err, "Failed to generate key")
+	example.HandleExampleError(err, "Failed to generate DID")
+	holderJWK, err := cryptosuite.JSONWebKey2020FromEd25519(holderDIDPrivateKey.(ed25519.PrivateKey))
+	example.HandleExampleError(err, "Failed to generate JWK")
+	holderSigner, err := cryptosuite.NewJSONWebKeySigner(holderJWK.ID, holderJWK.PrivateKeyJWK, cryptosuite.Authentication)
+	example.HandleExampleError(err, "Failed to generate signer")
+	holderVerifier, err := cryptosuite.NewJSONWebKeyVerifier(holderJWK.ID, holderJWK.PublicKeyJWK)
+	example.HandleExampleError(err, "Failed to generate verifier")
 
 	// Apt Verifier
 	aptDIDPrivateKey, aptDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
-	aptJWK, _ := cryptosuite.JSONWebKey2020FromEd25519(aptDIDPrivateKey.(ed25519.PrivateKey))
-	aptSigner, _ := cryptosuite.NewJSONWebKeySigner(aptJWK.ID, aptJWK.PrivateKeyJWK, cryptosuite.Authentication)
-	aptVerifier, _ := cryptosuite.NewJSONWebKeyVerifier(aptJWK.ID, aptJWK.PublicKeyJWK)
-
-	example.HandleExampleError(err, "Failed to generate key")
+	example.HandleExampleError(err, "Failed to generate DID")
+	aptJWK, err := cryptosuite.JSONWebKey2020FromEd25519(aptDIDPrivateKey.(ed25519.PrivateKey))
+	example.HandleExampleError(err, "Failed to generate JWK")
+	aptSigner, err := cryptosuite.NewJSONWebKeySigner(aptJWK.ID, aptJWK.PrivateKeyJWK, cryptosuite.Authentication)
+	example.HandleExampleError(err, "Failed to generate signer")
+	aptVerifier, err := cryptosuite.NewJSONWebKeyVerifier(aptJWK.ID, aptJWK.PublicKeyJWK)
+	example.HandleExampleError(err, "Failed to generate verifier")
 
 	// Government Issuer
 	govtDIDPrivateKey, govtDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
-	govtJWK, _ := cryptosuite.JSONWebKey2020FromEd25519(govtDIDPrivateKey.(ed25519.PrivateKey))
-	govtSigner, _ := cryptosuite.NewJSONWebKeySigner(govtJWK.ID, govtJWK.PrivateKeyJWK, cryptosuite.Authentication)
-
 	example.HandleExampleError(err, "Failed to generate key")
+	govtJWK, err := cryptosuite.JSONWebKey2020FromEd25519(govtDIDPrivateKey.(ed25519.PrivateKey))
+	example.HandleExampleError(err, "Failed to generate JWK")
+	govtSigner, err := cryptosuite.NewJSONWebKeySigner(govtJWK.ID, govtJWK.PrivateKeyJWK, cryptosuite.Authentication)
+	example.HandleExampleError(err, "Failed to generate signer")
 
 	fmt.Print("\n\nStep 1: Create new DIDs for entities\n\n")
 	fmt.Printf("Tenant: %s\n", string(*holderDIDKey))
@@ -134,11 +139,13 @@ func main() {
 
 	// TODO: (neal) (issue https://github.com/TBD54566975/ssi-sdk/issues/165)
 	// Have the presentation claim's token format support signedVCBytes for the BuildPresentationSubmission function
-	testOutput, err := signing.ParseVerifiableCredentialFromJWT(string(signedVCBytes))
-	testOutputBytes, _ := json.Marshal(testOutput)
+	vcJson, err := signing.ParseVerifiableCredentialFromJWT(string(signedVCBytes))
+	example.HandleExampleError(err, "Failed to parse VC")
+	vcJsonBytes, err := json.Marshal(vcJson)
+	example.HandleExampleError(err, "Failed to marshal vc jwt")
 
 	presentationClaim := exchange.PresentationClaim{
-		Token:                         util.StringPtr(string(testOutputBytes)),
+		TokenJSON:                     util.StringPtr(string(vcJsonBytes)),
 		JWTFormat:                     exchange.JWTVC.Ptr(),
 		SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 	}
