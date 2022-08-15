@@ -46,7 +46,7 @@ type DIDDocumentMetadata struct {
 	NextUpdate    string `json:"nextUpdate,omitempty"`
 	VersionID     string `json:"versionId,omitempty"`
 	NextVersionID string `json:"nextVersionId,omitempty"`
-	EquivalentId  string `json:"equivalentId,omitempty"`
+	EquivalentID  string `json:"equivalentId,omitempty"`
 	CanonicalID   string `json:"canonicalId,omitempty"`
 }
 
