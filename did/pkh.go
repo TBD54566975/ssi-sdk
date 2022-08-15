@@ -10,9 +10,8 @@ type (
 )
 
 const (
-	Ethereum   = "Ed25519"
-	X25519    KeyType = "X25519"
-	Secp256k1 KeyType = "secp256k1"
+	Ethereum string = "Ethereum"
+)
 
 var blockChainKeyTypeMap = map[string]crypto.KeyType{
 	"Ethereum": crypto.Secp256k1,
