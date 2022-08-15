@@ -43,7 +43,7 @@ type PresentationClaim struct {
 	LDPFormat    *LinkedDataFormat
 
 	// If we have a token, we assume we have a JWT format value
-	Token     *string
+	TokenJSON *string
 	JWTFormat *JWTFormat
 
 	// The algorithm or Linked Data proof type by which the claim was signed must be present
@@ -51,7 +51,7 @@ type PresentationClaim struct {
 }
 
 func (pc *PresentationClaim) IsEmpty() bool {
-	if pc == nil || (pc.Credential == nil && pc.Presentation == nil && pc.Token == nil) {
+	if pc == nil || (pc.Credential == nil && pc.Presentation == nil && pc.TokenJSON == nil) {
 		return true
 	}
 	return reflect.DeepEqual(pc, &PresentationClaim{})
@@ -66,8 +66,8 @@ func (pc *PresentationClaim) GetClaimValue() (interface{}, error) {
 	if pc.Presentation != nil {
 		return *pc.Presentation, nil
 	}
-	if pc.Token != nil {
-		return *pc.Token, nil
+	if pc.TokenJSON != nil {
+		return *pc.TokenJSON, nil
 	}
 	return nil, errors.New("claim is empty")
 }
@@ -88,7 +88,7 @@ func (pc *PresentationClaim) GetClaimFormat() (string, error) {
 		}
 		return string(*pc.LDPFormat), nil
 	}
-	if pc.Token != nil {
+	if pc.TokenJSON != nil {
 		if pc.JWTFormat == nil {
 			return "", errors.New("JWT claim has no JWT format set")
 		}
@@ -316,6 +316,10 @@ type limitedInputDescriptor struct {
 // https://identity.foundation/presentation-exchange/#input-evaluation
 func processInputDescriptor(id InputDescriptor, claims []NormalizedClaim) (*processedInputDescriptor, error) {
 	constraints := id.Constraints
+	// NOTE(gabe): the specification does not require input descriptors to have a constraint; however,
+	// without a constraint it is ambiguous what fulfilling an input descriptor means. As such, we fail processing
+	// until the specification provides more clarity.
+	// https://github.com/decentralized-identity/presentation-exchange/issues/361
 	if constraints == nil {
 		err := fmt.Errorf("unable to process input descriptor without constraints")
 		logrus.WithError(err).Error()
