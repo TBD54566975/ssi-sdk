@@ -163,7 +163,7 @@ func validateVC(vc credential.VerifiableCredential) error {
 }
 
 // Build a presentation request (PR)
-// A PR is sent by a verifier to a holder
+// A PR is sent by a holder to a verifier
 // It can be sent over multiple mechanisms
 // For more information, please go to here:
 // https://identity.foundation/presentation-exchange/#presentation-request
@@ -263,12 +263,6 @@ func buildPresentationSubmission(presentationRequest []byte, signer cryptosuite.
 	if err != nil {
 		return nil, err
 	}
-
-	// normalized := normalizePresentationClaims([]exchange.PresentationClaim{presentationClaim})
-	// submissionBytes, err := exchange.BuildPresentationSubmissionVP(pd, normalized)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	submissionBytes, err := exchange.BuildPresentationSubmission(signer, pd, []exchange.PresentationClaim{presentationClaim}, exchange.JWTVPTarget)
 	if err != nil {
