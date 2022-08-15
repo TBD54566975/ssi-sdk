@@ -2,17 +2,13 @@ package employer_university_flow
 
 import (
 	gocrypto "crypto"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/sirupsen/logrus"
 )
 
 // A sample wallet
@@ -127,61 +123,4 @@ func (s *SimpleWallet) Init(keyType string) error {
 
 func (s *SimpleWallet) Size() int {
 	return len(s.vCs)
-}
-
-type trustedEntitiesStore struct {
-	Issuers map[string]bool
-}
-
-func (t *trustedEntitiesStore) isTrusted(did string) bool {
-	if v, ok := t.Issuers[did]; ok {
-		return v
-	}
-	return false
-}
-
-var TrustedEntities = trustedEntitiesStore{
-	Issuers: make(map[string]bool),
-}
-
-// This is a very simple validation process.
-// against a Presentation Submission
-// It checks:
-// 1. That the VC is valid
-// 2. That the VC was issued by a trusted entity
-func validateAccess(verifier cryptosuite.JSONWebKeyVerifier, data []byte) error {
-
-	var authorizationError = errors.New("insufficient claims provided")
-
-	vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(data))
-	if err != nil {
-		return err
-	}
-
-	if err := vp.IsValid(); err != nil {
-		return fmt.Errorf("failed to vaildate vp: %s", err.Error())
-	}
-
-	for _, untypedCredential := range vp.VerifiableCredential {
-		var vc credential.VerifiableCredential
-
-		if dat, err := json.Marshal(untypedCredential); err == nil {
-
-			if err := json.Unmarshal(dat, &vc); err != nil {
-				logrus.Error(err)
-			}
-
-			if issuer, ok := vc.CredentialSubject["id"]; ok {
-				if TrustedEntities.isTrusted(issuer.(string)) {
-					authorizationError = nil
-				}
-			}
-
-		}
-	}
-	return authorizationError
-}
-
-func ValidateAccess(verifier cryptosuite.JSONWebKeyVerifier, data []byte) error {
-	return validateAccess(verifier, data)
 }

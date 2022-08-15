@@ -43,11 +43,10 @@
 //
 //   The objects being created are in the following order:
 //
-//  1. DID for the Holder
-//  2. DID for the issuer
-//  3. VC for the Holder from the verifier
-//  4. PresentationRequest for the Verifier
-//  5. PresentationSubmission from the Holder
+//  1. DID's and wallets are created for the holder, issuer, and verifier
+//  3. VC is issued to the student holder
+//  4. PresentationRequest submitted by the verifier
+//  5. PresentationSubmission returned by the holder
 //  6. Authorization from the Verifier.
 
 package main
