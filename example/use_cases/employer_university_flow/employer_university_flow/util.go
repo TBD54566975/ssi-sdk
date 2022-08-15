@@ -30,7 +30,7 @@ var (
 // but the resolution would need to be hooked with the sdk.
 //  TODO (andor): Should exist a universal resolution method somewhere
 // in the actual SDK
-func resolveDID(didStr string) (*did.DIDDocument, *did.DIDResolutionMetadata, *did.DIDDocumentMetadata, error) {
+func resolveDID(didStr string) (*did.DIDDocument, error) {
 	split := strings.Split(string(didStr), ":")
 	if len(split) < 2 {
 		return nil, errors.New("invalid DID. Does not split correctly")
@@ -42,7 +42,8 @@ func resolveDID(didStr string) (*did.DIDDocument, *did.DIDResolutionMetadata, *d
 	case did.DIDWebPrefix:
 		return did.DIDWeb(didStr).Resolve()
 	case did.PeerMethodPrefix:
-		return did.DIDPeer(didStr).Resolve()
+		did, _, _, err := did.DIDPeer(didStr).Resolve()
+		return did, err
 	default:
 		return nil, fmt.Errorf("%v. Got %v method", UnsupportedDIDErorr, method)
 	}
