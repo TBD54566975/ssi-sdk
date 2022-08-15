@@ -30,7 +30,7 @@ var (
 // but the resolution would need to be hooked with the sdk.
 //  TODO (andor): Should exist a universal resolution method somewhere
 // in the actual SDK
-func resolveDID(didStr string) (*did.DIDDocument, error) {
+func resolveDID(didStr string) (*did.DIDDocument, *did.DIDResolutionMetadata, *did.DIDDocumentMetadata, error) {
 	split := strings.Split(string(didStr), ":")
 	if len(split) < 2 {
 		return nil, errors.New("invalid DID. Does not split correctly")
