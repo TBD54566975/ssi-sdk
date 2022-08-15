@@ -40,14 +40,18 @@ const (
 
 // https://www.w3.org/TR/did-core/#did-document-metadata
 type DIDDocumentMetadata struct {
-	Created       string `json:"created,omitempty"`
-	Updated       string `json:"updated,omitempty"`
+	Created       string `json:"created,omitempty" validate:"datetime"`
+	Updated       string `json:"updated,omitempty" validate:"datetime"`
 	Deactivated   bool   `json:"deactivated"`
 	NextUpdate    string `json:"nextUpdate,omitempty"`
 	VersionID     string `json:"versionId,omitempty"`
 	NextVersionID string `json:"nextVersionId,omitempty"`
 	EquivalentId  string `json:"equivalentId,omitempty"`
 	CanonicalID   string `json:"canonicalId,omitempty"`
+}
+
+func (s *DIDDocumentMetadata) IsValid() bool {
+	return util.NewValidator().Struct(s) == nil
 }
 
 // https://www.w3.org/TR/did-core/#did-resolution-metadata
