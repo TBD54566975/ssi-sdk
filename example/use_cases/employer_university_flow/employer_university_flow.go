@@ -95,7 +95,7 @@ const (
 )
 
 var (
-	UNSUPPORTED_DID_ERROR = errors.New("Unsupported Method for DID")
+	UnsupportedDIDErorr = errors.New("unsupported Method for DID")
 )
 
 // Resolves a DID
@@ -109,18 +109,18 @@ var (
 func resolveDID(didStr string) (*did.DIDDocument, error) {
 	split := strings.Split(string(didStr), ":")
 	if len(split) < 2 {
-		return nil, errors.New("Invalid DID. Does not split correctly")
+		return nil, errors.New("invalid DID. Does not split correctly")
 	}
 	var method = split[1]
 	switch method {
-	case "key":
+	case did.KeyPrefix:
 		return did.DIDKey(didStr).Expand()
-	case "web":
+	case did.WebMethodPrefix:
 		return did.DIDWeb(didStr).Resolve()
-	case "peer":
+	case did.PeerMethodPrefix:
 		return did.DIDPeer(didStr).Resolve()
 	default:
-		return nil, fmt.Errorf("%v. Got %v method", UNSUPPORTED_DID_ERROR, method)
+		return nil, fmt.Errorf("%v. Got %v method", UnsupportedDIDErorr, method)
 	}
 }
 
