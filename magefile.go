@@ -1,5 +1,4 @@
 //go:build mage
-// +build mage
 
 package main
 
@@ -20,7 +19,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-var (
+const (
 	Go = "go"
 )
 
@@ -164,4 +163,30 @@ func CBT() error {
 		return err
 	}
 	return nil
+}
+
+// CITest runs unit tests with coverage as a part of CI.
+// The mage `-v` option will trigger a verbose output of the test
+func CITest() error {
+	return runCITests()
+}
+
+func runCITests(extraTestArgs ...string) error {
+	args := []string{"test"}
+	if mg.Verbose() {
+		args = append(args, "-v")
+	}
+	args = append(args, "-tags=jwx_es256k")
+	args = append(args, "-covermode=atomic")
+	args = append(args, "-coverprofile=coverage.out")
+	args = append(args, extraTestArgs...)
+	args = append(args, "./...")
+	testEnv := map[string]string{
+		"CGO_ENABLED": "1",
+		"GO111MODULE": "on",
+	}
+	writer := ColorizeTestStdout()
+	fmt.Printf("%+v", args)
+	_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
+	return err
 }
