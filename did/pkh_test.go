@@ -2,7 +2,6 @@ package did
 
 import (
 	"embed"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -63,6 +62,7 @@ func TestCreateDIDPKH(t *testing.T) {
 	didPKH, err := CreateDIDPKHFromNetwork(Ethereum, address)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, didPKH)
+	assert.Equal(t, string(*didPKH), "did:pkh:eip155:1:"+address)
 
 	didDoc, err := didPKH.Expand()
 
@@ -70,18 +70,14 @@ func TestCreateDIDPKH(t *testing.T) {
 	assert.NotEmpty(t, didDoc)
 	assert.Equal(t, string(*didPKH), didDoc.ID)
 
-	generatedDidDoc, _ := json.Marshal(didDoc)
-	fmt.Println(string(generatedDidDoc))
+	generatedDidDocBytes, _ := json.Marshal(didDoc)
 
 	testVectorDidDoc, _ := testVectorPKHDIDFS.ReadFile("testdata/" + PKHTestVectors[Ethereum][1])
-
 	var expandedTestDidDoc DIDDocument
 	json.Unmarshal([]byte(testVectorDidDoc), &expandedTestDidDoc)
+	expandedTestDidDocBytes, _ := json.Marshal(expandedTestDidDoc)
 
-	expandedTestDidDocString, _ := json.Marshal(expandedTestDidDoc)
-	fmt.Println(string(expandedTestDidDocString))
-
-	assert.Equal(t, generatedDidDoc, expandedTestDidDocString)
+	assert.Equal(t, string(generatedDidDocBytes), string(expandedTestDidDocBytes))
 }
 
 func TestIsValidPKH(t *testing.T) {

@@ -59,6 +59,26 @@ func CreateDIDPKH(namespace, reference, address string) (*DIDPKH, error) {
 	return &did, nil
 }
 
+// Parse returns the value without the `did:pkh` prefix
+func (did DIDPKH) Parse() string {
+	split := strings.Split(string(did), DIDPKHPrefix+":")
+	if len(split) != 2 {
+		return ""
+	}
+	return split[1]
+}
+
+// GetNetwork returns the network by finding the network prefix in the did
+func GetNetwork(didpkh DIDPKH) (*Network, error) {
+	for network, prefix := range didPkhNetworkPrefixMap {
+		if strings.Contains(string(didpkh), prefix[0]+":") {
+			return &network, nil
+		}
+	}
+
+	return nil, errors.New("network not supported")
+}
+
 // Expand turns the DID key into a complaint DID Document
 func (did DIDPKH) Expand() (*DIDDocument, error) {
 	verificationMethod, err := constructPKHVerificationMethod(did)
@@ -140,24 +160,4 @@ func isValidPKH(did DIDPKH) bool {
 	}
 
 	return true
-}
-
-// Parse returns the value without the `did:pkh` prefix
-func (did DIDPKH) Parse() string {
-	split := strings.Split(string(did), DIDPKHPrefix+":")
-	if len(split) != 2 {
-		return ""
-	}
-	return split[1]
-}
-
-// GetNetwork returns the network by finding the network prefix in the did
-func GetNetwork(didpkh DIDPKH) (*Network, error) {
-	for network, prefix := range didPkhNetworkPrefixMap {
-		if strings.Contains(string(didpkh), prefix[0]+":") {
-			return &network, nil
-		}
-	}
-
-	return nil, errors.New("network not supported")
 }
