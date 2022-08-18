@@ -247,7 +247,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		}
 		testVCJWT := getTestJWTVerifiableCredential()
 		presentationClaimJWT := PresentationClaim{
-			Token:                         &testVCJWT,
+			TokenJSON:                     &testVCJWT,
 			JWTFormat:                     JWTVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 		}
@@ -676,7 +676,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		assert.NotEmpty(tt, jwtVC)
 
 		presentationClaim := PresentationClaim{
-			Token:                         &jwtVC,
+			TokenJSON:                     &jwtVC,
 			JWTFormat:                     JWTVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 		}
