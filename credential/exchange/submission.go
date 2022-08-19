@@ -43,7 +43,7 @@ type PresentationClaim struct {
 	LDPFormat    *LinkedDataFormat
 
 	// If we have a token, we assume we have a JWT format value
-	Token     *string
+	TokenJSON *string
 	JWTFormat *JWTFormat
 
 	// The algorithm or Linked Data proof type by which the claim was signed must be present
@@ -51,7 +51,7 @@ type PresentationClaim struct {
 }
 
 func (pc *PresentationClaim) IsEmpty() bool {
-	if pc == nil || (pc.Credential == nil && pc.Presentation == nil && pc.Token == nil) {
+	if pc == nil || (pc.Credential == nil && pc.Presentation == nil && pc.TokenJSON == nil) {
 		return true
 	}
 	return reflect.DeepEqual(pc, &PresentationClaim{})
@@ -66,8 +66,8 @@ func (pc *PresentationClaim) GetClaimValue() (interface{}, error) {
 	if pc.Presentation != nil {
 		return *pc.Presentation, nil
 	}
-	if pc.Token != nil {
-		return *pc.Token, nil
+	if pc.TokenJSON != nil {
+		return *pc.TokenJSON, nil
 	}
 	return nil, errors.New("claim is empty")
 }
@@ -88,7 +88,7 @@ func (pc *PresentationClaim) GetClaimFormat() (string, error) {
 		}
 		return string(*pc.LDPFormat), nil
 	}
-	if pc.Token != nil {
+	if pc.TokenJSON != nil {
 		if pc.JWTFormat == nil {
 			return "", errors.New("JWT claim has no JWT format set")
 		}
