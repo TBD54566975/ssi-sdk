@@ -9,6 +9,10 @@ import (
 	"github.com/goccy/go-json"
 )
 
+const (
+	testDataDirectory = "testdata"
+)
+
 var (
 	//go:embed testdata
 	testVectorPKHDIDFS embed.FS
@@ -23,7 +27,7 @@ var PKHTestVectors = map[Network][]string{
 func TestDIDPKHVectors(t *testing.T) {
 	// round trip serialize and de-serialize from json to our object model
 	for network, tv := range PKHTestVectors {
-		gotTestVector, err := testVectorPKHDIDFS.ReadFile("testdata/" + tv[1])
+		gotTestVector, err := testVectorPKHDIDFS.ReadFile(testDataDirectory + "/" + tv[1])
 		assert.NoError(t, err)
 
 		// Test Known DIDPKH
@@ -52,7 +56,8 @@ func TestDIDPKHVectors(t *testing.T) {
 		assert.Equal(t, string(*testDIDPKH), testDIDPKHDoc.ID)
 
 		// Compare Known and Testing DIDPKH Document. This compares the known PKH DID Document with the one we generate
-		generatedDIDBytes, _ := json.Marshal(testDIDPKHDoc)
+		generatedDIDBytes, err := json.Marshal(testDIDPKHDoc)
+		assert.NoError(t, err)
 		assert.JSONEqf(t, string(generatedDIDBytes), string(knownDIDBytes), "Generated DIDPKH does not match known DIDPKH")
 	}
 }
@@ -70,37 +75,58 @@ func TestCreateDIDPKH(t *testing.T) {
 	assert.NotEmpty(t, didDoc)
 	assert.Equal(t, string(*didPKH), didDoc.ID)
 
-	generatedDidDocBytes, _ := json.Marshal(didDoc)
+	generatedDIDDocBytes, err := json.Marshal(didDoc)
+	assert.NoError(t, err)
 
-	testVectorDidDoc, _ := testVectorPKHDIDFS.ReadFile("testdata/" + PKHTestVectors[Ethereum][1])
-	var expandedTestDidDoc DIDDocument
-	json.Unmarshal([]byte(testVectorDidDoc), &expandedTestDidDoc)
-	expandedTestDidDocBytes, _ := json.Marshal(expandedTestDidDoc)
+	testVectorDIDDoc, err := testVectorPKHDIDFS.ReadFile(testDataDirectory + "/" + PKHTestVectors[Ethereum][1])
+	assert.NoError(t, err)
 
-	assert.Equal(t, string(generatedDidDocBytes), string(expandedTestDidDocBytes))
+	var expandedTestDIDDoc DIDDocument
+	json.Unmarshal([]byte(testVectorDIDDoc), &expandedTestDIDDoc)
+	expandedTestDIDDocBytes, err := json.Marshal(expandedTestDIDDoc)
+	assert.NoError(t, err)
+
+	assert.Equal(t, string(generatedDIDDocBytes), string(expandedTestDIDDocBytes))
 }
 
 func TestIsValidPKH(t *testing.T) {
 	// Bitcoin
-	assert.True(t, isValidPKH("did:pkh:bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"))
+	assert.True(t, IsValidPKH("did:pkh:bip122:000000000019d6689c085ae165831e93:128Lkh3S7CkDTBZ8W7BbpsN3YYizJMp8p6"))
 	// Dogecoin
-	assert.True(t, isValidPKH("did:pkh:bip122:1a91e3dace36e2be3bf030a65679fe82:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L"))
+	assert.True(t, IsValidPKH("did:pkh:bip122:1a91e3dace36e2be3bf030a65679fe82:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L"))
 	// Ethereum
-	assert.True(t, isValidPKH("did:pkh:eip155:1:0xb9c5714089478a327f09197987f16f9e5d936e8a"))
+	assert.True(t, IsValidPKH("did:pkh:eip155:1:0xb9c5714089478a327f09197987f16f9e5d936e8a"))
 	// Solana
-	assert.True(t, isValidPKH("did:pkh:solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ:CKg5d12Jhpej1JqtmxLJgaFqqeYjxgPqToJ4LBdvG9Ev"))
+	assert.True(t, IsValidPKH("did:pkh:solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ:CKg5d12Jhpej1JqtmxLJgaFqqeYjxgPqToJ4LBdvG9Ev"))
 
 	// Invalid DIDs
-	assert.False(t, isValidPKH(""))
-	assert.False(t, isValidPKH("did:pkh::"))
-	assert.False(t, isValidPKH("did:pkh:eip155:1:"))
-	assert.False(t, isValidPKH("did:pkh:NOCAP:1:0xb9c5714089478a327f09197987f16f9e5d936e8a"))
+	assert.False(t, IsValidPKH(""))
+	assert.False(t, IsValidPKH("did:pkh::"))
+	assert.False(t, IsValidPKH("did:pkh:eip155:1:"))
+	assert.False(t, IsValidPKH("did:pkh:NOCAP:1:0xb9c5714089478a327f09197987f16f9e5d936e8a"))
 }
 
 func TestGetNetwork(t *testing.T) {
-	for network, _ := range PKHTestVectors {
-		didPKH, _ := CreateDIDPKHFromNetwork(network, "dummyaddress")
-		ntwrk, _ := GetNetwork(*didPKH)
+	for network := range PKHTestVectors {
+		didPKH, err := CreateDIDPKHFromNetwork(network, "dummyaddress")
+		assert.NoError(t, err)
+
+		ntwrk, err := GetNetwork(*didPKH)
+		assert.NoError(t, err)
+
 		assert.Equal(t, network, *ntwrk)
+	}
+}
+
+func TestGetSupportedNetworks(t *testing.T) {
+	supportedNetworks := GetSupportedNetworks()
+
+	supportedNetworksSet := make(map[Network]bool)
+	for i := range supportedNetworks {
+		supportedNetworksSet[supportedNetworks[i]] = true
+	}
+
+	for network := range PKHTestVectors {
+		assert.True(t, supportedNetworksSet[network])
 	}
 }

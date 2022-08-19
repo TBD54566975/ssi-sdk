@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/schema"
+	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"regexp"
 	"strings"
 )
@@ -18,7 +17,8 @@ type (
 
 const (
 	// DIDPKHPrefix did:pkh prefix
-	DIDPKHPrefix = "did:pkh"
+	DIDPKHPrefix       = "did:pkh"
+	pkhContextFilename = "did-pkh-context.json"
 )
 
 const (
@@ -27,7 +27,7 @@ const (
 	Polygon  Network = "Polygon"
 )
 
-var didPkhNetworkPrefixMap = map[Network][]string{
+var didPKHNetworkPrefixMap = map[Network][]string{
 	Bitcoin:  {"bip122:000000000019d6689c085ae165831e93", "EcdsaSecp256k1RecoveryMethod2020"},
 	Ethereum: {"eip155:1", "EcdsaSecp256k1RecoveryMethod2020"},
 	Polygon:  {"eip155:137", "EcdsaSecp256k1RecoveryMethod2020"},
@@ -35,16 +35,16 @@ var didPkhNetworkPrefixMap = map[Network][]string{
 
 // The following context should be manually inserted into each DID Document. This will likely change
 // over time as new verification methods are supported, and general-purpose methods are specified.
-var KnownDIDPKHContext, _ = schema.GetKnownSchema("did-pkh-context.json")
+var knownDIDPKHContext, _ = schema.GetKnownSchema(pkhContextFilename)
 
 // CreateDIDPKHFromNetwork constructs a did:pkh from a network and the networks native address.
 func CreateDIDPKHFromNetwork(network Network, address string) (*DIDPKH, error) {
-	if _, ok := didPkhNetworkPrefixMap[network]; ok {
-		split := strings.Split(didPkhNetworkPrefixMap[network][0], ":")
+	if _, ok := didPKHNetworkPrefixMap[network]; ok {
+		split := strings.Split(didPKHNetworkPrefixMap[network][0], ":")
 		return CreateDIDPKH(split[0], split[1], address)
 	}
 
-	return nil, fmt.Errorf("unsupported network: %s", string(network))
+	return nil, util.LoggingNewError(fmt.Sprintf("unsupported network: %s", string(network)))
 }
 
 // CreateDIDPKH constructs a did:pkh from a namespace, reference, and account address.
@@ -52,8 +52,8 @@ func CreateDIDPKHFromNetwork(network Network, address string) (*DIDPKH, error) {
 func CreateDIDPKH(namespace, reference, address string) (*DIDPKH, error) {
 	did := DIDPKH(fmt.Sprintf("%s:%s:%s:%s", DIDPKHPrefix, namespace, reference, address))
 
-	if !isValidPKH(did) {
-		return nil, fmt.Errorf("PKH DID is not valid: %s", string(did))
+	if !IsValidPKH(did) {
+		return nil, util.LoggingNewError(fmt.Sprintf("Pkh DID is not valid: %s", string(did)))
 	}
 
 	return &did, nil
@@ -70,32 +70,35 @@ func (did DIDPKH) Parse() string {
 
 // GetNetwork returns the network by finding the network prefix in the did
 func GetNetwork(didpkh DIDPKH) (*Network, error) {
-	for network, prefix := range didPkhNetworkPrefixMap {
+	for network, prefix := range didPKHNetworkPrefixMap {
 		if strings.Contains(string(didpkh), prefix[0]+":") {
 			return &network, nil
 		}
 	}
 
-	return nil, errors.New("network not supported")
+	return nil, util.LoggingNewError("network not supported")
 }
 
 // Expand turns the DID key into a complaint DID Document
 func (did DIDPKH) Expand() (*DIDDocument, error) {
 	verificationMethod, err := constructPKHVerificationMethod(did)
+
 	if err != nil {
-		logrus.WithError(err).Error("could not construct verification method")
-		return nil, err
+		return nil, util.LoggingErrorMsg(err, "could not construct verification method")
 	}
 
-	var KnownDIDPKHContextJson interface{}
-	json.Unmarshal([]byte(KnownDIDPKHContext), &KnownDIDPKHContextJson)
+	var knownDIDPKHContextJson interface{}
+	err = json.Unmarshal([]byte(knownDIDPKHContext), &knownDIDPKHContextJson)
+	if err != nil {
+		return nil, util.LoggingErrorMsg(err, "could not unmarshal known context json")
+	}
 
 	verificationMethodSet := []VerificationMethodSet{
 		string(did) + "#blockchainAccountId",
 	}
 
 	return &DIDDocument{
-		Context:              KnownDIDPKHContextJson,
+		Context:              knownDIDPKHContextJson,
 		ID:                   string(did),
 		VerificationMethod:   []VerificationMethod{*verificationMethod},
 		Authentication:       verificationMethodSet,
@@ -106,13 +109,15 @@ func (did DIDPKH) Expand() (*DIDDocument, error) {
 }
 
 func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
-	if !isValidPKH(did) || did.Parse() == "" {
-		errMsg := "PKH DID is not valid"
-		return nil, errors.New(errMsg)
+	if !IsValidPKH(did) || did.Parse() == "" {
+		return nil, util.LoggingNewError("Pkh DID is not valid")
 	}
 
-	network, _ := GetNetwork(did)
-	verificationType := didPkhNetworkPrefixMap[*network][1]
+	network, err := GetNetwork(did)
+	if err != nil {
+		return nil, util.LoggingErrorMsg(err, "could not find network")
+	}
+	verificationType := didPKHNetworkPrefixMap[*network][1]
 
 	return &VerificationMethod{
 		ID:                  string(did) + "#blockchainAccountId",
@@ -122,7 +127,7 @@ func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
 	}, nil
 }
 
-// isValidPKH checks if a pkh did is valid based on the following parameters:
+// IsValidPKH checks if a pkh did is valid based on the following parameters:
 
 // pkh-did    = "did:pkh:" address
 // address    = account_id according to [CAIP-10]
@@ -134,7 +139,7 @@ func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
 // chain_id:    namespace + ":" + reference
 // namespace:   [-a-z0-9]{3,8}
 // reference:   [-a-zA-Z0-9]{1,32}
-func isValidPKH(did DIDPKH) bool {
+func IsValidPKH(did DIDPKH) bool {
 	split := strings.Split(string(did), ":")
 
 	if len(split) != 5 || (split[0]+":"+split[1]) != DIDPKHPrefix {
@@ -160,4 +165,14 @@ func isValidPKH(did DIDPKH) bool {
 	}
 
 	return true
+}
+
+func GetSupportedNetworks() []Network {
+	networks := []Network{}
+
+	for network := range didPKHNetworkPrefixMap {
+		networks = append(networks, network)
+	}
+
+	return networks
 }
