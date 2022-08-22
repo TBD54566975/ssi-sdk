@@ -96,7 +96,7 @@ type VerificationMethod struct {
 	// https://datatracker.ietf.org/doc/html/draft-multiformats-multibase-03
 	PublicKeyMultibase string `json:"publicKeyMultibase,omitempty"`
 	// for PKH DIDs - https://github.com/w3c-ccg/did-pkh/blob/90b28ad3c18d63822a8aab3c752302aa64fc9382/did-pkh-method-draft.md
-	BlockchainAccountId string `json:"blockchainAccountId,omitempty"`
+	BlockchainAccountID string `json:"blockchainAccountId,omitempty"`
 }
 
 // VerificationMethodSet is a union type supporting the `authentication`, `assertionMethod`, `keyAgreement`,

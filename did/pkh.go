@@ -87,9 +87,8 @@ func (did DIDPKH) Expand() (*DIDDocument, error) {
 		return nil, util.LoggingErrorMsg(err, "could not construct verification method")
 	}
 
-	var knownDIDPKHContextJson interface{}
-	err = json.Unmarshal([]byte(knownDIDPKHContext), &knownDIDPKHContextJson)
-	if err != nil {
+	var knownDIDPKHContextJSON interface{}
+	if err := json.Unmarshal([]byte(knownDIDPKHContext), &knownDIDPKHContextJSON); err != nil {
 		return nil, util.LoggingErrorMsg(err, "could not unmarshal known context json")
 	}
 
@@ -98,7 +97,7 @@ func (did DIDPKH) Expand() (*DIDDocument, error) {
 	}
 
 	return &DIDDocument{
-		Context:              knownDIDPKHContextJson,
+		Context:              knownDIDPKHContextJSON,
 		ID:                   string(did),
 		VerificationMethod:   []VerificationMethod{*verificationMethod},
 		Authentication:       verificationMethodSet,
@@ -123,7 +122,7 @@ func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
 		ID:                  string(did) + "#blockchainAccountId",
 		Type:                cryptosuite.LDKeyType(verificationType),
 		Controller:          string(did),
-		BlockchainAccountId: did.Parse(),
+		BlockchainAccountID: did.Parse(),
 	}, nil
 }
 
@@ -168,7 +167,7 @@ func IsValidPKH(did DIDPKH) bool {
 }
 
 func GetSupportedNetworks() []Network {
-	networks := []Network{}
+	var networks []Network
 
 	for network := range didPKHNetworkPrefixMap {
 		networks = append(networks, network)
