@@ -86,7 +86,7 @@ func (did DIDWeb) GetDocURL() (string, error) {
 	subStrs := strings.Split(string(did), ":")
 	numSubStrs := len(subStrs)
 	if numSubStrs < 3 {
-		err := fmt.Errorf("DIDWeb %+v is missing the required domain", did)
+		err := fmt.Errorf("did:web %+v is missing the required domain", did)
 		logrus.WithError(err).Error()
 		return "", err
 	}
@@ -133,7 +133,8 @@ func (did DIDWeb) ResolveDocBytes() ([]byte, error) {
 		return nil, err
 	}
 	// Specification https://w3c-ccg.github.io/did-method-web/#read-resolve
-	// 6. Perform an HTTP GET request to the URL using an agent that can successfully negotiate a secure HTTPS connection, which enforces the security requirements as described in 2.5 Security and privacy considerations.
+	// 6. Perform an HTTP GET request to the URL using an agent that can successfully negotiate a secure HTTPS
+	// connection, which enforces the security requirements as described in 2.5 Security and privacy considerations.
 	resp, err := http.Get(docURL)
 	if err != nil {
 		logrus.WithError(err).Errorf("could not resolve with docURL %+v", docURL)
