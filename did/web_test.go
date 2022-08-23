@@ -5,6 +5,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/h2non/gock.v1"
 )
 
 const (
@@ -12,7 +13,7 @@ const (
 	didWebBasic            DIDWeb = "did:web:example.com"
 	didWebWithPort         DIDWeb = "did:web:localhost%3A8443"
 	didWebOptionalPath     DIDWeb = "did:web:example.com:user:alice"
-	didWebToBeResolved     DIDWeb = "did:web:demo.spruceid.com" //TODO: replace this with a demo domain from ssi-sdk
+	didWebToBeResolved     DIDWeb = "did:web:demo.ssi-sdk.com"
 	didWebCannotBeResolved DIDWeb = "did:web:doesnotexist.com"
 )
 
@@ -32,18 +33,36 @@ func TestDIDWebGetURL(t *testing.T) {
 }
 
 func TestDIDWebResolveDocBytes(t *testing.T) {
+	gock.New("https://demo.ssi-sdk.com").
+		Get("/.well-known/did.json").
+		Reply(200).
+		BodyString(`{"id":"did:web:demo.ssi-sdk.com"}`)
+	defer gock.Off()
+
 	docBytes, err := didWebToBeResolved.ResolveDocBytes()
 	assert.NoError(t, err)
-	assert.Contains(t, string(docBytes), "did:web:demo.spruceid.com")
+	assert.Contains(t, string(docBytes), "did:web:demo.ssi-sdk.com")
 }
 
 func TestDIDWebResolve(t *testing.T) {
-	doc, err := didWebToBeResolved.Resolve()
-	assert.NoError(t, err)
-	assert.Equal(t, string(didWebToBeResolved), doc.ID)
-	_, err = didWebCannotBeResolved.Resolve()
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), `Get "https://doesnotexist.com/.well-known/did.json"`)
+	t.Run("Happy Path - Known DID", func(t *testing.T) {
+		gock.New("https://demo.ssi-sdk.com").
+			Get("/.well-known/did.json").
+			Reply(200).
+			BodyString(`{"id":"did:web:demo.ssi-sdk.com"}`)
+		defer gock.Off()
+
+		doc, err := didWebToBeResolved.Resolve()
+		assert.NoError(t, err)
+		assert.Equal(t, string(didWebToBeResolved), doc.ID)
+
+	})
+
+	t.Run("Unhappy Path - Unknown DID", func(t *testing.T) {
+		_, err := didWebCannotBeResolved.Resolve()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), `Get "https://doesnotexist.com/.well-known/did.json"`)
+	})
 }
 
 func TestDIDWebCreateDoc(t *testing.T) {
