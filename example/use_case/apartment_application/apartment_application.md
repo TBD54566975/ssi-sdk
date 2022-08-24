@@ -1,6 +1,5 @@
 # Apartment Age Verification Use Case
 
-
 # Introduction
 This is a full example flow of an apartment verifying the age of a potential tenant. The flow goes as follows:
 
@@ -12,25 +11,25 @@ At the end the apartment will verify the authenticity of the presentation submis
 ## Step 1
 Create new decentralized identities for an apartment, a government agency, and a future tenant.
 
-![ssi-sdk](docs/dids.png)
+![ssi-sdk](doc/dids.png)
 
 ## Step 2
 Government issuer using the holder’s DID issues credentials claiming age. The government issuer then signs the verifiable credentials to holder claiming age
-![ssi-sdk](docs/issuevc.png)
+![ssi-sdk](doc/issuevc.png)
 
 ## Step 3
 Create Presentation Definition from the apartment to the holder which goes into a presentation request.
 The apartment is saying "here tenant, here is my what information I am requesting from you"
-![ssi-sdk](docs/presentationrequest.png)
+![ssi-sdk](doc/presentationrequest.png)
 
 ## Step 4
 The tenant verifies the presentation request from the apartment is valid and then constructs and signs a presentation submission
 
-![ssi-sdk](docs/presentationsubmission.png)
+![ssi-sdk](doc/presentationsubmission.png)
 
 ## Step 5
 The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic. The tenant now has their age verified and they can move into the apartment! 🎉
-![ssi-sdk](docs/aptverify.png)
+![ssi-sdk](doc/aptverify.png)
 
 # Running 
 Navigate to the ssi-sdk/example/use_cases/apartment_application directory and run
@@ -42,15 +41,16 @@ go run apartment_application.go
 # Output
 
 ```
-Step 1: Create new DIDs for entities
+**Step 1:** Create new DIDs for entities
 
-Tenant: did:key:z6Mkj2VE6wby9NzHD6TLd7vmbUCCNXzAhv9Dtio6PcWNnwgn
-Apartment: did:key:z6Mksqn5HLWNNau6humKzsvNLHDbErez867gYtPHbN3b269y
-Government: did:key:z6Mkpfz5uy9bkBLDLQmarYKVmJCDBd6qKxXLF2VRtcwPD74m
+Tenant: `did:key:z6Mkj2VE6wby9NzHD6TLd7vmbUCCNXzAhv9Dtio6PcWNnwgn`
+Apartment: `did:key:z6Mksqn5HLWNNau6humKzsvNLHDbErez867gYtPHbN3b269y`
+Government: `did:key:z6Mkpfz5uy9bkBLDLQmarYKVmJCDBd6qKxXLF2VRtcwPD74m`
 
 
-Step 2: Government issues Verifiable Credential new for tenant verifying birthdate and signs
+**Step 2:** Government issues Verifiable Credential new for tenant verifying birthdate and signs
 
+```
 Verifiable Credential:{
   "@context": [
     "https://www.w3.org/2018/credentials/v1"
@@ -66,11 +66,14 @@ Verifiable Credential:{
     "id": "did:key:z6Mkj2VE6wby9NzHD6TLd7vmbUCCNXzAhv9Dtio6PcWNnwgn"
   }
 }
+```
 
+**Step 3:** The apartment creates a presentation request that confirms which information is required from the tenant
 
-Step 3: The apartment creates a presentation request that confirms which information is required from the tenant
+Presentation Definition that gets added to presentation request:
 
-Presentation Definition that gets added to presentation request:{
+```
+{
   "id": "48e93dce-12a0-4cf7-a016-44927c98e4dc",
   "input_descriptors": [
     {
@@ -96,11 +99,14 @@ Presentation Definition that gets added to presentation request:{
     }
   ]
 }
+```
 
+**Step 4:** The holder creates a presentation submission to give to the apartment
 
-Step 4: The holder creates a presentation submission to give to the apartment
+Presentation Claim that gets added to presentation submission:
 
-Presentation Claim that gets added to presentation submission:{
+```
+{
   "Credential": null,
   "Presentation": null,
   "LDPFormat": null,
@@ -108,12 +114,9 @@ Presentation Claim that gets added to presentation submission:{
   "JWTFormat": "jwt_vc",
   "SignatureAlgorithmOrProofType": "EdDSA"
 }
+```
 
-
-Step 5: The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic
-
-
-
+**Step 5:** The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic
 
 🎉 The tenant's age has now been verified and can now move into the apartment! 🎉
 
