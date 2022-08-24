@@ -14,7 +14,7 @@ to [Self Sovereign Identity](http://www.lifewithalacrity.com/2016/04/the-path-to
 The `ssi-sdk` intends to provide flexible functionality based on a set of standards-based primitives for building
 decentralized identity applications in a modular manner: with limited dependencies between components.
 
-![ssi-sdk](docs/ssi-sdk.png)
+![ssi-sdk](doc/ssi-sdk.png)
 
 The image above outlines the SDK's vision. Standards may be added and/or removed. The standards themselves are under
 active development, and as such, are subject to change. When possible we aim to call out which versions or revisions of
@@ -22,7 +22,7 @@ standards we are building implementations against.
 
 The SDK has not undergone any formal security review or audit, so please use with caution.
 
-For more information, see the [vision document](docs/VISION.md).
+For more information, see the [vision document](doc/VISION.md).
 
 # Contributing
 
@@ -88,7 +88,7 @@ mage cbt
 
 # Versioning
 
-For information on versioning refer to our [versioning guide](docs/VERSIONING.md).
+For information on versioning refer to our [versioning guide](doc/VERSIONING.md).
 
 The latest version is...nothing! No releases have been made.
 
@@ -99,14 +99,14 @@ contributions for additional examples.
 
 - [Decentralized Identifiers Example](example/did)
 - [Verifiable Credentials Example](example/vc)
-- [Presentation Exchange Example](example/use_cases/apartment_application)
+- [Presentation Exchange Example](example/use_case/apartment_application)
 
 # Project Resources
 
 | Resource                                                                               | Description                                                                   |
 |----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| [VISION](https://github.com/TBD54566975/ssi-sdk/blob/main/docs/VISION.md)              | Outlines the project vision                                                   |
-| [VERSIONING](https://github.com/TBD54566975/ssi-sdk/blob/main/docs/VERSIONING.md)      | Project versioning strategy                                                   |
+| [VISION](https://github.com/TBD54566975/ssi-sdk/blob/main/doc/VISION.md)               | Outlines the project vision                                                   |
+| [VERSIONING](https://github.com/TBD54566975/ssi-sdk/blob/main/doc/VERSIONING.md)       | Project versioning strategy                                                   |
 | [CODE_OF_CONDUCT](https://github.com/TBD54566975/ssi-sdk/blob/main/CODE_OF_CONDUCT.md) | Expected behavior for project contributors, promoting a welcoming environment |
 | [CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md)       | Developer guide to build, test, run, access CI, chat, discuss, file issues    |
 | [GOVERNANCE](https://github.com/TBD54566975/ssi-sdk/blob/main/GOVERNANCE.md)           | Project governance                                                            |
