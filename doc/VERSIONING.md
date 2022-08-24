@@ -43,18 +43,18 @@ Stable releases have been well tested and carry the highest level of confidence.
 
 The project maintainers are responsible for creates and managing releases. If you are interested in a release but there isn’t one, consider referencing a specific commit hash (e.g. `go get github.com/[TBD54566975/ssi-sdk](https://github.com/TBD54566975/ssi-sdk)@<commit-hash>`) or reaching out to the team via Discord, the forums, or an issue.
 
-1. **When do we cut a new release?**
+2. **When do we cut a new release?**
 
 Primarily when there are substantive feature changes or when having adoption of a release has some sort of utility — whether to promote additional testing or to advocate for stability such as in the case of a bug fix.
 
-1. **How are releases represented?**
+3. **How are releases represented?**
 
 Releases can be found on [GitHub’s release page](https://github.com/TBD54566975/ssi-sdk/releases). Release notes highlighting key changes accompany each release.
 
-1. **Which release should I use?**
+4. **Which release should I use?**
 
 It depends on your intended usage. As a general rule you should use the highest numbered version release.
 
-1. **I found a bug for a release, what should I do?**
+5. **I found a bug for a release, what should I do?**
 
 Open a bug issue, please.
