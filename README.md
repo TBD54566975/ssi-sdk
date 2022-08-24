@@ -22,6 +22,8 @@ standards we are building implementations against.
 
 The SDK has not undergone any formal security review or audit, so please use with caution.
 
+For more information, see the [vision document](docs/VISION.md).
+
 # Contributing
 
 This project is fully open source, and we welcome contributions! For more information please see
@@ -84,6 +86,12 @@ A utility is provided to run _clean, build, and test_ in sequence with:
 mage cbt
 ```
 
+# Versioning
+
+For information on versioning refer to our [versioning guide](docs/VERSIONING.md).
+
+The latest version is...nothing! No releases have been made.
+
 # Examples
 
 A set of code examples can be found in the [examples directory](example). We welcome
@@ -91,12 +99,14 @@ contributions for additional examples.
 
 - [Decentralized Identifiers Example](example/did)
 - [Verifiable Credentials Example](example/vc)
+- [Presentation Exchange Example](example/use_cases/apartment_application)
 
 # Project Resources
 
 | Resource                                                                               | Description                                                                   |
 |----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| [CODEOWNERS](https://github.com/TBD54566975/ssi-sdk/blob/main/CODEOWNERS)              | Outlines the project lead(s)                                                  |
+| [VISION](https://github.com/TBD54566975/ssi-sdk/blob/main/docs/VISION.md)              | Outlines the project vision                                                   |
+| [VERSIONING](https://github.com/TBD54566975/ssi-sdk/blob/main/docs/VERSIONING.md)      | Project versioning strategy                                                   |
 | [CODE_OF_CONDUCT](https://github.com/TBD54566975/ssi-sdk/blob/main/CODE_OF_CONDUCT.md) | Expected behavior for project contributors, promoting a welcoming environment |
 | [CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md)       | Developer guide to build, test, run, access CI, chat, discuss, file issues    |
 | [GOVERNANCE](https://github.com/TBD54566975/ssi-sdk/blob/main/GOVERNANCE.md)           | Project governance                                                            |
