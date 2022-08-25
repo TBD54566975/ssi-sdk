@@ -53,7 +53,7 @@ type PresentationDefinitionEnvelope struct {
 // PresentationDefinition https://identity.foundation/presentation-exchange/#presentation-definition
 type PresentationDefinition struct {
 	ID                     string                  `json:"id,omitempty" validate:"required"`
-	InputDescriptors       []InputDescriptor       `json:"input_descriptors,omitempty" validate:"omitempty,dive"`
+	InputDescriptors       []InputDescriptor       `json:"input_descriptors" validate:"required,dive"`
 	Name                   string                  `json:"name,omitempty"`
 	Purpose                string                  `json:"purpose,omitempty"`
 	Format                 *ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`
@@ -77,11 +77,24 @@ func (pd *PresentationDefinition) IsValid() error {
 	if err := IsValidPresentationDefinition(*pd); err != nil {
 		return errors.Wrap(err, "presentation definition failed json schema validation")
 	}
-	if len(pd.InputDescriptors) > 0 {
-		for _, id := range pd.InputDescriptors {
-			if err := id.IsValid(); err != nil {
-				return errors.Wrap(err, "presentation definition's input descriptor failed json schema validation")
-			}
+	if len(pd.InputDescriptors) == 0 {
+		return errors.New("presentation definition must have at least one input descriptor")
+	}
+
+	// each input descriptor must have at least one constraint
+	for _, id := range pd.InputDescriptors {
+		// first, static validation
+		if err := id.IsValid(); err != nil {
+			return errors.Wrap(err, "presentation definition's input descriptor failed json schema validation")
+		}
+		// next, check constraints
+		constraints := id.Constraints
+		if constraints == nil {
+			return errors.New("presentation definition's input descriptor must have at least one constraint")
+		}
+		if constraints.Fields == nil && constraints.SubjectIsIssuer == nil &&
+			constraints.IsHolder == nil && constraints.SameSubject == nil && constraints.Statuses == nil {
+			return errors.New("presentation definition's input descriptor must have at least one constraint")
 		}
 	}
 	if pd.Format != nil {
@@ -193,12 +206,12 @@ type LDPType struct {
 
 type InputDescriptor struct {
 	// Must be unique within the Presentation Definition
-	ID   string `json:"id,omitempty" validate:"required,omitempty"`
+	ID   string `json:"id" validate:"required"`
 	Name string `json:"name,omitempty"`
 	// Purpose for which claim's data is being requested
 	Purpose     string       `json:"purpose,omitempty"`
 	Format      *ClaimFormat `json:"format,omitempty" validate:"omitempty,dive"`
-	Constraints *Constraints `json:"constraints,omitempty"`
+	Constraints *Constraints `json:"constraints" validate:"required"`
 	// Must match a grouping strings listed in the `from` values of a submission requirement rule
 	Group []string `json:"group,omitempty"`
 }
