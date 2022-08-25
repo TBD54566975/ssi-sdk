@@ -123,7 +123,7 @@
           }
         }
       },
-      "required": ["id"]
+      "required": ["id", "constraints"]
     },
     "submission_requirement": {
       "type": "object",
