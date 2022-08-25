@@ -93,6 +93,13 @@ func TestCredentialManifestBuilder(t *testing.T) {
 		InputDescriptors: []exchange.InputDescriptor{
 			{
 				ID: "test-id",
+				Constraints: &exchange.Constraints{
+					Fields: []exchange.Field{
+						{
+							Path: []string{".vc.id"},
+						},
+					},
+				},
 			},
 		},
 	})
