@@ -51,12 +51,7 @@ func IsValidCredentialApplication(application CredentialApplication) error {
 
 // IsValidCredentialResponse validates a given credential response object against its known JSON schema
 func IsValidCredentialResponse(response CredentialResponse) error {
-	responseWrapper := struct {
-		CredentialResponse `json:"credential_response"`
-	}{
-		CredentialResponse: response,
-	}
-	jsonBytes, err := json.Marshal(responseWrapper)
+	jsonBytes, err := json.Marshal(response)
 	if err != nil {
 		return errors.Wrap(err, "could not marshal response to JSON")
 	}

@@ -157,11 +157,11 @@ func TestCredentialApplicationBuilder(t *testing.T) {
 	assert.NotEmpty(t, application)
 }
 
-func TestCredentialFulfillmentBuilder(t *testing.T) {
-	builder := NewCredentialFulfillmentBuilder("manifest-id")
+func TestCredentialResponseBuilder(t *testing.T) {
+	builder := NewCredentialResponseBuilder("manifest-id")
 	_, err := builder.Build()
 	assert.Error(t, err)
-	notReadyErr := "credential fulfillment not ready to be built"
+	notReadyErr := "credential response not ready to be built"
 	assert.Contains(t, err.Error(), notReadyErr)
 
 	assert.False(t, builder.IsEmpty())

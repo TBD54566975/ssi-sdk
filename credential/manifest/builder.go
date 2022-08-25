@@ -190,7 +190,7 @@ type CredentialResponseBuilder struct {
 	*CredentialResponse
 }
 
-func NewCredentialFulfillmentBuilder(manifestID string) CredentialResponseBuilder {
+func NewCredentialResponseBuilder(manifestID string) CredentialResponseBuilder {
 	return CredentialResponseBuilder{
 		CredentialResponse: &CredentialResponse{
 			ID:          uuid.NewString(),
@@ -253,7 +253,7 @@ func (crb *CredentialResponseBuilder) SetFulfillment(descriptors []exchange.Subm
 		}
 	}
 
-	crb.Fulfillment = struct {
+	crb.Fulfillment = &struct {
 		DescriptorMap []exchange.SubmissionDescriptor `json:"descriptor_map" validate:"required"`
 	}{
 		DescriptorMap: descriptors,
@@ -270,7 +270,7 @@ func (crb *CredentialResponseBuilder) SetDenial(reason string, inputDescriptors 
 		return errors.New("cannot set empty reason")
 	}
 
-	crb.Denial = struct {
+	crb.Denial = &struct {
 		Reason           string   `json:"reason" validate:"required"`
 		InputDescriptors []string `json:"input_descriptors"`
 	}{

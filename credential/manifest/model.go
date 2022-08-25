@@ -115,10 +115,10 @@ type CredentialResponse struct {
 	SpecVersion   string `json:"spec_version" validate:"required"`
 	ManifestID    string `json:"manifest_id" validate:"required"`
 	ApplicationID string `json:"application_id"`
-	Fulfillment   struct {
+	Fulfillment   *struct {
 		DescriptorMap []exchange.SubmissionDescriptor `json:"descriptor_map" validate:"required"`
 	} `json:"fulfillment,omitempty" validate:"omitempty,dive"`
-	Denial struct {
+	Denial *struct {
 		Reason           string   `json:"reason" validate:"required"`
 		InputDescriptors []string `json:"input_descriptors"`
 	} `json:"denial,omitempty" validate:"omitempty,dive"`
@@ -133,10 +133,10 @@ func (cf *CredentialResponse) IsEmpty() bool {
 
 func (cf *CredentialResponse) IsValid() error {
 	if cf.IsEmpty() {
-		return errors.New("fulfillment is empty")
+		return errors.New("response is empty")
 	}
 	if err := IsValidCredentialResponse(*cf); err != nil {
-		return errors.Wrap(err, "fulfillment failed json schema validation")
+		return errors.Wrap(err, "response failed json schema validation")
 	}
 	return util.NewValidator().Struct(cf)
 }
