@@ -166,12 +166,12 @@ func TestCredentialFulfillmentBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// bad map
-	err = builder.SetDescriptorMap(nil)
+	err = builder.SetFulfillment(nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot set no submission descriptors")
 
 	// another bad map
-	err = builder.SetDescriptorMap([]exchange.SubmissionDescriptor{
+	err = builder.SetFulfillment([]exchange.SubmissionDescriptor{
 		{
 			ID:   "bad",
 			Path: "bad",
@@ -181,7 +181,7 @@ func TestCredentialFulfillmentBuilder(t *testing.T) {
 	assert.Contains(t, err.Error(), "cannot set descriptor map; invalid descriptor")
 
 	// good map
-	err = builder.SetDescriptorMap([]exchange.SubmissionDescriptor{
+	err = builder.SetFulfillment([]exchange.SubmissionDescriptor{
 		{
 			ID:     "descriptor-id",
 			Format: "jwt",
