@@ -7,24 +7,11 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": [
-          "id",
-          "schema"
-        ],
         "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "schema": {
-            "type": "string",
-            "format": "uri"
-          },
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "schema": { "type": "string", "format": "uri" },
           "display": {
             "type": "object",
             "properties": {
@@ -50,12 +37,11 @@
             "$ref": "https://identity.foundation/wallet-rendering/schemas/entity-styles.json"
           }
         },
+        "required": ["id", "schema"],
         "additionalProperties": false
       }
     }
   },
-  "required": [
-    "output_descriptors"
-  ],
+  "required": ["output_descriptors"],
   "additionalProperties": false
 }

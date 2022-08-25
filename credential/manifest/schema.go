@@ -11,7 +11,7 @@ import (
 const (
 	credentialManifestSchema    string = "cm-credential-manifest.json"
 	credentialApplicationSchema string = "cm-credential-application.json"
-	credentialFulfillmentSchema string = "cm-credential-fulfillment.json"
+	credentialResponseSchema    string = "cm-credential-response.json"
 	outputDescriptorsSchema     string = "cm-output-descriptors.json"
 )
 
@@ -49,23 +49,18 @@ func IsValidCredentialApplication(application CredentialApplication) error {
 	return nil
 }
 
-// IsValidCredentialFulfillment validates a given credential fulfillment object against its known JSON schema
-func IsValidCredentialFulfillment(fulfillment CredentialFulfillment) error {
-	fulfillmentWrapper := struct {
-		CredentialFulfillment `json:"credential_fulfillment"`
-	}{
-		CredentialFulfillment: fulfillment,
-	}
-	jsonBytes, err := json.Marshal(fulfillmentWrapper)
+// IsValidCredentialResponse validates a given credential response object against its known JSON schema
+func IsValidCredentialResponse(response CredentialResponse) error {
+	jsonBytes, err := json.Marshal(response)
 	if err != nil {
-		return errors.Wrap(err, "could not marshal fulfillment to JSON")
+		return errors.Wrap(err, "could not marshal response to JSON")
 	}
-	s, err := schema.GetKnownSchema(credentialFulfillmentSchema)
+	s, err := schema.GetKnownSchema(credentialResponseSchema)
 	if err != nil {
-		return errors.Wrap(err, "could not get credential fulfillment schema")
+		return errors.Wrap(err, "could not get credential response schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("credential fulfillment not valid against schema")
+		logrus.WithError(err).Error("credential response not valid against schema")
 		return err
 	}
 	return nil
