@@ -36,6 +36,7 @@ func TestPresentationDefinitionBuilder(t *testing.T) {
 			Format: &ClaimFormat{
 				JWT: &JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
 			},
+			Constraints: &Constraints{SubjectIsIssuer: Preferred.Ptr()},
 		},
 	})
 	assert.NoError(t, err)
@@ -97,8 +98,9 @@ func TestInputDescriptorBuilder(t *testing.T) {
 	builder := NewInputDescriptorBuilder()
 	_, err := builder.Build()
 
-	// since an input descriptor only needs an ID, this will be valid
-	assert.NoError(t, err)
+	// since an input descriptor missing a constraint
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Error:Field validation for 'Constraints' failed on the 'required' tag")
 	assert.False(t, builder.IsEmpty())
 
 	err = builder.SetName("test name")
