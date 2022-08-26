@@ -14,7 +14,7 @@ to [Self Sovereign Identity](http://www.lifewithalacrity.com/2016/04/the-path-to
 The `ssi-sdk` intends to provide flexible functionality based on a set of standards-based primitives for building
 decentralized identity applications in a modular manner: with limited dependencies between components.
 
-![ssi-sdk](doc/ssi-sdk.png)
+![ssi-sdk](docs/ssi-sdk.png)
 
 The image above outlines the SDK's vision. Standards may be added and/or removed. The standards themselves are under
 active development, and as such, are subject to change. When possible we aim to call out which versions or revisions of
