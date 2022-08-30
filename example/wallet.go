@@ -1,4 +1,4 @@
-package employer_university_flow
+package example
 
 import (
 	gocrypto "crypto"

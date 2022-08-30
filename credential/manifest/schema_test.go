@@ -22,7 +22,7 @@ func TestCredentialManifestSchemas(t *testing.T) {
 	err = schema.IsValidJSONSchema(caSchema)
 	assert.NoError(t, err)
 
-	cfSchema, err := schema.GetKnownSchema(credentialFulfillmentSchema)
+	cfSchema, err := schema.GetKnownSchema(credentialResponseSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cfSchema)
 	err = schema.IsValidJSONSchema(cfSchema)

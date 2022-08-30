@@ -93,6 +93,13 @@ func TestCredentialManifestBuilder(t *testing.T) {
 		InputDescriptors: []exchange.InputDescriptor{
 			{
 				ID: "test-id",
+				Constraints: &exchange.Constraints{
+					Fields: []exchange.Field{
+						{
+							Path: []string{".vc.id"},
+						},
+					},
+				},
 			},
 		},
 	})
@@ -150,11 +157,11 @@ func TestCredentialApplicationBuilder(t *testing.T) {
 	assert.NotEmpty(t, application)
 }
 
-func TestCredentialFulfillmentBuilder(t *testing.T) {
-	builder := NewCredentialFulfillmentBuilder("manifest-id")
+func TestCredentialResponseBuilder(t *testing.T) {
+	builder := NewCredentialResponseBuilder("manifest-id")
 	_, err := builder.Build()
 	assert.Error(t, err)
-	notReadyErr := "credential fulfillment not ready to be built"
+	notReadyErr := "credential response not ready to be built"
 	assert.Contains(t, err.Error(), notReadyErr)
 
 	assert.False(t, builder.IsEmpty())
@@ -166,12 +173,12 @@ func TestCredentialFulfillmentBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// bad map
-	err = builder.SetDescriptorMap(nil)
+	err = builder.SetFulfillment(nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot set no submission descriptors")
 
 	// another bad map
-	err = builder.SetDescriptorMap([]exchange.SubmissionDescriptor{
+	err = builder.SetFulfillment([]exchange.SubmissionDescriptor{
 		{
 			ID:   "bad",
 			Path: "bad",
@@ -181,7 +188,7 @@ func TestCredentialFulfillmentBuilder(t *testing.T) {
 	assert.Contains(t, err.Error(), "cannot set descriptor map; invalid descriptor")
 
 	// good map
-	err = builder.SetDescriptorMap([]exchange.SubmissionDescriptor{
+	err = builder.SetFulfillment([]exchange.SubmissionDescriptor{
 		{
 			ID:     "descriptor-id",
 			Format: "jwt",

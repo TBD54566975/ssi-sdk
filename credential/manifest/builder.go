@@ -12,6 +12,7 @@ import (
 
 const (
 	BuilderEmptyError string = "builder cannot be empty"
+	SpecVersion       string = "https://identity.foundation/credential-manifest/spec/v1.0.0/"
 )
 
 type CredentialManifestBuilder struct {
@@ -21,7 +22,8 @@ type CredentialManifestBuilder struct {
 func NewCredentialManifestBuilder() CredentialManifestBuilder {
 	return CredentialManifestBuilder{
 		CredentialManifest: &CredentialManifest{
-			ID: uuid.NewString(),
+			ID:          uuid.NewString(),
+			SpecVersion: SpecVersion,
 		},
 	}
 }
@@ -119,10 +121,9 @@ type CredentialApplicationBuilder struct {
 func NewCredentialApplicationBuilder(manifestID string) CredentialApplicationBuilder {
 	return CredentialApplicationBuilder{
 		CredentialApplication: &CredentialApplication{
-			Application: Application{
-				ID:         uuid.NewString(),
-				ManifestID: manifestID,
-			},
+			ID:          uuid.NewString(),
+			SpecVersion: SpecVersion,
+			ManifestID:  manifestID,
 		},
 	}
 }
@@ -151,7 +152,7 @@ func (cab *CredentialApplicationBuilder) SetApplicationManifestID(manifestID str
 		return errors.New(BuilderEmptyError)
 	}
 
-	cab.Application.ManifestID = manifestID
+	cab.ManifestID = manifestID
 	return nil
 }
 
@@ -168,7 +169,7 @@ func (cab *CredentialApplicationBuilder) SetApplicationClaimFormat(format exchan
 		return errors.Wrapf(err, "cannot set invalid claim format: %+v", format)
 	}
 
-	cab.Application.Format = &format
+	cab.Format = &format
 	return nil
 }
 
@@ -185,58 +186,59 @@ func (cab *CredentialApplicationBuilder) SetPresentationSubmission(submission ex
 	return nil
 }
 
-type CredentialFulfillmentBuilder struct {
-	*CredentialFulfillment
+type CredentialResponseBuilder struct {
+	*CredentialResponse
 }
 
-func NewCredentialFulfillmentBuilder(manifestID string) CredentialFulfillmentBuilder {
-	return CredentialFulfillmentBuilder{
-		CredentialFulfillment: &CredentialFulfillment{
-			ID:         uuid.NewString(),
-			ManifestID: manifestID,
+func NewCredentialResponseBuilder(manifestID string) CredentialResponseBuilder {
+	return CredentialResponseBuilder{
+		CredentialResponse: &CredentialResponse{
+			ID:          uuid.NewString(),
+			SpecVersion: SpecVersion,
+			ManifestID:  manifestID,
 		},
 	}
 }
 
-func (cfb *CredentialFulfillmentBuilder) Build() (*CredentialFulfillment, error) {
-	if cfb.IsEmpty() {
+func (crb *CredentialResponseBuilder) Build() (*CredentialResponse, error) {
+	if crb.IsEmpty() {
 		return nil, errors.New(BuilderEmptyError)
 	}
 
-	if err := cfb.CredentialFulfillment.IsValid(); err != nil {
-		return nil, util.LoggingErrorMsg(err, "credential fulfillment not ready to be built")
+	if err := crb.CredentialResponse.IsValid(); err != nil {
+		return nil, util.LoggingErrorMsg(err, "credential response not ready to be built")
 	}
 
-	return cfb.CredentialFulfillment, nil
+	return crb.CredentialResponse, nil
 }
 
-func (cfb *CredentialFulfillmentBuilder) IsEmpty() bool {
-	if cfb == nil || cfb.CredentialFulfillment.IsEmpty() {
+func (crb *CredentialResponseBuilder) IsEmpty() bool {
+	if crb == nil || crb.CredentialResponse.IsEmpty() {
 		return true
 	}
-	return reflect.DeepEqual(cfb, &CredentialFulfillmentBuilder{})
+	return reflect.DeepEqual(crb, &CredentialResponseBuilder{})
 }
 
-func (cfb *CredentialFulfillmentBuilder) SetManifestID(manifestID string) error {
-	if cfb.IsEmpty() {
+func (crb *CredentialResponseBuilder) SetManifestID(manifestID string) error {
+	if crb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
 
-	cfb.ManifestID = manifestID
+	crb.ManifestID = manifestID
 	return nil
 }
 
-func (cfb *CredentialFulfillmentBuilder) SetApplicationID(applicationID string) error {
-	if cfb.IsEmpty() {
+func (crb *CredentialResponseBuilder) SetApplicationID(applicationID string) error {
+	if crb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
 
-	cfb.ApplicationID = applicationID
+	crb.ApplicationID = applicationID
 	return nil
 }
 
-func (cfb *CredentialFulfillmentBuilder) SetDescriptorMap(descriptors []exchange.SubmissionDescriptor) error {
-	if cfb.IsEmpty() {
+func (crb *CredentialResponseBuilder) SetFulfillment(descriptors []exchange.SubmissionDescriptor) error {
+	if crb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
 
@@ -251,6 +253,29 @@ func (cfb *CredentialFulfillmentBuilder) SetDescriptorMap(descriptors []exchange
 		}
 	}
 
-	cfb.DescriptorMap = descriptors
+	crb.Fulfillment = &struct {
+		DescriptorMap []exchange.SubmissionDescriptor `json:"descriptor_map" validate:"required"`
+	}{
+		DescriptorMap: descriptors,
+	}
+	return nil
+}
+
+func (crb *CredentialResponseBuilder) SetDenial(reason string, inputDescriptors []string) error {
+	if crb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+
+	if len(reason) == 0 {
+		return errors.New("cannot set empty reason")
+	}
+
+	crb.Denial = &struct {
+		Reason           string   `json:"reason" validate:"required"`
+		InputDescriptors []string `json:"input_descriptors"`
+	}{
+		Reason:           reason,
+		InputDescriptors: inputDescriptors,
+	}
 	return nil
 }

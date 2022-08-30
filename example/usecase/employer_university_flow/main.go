@@ -57,7 +57,7 @@ import (
 	"os"
 
 	util "github.com/TBD54566975/ssi-sdk/example"
-	emp "github.com/TBD54566975/ssi-sdk/example/use_cases/employer_university_flow/employer_university_flow"
+	emp "github.com/TBD54566975/ssi-sdk/example/use_cases/employer_university_flow/pkg"
 
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"

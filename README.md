@@ -14,13 +14,15 @@ to [Self Sovereign Identity](http://www.lifewithalacrity.com/2016/04/the-path-to
 The `ssi-sdk` intends to provide flexible functionality based on a set of standards-based primitives for building
 decentralized identity applications in a modular manner: with limited dependencies between components.
 
-![ssi-sdk](docs/ssi-sdk.png)
+![ssi-sdk](doc/ssi-sdk.png)
 
 The image above outlines the SDK's vision. Standards may be added and/or removed. The standards themselves are under
 active development, and as such, are subject to change. When possible we aim to call out which versions or revisions of
 standards we are building implementations against.
 
 The SDK has not undergone any formal security review or audit, so please use with caution.
+
+For more information, see the [vision document](doc/VISION.md).
 
 # Contributing
 
@@ -64,6 +66,7 @@ change as the library evolves.
 - [The did:key Method v0.7](https://w3c-ccg.github.io/did-method-key/) _Unofficial Draft 14 February 2022_
 - [The did:web Method](https://w3c-ccg.github.io/did-method-web/) _20 December 2021_
 - [The did:peer Method](https://identity.foundation/peer-did-method-spec/) _W3C Document 12 October 2021_
+- [The did:pkh Method](https://github.com/w3c-ccg/did-pkh/blob/main/did-pkh-method-draft.md) _Draft, 22 August 2022_
 
 # Building
 
@@ -83,6 +86,12 @@ A utility is provided to run _clean, build, and test_ in sequence with:
 mage cbt
 ```
 
+# Versioning
+
+For information on versioning refer to our [versioning guide](doc/VERSIONING.md).
+
+The latest version is...nothing! No releases have been made.
+
 # Examples
 
 A set of code examples can be found in the [examples directory](example). We welcome
@@ -90,12 +99,14 @@ contributions for additional examples.
 
 - [Decentralized Identifiers Example](example/did)
 - [Verifiable Credentials Example](example/vc)
+- [Presentation Exchange Example](example/use_case/apartment_application)
 
 # Project Resources
 
 | Resource                                                                               | Description                                                                   |
 |----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| [CODEOWNERS](https://github.com/TBD54566975/ssi-sdk/blob/main/CODEOWNERS)              | Outlines the project lead(s)                                                  |
+| [VISION](https://github.com/TBD54566975/ssi-sdk/blob/main/doc/VISION.md)               | Outlines the project vision                                                   |
+| [VERSIONING](https://github.com/TBD54566975/ssi-sdk/blob/main/doc/VERSIONING.md)       | Project versioning strategy                                                   |
 | [CODE_OF_CONDUCT](https://github.com/TBD54566975/ssi-sdk/blob/main/CODE_OF_CONDUCT.md) | Expected behavior for project contributors, promoting a welcoming environment |
 | [CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md)       | Developer guide to build, test, run, access CI, chat, discuss, file issues    |
 | [GOVERNANCE](https://github.com/TBD54566975/ssi-sdk/blob/main/GOVERNANCE.md)           | Project governance                                                            |

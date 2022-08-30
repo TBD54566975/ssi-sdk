@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	ManifestVector1     string = "cm-manifest-example-1.json"
-	ManifestVector2     string = "cm-manifest-example-2.json"
-	ApplicationVector1  string = "cm-application-example-1.json"
-	FulfillmentExample1 string = "cm-fulfillment-example-1.json"
+	ManifestVector1    string = "cm-manifest-example-1.json"
+	ManifestVector2    string = "cm-manifest-example-2.json"
+	ApplicationVector1 string = "cm-application-example-1.json"
+	ResponseVector1    string = "cm-response-example-1.json"
+	ResponseVector2    string = "cm-response-example-2.json"
 )
 
 var (
@@ -23,7 +24,7 @@ var (
 // Round trip de/serialize to test our object models, and check validity
 
 func TestCredentialManifest(t *testing.T) {
-	// example here https://identity.foundation/credential-manifest/#credential-manifest---all-features-exercised
+	// examples here https://identity.foundation/credential-manifest/#credential-response
 
 	t.Run("Credential Manifest Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(ManifestVector1)
@@ -84,21 +85,37 @@ func TestCredentialApplication(t *testing.T) {
 	})
 }
 
-func TestCredentialFulfillment(t *testing.T) {
-	// example here https://identity.foundation/credential-manifest/#credential-fulfillment---simple-example
+func TestCredentialResponse(t *testing.T) {
+	// example here https://identity.foundation/credential-manifest/#credential-response
 
-	t.Run("Credential Fulfillment Vector 1", func(tt *testing.T) {
-		vector, err := getTestVector(FulfillmentExample1)
+	t.Run("Credential Response - Fulfillment Vector 1", func(tt *testing.T) {
+		vector, err := getTestVector(ResponseVector1)
 		assert.NoError(tt, err)
 
-		var fulfillment CredentialFulfillment
-		err = json.Unmarshal([]byte(vector), &fulfillment)
+		var response CredentialResponse
+		err = json.Unmarshal([]byte(vector), &response)
 		assert.NoError(tt, err)
-		assert.NotEmpty(tt, fulfillment)
+		assert.NotEmpty(tt, response)
 
-		assert.NoError(tt, fulfillment.IsValid())
+		assert.NoError(tt, response.IsValid())
 
-		roundTripBytes, err := json.Marshal(fulfillment)
+		roundTripBytes, err := json.Marshal(response)
+		assert.NoError(tt, err)
+		assert.JSONEq(tt, vector, string(roundTripBytes))
+	})
+
+	t.Run("Credential Response - Denial Vector 1", func(tt *testing.T) {
+		vector, err := getTestVector(ResponseVector2)
+		assert.NoError(tt, err)
+
+		var response CredentialResponse
+		err = json.Unmarshal([]byte(vector), &response)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, response)
+
+		assert.NoError(tt, response.IsValid())
+
+		roundTripBytes, err := json.Marshal(response)
 		assert.NoError(tt, err)
 		assert.JSONEq(tt, vector, string(roundTripBytes))
 	})

@@ -1,4 +1,4 @@
-package employer_university_flow
+package pkg
 
 type trustedEntitiesStore struct {
 	Issuers map[string]bool
