@@ -62,7 +62,6 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
-	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/sirupsen/logrus"
 )
 
@@ -75,25 +74,14 @@ const (
 	DebugMode = "1"
 )
 
+// set mode for debugging
+// in bash:
+// export DEBUG=1
 func init() {
 	if debug == DebugMode {
 		println("Debug mode")
 		logrus.SetLevel(logrus.DebugLevel)
 	}
-}
-
-// Initalizes the University identity
-// Gives it a DID Document, on the Example Registry
-func initVerifier() (error, did.DID) {
-	// On the example network. Using the example method
-	return emp.GenerateDIDPeer()
-}
-
-// Initalizes the University identity
-// Gives it a DID Document, on the Example Registry
-func initUniversity() (error, did.DID) {
-	// On the example network. Using the example method
-	return emp.GenerateDIDPeer()
 }
 
 // In this example, we will
@@ -122,6 +110,7 @@ func main() {
 	university, err := emp.NewEntity("University", "peer")
 	util.HandleExampleError(err, "failed to create university")
 	vcDID, err := university.GetWallet().GetDID("main")
+
 	util.HandleExampleError(err, "falied to initialize verifier")
 	example.CustomWriter.WriteNote(fmt.Sprintf("Initialized Verifier DID: %s and registered it", vcDID))
 	emp.TrustedEntities.Issuers[vcDID] = true

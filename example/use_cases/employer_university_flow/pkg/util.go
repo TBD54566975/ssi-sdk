@@ -34,17 +34,17 @@ func NewEntity(name string, keyType string) (*Entity, error) {
 	return &e, nil
 }
 
-func GenerateDIDPeer() (error, did.DID) {
+func GenerateDIDPeer() (did.DID, error) {
 	kt := crypto.Ed25519
 	pubKey, _, err := crypto.GenerateKeyByKeyType(kt)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	did, err := did.PeerMethod0{}.Generate(kt, pubKey)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
-	return nil, did
+	return did, nil
 }
 
 // This validates the VC.
