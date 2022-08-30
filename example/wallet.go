@@ -18,7 +18,7 @@ import (
 // private keys
 // and vCs
 type SimpleWallet struct {
-	vCs  map[string]*credential.VerifiableCredential
+	vCs  map[string]credential.VerifiableCredential
 	keys map[string]gocrypto.PrivateKey
 	dids map[string]string
 	mux  *sync.Mutex
@@ -26,7 +26,7 @@ type SimpleWallet struct {
 
 func NewSimpleWallet() *SimpleWallet {
 	return &SimpleWallet{
-		vCs:  make(map[string]*credential.VerifiableCredential),
+		vCs:  make(map[string]credential.VerifiableCredential),
 		mux:  &sync.Mutex{},
 		dids: make(map[string]string),
 		keys: make(map[string]gocrypto.PrivateKey),
@@ -67,7 +67,7 @@ func (s *SimpleWallet) GetDID(k string) (string, error) {
 	return "", nil
 }
 
-func (s *SimpleWallet) AddCredentials(cred *credential.VerifiableCredential) error {
+func (s *SimpleWallet) AddCredentials(cred credential.VerifiableCredential) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if _, ok := s.vCs[cred.ID]; !ok {
@@ -92,7 +92,7 @@ func (s *SimpleWallet) Init(keyType string) error {
 	var didStr string
 	var err error
 
-	if keyType == "peer" {
+	if keyType == did.PeerMethodPrefix {
 		kt := crypto.Ed25519
 		pubKey, privKey, err = crypto.GenerateKeyByKeyType(kt)
 		if err != nil {
@@ -112,11 +112,11 @@ func (s *SimpleWallet) Init(keyType string) error {
 		didStr = string(*didKey)
 	}
 
-	cw.WriteNote(fmt.Sprintf("DID for holder is: %s", didStr))
+	CustomWriter.WriteNote(fmt.Sprintf("DID for holder is: %s", didStr))
 	s.AddPrivateKey("main", privKey)
-	cw.WriteNote(fmt.Sprintf("Private Key stored with wallet"))
+	CustomWriter.WriteNote(fmt.Sprintf("Private Key stored with wallet"))
 	s.AddDIDKey("main", string(didStr))
-	cw.WriteNote(fmt.Sprintf("DID Key stored in wallet"))
+	CustomWriter.WriteNote(fmt.Sprintf("DID Key stored in wallet"))
 
 	return nil
 }

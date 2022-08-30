@@ -56,6 +56,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/TBD54566975/ssi-sdk/example"
 	util "github.com/TBD54566975/ssi-sdk/example"
 	emp "github.com/TBD54566975/ssi-sdk/example/use_cases/employer_university_flow/pkg"
 
@@ -65,13 +66,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var cw = emp.CustomStepWriter{}
-
 // Set to debug mode here
 var debug = os.Getenv("DEBUG")
 
+type Mode string
+
+const (
+	DebugMode = "1"
+)
+
 func init() {
-	if debug == "1" {
+	if debug == DebugMode {
 		println("Debug mode")
 		logrus.SetLevel(logrus.DebugLevel)
 	}
@@ -100,30 +105,30 @@ func initUniversity() (error, did.DID) {
 // 3. An employer sends a request to verify that the student graduated
 // the university.
 func main() {
-	cw.Write("Starting University Flow")
+	example.CustomWriter.Write("Starting University Flow")
 
 	// Wallet initialization
-	cw.Write("Initializing Student")
+	example.CustomWriter.Write("Initializing Student")
 	student, err := emp.NewEntity("Student", "key")
 	util.HandleExampleError(err, "failed to create student")
 
-	cw.Write("Initializing Employer")
+	example.CustomWriter.Write("Initializing Employer")
 	employer, err := emp.NewEntity("Employer", "peer")
 	util.HandleExampleError(err, "failed to make employer identity")
 	verifier_did, err := employer.GetWallet().GetDID("main")
 	util.HandleExampleError(err, "failed to create employer")
 
-	cw.Write("Initializing University")
+	example.CustomWriter.Write("Initializing University")
 	university, err := emp.NewEntity("University", "peer")
 	util.HandleExampleError(err, "failed to create university")
 	vcDID, err := university.GetWallet().GetDID("main")
 	util.HandleExampleError(err, "falied to initialize verifier")
-	cw.WriteNote(fmt.Sprintf("Initialized Verifier DID: %s and registered it", vcDID))
+	example.CustomWriter.WriteNote(fmt.Sprintf("Initialized Verifier DID: %s and registered it", vcDID))
 	emp.TrustedEntities.Issuers[vcDID] = true
 
 	// Creates the VC
-	cw.Write("Example University Creates VC for Holder")
-	cw.WriteNote("DID is shared from holder")
+	example.CustomWriter.Write("Example University Creates VC for Holder")
+	example.CustomWriter.WriteNote("DID is shared from holder")
 	holderDID, err := student.GetWallet().GetDID("main")
 	util.HandleExampleError(err, "failed to store did from university")
 
@@ -131,15 +136,15 @@ func main() {
 	util.HandleExampleError(err, "failed to build vc")
 
 	// Send to user
-	cw.Write("Example University Sends VC to Holder")
-	student.GetWallet().AddCredentials(vc)
+	example.CustomWriter.Write("Example University Sends VC to Holder")
+	student.GetWallet().AddCredentials(*vc)
 	msg := fmt.Sprintf("VC puts into wallet. Wallet size is now: %d", student.GetWallet().Size())
-	cw.WriteNote(msg)
+	example.CustomWriter.WriteNote(msg)
 
-	cw.WriteNote(fmt.Sprintf("initialized verifier DID: %v", verifier_did))
+	example.CustomWriter.WriteNote(fmt.Sprintf("initialized verifier DID: %v", verifier_did))
 
 	// 	Presentation Request
-	cw.Write("Employer wants to verify student graduated from Example University. Sends a presentation request")
+	example.CustomWriter.Write("Employer wants to verify student graduated from Example University. Sends a presentation request")
 	presentationData, err := emp.MakePresentationData("test-id", "id-1")
 	util.HandleExampleError(err, "failed to create pd")
 	if dat, err := json.Marshal(presentationData); err == nil {
@@ -161,7 +166,7 @@ func main() {
 	util.HandleExampleError(err, "failed to build json web key signer")
 
 	// 	send the PR back
-	cw.WriteNote("Student returns claims via a Presentation Submission")
+	example.CustomWriter.WriteNote("Student returns claims via a Presentation Submission")
 	submission, err := emp.BuildPresentationSubmission(presentationRequest, signer, *verifier, *vc)
 	util.HandleExampleError(err, "failed to buidl presentation submission")
 
@@ -174,10 +179,10 @@ func main() {
 
 	// Access
 	err = emp.ValidateAccess(*verifier, submission)
-	cw.Write(fmt.Sprintf("Employer Attempting to Grant Access"))
+	example.CustomWriter.Write(fmt.Sprintf("Employer Attempting to Grant Access"))
 	if err != nil {
-		cw.WriteError(fmt.Sprintf("Access was not granted! Reason: %s", err))
+		example.CustomWriter.WriteError(fmt.Sprintf("Access was not granted! Reason: %s", err))
 	} else {
-		cw.WriteOK("Access Granted!")
+		example.CustomWriter.WriteOK("Access Granted!")
 	}
 }
