@@ -15,8 +15,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var cw = example.CustomStepWriter{}
-
 type Entity struct {
 	wallet *example.SimpleWallet
 	Name   string
@@ -36,7 +34,7 @@ func NewEntity(name string, keyType string) (*Entity, error) {
 	return &e, nil
 }
 
-func initSampleBody() (error, did.DID) {
+func GenerateDIDPeer() (error, did.DID) {
 	kt := crypto.Ed25519
 	pubKey, _, err := crypto.GenerateKeyByKeyType(kt)
 	if err != nil {
@@ -47,10 +45,6 @@ func initSampleBody() (error, did.DID) {
 		return err, nil
 	}
 	return nil, did
-}
-
-func InitSampleDID() (error, did.DID) {
-	return initSampleBody()
 }
 
 // This validates the VC.
@@ -77,6 +71,7 @@ func validateVC(vc credential.VerifiableCredential) error {
 	if err != nil {
 		return err
 	}
+
 	suite := cryptosuite.GetJSONWebSignature2020Suite()
 	err = suite.Sign(signer, &vc2)
 	if err != nil {
@@ -103,7 +98,7 @@ func validateVC(vc credential.VerifiableCredential) error {
 // is appropriate to start off with.
 func makePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData exchange.PresentationDefinition, targetId string) (pr []byte, signer *cryptosuite.JSONWebKeySigner, err error) {
 
-	cw.WriteNote("Presentation Request (JWT) is created")
+	example.CustomWriter.WriteNote("Presentation Request (JWT) is created")
 
 	// Signer:
 	// https://github.com/TBD54566975/ssi-sdk/blob/main/cryptosuite/jsonwebkey2020.go#L350
@@ -232,14 +227,14 @@ func makePresentationData(id string, inputID string) (exchange.PresentationDefin
 			},
 		},
 	}
-	cw.WriteNote("Presentation Definition is formed. Asks for the issuer and the data from the issuer")
+	example.CustomWriter.WriteNote("Presentation Definition is formed. Asks for the issuer and the data from the issuer")
 	err := def.IsValid()
 	return def, err
 }
 
 func handleError(err error) {
 	if err != nil {
-		cw.WriteError(err.Error())
+		example.CustomWriter.WriteError(err.Error())
 		os.Exit(1)
 	}
 }

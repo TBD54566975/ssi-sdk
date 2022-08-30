@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/sirupsen/logrus"
 )
 
@@ -70,14 +70,7 @@ func buildExampleUniversityVC(universityID string, recipient string) (*credentia
 		logrus.Debug(string(dat))
 	}
 
-	cw.WriteNote(fmt.Sprintf("VC issued from %s to %s", universityID, recipient))
+	example.CustomWriter.WriteNote(fmt.Sprintf("VC issued from %s to %s", universityID, recipient))
 
 	return &knownCred, nil
-}
-
-// Initalizes the University identity
-// Gives it a DID Document, on the Example Registry
-func initUniversity() (error, did.DID) {
-	// On the example network. Using the example method
-	return initSampleBody()
 }

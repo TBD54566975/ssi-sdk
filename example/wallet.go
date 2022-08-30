@@ -68,6 +68,11 @@ func (s *SimpleWallet) GetDID(k string) (string, error) {
 }
 
 func (s *SimpleWallet) AddCredentials(cred credential.VerifiableCredential) error {
+
+	if s.mux == nil {
+		return errors.New("no mux for wallet")
+	}
+
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if _, ok := s.vCs[cred.ID]; !ok {

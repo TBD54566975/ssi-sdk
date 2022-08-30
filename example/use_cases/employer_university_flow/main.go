@@ -86,14 +86,14 @@ func init() {
 // Gives it a DID Document, on the Example Registry
 func initVerifier() (error, did.DID) {
 	// On the example network. Using the example method
-	return emp.InitSampleDID()
+	return emp.GenerateDIDPeer()
 }
 
 // Initalizes the University identity
 // Gives it a DID Document, on the Example Registry
 func initUniversity() (error, did.DID) {
 	// On the example network. Using the example method
-	return emp.InitSampleDID()
+	return emp.GenerateDIDPeer()
 }
 
 // In this example, we will
