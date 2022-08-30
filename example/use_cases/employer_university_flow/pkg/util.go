@@ -98,7 +98,7 @@ func validateVC(vc credential.VerifiableCredential) error {
 // is appropriate to start off with.
 func makePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData exchange.PresentationDefinition, targetId string) (pr []byte, signer *cryptosuite.JSONWebKeySigner, err error) {
 
-	example.CustomWriter.WriteNote("Presentation Request (JWT) is created")
+	example.WriteNote("Presentation Request (JWT) is created")
 
 	// Signer:
 	// https://github.com/TBD54566975/ssi-sdk/blob/main/cryptosuite/jsonwebkey2020.go#L350
@@ -227,14 +227,14 @@ func makePresentationData(id string, inputID string) (exchange.PresentationDefin
 			},
 		},
 	}
-	example.CustomWriter.WriteNote("Presentation Definition is formed. Asks for the issuer and the data from the issuer")
+	example.WriteNote("Presentation Definition is formed. Asks for the issuer and the data from the issuer")
 	err := def.IsValid()
 	return def, err
 }
 
 func handleError(err error) {
 	if err != nil {
-		example.CustomWriter.WriteError(err.Error())
+		example.WriteError(err.Error())
 		os.Exit(1)
 	}
 }

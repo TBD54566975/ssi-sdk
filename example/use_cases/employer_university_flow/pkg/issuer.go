@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func BuildExampleUniversityVC(universityID string, recipient string) (*credential.VerifiableCredential, error) {
+func BuildExampleUniversityVC(universityID, recipient string) (*credential.VerifiableCredential, error) {
 	return buildExampleUniversityVC(universityID, recipient)
 }
 
@@ -23,7 +23,7 @@ func BuildExampleUniversityVC(universityID string, recipient string) (*credentia
 // as part of the credentials package in the ssk-sdk.
 // VerifiableCredential is the verifiable credential model outlined in the
 // vc-data-model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concept
-func buildExampleUniversityVC(universityID string, recipient string) (*credential.VerifiableCredential, error) {
+func buildExampleUniversityVC(universityID, recipient string) (*credential.VerifiableCredential, error) {
 
 	knownContext := []string{"https://www.w3.org/2018/credentials/v1",
 		"https://www.w3.org/2018/credentials/examples/v1"} // JSON-LD context statement
@@ -61,8 +61,7 @@ func buildExampleUniversityVC(universityID string, recipient string) (*credentia
 		CredentialSubject: knownSubject,
 	}
 
-	err := knownCred.IsValid()
-	if err != nil {
+	if err := knownCred.IsValid(); err != nil {
 		return nil, err
 	}
 
@@ -70,7 +69,7 @@ func buildExampleUniversityVC(universityID string, recipient string) (*credentia
 		logrus.Debug(string(dat))
 	}
 
-	example.CustomWriter.WriteNote(fmt.Sprintf("VC issued from %s to %s", universityID, recipient))
+	example.WriteNote(fmt.Sprintf("VC issued from %s to %s", universityID, recipient))
 
 	return &knownCred, nil
 }

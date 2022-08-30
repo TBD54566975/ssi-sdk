@@ -93,47 +93,61 @@ func init() {
 // 3. An employer sends a request to verify that the student graduated
 // the university.
 func main() {
-	example.CustomWriter.Write("Starting University Flow")
+	step := 0
+
+	example.WriteStep("Starting University Flow", step)
+	step += 1
 
 	// Wallet initialization
-	example.CustomWriter.Write("Initializing Student")
+	example.WriteStep("Initializing Student", step)
+	step += 1
+
 	student, err := emp.NewEntity("Student", "key")
 	util.HandleExampleError(err, "failed to create student")
 
-	example.CustomWriter.Write("Initializing Employer")
+	example.WriteStep("Initializing Employer", step)
+	step += 1
+
 	employer, err := emp.NewEntity("Employer", "peer")
 	util.HandleExampleError(err, "failed to make employer identity")
 	verifier_did, err := employer.GetWallet().GetDID("main")
 	util.HandleExampleError(err, "failed to create employer")
 
-	example.CustomWriter.Write("Initializing University")
+	example.WriteStep("Initializing University", step)
+	step += 1
+
 	university, err := emp.NewEntity("University", "peer")
 	util.HandleExampleError(err, "failed to create university")
 	vcDID, err := university.GetWallet().GetDID("main")
 
 	util.HandleExampleError(err, "falied to initialize verifier")
-	example.CustomWriter.WriteNote(fmt.Sprintf("Initialized Verifier DID: %s and registered it", vcDID))
+	example.WriteNote(fmt.Sprintf("Initialized Verifier DID: %s and registered it", vcDID))
 	emp.TrustedEntities.Issuers[vcDID] = true
 
 	// Creates the VC
-	example.CustomWriter.Write("Example University Creates VC for Holder")
-	example.CustomWriter.WriteNote("DID is shared from holder")
+	example.WriteStep("Example University Creates VC for Holder", step)
+	step += 1
+
+	example.WriteNote("DID is shared from holder")
 	holderDID, err := student.GetWallet().GetDID("main")
 	util.HandleExampleError(err, "failed to store did from university")
 
 	vc, err := emp.BuildExampleUniversityVC(vcDID, holderDID)
 	util.HandleExampleError(err, "failed to build vc")
 
-	// Send to user
-	example.CustomWriter.Write("Example University Sends VC to Holder")
+	example.WriteStep("Example University Sends VC to Holder", step)
+	step += 1
+
 	student.GetWallet().AddCredentials(*vc)
 	msg := fmt.Sprintf("VC puts into wallet. Wallet size is now: %d", student.GetWallet().Size())
-	example.CustomWriter.WriteNote(msg)
+	example.WriteNote(msg)
 
-	example.CustomWriter.WriteNote(fmt.Sprintf("initialized verifier DID: %v", verifier_did))
+	example.WriteNote(fmt.Sprintf("initialized verifier DID: %v", verifier_did))
 
 	// 	Presentation Request
-	example.CustomWriter.Write("Employer wants to verify student graduated from Example University. Sends a presentation request")
+	example.WriteStep("Employer wants to verify student graduated from Example University. Sends a presentation request", step)
+	step += 1
+
 	presentationData, err := emp.MakePresentationData("test-id", "id-1")
 	util.HandleExampleError(err, "failed to create pd")
 	if dat, err := json.Marshal(presentationData); err == nil {
@@ -155,7 +169,7 @@ func main() {
 	util.HandleExampleError(err, "failed to build json web key signer")
 
 	// 	send the PR back
-	example.CustomWriter.WriteNote("Student returns claims via a Presentation Submission")
+	example.WriteNote("Student returns claims via a Presentation Submission")
 	submission, err := emp.BuildPresentationSubmission(presentationRequest, signer, *verifier, *vc)
 	util.HandleExampleError(err, "failed to buidl presentation submission")
 
@@ -168,10 +182,12 @@ func main() {
 
 	// Access
 	err = emp.ValidateAccess(*verifier, submission)
-	example.CustomWriter.Write(fmt.Sprintf("Employer Attempting to Grant Access"))
+	example.WriteStep(fmt.Sprintf("Employer Attempting to Grant Access"), step)
+	step += 1
+
 	if err != nil {
-		example.CustomWriter.WriteError(fmt.Sprintf("Access was not granted! Reason: %s", err))
+		example.WriteError(fmt.Sprintf("Access was not granted! Reason: %s", err))
 	} else {
-		example.CustomWriter.WriteOK("Access Granted!")
+		example.WriteOK("Access Granted!")
 	}
 }

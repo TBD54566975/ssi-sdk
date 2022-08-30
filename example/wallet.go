@@ -117,11 +117,11 @@ func (s *SimpleWallet) Init(keyType string) error {
 		didStr = string(*didKey)
 	}
 
-	CustomWriter.WriteNote(fmt.Sprintf("DID for holder is: %s", didStr))
+	WriteNote(fmt.Sprintf("DID for holder is: %s", didStr))
 	s.AddPrivateKey("main", privKey)
-	CustomWriter.WriteNote(fmt.Sprintf("Private Key stored with wallet"))
+	WriteNote(fmt.Sprintf("Private Key stored with wallet"))
 	s.AddDIDKey("main", string(didStr))
-	CustomWriter.WriteNote(fmt.Sprintf("DID Key stored in wallet"))
+	WriteNote(fmt.Sprintf("DID Key stored in wallet"))
 
 	return nil
 }
