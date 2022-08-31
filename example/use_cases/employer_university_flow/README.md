@@ -29,8 +29,7 @@ sequenceDiagram
     Note right of Holder: Holder stores in wallet
     Verifier->>Holder: Sends a Presentation Request showing a claim that they graduated from a trusted university.
     Holder->>Verifier: Prepares a Presentation Submission with the claims asserted.
-    Verifier->>TrustDatabase: Validates that the claim is from a trusted entity that passes the criteria.
-    Note left of Verifier: If approved, asserts confirmation of approval.
+    Note left of Verifier: Validates that the claim is from a trusted entity that passes the criteria. If approved, asserts confirmation of approval.
 ```
 
 ## Steps
