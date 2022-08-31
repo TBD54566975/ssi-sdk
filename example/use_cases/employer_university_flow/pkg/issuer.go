@@ -10,10 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func BuildExampleUniversityVC(universityID, recipient string) (*credential.VerifiableCredential, error) {
-	return buildExampleUniversityVC(universityID, recipient)
-}
-
 // Make a Verifiable Credential
 // using the VC data type directly.
 // Alternatively, use the builder
@@ -23,7 +19,7 @@ func BuildExampleUniversityVC(universityID, recipient string) (*credential.Verif
 // as part of the credentials package in the ssk-sdk.
 // VerifiableCredential is the verifiable credential model outlined in the
 // vc-data-model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concept
-func buildExampleUniversityVC(universityID, recipient string) (*credential.VerifiableCredential, error) {
+func BuildExampleUniversityVC(universityID, recipient string) (*credential.VerifiableCredential, error) {
 
 	knownContext := []string{"https://www.w3.org/2018/credentials/v1",
 		"https://www.w3.org/2018/credentials/examples/v1"} // JSON-LD context statement
@@ -67,6 +63,8 @@ func buildExampleUniversityVC(universityID, recipient string) (*credential.Verif
 
 	if dat, err := json.Marshal(knownCred); err == nil {
 		logrus.Debug(string(dat))
+	} else {
+		return nil, err
 	}
 
 	example.WriteNote(fmt.Sprintf("VC issued from %s to %s", universityID, recipient))

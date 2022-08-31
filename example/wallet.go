@@ -18,7 +18,7 @@ import (
 // private keys
 // and vCs
 type SimpleWallet struct {
-	vCs  map[string]credential.VerifiableCredential
+	vcs  map[string]credential.VerifiableCredential
 	keys map[string]gocrypto.PrivateKey
 	dids map[string]string
 	mux  *sync.Mutex
@@ -26,7 +26,7 @@ type SimpleWallet struct {
 
 func NewSimpleWallet() *SimpleWallet {
 	return &SimpleWallet{
-		vCs:  make(map[string]credential.VerifiableCredential),
+		vcs:  make(map[string]credential.VerifiableCredential),
 		mux:  &sync.Mutex{},
 		dids: make(map[string]string),
 		keys: make(map[string]gocrypto.PrivateKey),
@@ -75,8 +75,8 @@ func (s *SimpleWallet) AddCredentials(cred credential.VerifiableCredential) erro
 
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	if _, ok := s.vCs[cred.ID]; !ok {
-		s.vCs[cred.ID] = cred
+	if _, ok := s.vcs[cred.ID]; !ok {
+		s.vcs[cred.ID] = cred
 	} else {
 		return errors.New("Duplicate Credential. Could not add.")
 	}
@@ -127,5 +127,5 @@ func (s *SimpleWallet) Init(keyType string) error {
 }
 
 func (s *SimpleWallet) Size() int {
-	return len(s.vCs)
+	return len(s.vcs)
 }

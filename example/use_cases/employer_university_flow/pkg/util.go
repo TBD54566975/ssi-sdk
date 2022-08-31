@@ -53,12 +53,13 @@ func GenerateDIDPeer() (did.DID, error) {
 func validateVC(vc credential.VerifiableCredential) error {
 
 	issuer := "https://example.edu/issuers/565049"
-	var AssertionMethod cryptosuite.ProofPurpose = "assertionMethod"
+	AssertionMethod := cryptosuite.ProofPurpose("assertionMethod")
+
 	var vc2 credential.VerifiableCredential
-	err := util.Copy(&vc, &vc2)
-	if err != nil {
+	if err := util.Copy(&vc, &vc2); err != nil {
 		return err
 	}
+
 	var OKP = cryptosuite.KTY("OKP")
 	var Ed25519 = cryptosuite.CRV("Ed25519")
 
@@ -73,18 +74,19 @@ func validateVC(vc credential.VerifiableCredential) error {
 	}
 
 	suite := cryptosuite.GetJSONWebSignature2020Suite()
-	err = suite.Sign(signer, &vc2)
-	if err != nil {
+	if err = suite.Sign(signer, &vc2); err != nil {
 		return err
 	}
+
 	verifier, err := cryptosuite.NewJSONWebKeyVerifier(issuer, jwk.PublicKeyJWK)
 	if err != nil {
 		return err
 	}
-	err = suite.Verify(verifier, &vc2)
-	if err != nil {
+
+	if err = suite.Verify(verifier, &vc2); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -96,7 +98,7 @@ func validateVC(vc credential.VerifiableCredential) error {
 // and for the source code with the sdk,
 // https://github.com/TBD54566975/ssi-sdk/blob/main/credential/exchange/request.go
 // is appropriate to start off with.
-func makePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData exchange.PresentationDefinition, targetId string) (pr []byte, signer *cryptosuite.JSONWebKeySigner, err error) {
+func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData exchange.PresentationDefinition, targetId string) (pr []byte, signer *cryptosuite.JSONWebKeySigner, err error) {
 
 	example.WriteNote("Presentation Request (JWT) is created")
 
@@ -117,10 +119,6 @@ func makePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData ex
 	}
 
 	return requestJWTBytes, signer, err
-}
-
-func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData exchange.PresentationDefinition, targetId string) (pr []byte, signer *cryptosuite.JSONWebKeySigner, err error) {
-	return makePresentationRequest(jwk, presentationData, targetId)
 }
 
 // normalizePresentationClaims takes a set of Presentation Claims and turns them into map[string]interface{} as
@@ -156,13 +154,8 @@ func normalizePresentationClaims(claims []exchange.PresentationClaim) []exchange
 	return normalizedClaims
 }
 
-func BuildPresentationSubmission(presentationRequest []byte, signer cryptosuite.Signer, verifier cryptosuite.JSONWebKeyVerifier, vc credential.VerifiableCredential) ([]byte, error) {
-	return buildPresentationSubmission(presentationRequest, signer, verifier, vc)
-}
-
 // https://github.com/TBD54566975/ssi-sdk/blob/d279ca2779361091a70b8aa3c685a388067409a9/credential/exchange/submission.go#L126
-//
-func buildPresentationSubmission(presentationRequest []byte, signer cryptosuite.Signer, verifier cryptosuite.JSONWebKeyVerifier, vc credential.VerifiableCredential) ([]byte, error) {
+func BuildPresentationSubmission(presentationRequest []byte, signer cryptosuite.Signer, verifier cryptosuite.JSONWebKeyVerifier, vc credential.VerifiableCredential) ([]byte, error) {
 
 	presentationClaim := exchange.PresentationClaim{
 		Credential:                    &vc,

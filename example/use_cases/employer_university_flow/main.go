@@ -150,9 +150,10 @@ func main() {
 
 	presentationData, err := emp.MakePresentationData("test-id", "id-1")
 	util.HandleExampleError(err, "failed to create pd")
-	if dat, err := json.Marshal(presentationData); err == nil {
-		logrus.Debugf("Presentation Data:\n%v", string(dat))
-	}
+
+	dat, err := json.Marshal(presentationData)
+	util.HandleExampleError(err, "failed to marshal presentation data")
+	logrus.Debugf("Presentation Data:\n%v", string(dat))
 
 	jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
 	if err != nil {

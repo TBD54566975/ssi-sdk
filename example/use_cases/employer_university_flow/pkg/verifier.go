@@ -11,14 +11,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var authorizationError = errors.New("insufficient claims provided")
+
 // This is a very simple validation process.
 // against a Presentation Submission
 // It checks:
 // 1. That the VC is valid
 // 2. That the VC was issued by a trusted entity
-func validateAccess(verifier cryptosuite.JSONWebKeyVerifier, data []byte) error {
-
-	var authorizationError = errors.New("insufficient claims provided")
+func ValidateAccess(verifier cryptosuite.JSONWebKeyVerifier, data []byte) error {
 
 	vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(data))
 	if err != nil {
@@ -38,17 +38,11 @@ func validateAccess(verifier cryptosuite.JSONWebKeyVerifier, data []byte) error 
 				logrus.Error(err)
 			}
 
-			if issuer, ok := vc.CredentialSubject["id"]; ok {
-				if TrustedEntities.isTrusted(issuer.(string)) {
-					authorizationError = nil
-				}
+			if issuer, ok := vc.CredentialSubject["id"]; ok && TrustedEntities.isTrusted(issuer.(string)) {
+				authorizationError = nil
 			}
 
 		}
 	}
 	return authorizationError
-}
-
-func ValidateAccess(verifier cryptosuite.JSONWebKeyVerifier, data []byte) error {
-	return validateAccess(verifier, data)
 }

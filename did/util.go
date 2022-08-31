@@ -162,7 +162,7 @@ func ResolveDID(didStr string) (*DIDDocument, error) {
 	if len(split) < 2 {
 		return nil, errors.New("invalid DID. Does not split correctly")
 	}
-	var method = split[1]
+	method := split[1]
 	switch method {
 	case DIDKeyPrefix:
 		return DIDKey(didStr).Expand()

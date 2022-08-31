@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	UnsupportedDIDErorr = errors.New("unsupported Method for DID")
+	UnsupportedDIDError = errors.New("unsupported Method for DID")
 )
 
 // Color coding to make it easier to read terminal
