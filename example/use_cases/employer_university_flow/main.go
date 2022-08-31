@@ -93,6 +93,7 @@ func init() {
 // 3. An employer sends a request to verify that the student graduated
 // the university.
 func main() {
+
 	step := 0
 
 	example.WriteStep("Starting University Flow", step)
@@ -124,7 +125,6 @@ func main() {
 	example.WriteNote(fmt.Sprintf("Initialized Verifier DID: %s and registered it", vcDID))
 	emp.TrustedEntities.Issuers[vcDID] = true
 
-	// Creates the VC
 	example.WriteStep("Example University Creates VC for Holder", step)
 	step += 1
 
@@ -143,8 +143,6 @@ func main() {
 	example.WriteNote(msg)
 
 	example.WriteNote(fmt.Sprintf("initialized verifier DID: %v", verifier_did))
-
-	// 	Presentation Request
 	example.WriteStep("Employer wants to verify student graduated from Example University. Sends a presentation request", step)
 	step += 1
 
@@ -156,9 +154,7 @@ func main() {
 	logrus.Debugf("Presentation Data:\n%v", string(dat))
 
 	jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
-	if err != nil {
-		return
-	}
+	util.HandleExampleError(err, "failed to generate json web key")
 
 	presentationRequest, _, err := emp.MakePresentationRequest(*jwk, presentationData, holderDID)
 	util.HandleExampleError(err, "failed to make presentation request")
@@ -169,26 +165,20 @@ func main() {
 	signer, err := cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.AssertionMethod)
 	util.HandleExampleError(err, "failed to build json web key signer")
 
-	// 	send the PR back
 	example.WriteNote("Student returns claims via a Presentation Submission")
 	submission, err := emp.BuildPresentationSubmission(presentationRequest, signer, *verifier, *vc)
 	util.HandleExampleError(err, "failed to buidl presentation submission")
-
 	vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submission))
 	util.HandleExampleError(err, "failed to verify jwt")
 
-	if dat, err := json.Marshal(vp); err == nil {
-		logrus.Debugf("Submission:\n%v", string(dat))
-	}
+	dat, err = json.Marshal(vp)
+	util.HandleExampleError(err, "failed to marshal submission")
+	logrus.Debugf("Submission:\n%v", string(dat))
 
-	// Access
-	err = emp.ValidateAccess(*verifier, submission)
 	example.WriteStep(fmt.Sprintf("Employer Attempting to Grant Access"), step)
-	step += 1
-
-	if err != nil {
-		example.WriteError(fmt.Sprintf("Access was not granted! Reason: %s", err))
-	} else {
+	if err = emp.ValidateAccess(*verifier, submission); err == nil {
 		example.WriteOK("Access Granted!")
+	} else {
+		example.WriteError(fmt.Sprintf("Access was not granted! Reason: %s", err))
 	}
 }

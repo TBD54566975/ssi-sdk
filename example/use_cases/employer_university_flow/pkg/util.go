@@ -3,7 +3,6 @@ package pkg
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
@@ -178,8 +177,7 @@ func BuildPresentationSubmission(presentationRequest []byte, signer cryptosuite.
 		return nil, err
 	}
 	var pd exchange.PresentationDefinition
-	err = json.Unmarshal(dat, &pd)
-	if err != nil {
+	if err = json.Unmarshal(dat, &pd); err != nil {
 		return nil, err
 	}
 
@@ -219,11 +217,4 @@ func MakePresentationData(id string, inputID string) (exchange.PresentationDefin
 	example.WriteNote("Presentation Definition is formed. Asks for the issuer and the data from the issuer")
 	err := def.IsValid()
 	return def, err
-}
-
-func handleError(err error) {
-	if err != nil {
-		example.WriteError(err.Error())
-		os.Exit(1)
-	}
 }
