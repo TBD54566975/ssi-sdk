@@ -2,10 +2,9 @@
 
 ## Introduction
 
-This is a full example flow of a student, getting a Verifiable Credential from a
-University, and then using that credential to apply for a job. The verifier (
-the company ), will then authorize the credential, if it trusts the source, and
-grant access to the application process. 
+This is a full example flow of a student (holder), getting a Verifiable Credential from an
+university (issuer), and then using that credential to apply for a job with the company (verifier). The verifier will then authorize the credential, if it trusts the source, and
+grant approval to the application process.
 
 ```mermaid
     graph TD
