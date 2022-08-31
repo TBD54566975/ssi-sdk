@@ -3,6 +3,7 @@ package did
 import (
 	gocrypto "crypto"
 	"fmt"
+	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
@@ -12,6 +13,10 @@ import (
 	"github.com/multiformats/go-varint"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+)
+
+var (
+	UnsupportedDIDError = errors.New("unsupported Method for DID")
 )
 
 // Encodes the public key provided
@@ -143,4 +148,30 @@ func keyTypeToMultiCodec(kt crypto.KeyType) (multicodec.Code, error) {
 	err := fmt.Errorf("unknown multicodec for key type: %s", kt)
 	logrus.WithError(err).Error()
 	return 0, err
+}
+
+// Resolves a DID
+// Right the current implementation ssk-sdk does
+// not have a universal resolver.
+// https://github.com/decentralized-identity/universal-resolver
+// is a case where a universal resolver is implemented,
+// but the resolution would need to be hooked with the sdk.
+// in the actual SDK
+func ResolveDID(didStr string) (*DIDDocument, error) {
+	split := strings.Split(string(didStr), ":")
+	if len(split) < 2 {
+		return nil, errors.New("invalid DID. Does not split correctly")
+	}
+	method := split[1]
+	switch method {
+	case DIDKeyPrefix:
+		return DIDKey(didStr).Expand()
+	case DIDWebPrefix:
+		return DIDWeb(didStr).Resolve()
+	case PeerMethodPrefix:
+		did, _, _, err := DIDPeer(didStr).Resolve()
+		return did, err
+	default:
+		return nil, fmt.Errorf("%v. Got %v method", UnsupportedDIDError, method)
+	}
 }
