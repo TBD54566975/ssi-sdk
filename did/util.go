@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	UnsupportedDIDErorr = errors.New("unsupported Method for DID")
+	UnsupportedDIDError = errors.New("unsupported Method for DID")
 )
 
 // Encodes the public key provided
@@ -172,6 +172,6 @@ func ResolveDID(didStr string) (*DIDDocument, error) {
 		did, _, _, err := DIDPeer(didStr).Resolve()
 		return did, err
 	default:
-		return nil, fmt.Errorf("%v. Got %v method", UnsupportedDIDErorr, method)
+		return nil, fmt.Errorf("%v. Got %v method", UnsupportedDIDError, method)
 	}
 }
