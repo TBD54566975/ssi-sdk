@@ -191,15 +191,11 @@ func BuildPresentationSubmission(presentationRequest []byte, signer cryptosuite.
 	return submissionBytes, nil
 }
 
-func MakePresentationData(id string, inputID string) (exchange.PresentationDefinition, error) {
-	return makePresentationData(id, inputID)
-}
-
-// Makes a dummy presentation definition. These are
+// // Makes a dummy presentation definition. These are
 // eventually transported via Presentation Request.
 // For more information on presentation definitions go
 // https://identity.foundation/presentation-exchange/#term:presentation-definition
-func makePresentationData(id string, inputID string) (exchange.PresentationDefinition, error) {
+func MakePresentationData(id string, inputID string) (exchange.PresentationDefinition, error) {
 	// Input Descriptors: Describe the information the verifier requires of the holder
 	// https://identity.foundation/presentation-exchange/#input-descriptor
 	// Required fields: ID and Input Descriptors
