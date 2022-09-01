@@ -112,7 +112,7 @@ contributions for additional examples.
 
 - [Decentralized Identifiers Example](example/did)
 - [Verifiable Credentials Example](example/vc)
-- [Presentation Exchange Examples]
+- Presentation Exchange Examples
   - [Applying for an Apartment](example/usecase/apartment_application)
   - [Employment Verification with a University Degree](example/usecase/employer_university_flow)
 
