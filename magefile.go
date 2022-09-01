@@ -190,3 +190,43 @@ func runCITests(extraTestArgs ...string) error {
 	_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
 	return err
 }
+
+func installGoMobileIfNotPresent() error {
+	return installIfNotPresent("gomobile", "golang.org/x/mobile/cmd/gomobile@latest")
+}
+
+func Mobile() {
+	Ios()
+	Android()
+}
+
+// Generates the iOS packages
+// Note: this command also installs "gomobile" if not present
+func Ios() {
+	installGoMobileIfNotPresent()
+
+	fmt.Println("Building iOS...")
+	bindIos := sh.RunCmd("gomobile", "bind", "-target", "ios")
+	fmt.Println("Building crypto package...")
+	bindIos("crypto")
+	fmt.Println("Building did package...")
+	bindIos("did")
+	fmt.Println("Building cryptosuite package...")
+	bindIos("cryptosuite")
+}
+
+// Generates the Android packages
+// Note: this command also installs "gomobile" if not present
+func Android() {
+	installGoMobileIfNotPresent()
+
+	apiLevel := "23"
+	fmt.Println("Building Android - Api Level: " + apiLevel + "...")
+	bindAndroid := sh.RunCmd("gomobile", "bind", "-target", "android", "-androidapi", "23")
+	fmt.Println("Building crypto package...")
+	bindAndroid("crypto")
+	fmt.Println("Building did package...")
+	bindAndroid("did")
+	fmt.Println("Building cryptosuite package...")
+	bindAndroid("cryptosuite")
+}

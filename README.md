@@ -86,6 +86,13 @@ A utility is provided to run _clean, build, and test_ in sequence with:
 mage cbt
 ```
 
+Mobile targets can be built with:
+```
+mage mobile // Creates both Android and iOS packages
+mage ios // Outputs an .xcframework for the crypto, cryptosuite, did packages
+mage android // Outputs a .jar and .aar for the crypto, cryptosuite, did packages 
+```
+
 # Versioning
 
 For information on versioning refer to our [versioning guide](doc/VERSIONING.md).
