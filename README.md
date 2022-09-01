@@ -87,10 +87,16 @@ mage cbt
 ```
 
 Mobile targets can be built with:
-```
-mage mobile // Creates both Android and iOS packages
-mage ios // Outputs an .xcframework for the crypto, cryptosuite, did packages
-mage android // Outputs a .jar and .aar for the crypto, cryptosuite, did packages 
+
+```bash
+// Creates both Android and iOS packages
+mage mobile 
+
+// Outputs an .xcframework for the crypto, cryptosuite, did packages
+mage ios 
+
+// Outputs a .jar and .aar for the crypto, cryptosuite, did packages 
+mage android 
 ```
 
 # Versioning
@@ -106,7 +112,9 @@ contributions for additional examples.
 
 - [Decentralized Identifiers Example](example/did)
 - [Verifiable Credentials Example](example/vc)
-- [Presentation Exchange Example](example/use_case/apartment_application)
+- [Presentation Exchange Examples]
+  - [Applying for an Apartment](example/usecase/apartment_application)
+  - [Employment Verification with a University Degree](example/usecase/employer_university_flow)
 
 # Project Resources
 

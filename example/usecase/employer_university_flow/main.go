@@ -1,14 +1,12 @@
-// A dead simple example of a full. Simulates that a student has graduated from a
-// university. They are given a VC from the university and it is registered. An
-// employer wants to ascertain if the student graduated from the university.
-// They will request for the information, the student will respond.
+// A dead simple example of a full. Simulates that a student has graduated from a university. They are given a VC
+// from the university. An employer wants to ascertain if the student graduated from the university. They will request
+// the information, the student will respond.
 //
-// We use two different did methods here. did:key and a custom did method specified
-// in this file: did:example. The university uses did:example and the
-// user uses did:key.
+// We use two different did methods here. did:key and a custom did method specified in this file: did:example.
+// The university uses did:example and the user uses did:key.
 
-// InitalizationStep: Initialize the Wallet/Holder and the University
-// Step 0: Univesity issues a VC to the Holder and sends it over
+// Initialization Step: Initialize the Wallet/Holder and the University
+// Step 0: University issues a VC to the Holder and sends it over
 // Step 1: Verifier requests data from the holder
 // Step 2: Holder sends credential
 // Step 3: Verifier grants access based on the result
@@ -30,8 +28,8 @@
 //  digging into this code.
 //
 //  1. A DID can be used against different method types. Each method has
-//  different funtions. For example, bitcoin works differently than peer.
-//  did:btcn vs. did:peer is how these methods specified.
+//  different functions. For example, bitcoin works differently than peer.
+//  did:btc vs. did:peer is how these methods specified.
 //
 //  2. A Verified Credential (VC) contains a cyrptographic proof, either explicit
 //   or embedded into the VC. For the purposes of this demo, the proof is
@@ -43,7 +41,7 @@
 //
 //   The objects being created are in the following order:
 //
-//  1. DID's and wallets are created for the holder, issuer, and verifier
+//  1. DIDs and wallets are created for the holder, issuer, and verifier
 //  3. VC is issued to the student holder
 //  4. PresentationRequest submitted by the verifier
 //  5. PresentationSubmission returned by the holder
@@ -58,7 +56,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/example"
 	util "github.com/TBD54566975/ssi-sdk/example"
-	emp "github.com/TBD54566975/ssi-sdk/example/use_cases/employer_university_flow/pkg"
+	emp "github.com/TBD54566975/ssi-sdk/example/usecase/employer_university_flow/pkg"
 
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
@@ -67,8 +65,6 @@ import (
 
 // Set to debug mode here
 var debug = os.Getenv("DEBUG")
-
-type Mode string
 
 const (
 	DebugMode = "1"
@@ -84,14 +80,10 @@ func init() {
 	}
 }
 
-// In this example, we will
-// buile a simple example of a standard flow
-// between a student, a university, and an employer
-// 1. A student graduates from a university.
-// The university issues a VC to the student, saying they graduated
+// In this example, we will build a simple example of a standard flow between a student, a university, and an employer
+// 1. A student graduates from a university. The university issues a VC to the student, saying they graduated
 // 2. The student will store it in a "wallet"
-// 3. An employer sends a request to verify that the student graduated
-// the university.
+// 3. An employer sends a request to verify that the student graduated from the university.
 func main() {
 
 	step := 0
@@ -111,7 +103,7 @@ func main() {
 
 	employer, err := emp.NewEntity("Employer", "peer")
 	util.HandleExampleError(err, "failed to make employer identity")
-	verifier_did, err := employer.GetWallet().GetDID("main")
+	verifierDID, err := employer.GetWallet().GetDID("main")
 	util.HandleExampleError(err, "failed to create employer")
 
 	example.WriteStep("Initializing University", step)
@@ -121,7 +113,7 @@ func main() {
 	util.HandleExampleError(err, "failed to create university")
 	vcDID, err := university.GetWallet().GetDID("main")
 
-	util.HandleExampleError(err, "falied to initialize verifier")
+	util.HandleExampleError(err, "failed to initialize verifier")
 	example.WriteNote(fmt.Sprintf("Initialized Verifier DID: %s and registered it", vcDID))
 	emp.TrustedEntities.Issuers[vcDID] = true
 
@@ -138,11 +130,13 @@ func main() {
 	example.WriteStep("Example University Sends VC to Holder", step)
 	step += 1
 
-	student.GetWallet().AddCredentials(*vc)
+	err = student.GetWallet().AddCredentials(*vc)
+	util.HandleExampleError(err, "failed to add credentials to wallet")
+
 	msg := fmt.Sprintf("VC puts into wallet. Wallet size is now: %d", student.GetWallet().Size())
 	example.WriteNote(msg)
 
-	example.WriteNote(fmt.Sprintf("initialized verifier DID: %v", verifier_did))
+	example.WriteNote(fmt.Sprintf("initialized verifier DID: %v", verifierDID))
 	example.WriteStep("Employer wants to verify student graduated from Example University. Sends a presentation request", step)
 	step += 1
 
@@ -167,7 +161,7 @@ func main() {
 
 	example.WriteNote("Student returns claims via a Presentation Submission")
 	submission, err := emp.BuildPresentationSubmission(presentationRequest, signer, *verifier, *vc)
-	util.HandleExampleError(err, "failed to buidl presentation submission")
+	util.HandleExampleError(err, "failed to build presentation submission")
 	vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submission))
 	util.HandleExampleError(err, "failed to verify jwt")
 

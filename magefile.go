@@ -196,23 +196,23 @@ func installGoMobileIfNotPresent() error {
 }
 
 func Mobile() {
-	Ios()
+	IOS()
 	Android()
 }
 
 // Generates the iOS packages
 // Note: this command also installs "gomobile" if not present
-func Ios() {
+func IOS() {
 	installGoMobileIfNotPresent()
 
 	fmt.Println("Building iOS...")
-	bindIos := sh.RunCmd("gomobile", "bind", "-target", "ios")
+	bindIOs := sh.RunCmd("gomobile", "bind", "-target", "ios")
 	fmt.Println("Building crypto package...")
-	bindIos("crypto")
+	bindIOs("crypto")
 	fmt.Println("Building did package...")
-	bindIos("did")
+	bindIOs("did")
 	fmt.Println("Building cryptosuite package...")
-	bindIos("cryptosuite")
+	bindIOs("cryptosuite")
 }
 
 // Generates the Android packages

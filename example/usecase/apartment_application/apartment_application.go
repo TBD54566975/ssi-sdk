@@ -14,6 +14,7 @@ package main
 import (
 	"crypto/ed25519"
 	"fmt"
+
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
@@ -77,9 +78,12 @@ func main() {
 
 	vcBuilder := credential.NewVerifiableCredentialBuilder()
 
-	vcBuilder.SetIssuer(string(*knownIssuer))
-	vcBuilder.SetIssuanceDate(knownIssuanceDate)
-	vcBuilder.SetCredentialSubject(knownSubject)
+	err = vcBuilder.SetIssuer(string(*knownIssuer))
+	example.HandleExampleError(err, "Failed to set issuer")
+	err = vcBuilder.SetIssuanceDate(knownIssuanceDate)
+	example.HandleExampleError(err, "Failed to set issuance date")
+	err = vcBuilder.SetCredentialSubject(knownSubject)
+	example.HandleExampleError(err, "Failed to set subject")
 
 	vc, err := vcBuilder.Build()
 	example.HandleExampleError(err, "Failed to make verifiable credential")
@@ -101,7 +105,7 @@ func main() {
 
 	presentationDefinitionBuilder := exchange.NewPresentationDefinitionBuilder()
 
-	presentationDefinitionBuilder.SetInputDescriptors([]exchange.InputDescriptor{
+	err = presentationDefinitionBuilder.SetInputDescriptors([]exchange.InputDescriptor{
 		{
 			ID:      "birthdate",
 			Purpose: "Age verification",
@@ -116,6 +120,7 @@ func main() {
 			}},
 		},
 	})
+	example.HandleExampleError(err, "Failed to set input descriptors")
 
 	presentationDefinition, err := presentationDefinitionBuilder.Build()
 	example.HandleExampleError(err, "Failed to make presentation definition")
@@ -139,13 +144,13 @@ func main() {
 
 	// TODO: (neal) (issue https://github.com/TBD54566975/ssi-sdk/issues/165)
 	// Have the presentation claim's token format support signedVCBytes for the BuildPresentationSubmission function
-	vcJson, err := signing.ParseVerifiableCredentialFromJWT(string(signedVCBytes))
+	vsJSON, err := signing.ParseVerifiableCredentialFromJWT(string(signedVCBytes))
 	example.HandleExampleError(err, "Failed to parse VC")
-	vcJsonBytes, err := json.Marshal(vcJson)
+	vcJSONBytes, err := json.Marshal(vsJSON)
 	example.HandleExampleError(err, "Failed to marshal vc jwt")
 
 	presentationClaim := exchange.PresentationClaim{
-		TokenJSON:                     util.StringPtr(string(vcJsonBytes)),
+		TokenJSON:                     util.StringPtr(string(vcJSONBytes)),
 		JWTFormat:                     exchange.JWTVC.Ptr(),
 		SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 	}

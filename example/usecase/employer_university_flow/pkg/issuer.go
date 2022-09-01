@@ -10,15 +10,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Make a Verifiable Credential
-// using the VC data type directly.
-// Alternatively, use the builder
-// A VC is set of tamper-evident claims and metadata
-// that cryptographically prove who issued it
-// Building a VC means using the CredentialBuilder
-// as part of the credentials package in the ssk-sdk.
-// VerifiableCredential is the verifiable credential model outlined in the
-// vc-data-model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concept
+// BuildExampleUniversityVC Makes a Verifiable Credential using the VC data type directly.
+// Alternatively, use the builder. A VC is set of tamper-evident claims and metadata that cryptographically proves
+// who issued it.  Building a VC means using the CredentialBuilder as part of the credentials package in the ssk-sdk.
+// VerifiableCredential is the verifiable credential model outlined in the vc-data-model spec:
+// https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concept
 func BuildExampleUniversityVC(universityID, recipient string) (*credential.VerifiableCredential, error) {
 
 	knownContext := []string{"https://www.w3.org/2018/credentials/v1",
@@ -28,7 +24,7 @@ func BuildExampleUniversityVC(universityID, recipient string) (*credential.Verif
 	knownIssuer := "https://example.edu/issuers/565049"
 	knownIssuanceDate := time.Now().Format(time.RFC3339)
 	knownSubject := map[string]interface{}{
-		"id": universityID, //did:<method-name>:<method-specific-id>
+		"id": universityID, // did:<method-name>:<method-specific-id>
 		"alumniOf": map[string]interface{}{ // claims are here
 			"id": recipient,
 			"name": []interface{}{
