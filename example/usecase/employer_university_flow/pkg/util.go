@@ -89,15 +89,11 @@ func validateVC(vc credential.VerifiableCredential) error {
 	return nil
 }
 
-// Build a presentation request (PR)
-// A PR is sent by a holder to a verifier
-// It can be sent over multiple mechanisms
-// For more information, please go to here:
-// https://identity.foundation/presentation-exchange/#presentation-request
-// and for the source code with the sdk,
-// https://github.com/TBD54566975/ssi-sdk/blob/main/credential/exchange/request.go
-// is appropriate to start off with.
-func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData exchange.PresentationDefinition, targetId string) (pr []byte, signer *cryptosuite.JSONWebKeySigner, err error) {
+// MakePresentationRequest Builds a presentation request (PR). A PR is sent by a holder to a verifier. It can be sent
+// over multiple mechanisms. For more information, please go to here:
+// https://identity.foundation/presentation-exchange/#presentation-request and for the source code with the sdk,
+// https://github.com/TBD54566975/ssi-sdk/blob/main/credential/exchange/request.go is appropriate to start off with.
+func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData exchange.PresentationDefinition, targetID string) (pr []byte, signer *cryptosuite.JSONWebKeySigner, err error) {
 
 	example.WriteNote("Presentation Request (JWT) is created")
 
@@ -110,9 +106,8 @@ func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData ex
 	}
 
 	// Builds a presentation request
-	// Requires a signeer, the presentation data, and the target
-	// Target is the Audience Key
-	requestJWTBytes, err := exchange.BuildJWTPresentationRequest(*signer, presentationData, targetId)
+	// Requires a signer, the presentation data, and a target which is the Audience Key
+	requestJWTBytes, err := exchange.BuildJWTPresentationRequest(*signer, presentationData, targetID)
 	if err != nil {
 		return
 	}
@@ -153,9 +148,9 @@ func normalizePresentationClaims(claims []exchange.PresentationClaim) []exchange
 	return normalizedClaims
 }
 
+// BuildPresentationSubmission builds a submission using...
 // https://github.com/TBD54566975/ssi-sdk/blob/d279ca2779361091a70b8aa3c685a388067409a9/credential/exchange/submission.go#L126
 func BuildPresentationSubmission(presentationRequest []byte, signer cryptosuite.Signer, verifier cryptosuite.JSONWebKeyVerifier, vc credential.VerifiableCredential) ([]byte, error) {
-
 	presentationClaim := exchange.PresentationClaim{
 		Credential:                    &vc,
 		LDPFormat:                     exchange.LDPVC.Ptr(),
@@ -189,9 +184,8 @@ func BuildPresentationSubmission(presentationRequest []byte, signer cryptosuite.
 	return submissionBytes, nil
 }
 
-// // Makes a dummy presentation definition. These are
-// eventually transported via Presentation Request.
-// For more information on presentation definitions go
+// MakePresentationData Makes a dummy presentation definition. These are eventually transported via Presentation Request.
+// For more information on presentation definitions view the spec here:
 // https://identity.foundation/presentation-exchange/#term:presentation-definition
 func MakePresentationData(id string, inputID string) (exchange.PresentationDefinition, error) {
 	// Input Descriptors: Describe the information the verifier requires of the holder

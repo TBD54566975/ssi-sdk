@@ -3,7 +3,8 @@
 ## Introduction
 
 This is a full example flow of a student (holder), getting a Verifiable Credential from an
-university (issuer), and then using that credential to apply for a job with the company (verifier). The verifier will then authorize the credential, if it trusts the source, and
+university (issuer), and then using that credential to apply for a job with the company (verifier).
+The verifier will then authorize the credential, if it trusts the source, and
 grant approval to the application process.
 
 ```mermaid
@@ -34,12 +35,12 @@ sequenceDiagram
 
 ## Steps
 
-0. Holder, Issuer, and Verifier all are granted wallets and they are initialized.
-1. Issuer sends a VC to the holder saying they graduated from the University. It has additionally information such as the degree they graduated with.
-2. Holder will store the VC in their wallet, "owning" the VC.
-3. The Verifier will request to validate the Holder graduated from a university using a Presentation Request.
-4. The Holder will respond with a Verified Submission, asserting the claim that they graduated from the university.
-5. If the Verifier trusts the university, they will authorize the next step. If not, they will reject the application.
+1. Holder, Issuer, and Verifier all are granted wallets and they are initialized.
+2. Issuer sends a VC to the holder saying they graduated from the University. It has additionally information such as the degree they graduated with.
+3. Holder will store the VC in their wallet, "owning" the VC.
+4. The Verifier will request to validate the Holder graduated from a university using a Presentation Request.
+5. The Holder will respond with a Verified Submission, asserting the claim that they graduated from the university.
+6. If the Verifier trusts the university, they will authorize the next step. If not, they will reject the application.
 
 ## Output
 
