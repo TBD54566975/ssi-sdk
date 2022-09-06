@@ -41,7 +41,7 @@ const (
 // secpPrivKey, ok := privKey.(secp.PrivateKey)
 // if !ok { ... }
 func GenerateDIDKey(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDKey, error) {
-	if !isSupportedKeyType(kt) {
+	if !IsSupportedKeyType(kt) {
 		err := fmt.Errorf("unsupported did:key type: %s", kt)
 		logrus.WithError(err).Error()
 		return nil, nil, err
@@ -72,7 +72,7 @@ func GenerateDIDKey(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDKey, error) {
 // This method does not attempt to validate that the provided public key is of the specified key type.
 // A safer method is `GenerateDIDKey` which handles key generation based on the provided key type.
 func CreateDIDKey(kt crypto.KeyType, publicKey []byte) (*DIDKey, error) {
-	if !isSupportedKeyType(kt) {
+	if !IsSupportedKeyType(kt) {
 		err := fmt.Errorf("unsupported did:key type: %s", kt)
 		logrus.WithError(err).Error()
 		return nil, err
@@ -214,7 +214,7 @@ func (d DIDKey) Parse() string {
 	return split[1]
 }
 
-func isSupportedKeyType(kt crypto.KeyType) bool {
+func IsSupportedKeyType(kt crypto.KeyType) bool {
 	keyTypes := GetSupportedDIDKeyTypes()
 	for _, t := range keyTypes {
 		if t == kt {

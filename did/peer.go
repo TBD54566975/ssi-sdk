@@ -129,7 +129,7 @@ func (d DIDPeer) Delta(b DIDPeer) (*PeerDelta, error) {
 
 // Generates the key by types
 func (d DIDPeer) generateKeyByType(kt crypto.KeyType) (gocrypto.PublicKey, gocrypto.PrivateKey, error) {
-	if !isSupportedKeyType(kt) {
+	if !IsSupportedKeyType(kt) {
 		err := fmt.Errorf("%s : %s for did:peer", util.UnsupportedError, kt)
 		return nil, nil, err
 	}
