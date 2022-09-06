@@ -55,14 +55,11 @@ func main() {
 								Aliases:     []string{"t"}},
 						},
 						Action: func(cCtx *cli.Context) error {
-
 							kS := cCtx.String("type")
-							fmt.Println("Chose ", kS)
 							kt := crypto.KeyType(kS)
 							if !did.IsSupportedKeyType(kt) {
 								return errors.New("key type not supported")
 							}
-
 							_, did, err := did.GenerateDIDKey(kt)
 							if err != nil {
 								return err
