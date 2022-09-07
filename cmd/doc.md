@@ -1,11 +1,11 @@
 # CLI Tool
 
-**Title:** Cli Tool Specifications
-**Author(s):** Andor Kesselman, Gabe Cohen, Neal Roessler
-**Status:** Draft
-**Created:** September 7, 2022
-**Updated:** September 7, 2022
-**Version** 0.0.1
+**Title:** Cli Tool Specifications  
+**Author(s):** Andor Kesselman, Gabe Cohen, Neal Roessler  
+**Status:** Draft  
+**Created:** September 7, 2022  
+**Updated:** September 7, 2022  
+**Version** 0.0.1  
 
 ## Abstract
 
