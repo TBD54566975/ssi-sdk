@@ -20,3 +20,9 @@
 
 # IDE
 .idea/
+
+# Mobile
+*.apk
+*.ipa
+*.jar
+*.aar
