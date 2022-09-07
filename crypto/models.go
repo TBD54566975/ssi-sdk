@@ -19,6 +19,10 @@ const (
 	RSAKeySize int = 2048
 )
 
+func (kt KeyType) String() string {
+	return string(kt)
+}
+
 const (
 	// EdDSA uses an ed25519 key
 	EdDSA SignatureAlgorithm = "EdDSA"
@@ -31,6 +35,10 @@ const (
 	// PS256 uses a 2048-bit RSA key
 	PS256 SignatureAlgorithm = "PS256"
 )
+
+func (s SignatureAlgorithm) String() string {
+	return string(s)
+}
 
 func IsSupportedKeyType(kt KeyType) bool {
 	supported := GetSupportedKeyTypes()

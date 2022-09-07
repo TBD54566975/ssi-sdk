@@ -224,7 +224,7 @@ func Android() {
 	fmt.Println("Building Android - Api Level: " + apiLevel + "...")
 	bindAndroid := sh.RunCmd("gomobile", "bind", "-target", "android", "-androidapi", "23")
 	fmt.Println("Building crypto package...")
-	bindAndroid("mobile")
+	bindAndroid("./mobile")
 	// fmt.Println("Building did package...")
 	// bindAndroid("did")
 	// fmt.Println("Building cryptosuite package...")
