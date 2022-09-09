@@ -4,6 +4,7 @@
 [![license Apache 2](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/ssi-sdk/blob/main/LICENSE)
 [![issues](https://img.shields.io/github/issues/TBD54566975/ssi-sdk)](https://github.com/TBD54566975/ssi-sdk/issues)
 ![ssi-sdk-ci status](https://github.com/TBD54566975/ssi-sdk/workflows/ssi-sdk-ci/badge.svg?branch=main&event=push)
+[![codecov](https://codecov.io/gh/TBD54566975/ssi-sdk/branch/main/graph/badge.svg?token=8SD0TO9Z9E)](https://codecov.io/gh/TBD54566975/ssi-sdk)
 
 # ssi-sdk
 
