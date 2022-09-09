@@ -1,0 +1,12 @@
+codecov:
+  precision: 2
+  round: nearest
+  range: "80...100"
+  require_ci_to_pass: yes
+  notify:
+    after_n_builds: 2
+    wait_for_ci: yes
+  ignore:
+    - doc/**/*
+    - util/**/*
+    - example/**/*
