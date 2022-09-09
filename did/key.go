@@ -144,7 +144,7 @@ func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
 	}
 }
 
-// Expand turns the DID key into a complaint DID Document
+// Expand turns the DID key into a compliant DID Document
 func (d DIDKey) Expand() (*DIDDocument, error) {
 	keyReference := "#" + d.Parse()
 	id := string(d)
