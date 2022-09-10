@@ -20,6 +20,19 @@ var (
 	jsonSchemaTestVectors = []string{JSONSchemaTestVector1, JSONSchemaTestVector2}
 )
 
+func TestGetKnownSchema(t *testing.T) {
+	t.Run("Test Get Unknown Schema", func(tt *testing.T) {
+		_, err := GetKnownSchema("bad")
+		assert.Error(tt, err)
+	})
+
+	t.Run("Test Get Known Schema", func(tt *testing.T) {
+		schema, err := GetKnownSchema("cm-credential-application.json")
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, schema)
+	})
+}
+
 func TestJSONSchemaVectors(t *testing.T) {
 	for _, tv := range jsonSchemaTestVectors {
 		gotTestVector, err := getTestVector(tv)
@@ -30,7 +43,7 @@ func TestJSONSchemaVectors(t *testing.T) {
 	}
 }
 
-func TestJSONSchemaValidation(t *testing.T) {
+func TestIsValidJSON(t *testing.T) {
 	t.Run("Test Invalid JSON Schema", func(tt *testing.T) {
 		err := IsValidJSONSchema("bad")
 		assert.Error(tt, err)
@@ -56,6 +69,38 @@ func TestJSONSchemaValidation(t *testing.T) {
 }`
 		err = IsValidJSONSchema(badSchema)
 		assert.Error(tt, err)
+	})
+
+	t.Run("Test Valid JSON Schema", func(tt *testing.T) {
+		addressJSONSchema, err := getTestVector(JSONSchemaTestVector1)
+		assert.NoError(tt, err)
+
+		err = IsValidJSONSchema(addressJSONSchema)
+		assert.NoError(tt, err)
+	})
+}
+
+func TestJSONSchemaValidation(t *testing.T) {
+
+	t.Run("Test Invalid JSON Against Schema", func(tt *testing.T) {
+		err := IsJSONValidAgainstSchema(string([]byte("bad")), string([]byte("bad")))
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "json input is not valid json")
+	})
+
+	t.Run("Test Invalid JSON Schema", func(tt *testing.T) {
+		addressData := map[string]interface{}{
+			"street-address": "1455 Market St.",
+			"city":           "San Francisco",
+			"state":          "California",
+			"postal-code":    "94103",
+		}
+
+		addressDataBytes, err := json.Marshal(addressData)
+		assert.NoError(tt, err)
+		err = IsJSONValidAgainstSchema(string(addressDataBytes), string([]byte("bad")))
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "schema input is not valid json")
 	})
 
 	t.Run("Test Valid Address JSON Schema", func(tt *testing.T) {
