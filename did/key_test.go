@@ -25,59 +25,89 @@ import (
 )
 
 func TestCreateDIDKey(t *testing.T) {
-	pk, sk, err := crypto.GenerateEd25519Key()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, pk)
-	assert.NotEmpty(t, sk)
+	t.Run("Ed25519 happy path", func(t *testing.T) {
+		pk, sk, err := crypto.GenerateEd25519Key()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, pk)
+		assert.NotEmpty(t, sk)
 
-	didKey, err := CreateDIDKey(crypto.Ed25519, pk)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, didKey)
+		didKey, err := CreateDIDKey(crypto.Ed25519, pk)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, didKey)
 
-	didDoc, err := didKey.Expand()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, didDoc)
-	assert.Equal(t, string(*didKey), didDoc.ID)
+		didDoc, err := didKey.Expand()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, didDoc)
+		assert.Equal(t, string(*didKey), didDoc.ID)
+	})
+
+	t.Run("Bad key type", func(t *testing.T) {
+		_, _, err := crypto.GenerateEd25519Key()
+		assert.NoError(t, err)
+
+		_, err = CreateDIDKey(crypto.KeyType("bad"), []byte("invalid"))
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "unsupported did:key type: bad")
+	})
 }
 
 func TestGenerateDIDKey(t *testing.T) {
 	tests := []struct {
-		name    string
-		keyType crypto.KeyType
+		name      string
+		keyType   crypto.KeyType
+		expectErr bool
 	}{
 		{
-			name:    "Ed25519",
-			keyType: crypto.Ed25519,
+			name:      "Ed25519",
+			keyType:   crypto.Ed25519,
+			expectErr: false,
 		},
 		{
-			name:    "x25519",
-			keyType: crypto.X25519,
+			name:      "x25519",
+			keyType:   crypto.X25519,
+			expectErr: false,
 		},
 		{
-			name:    "Secp256k1",
-			keyType: crypto.Secp256k1,
+			name:      "Secp256k1",
+			keyType:   crypto.Secp256k1,
+			expectErr: false,
 		},
 		{
-			name:    "P256",
-			keyType: crypto.P256,
+			name:      "P256",
+			keyType:   crypto.P256,
+			expectErr: false,
 		},
 		{
-			name:    "P384",
-			keyType: crypto.P384,
+			name:      "P384",
+			keyType:   crypto.P384,
+			expectErr: false,
 		},
 		{
-			name:    "P521",
-			keyType: crypto.P521,
+			name:      "P521",
+			keyType:   crypto.P521,
+			expectErr: false,
 		},
 		{
-			name:    "RSA",
-			keyType: crypto.RSA,
+			name:      "RSA",
+			keyType:   crypto.RSA,
+			expectErr: false,
+		},
+		{
+			name:      "Unsupported",
+			keyType:   crypto.KeyType("unsupported"),
+			expectErr: true,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			privKey, didKey, err := GenerateDIDKey(test.keyType)
+
+			if test.expectErr {
+				assert.Error(t, err)
+				return
+			}
+
 			assert.NoError(t, err)
 			assert.NotNil(t, didKey)
 			assert.NotEmpty(t, privKey)
@@ -97,6 +127,70 @@ func TestGenerateDIDKey(t *testing.T) {
 			assert.Equal(t, codec, multicodec.Code(multiCodec))
 		})
 	}
+}
+
+func TestDecode(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		pk, sk, err := crypto.GenerateEd25519Key()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, pk)
+		assert.NotEmpty(t, sk)
+
+		didKey, err := CreateDIDKey(crypto.Ed25519, pk)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, didKey)
+
+		pubKey, ldKeyType, err := didKey.Decode()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, pubKey)
+		assert.Equal(t, ldKeyType, Ed25519VerificationKey2018)
+	})
+
+	t.Run("bad DID", func(t *testing.T) {
+		badDID := DIDKey("bad")
+		_, _, err := badDID.Decode()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "could not decode did:key value: bad")
+	})
+
+	t.Run("DID but not a valid did:key", func(t *testing.T) {
+		badDID := DIDKey("did:key:bad")
+		_, _, err := badDID.Decode()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "expected 122 encoding but found 98")
+	})
+}
+
+func TestExpand(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		pk, sk, err := crypto.GenerateEd25519Key()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, pk)
+		assert.NotEmpty(t, sk)
+
+		didKey, err := CreateDIDKey(crypto.Ed25519, pk)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, didKey)
+
+		doc, err := didKey.Expand()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, doc)
+		assert.NoError(t, doc.IsValid())
+	})
+
+	t.Run("bad DID", func(t *testing.T) {
+		badDID := DIDKey("bad")
+		_, err := badDID.Expand()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "could not decode did:key value: bad")
+	})
+
+	t.Run("DID but not a valid did:key", func(t *testing.T) {
+		badDID := DIDKey("did:key:bad")
+		_, err := badDID.Expand()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "expected 122 encoding but found 98")
+	})
 }
 
 func TestDIDKeySignVerify(t *testing.T) {

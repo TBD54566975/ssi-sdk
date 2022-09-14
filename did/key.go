@@ -95,7 +95,7 @@ func CreateDIDKey(kt crypto.KeyType, publicKey []byte) (*DIDKey, error) {
 	return &did, nil
 }
 
-// Decode takes a did:key and returns the underlying public key value as bytes, the LD key type, and a possible Error
+// Decode takes a did:key and returns the underlying public key value as bytes, the LD key type, and a possible error
 func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
 	parsed := d.Parse()
 	if parsed == "" {
