@@ -54,7 +54,7 @@ func CreateDIDPKH(namespace, reference, address string) (*DIDPKH, error) {
 	did := DIDPKH(fmt.Sprintf("%s:%s:%s:%s", DIDPKHPrefix, namespace, reference, address))
 
 	if !IsValidPKH(did) {
-		return nil, util.LoggingNewError(fmt.Sprintf("Pkh DID is not valid: %s", string(did)))
+		return nil, util.LoggingNewError(fmt.Sprintf("PKH DID is not valid: %s", string(did)))
 	}
 
 	return &did, nil

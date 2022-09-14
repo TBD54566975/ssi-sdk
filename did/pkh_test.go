@@ -63,31 +63,54 @@ func TestDIDPKHVectors(t *testing.T) {
 	}
 }
 
-func TestCreateDIDPKH(t *testing.T) {
+func TestParse(t *testing.T) {
+	// happy path
 	address := "0xb9c5714089478a327f09197987f16f9e5d936e8a"
 	didPKH, err := CreateDIDPKHFromNetwork(Ethereum, address)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, didPKH)
-	assert.Equal(t, string(*didPKH), "did:pkh:eip155:1:"+address)
+	assert.True(t, IsValidPKH(*didPKH))
+	parsed := didPKH.Parse()
+	assert.NotContains(t, parsed, DIDPKHPrefix)
 
-	didDoc, err := didPKH.Expand()
+	// unhappy path
+	badParsed := DIDPKH("bad").Parse()
+	assert.Equal(t, badParsed, "")
+}
 
-	assert.NoError(t, err)
-	assert.NotEmpty(t, didDoc)
-	assert.Equal(t, string(*didPKH), didDoc.ID)
+func TestCreateDIDPKH(t *testing.T) {
+	t.Run("Test ETH Happy Path From Network", func(tt *testing.T) {
+		address := "0xb9c5714089478a327f09197987f16f9e5d936e8a"
+		didPKH, err := CreateDIDPKHFromNetwork(Ethereum, address)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, didPKH)
+		assert.Equal(tt, string(*didPKH), "did:pkh:eip155:1:"+address)
 
-	generatedDIDDocBytes, err := json.Marshal(didDoc)
-	assert.NoError(t, err)
+		didDoc, err := didPKH.Expand()
 
-	testVectorDIDDoc, err := testVectorPKHDIDFS.ReadFile(testDataDirectory + "/" + PKHTestVectors[Ethereum][1])
-	assert.NoError(t, err)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, didDoc)
+		assert.Equal(tt, string(*didPKH), didDoc.ID)
 
-	var expandedTestDIDDoc DIDDocument
-	json.Unmarshal([]byte(testVectorDIDDoc), &expandedTestDIDDoc)
-	expandedTestDIDDocBytes, err := json.Marshal(expandedTestDIDDoc)
-	assert.NoError(t, err)
+		generatedDIDDocBytes, err := json.Marshal(didDoc)
+		assert.NoError(tt, err)
 
-	assert.Equal(t, string(generatedDIDDocBytes), string(expandedTestDIDDocBytes))
+		testVectorDIDDoc, err := testVectorPKHDIDFS.ReadFile(testDataDirectory + "/" + PKHTestVectors[Ethereum][1])
+		assert.NoError(tt, err)
+
+		var expandedTestDIDDoc DIDDocument
+		err = json.Unmarshal([]byte(testVectorDIDDoc), &expandedTestDIDDoc)
+		assert.NoError(tt, err)
+		expandedTestDIDDocBytes, err := json.Marshal(expandedTestDIDDoc)
+		assert.NoError(tt, err)
+
+		assert.Equal(tt, string(generatedDIDDocBytes), string(expandedTestDIDDocBytes))
+	})
+
+	t.Run("Test Unhappy Path", func(tt *testing.T) {
+		_, err := CreateDIDPKHFromNetwork("bad", "bad")
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "unsupported network: bad")
+	})
 }
 
 func TestIsValidPKH(t *testing.T) {
@@ -102,21 +125,34 @@ func TestIsValidPKH(t *testing.T) {
 
 	// Invalid DIDs
 	assert.False(t, IsValidPKH(""))
+	assert.False(t, IsValidPKH("notpkh"))
+	assert.False(t, IsValidPKH("alsonot:valid:pkh"))
 	assert.False(t, IsValidPKH("did:pkh::"))
 	assert.False(t, IsValidPKH("did:pkh:eip155:1:"))
+	assert.False(t, IsValidPKH("did:pkh:eip155::0xb9c5714089478a327f09197987f16f9e5d936e8a"))
 	assert.False(t, IsValidPKH("did:pkh:NOCAP:1:0xb9c5714089478a327f09197987f16f9e5d936e8a"))
+
 }
 
 func TestGetNetwork(t *testing.T) {
-	for network := range PKHTestVectors {
-		didPKH, err := CreateDIDPKHFromNetwork(network, "dummyaddress")
-		assert.NoError(t, err)
+	t.Run("Test Known Networks", func(tt *testing.T) {
+		for network := range PKHTestVectors {
+			didPKH, err := CreateDIDPKHFromNetwork(network, "dummyaddress")
+			assert.NoError(t, err)
 
-		ntwrk, err := GetNetwork(*didPKH)
-		assert.NoError(t, err)
+			n, err := GetNetwork(*didPKH)
+			assert.NoError(tt, err)
 
-		assert.Equal(t, network, *ntwrk)
-	}
+			assert.Equal(tt, network, *n)
+		}
+	})
+
+	// test bad network
+	t.Run("Test Unknown Network", func(tt *testing.T) {
+		_, err := CreateDIDPKHFromNetwork("bad", "dummyaddress")
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "unsupported network: bad")
+	})
 }
 
 func TestGetSupportedNetworks(t *testing.T) {
