@@ -7,16 +7,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO: All DID's MUST do X?
-// Define the interface more clearly
+// DID represents functionality common to all DIDs
 type DID interface {
 	IsValid() bool
 	ToString() string
 	Parse() (string, error)
-}
-
-type DIDURL interface {
-	Dereference() interface{}
 }
 
 func ParseDID(did DID, prefix string) (string, error) {

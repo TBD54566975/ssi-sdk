@@ -2,9 +2,10 @@ package did
 
 import (
 	"embed"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/goccy/go-json"
 )
@@ -40,7 +41,7 @@ func TestDIDPKHVectors(t *testing.T) {
 
 		knownDIDBytes, err := json.Marshal(knownDIDPKH)
 		assert.NoError(t, err)
-		assert.JSONEqf(t, string(gotTestVector), string(knownDIDBytes), "Known DID Serializtion error")
+		assert.JSONEqf(t, string(gotTestVector), string(knownDIDBytes), "Known DID Serializtion Error")
 
 		// Test Create DIDPKH With same ID as KnownDIDPKH
 		split := strings.Split(knownDIDPKH.ID, ":")

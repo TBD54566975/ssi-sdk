@@ -37,7 +37,7 @@ func TestDIDVectors(t *testing.T) {
 
 		didBytes, err := json.Marshal(did)
 		assert.NoError(t, err)
-		assert.JSONEqf(t, gotTestVector, string(didBytes), "error message %s")
+		assert.JSONEqf(t, gotTestVector, string(didBytes), "Error message %s")
 	}
 }
 

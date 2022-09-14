@@ -1,17 +1,15 @@
-//                    DID Peer
+// Package did DID Peer
 // ------------------------------------------------
 // https://identity.foundation/peer-did-method-spec/
 //
-// Peer based, self signed DID method.
+// Peer based, self-signed DID method.
 //
-// The method can be used independent of any central source of truth, and is
-// intended to be cheap, fast, scalable, and secure. It is suitable for most
-// private relationships between people, organizations, and things. We expect
-// that peer-to-peer relationships in every blockchain ecosystem can benefit by
-// offloading pairwise and n-wise relationships to peer DIDs.
+// The method can be used independent of any central source of truth, and is intended to be cheap, fast, scalable,
+// and secure. It is suitable for most private relationships between people, organizations, and things. We expect
+// that peer-to-peer relationships in every blockchain ecosystem can benefit by offloading pairwise and n-wise
+// relationships to peer DIDs.
 //
-// Currently only methods 0 and 2 are supported.
-// Method 1 will be supported in a future date
+// Currently only methods 0 and 2 are supported. Method 1 will be supported in a future date.
 package did
 
 import (
@@ -44,7 +42,6 @@ var availablePeerMethods = map[string]DIDResolver{
 const (
 	PeerMethodPrefix                = "peer"
 	DIDPrefix                       = "did"
-	PeerTransform                   = "z"
 	PeerEncNumBasis                 = Base58BTCMultiBase
 	PeerDIDRegex                    = `^did:peer:(([01](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))|(2((\.[AEVID](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))+(\.(S)[0-9a-zA-Z=]*)?)))$`
 	PeerKnownContext                = "https://w3id.org/did/v1"
@@ -64,14 +61,12 @@ func isPeerDID(did string) bool {
 	return r.MatchString(did)
 }
 
-// Checks if the Peer DID is correctly
-// formatted
+// IsValid Checks if the Peer DID is correctly formatted
 func (d DIDPeer) IsValid() bool {
 	return isPeerDID(string(d))
 }
 
 func (d DIDPeer) Parse() (string, error) {
-
 	s, err := ParseDID(d, strings.Join([]string{DIDPrefix, PeerMethodPrefix}, ":")+":")
 	if err != nil {
 		return "", err
@@ -94,10 +89,9 @@ func (d DIDPeer) Parse() (string, error) {
 	return s[index:], nil
 }
 
-// Method 0: inception key without doc
+// PeerMethod0 Method 0: inception key without doc
 // https://identity.foundation/peer-did-method-spec/index.html#generation-method
-// The DID doc offers no endpoint. This makes the DID functionally equivalent to
-// a did:key value For example,
+// The DID doc offers no endpoint. This makes the DID functionally equivalent to a did:key value For example,
 // did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH is equivalent to
 // did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH
 type PeerMethod0 struct {
@@ -113,11 +107,11 @@ type byValue struct {
 	Signature string `json:"sig"`
 }
 
-//https://identity.foundation/peer-did-method-spec/#backing-storage
+// PeerDelta https://identity.foundation/peer-did-method-spec/#backing-storage
 type PeerDelta struct {
 	Change string    `json:"change"` // <base64url encoding of a change fragment>,
 	By     []byValue `json:"by"`     //  [ {"key": <id of key>, "sig": <signature value>} ... ],
-	When   int64     `json:"when"`   //<ISO8601/RFC3339 UTC timestamp with at least second precision>
+	When   int64     `json:"when"`   // <ISO8601/RFC3339 UTC timestamp with at least second precision>
 }
 
 func (d DIDPeer) Delta(b DIDPeer) (*PeerDelta, error) {
@@ -146,10 +140,10 @@ func (m PeerMethod0) Generate(kt crypto.KeyType, publicKey gocrypto.PublicKey) (
 	return &did, err
 }
 
-// Method 1: genesis doc
+// PeerMethod1 Method 1: genesis doc
 type PeerMethod1 struct{}
 
-// Method 2: multiple inception key without doc
+// PeerMethod2 Method 2: multiple inception key without doc
 type PeerMethod2 struct {
 	KT     crypto.KeyType
 	Values []interface{}
@@ -182,14 +176,10 @@ func (d DIDPeer) IsValidPurpose(p PurposeType) bool {
 	return false
 }
 
-// Resolves a did:peer into a DID Document
-// To do so, it decodes the key, constructs a verification
-// method, and returns a DID Document
-//
-// This allows PeerMethod0 to implement the DID Resolver
-// interface and be used to expand the did into the DID Document.
+// Resolve resolves a did:peer into a DID Document
+// To do so, it decodes the key, constructs a verification  method, and returns a DID Document .This allows PeerMethod0
+// to implement the DID Resolver interface and be used to expand the did into the DID Document.
 func (m PeerMethod0) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMetadata, error) {
-
 	d, ok := did.(DIDPeer)
 	if !ok {
 		return nil, nil, nil, errors.Wrap(util.CastingError, "did:peer")
@@ -255,7 +245,7 @@ func (d DIDPeer) buildVerificationMethod(data, did string) (*VerificationMethod,
 	return &vm, nil
 }
 
-// Split the DID string into element.
+// Resolve Splits the DID string into element.
 // Extract element purpose and decode each key or service.
 // Insert each key or service into the document according to the designated pu
 func (m PeerMethod2) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMetadata, error) {
@@ -276,12 +266,10 @@ func (m PeerMethod2) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DI
 		return nil, nil, nil, errors.New("no entries found")
 	}
 
-	doc := NewDIDDocument()
-	doc.ID = string(d)
-
-	// How is this determined otherwise.
-	// TODO: Don't hardcode this?
-	doc.Context = PeerKnownContext
+	doc := DIDDocument{
+		Context: PeerKnownContext,
+		ID:      string(d),
+	}
 
 	for _, entry := range entries {
 
@@ -324,35 +312,28 @@ func (m PeerMethod2) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DI
 			return nil, nil, nil, errors.Wrap(util.UnsupportedError, string(entry[0]))
 		}
 	}
-	return doc, nil, nil, nil
+	return &doc, nil, nil, nil
 }
 
-// If numalgo == 2, the generation mode is similar to Method 0 (and therefore
-// also did:key) with the ability to specify additional keys in the generated DID
-// Document. This method is necessary when both an encryption key and a signing
-// key are required.
-//
-// It determines the purpose implicitly by looking at the type of object
-//
-// Start with the did prefix
-// did:peer:2
-// Construct a multibase encoded, multicodec-encoded form of each public key to be included.
-// Prefix each encoded key with a period character (.) and single character from the purpose codes table below.
-// Append the encoded key to the DID.
-// Encode and append a service type to the end of the peer DID if desired as described below.
+// Generate If numalgo == 2, the generation mode is similar to Method 0 (and therefore also did:key) with the ability
+// to specify additional keys in the generated DID Document. This method is necessary when both an encryption key
+// and a signing key are required.
+// It determines the purpose implicitly by looking at the type of object:
+// 1. Start with the did prefix did:peer:2
+// 2. Construct a multibase encoded, multicodec-encoded form of each public key to be included.
+// 3. Prefix each encoded key with a period character (.) and single character from the purpose codes table below.
+// 4. Append the encoded key to the DID.
+// 5. Encode and append a service type to the end of the peer DID if desired as described below.
 func (m PeerMethod2) Generate() (*DIDPeer, error) {
-
-	var did DIDPeer
-
 	if len(m.Values) == 0 {
 		return nil, errors.New("no keys specified for did:peer. could not build.")
 	}
 
+	var did DIDPeer
 	var encoded string
 	var err error
 
 	for i, value := range m.Values {
-
 		var enc string
 		var purpose PurposeType
 
@@ -362,7 +343,7 @@ func (m PeerMethod2) Generate() (*DIDPeer, error) {
 			service := value.(Service)
 
 			if i < len(m.Values)-1 {
-				return nil, fmt.Errorf("failed to created did for %s. service must be appended last!", "did:peer")
+				return nil, fmt.Errorf("failed to created did for %s. service must be appended last", "did:peer")
 			}
 
 			if !service.IsValid() {
@@ -376,14 +357,12 @@ func (m PeerMethod2) Generate() (*DIDPeer, error) {
 			}
 
 		case gocrypto.PublicKey:
-
 			purpose = PeerPurposeEncryptionCode
 			key := value.(gocrypto.PublicKey)
 			enc, err = encodePublicKeyWithKeyMultiCodecType(m.KT, key)
 			if err != nil {
 				return nil, errors.Wrap(err, "could not encode public key for did:peer")
 			}
-
 		default:
 			return nil, errors.Wrap(util.NotImplementedError, fmt.Sprintf("encoding of %s did:peer", tt))
 		}
@@ -396,7 +375,7 @@ func (m PeerMethod2) Generate() (*DIDPeer, error) {
 	return &did, nil
 }
 
-// Remaps the servce block for encoding
+// PeerServiceBlockEncoded Remaps the service block for encoding
 type PeerServiceBlockEncoded struct {
 	ServiceType     string   `json:"t"`
 	ServiceEndpoint string   `json:"s"`
@@ -410,12 +389,11 @@ type PeerServiceBlockEncoded struct {
 // Base64URL Encode String (no padding)
 // Prefix encoded service with a period character (.) and S
 func (d DIDPeer) encodeService(p Service) (string, error) {
-
 	if p.ServiceEndpoint == nil {
 		return "", errors.Wrap(util.UndefinedError, "service endpoint is not defined")
 	}
 
-	var serviceBlock = PeerServiceBlockEncoded{
+	serviceBlock := PeerServiceBlockEncoded{
 		ServiceType:     p.Type,
 		ServiceEndpoint: p.ServiceEndpoint.(string),
 		RoutingKeys:     p.RoutingKeys,

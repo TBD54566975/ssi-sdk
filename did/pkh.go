@@ -2,12 +2,13 @@ package did
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
-	"regexp"
-	"strings"
 )
 
 type (
@@ -127,14 +128,11 @@ func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
 }
 
 // IsValidPKH checks if a pkh did is valid based on the following parameters:
-
 // pkh-did    = "did:pkh:" address
 // address    = account_id according to [CAIP-10]
-
 // account_id:        chain_id + ":" + account_address
 // chain_id:          [-a-z0-9]{3,8}:[-a-zA-Z0-9]{1,32}
 // account_address:   [a-zA-Z0-9]{1,64}
-
 // chain_id:    namespace + ":" + reference
 // namespace:   [-a-z0-9]{3,8}
 // reference:   [-a-zA-Z0-9]{1,32}

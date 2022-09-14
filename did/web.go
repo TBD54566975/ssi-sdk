@@ -14,10 +14,8 @@ import (
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
-// did:web method specification
-// https://w3c-ccg.github.io/did-method-web/
-// DID Web create and resolve methods are implemented in this package
-// but NOT the update and deactivate methods
+// did:web method specification https://w3c-ccg.github.io/did-method-web/
+// DID Web create and resolve methods are implemented in this package but NOT the update and deactivate methods
 // please refer to web_test.go for example and test cases
 type (
 	DIDWeb string
@@ -29,10 +27,9 @@ const (
 	DIDWebPrefix           = "did:web:"
 )
 
-// CreateDoc constructs a did:web DIDDocument from a specific key type and its corresponding public key
-// This method does not attempt to validate that the provided public key is of the specified key type
-// The returned DIDDocument is expected further turned into a JSON file named did.json
-// and stored under the expected path of the target web domain
+// CreateDoc constructs a did:web DIDDocument from a specific key type and its corresponding public key. This method
+// does not attempt to validate that the provided public key is of the specified key type. The returned DIDDocument is
+// expected further turned into a JSON file named did.json and stored under the expected path of the target web domain
 // specification: https://w3c-ccg.github.io/did-method-web/#create-register
 func (did DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*DIDDocument, error) {
 	ldKeyType, err := KeyTypeToLDKeyType(kt)
@@ -72,8 +69,7 @@ func (did DIDWeb) CreateDocBytes(kt crypto.KeyType, publicKey []byte) ([]byte, e
 	return json.Marshal(doc)
 }
 
-// GetDocURL returns the expected URL of the DID Document
-// where https:// prefix is required by the specification
+// GetDocURL returns the expected URL of the DID Document where https:// prefix is required by the specification
 // optional path supported
 func (did DIDWeb) GetDocURL() (string, error) {
 	// DIDWeb must be prefixed with did:web:

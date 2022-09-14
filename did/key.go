@@ -95,7 +95,7 @@ func CreateDIDKey(kt crypto.KeyType, publicKey []byte) (*DIDKey, error) {
 	return &did, nil
 }
 
-// Decode takes a did:key and returns the underlying public key value as bytes, the LD key type, and a possible error
+// Decode takes a did:key and returns the underlying public key value as bytes, the LD key type, and a possible Error
 func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
 	parsed := d.Parse()
 	if parsed == "" {
@@ -121,7 +121,7 @@ func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
 		return nil, "", err
 	}
 	if n != 2 {
-		errMsg := "error parsing did:key varint"
+		errMsg := "Error parsing did:key varint"
 		logrus.Error(errMsg)
 		return nil, "", errors.New(errMsg)
 	}
@@ -185,18 +185,21 @@ func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType
 			PublicKeyBase58: base58.Encode(pubKey),
 		}, nil
 	}
+
 	standardJWK, err := jwk.New(pubKey)
 	if err != nil {
 		errMsg := "could not expand key of type JsonWebKey2020"
 		logrus.WithError(err).Error(errMsg)
 		return nil, errors.Wrap(err, errMsg)
 	}
+
 	pubKeyJWK, err := cryptosuite.ToPublicKeyJWK(standardJWK)
 	if err != nil {
 		errMsg := "could convert did:key to PublicKeyJWK"
 		logrus.WithError(err).Error(errMsg)
 		return nil, errors.Wrap(err, errMsg)
 	}
+
 	return &VerificationMethod{
 		ID:           keyReference,
 		Type:         keyType,

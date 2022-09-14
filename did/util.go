@@ -40,7 +40,6 @@ func encodePublicKeyWithKeyMultiCodecType(kt crypto.KeyType, pubKey gocrypto.Pub
 	prefix := varint.ToUvarint(uint64(multiCodec))
 	codec := append(prefix, publicKey...)
 	encoded, err := multibase.Encode(PeerEncNumBasis, codec)
-
 	if err != nil {
 		return "", err
 	}
@@ -49,7 +48,6 @@ func encodePublicKeyWithKeyMultiCodecType(kt crypto.KeyType, pubKey gocrypto.Pub
 }
 
 func decodeEncodedKey(d string) ([]byte, cryptosuite.LDKeyType, error) {
-
 	encoding, decoded, err := multibase.Decode(d)
 	if err != nil {
 		return nil, "", err
@@ -66,7 +64,7 @@ func decodeEncodedKey(d string) ([]byte, cryptosuite.LDKeyType, error) {
 		return nil, "", err
 	}
 	if n != 2 {
-		errMsg := "error parsing did:key varint"
+		errMsg := "Error parsing did:key varint"
 		return nil, "", errors.New(errMsg)
 	}
 
@@ -89,7 +87,6 @@ func decodeEncodedKey(d string) ([]byte, cryptosuite.LDKeyType, error) {
 
 // decode public key with type
 func decodePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyType, error) {
-
 	encoding, decoded, err := multibase.Decode(string(data))
 	if err != nil {
 		return nil, "", errors.Wrap(err, "failed to decode public key for did:peer")
@@ -107,8 +104,7 @@ func decodePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyType, error)
 	}
 
 	if n != 2 {
-		errMsg := "error parsing did:peer varint"
-		return nil, "", errors.New(errMsg)
+		return nil, "", errors.New("Error parsing did:peer varint")
 	}
 
 	pubKeyBytes := decoded[n:]
@@ -150,28 +146,24 @@ func keyTypeToMultiCodec(kt crypto.KeyType) (multicodec.Code, error) {
 	return 0, err
 }
 
-// Resolves a DID
-// Right the current implementation ssk-sdk does
-// not have a universal resolver.
+// ResolveDID Resolves a DID . The current implementation ssk-sdk does not have a universal resolver:
 // https://github.com/decentralized-identity/universal-resolver
-// is a case where a universal resolver is implemented,
-// but the resolution would need to be hooked with the sdk.
-// in the actual SDK
-func ResolveDID(didStr string) (*DIDDocument, error) {
-	split := strings.Split(string(didStr), ":")
+// In its place, this method attempts to resolve DID methods that can be resolved without relying on additional services.
+func ResolveDID(did string) (*DIDDocument, error) {
+	split := strings.Split(string(did), ":")
 	if len(split) < 2 {
-		return nil, errors.New("invalid DID. Does not split correctly")
+		return nil, errors.New("invalid DID, fewer than 2 parts")
 	}
 	method := split[1]
 	switch method {
 	case DIDKeyPrefix:
-		return DIDKey(didStr).Expand()
+		return DIDKey(did).Expand()
 	case DIDWebPrefix:
-		return DIDWeb(didStr).Resolve()
+		return DIDWeb(did).Resolve()
 	case PeerMethodPrefix:
-		did, _, _, err := DIDPeer(didStr).Resolve()
+		did, _, _, err := DIDPeer(did).Resolve()
 		return did, err
 	default:
-		return nil, fmt.Errorf("%v. Got %v method", UnsupportedDIDError, method)
+		return nil, fmt.Errorf("%v got %v method", UnsupportedDIDError, method)
 	}
 }
