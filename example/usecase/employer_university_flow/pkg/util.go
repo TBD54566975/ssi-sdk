@@ -93,14 +93,11 @@ func validateVC(vc credential.VerifiableCredential) error {
 // over multiple mechanisms. For more information, please go to here:
 // https://identity.foundation/presentation-exchange/#presentation-request and for the source code with the sdk,
 // https://github.com/TBD54566975/ssi-sdk/blob/main/credential/exchange/request.go is appropriate to start off with.
-func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData exchange.PresentationDefinition, targetID string) (pr []byte, signer *cryptosuite.JSONWebKeySigner, err error) {
-
+func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData exchange.PresentationDefinition, targetID string) (pr []byte, signer *crypto.JWTSigner, err error) {
 	example.WriteNote("Presentation Request (JWT) is created")
 
-	// Signer:
-	// https://github.com/TBD54566975/ssi-sdk/blob/main/cryptosuite/jsonwebkey2020.go#L350
-	// Implements: https://github.com/TBD54566975/ssi-sdk/blob/main/cryptosuite/jwt.go#L12
-	signer, err = cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.Authentication)
+	// Signer uses a JWK
+	signer, err = crypto.NewJWTSigner(jwk.ID, jwk.PrivateKeyJWK)
 	if err != nil {
 		return
 	}

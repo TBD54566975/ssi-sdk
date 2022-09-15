@@ -47,7 +47,7 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 	signer := getTestVectorKey0Signer(t)
 	verifier, err := signer.ToVerifier()
 	assert.NoError(t, err)
-	
+
 	jwtData := map[string]interface{}{
 		"id":   "abcd",
 		"jti":  "1234",

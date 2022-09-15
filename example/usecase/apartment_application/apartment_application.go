@@ -12,18 +12,17 @@
 package main
 
 import (
-	"crypto/ed25519"
 	"fmt"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
+	"github.com/lestrrat-go/jwx/jwk"
 )
 
 func main() {
@@ -35,25 +34,29 @@ func main() {
 	// User Holder
 	holderDIDPrivateKey, holderDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
-	holderSigner, err := crypto.NewJWTSigner(holderDIDKey.ToString(), holderDIDPrivateKey)
+	holderDIDWJWK, err := jwk.New(holderDIDPrivateKey)
+	example.HandleExampleError(err, "Failed to generate JWK")
+	holderSigner, err := crypto.NewJWTSigner(holderDIDKey.ToString(), holderDIDWJWK)
 	example.HandleExampleError(err, "Failed to generate signer")
 	holderVerifier, err := holderSigner.ToVerifier()
 	example.HandleExampleError(err, "Failed to generate verifier")
 
 	// Apt Verifier
 	aptDIDPrivateKey, aptDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
-	example.HandleExampleError(err, "Failed to generate DID")
-	aptJWK, err := cryptosuite.JSONWebKey2020FromEd25519(aptDIDPrivateKey.(ed25519.PrivateKey))
+	example.HandleExampleError(err, "Failed to generate DID key")
+	aptDIDJWK, err := jwk.New(aptDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate JWK")
-	aptSigner, err := cryptosuite.NewJSONWebKeySigner(aptJWK.ID, aptJWK.PrivateKeyJWK, cryptosuite.Authentication)
+	aptSigner, err := crypto.NewJWTSigner(aptDIDKey.ToString(), aptDIDJWK)
 	example.HandleExampleError(err, "Failed to generate signer")
-	aptVerifier, err := cryptosuite.NewJSONWebKeyVerifier(aptJWK.ID, aptJWK.PublicKeyJWK)
+	aptVerifier, err := aptSigner.ToVerifier()
 	example.HandleExampleError(err, "Failed to generate verifier")
 
 	// Government Issuer
 	govtDIDPrivateKey, govtDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
-	example.HandleExampleError(err, "Failed to generate key")
-	govtSigner, err := crypto.NewJWTSigner(govtDIDKey.ToString(), govtDIDPrivateKey)
+	example.HandleExampleError(err, "Failed to generate DID key")
+	govtDIDJWK, err := jwk.New(govtDIDPrivateKey)
+	example.HandleExampleError(err, "Failed to generate JWK")
+	govtSigner, err := crypto.NewJWTSigner(govtDIDKey.ToString(), govtDIDJWK)
 	example.HandleExampleError(err, "Failed to generate signer")
 
 	fmt.Print("\n\nStep 1: Create new DIDs for entities\n\n")
@@ -122,7 +125,7 @@ func main() {
 	example.HandleExampleError(err, "Failed to make presentation definition")
 	example.HandleExampleError(presentationDefinition.IsValid(), "Presentation definition is not valid")
 
-	presentationRequestBytes, err := exchange.BuildPresentationRequest(aptSigner, exchange.JWTRequest, *presentationDefinition, string(*holderDIDKey))
+	presentationRequestBytes, err := exchange.BuildPresentationRequest(*aptSigner, exchange.JWTRequest, *presentationDefinition, string(*holderDIDKey))
 	example.HandleExampleError(err, "Failed to make presentation request")
 
 	fmt.Print("\n\nStep 3: The apartment creates a presentation request that confirms which information is required from the tenant\n\n")
@@ -134,7 +137,7 @@ func main() {
 		Step 4: Tenant holder verifies the presentation request from the apt is valid and then constructs and signs a presentation submission.
 	**/
 
-	verifiedPresentationDefinition, err := exchange.VerifyPresentationRequest(aptVerifier, exchange.JWTRequest, presentationRequestBytes)
+	verifiedPresentationDefinition, err := exchange.VerifyPresentationRequest(*aptVerifier, exchange.JWTRequest, presentationRequestBytes)
 	example.HandleExampleError(err, "Failed to verify presentation request")
 	example.HandleExampleError(verifiedPresentationDefinition.IsValid(), "Verified presentation definition is not valid")
 
