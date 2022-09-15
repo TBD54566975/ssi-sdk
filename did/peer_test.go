@@ -15,7 +15,6 @@ func TestDIDPeerValid(t *testing.T) {
 }
 
 func makeSamplePeerDIDDocument1() *DIDDocument {
-
 	return &DIDDocument{
 		Context: "https://www.w3.org/ns/did/v1",
 		ID:      "did:peer:0z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs",
