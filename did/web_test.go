@@ -22,7 +22,7 @@ const (
 func TestDIDWebGetURL(t *testing.T) {
 	_, err := didKey01.GetDocURL()
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "did:key:z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp is missing prefix did:web:")
+	assert.Contains(t, err.Error(), "did:key:z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp is missing prefix did:web")
 
 	docURL, err := didWebBasic.GetDocURL()
 	assert.NoError(t, err)
