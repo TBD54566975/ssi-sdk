@@ -35,11 +35,9 @@ func main() {
 	// User Holder
 	holderDIDPrivateKey, holderDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
-	holderJWK, err := cryptosuite.JSONWebKey2020FromEd25519(holderDIDPrivateKey.(ed25519.PrivateKey))
-	example.HandleExampleError(err, "Failed to generate JWK")
-	holderSigner, err := cryptosuite.NewJSONWebKeySigner(holderJWK.ID, holderJWK.PrivateKeyJWK, cryptosuite.Authentication)
+	holderSigner, err := crypto.NewJWTSigner(holderDIDKey.ToString(), holderDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
-	holderVerifier, err := cryptosuite.NewJSONWebKeyVerifier(holderJWK.ID, holderJWK.PublicKeyJWK)
+	holderVerifier, err := holderSigner.ToVerifier()
 	example.HandleExampleError(err, "Failed to generate verifier")
 
 	// Apt Verifier
@@ -55,9 +53,7 @@ func main() {
 	// Government Issuer
 	govtDIDPrivateKey, govtDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate key")
-	govtJWK, err := cryptosuite.JSONWebKey2020FromEd25519(govtDIDPrivateKey.(ed25519.PrivateKey))
-	example.HandleExampleError(err, "Failed to generate JWK")
-	govtSigner, err := cryptosuite.NewJSONWebKeySigner(govtJWK.ID, govtJWK.PrivateKeyJWK, cryptosuite.Authentication)
+	govtSigner, err := crypto.NewJWTSigner(govtDIDKey.ToString(), govtDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 
 	fmt.Print("\n\nStep 1: Create new DIDs for entities\n\n")
@@ -155,7 +151,7 @@ func main() {
 		SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 	}
 
-	presentationSubmissionBytes, err := exchange.BuildPresentationSubmission(holderSigner, *presentationDefinition, []exchange.PresentationClaim{presentationClaim}, exchange.JWTVPTarget)
+	presentationSubmissionBytes, err := exchange.BuildPresentationSubmission(*holderSigner, *presentationDefinition, []exchange.PresentationClaim{presentationClaim}, exchange.JWTVPTarget)
 	example.HandleExampleError(err, "Failed to create presentation submission")
 
 	fmt.Print("\n\nStep 4: The holder creates a presentation submission to give to the apartment\n\n")
@@ -167,7 +163,7 @@ func main() {
 		Step 5: The apartment will verify the presentation submission. This is done to make sure the presentation is in compliance with the definition.
 	**/
 
-	err = exchange.VerifyPresentationSubmission(holderVerifier, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
+	err = exchange.VerifyPresentationSubmission(*holderVerifier, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
 	example.HandleExampleError(err, "Failed to verify presentation submission")
 
 	fmt.Print("\n\nStep 5: The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic\n\n")

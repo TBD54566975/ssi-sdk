@@ -5,8 +5,10 @@ import (
 	"testing"
 
 	"github.com/goccy/go-json"
+	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/oliveagle/jsonpath"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
@@ -16,7 +18,7 @@ import (
 
 func TestBuildPresentationSubmission(t *testing.T) {
 	t.Run("Unsupported embed target", func(tt *testing.T) {
-		_, err := BuildPresentationSubmission(&cryptosuite.JSONWebKeySigner{}, PresentationDefinition{}, nil, "badEmbedTarget")
+		_, err := BuildPresentationSubmission(crypto.JWTSigner{}, PresentationDefinition{}, nil, "badEmbedTarget")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported presentation submission embed target type")
 	})
@@ -48,7 +50,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		submissionBytes, err := BuildPresentationSubmission(signer, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
+		submissionBytes, err := BuildPresentationSubmission(*signer, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
@@ -779,16 +781,19 @@ func getGenericTestClaim() map[string]interface{} {
 	}
 }
 
-func getJWKSignerVerifier(t *testing.T) (*cryptosuite.JSONWebKeySigner, *cryptosuite.JSONWebKeyVerifier) {
-	jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, jwk)
+func getJWKSignerVerifier(t *testing.T) (*crypto.JWTSigner, *crypto.JWTVerifier) {
+	_, privKey, err := crypto.GenerateEd25519Key()
+	require.NoError(t, err)
 
-	signer, err := cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.AssertionMethod)
-	assert.NoError(t, err)
+	key, err := jwk.New(privKey)
+	require.NoError(t, err)
 
-	verifier, err := cryptosuite.NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
-	assert.NoError(t, err)
+	kid := "test-key"
+	signer, err := crypto.NewJWTSigner(kid, key)
+	require.NoError(t, err)
+
+	verifier, err := signer.ToVerifier()
+	require.NoError(t, err)
 
 	return signer, verifier
 }

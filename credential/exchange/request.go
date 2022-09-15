@@ -56,7 +56,7 @@ func BuildJWTPresentationRequest(signer cryptosuite.JSONWebKeySigner, def Presen
 		jwt.AudienceKey:           target,
 		PresentationDefinitionKey: def,
 	}
-	return signer.SignGenericJWT(jwtValues)
+	return signer.SignJWT(jwtValues)
 }
 
 // VerifyPresentationRequest finds the correct verifier and parser for a given presentation request type,

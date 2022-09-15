@@ -1,4 +1,4 @@
-package cryptosuite
+package crypto
 
 import (
 	"testing"
@@ -8,8 +8,8 @@ import (
 
 func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
-	_, key := getTestVectorKey0Signer(t, AssertionMethod)
-	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
+	signer := getTestVectorKey0Signer(t)
+	verifier, err := signer.ToVerifier()
 	assert.NoError(t, err)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/implementations/spruce/credential-0--key-0-ed25519.vc-jwt.json
@@ -44,10 +44,10 @@ func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 }
 
 func TestSignVerifyGenericJWT(t *testing.T) {
-	signer, key := getTestVectorKey0Signer(t, AssertionMethod)
-	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
+	signer := getTestVectorKey0Signer(t)
+	verifier, err := signer.ToVerifier()
 	assert.NoError(t, err)
-
+	
 	jwtData := map[string]interface{}{
 		"id":   "abcd",
 		"jti":  "1234",
@@ -58,7 +58,7 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 			"c": 3,
 		},
 	}
-	token, err := signer.SignGenericJWT(jwtData)
+	token, err := signer.SignJWT(jwtData)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 
@@ -82,4 +82,19 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 
 	_, err = verifier.VerifyAndParseJWT(string(token))
 	assert.NoError(t, err)
+}
+
+func getTestVectorKey0Signer(t *testing.T) JWTSigner {
+	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
+	knownJWK := PrivateKeyJWK{
+		KID: "did:example:123#key-0",
+		KTY: "OKP",
+		CRV: "Ed25519",
+		X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
+		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
+	}
+
+	signer, err := NewJWTSigner(knownJWK.KID, knownJWK)
+	assert.NoError(t, err)
+	return *signer
 }

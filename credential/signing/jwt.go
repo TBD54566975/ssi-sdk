@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwa"
@@ -13,7 +14,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 )
 
 // SignVerifiableCredentialJWT is prepared according to https://www.w3.org/TR/vc-data-model/#jwt-encoding
-func SignVerifiableCredentialJWT(signer cryptosuite.JSONWebKeySigner, cred credential.VerifiableCredential) ([]byte, error) {
+func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.VerifiableCredential) ([]byte, error) {
 	if cred.IsEmpty() {
 		return nil, errors.New("credential cannot be empty")
 	}
@@ -81,7 +81,7 @@ func SignVerifiableCredentialJWT(signer cryptosuite.JSONWebKeySigner, cred crede
 
 // VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
 // the token in a verifiable credential.
-func VerifyVerifiableCredentialJWT(verifier cryptosuite.JSONWebKeyVerifier, token string) (*credential.VerifiableCredential, error) {
+func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (*credential.VerifiableCredential, error) {
 	if err := verifier.VerifyJWT(token); err != nil {
 		return nil, errors.Wrap(err, "could not verify JWT and its signature")
 	}
@@ -152,7 +152,7 @@ func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCrede
 }
 
 // SignVerifiablePresentationJWT is prepared according to https://www.w3.org/TR/vc-data-model/#jwt-encoding
-func SignVerifiablePresentationJWT(signer cryptosuite.JSONWebKeySigner, pres credential.VerifiablePresentation) ([]byte, error) {
+func SignVerifiablePresentationJWT(signer crypto.JWTSigner, pres credential.VerifiablePresentation) ([]byte, error) {
 	if pres.IsEmpty() {
 		return nil, errors.New("presentation cannot be empty")
 	}
@@ -193,7 +193,7 @@ func SignVerifiablePresentationJWT(signer cryptosuite.JSONWebKeySigner, pres cre
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
-func VerifyVerifiablePresentationJWT(verifier cryptosuite.JSONWebKeyVerifier, token string) (*credential.VerifiablePresentation, error) {
+func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) (*credential.VerifiablePresentation, error) {
 	if err := verifier.VerifyJWT(token); err != nil {
 		errMsg := "could not verify JWT and its signature"
 		logrus.WithError(err).Error(errMsg)
@@ -228,9 +228,9 @@ func ParseVerifiablePresentationFromJWT(token string) (*credential.VerifiablePre
 
 	// parse remaining JWT properties and set in the presentation
 
-	jti, hasJti := parsed.Get(jwt.NotBeforeKey)
+	jti, hasJTI := parsed.Get(jwt.NotBeforeKey)
 	jtiStr, ok := jti.(string)
-	if hasJti && ok && jtiStr != "" {
+	if hasJTI && ok && jtiStr != "" {
 		pres.ID = jtiStr
 	}
 

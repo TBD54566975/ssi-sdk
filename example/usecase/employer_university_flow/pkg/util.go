@@ -150,7 +150,7 @@ func normalizePresentationClaims(claims []exchange.PresentationClaim) []exchange
 
 // BuildPresentationSubmission builds a submission using...
 // https://github.com/TBD54566975/ssi-sdk/blob/d279ca2779361091a70b8aa3c685a388067409a9/credential/exchange/submission.go#L126
-func BuildPresentationSubmission(presentationRequest []byte, signer cryptosuite.Signer, verifier cryptosuite.JSONWebKeyVerifier, vc credential.VerifiableCredential) ([]byte, error) {
+func BuildPresentationSubmission(presentationRequest []byte, signer crypto.JWTSigner, verifier crypto.JWTVerifier, vc credential.VerifiableCredential) ([]byte, error) {
 	presentationClaim := exchange.PresentationClaim{
 		Credential:                    &vc,
 		LDPFormat:                     exchange.LDPVC.Ptr(),
