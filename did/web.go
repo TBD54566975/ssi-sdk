@@ -74,15 +74,15 @@ func (did DIDWeb) CreateDocBytes(kt crypto.KeyType, publicKey []byte) ([]byte, e
 func (did DIDWeb) GetDocURL() (string, error) {
 	// DIDWeb must be prefixed with did:web:
 	if !strings.HasPrefix(string(did), DIDWebPrefix) {
-		err := fmt.Errorf("DIDWeb %+v is missing prefix %s", did, DIDWebPrefix)
+		err := fmt.Errorf("did:web DID %+v is missing prefix %s", did, DIDWebPrefix)
 		logrus.WithError(err).Error()
 		return "", err
 	}
 
 	subStrs := strings.Split(string(did), ":")
 	numSubStrs := len(subStrs)
-	if numSubStrs < 3 {
-		err := fmt.Errorf("did:web %+v is missing the required domain", did)
+	if numSubStrs < 3 || len(subStrs[2]) < 1 {
+		err := fmt.Errorf("did:web DID %+v is missing the required domain", did)
 		logrus.WithError(err).Error()
 		return "", err
 	}
