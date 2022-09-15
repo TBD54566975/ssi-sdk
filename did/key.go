@@ -32,7 +32,8 @@ const (
 )
 
 func (d DIDKey) IsValid() bool {
-	return true
+	_, err := d.Expand()
+	return err == nil
 }
 
 func (d DIDKey) ToString() string {
