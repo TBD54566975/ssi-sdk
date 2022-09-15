@@ -152,7 +152,7 @@ func TestDecode(t *testing.T) {
 		badDID := DIDKey("bad")
 		_, _, err := badDID.Decode()
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "could not decode did:key value: bad")
+		assert.Contains(t, err.Error(), "could not parse did:key")
 	})
 
 	t.Run("DID but not a valid did:key", func(t *testing.T) {
@@ -184,7 +184,7 @@ func TestExpand(t *testing.T) {
 		badDID := DIDKey("bad")
 		_, err := badDID.Expand()
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "could not decode did:key value: bad")
+		assert.Contains(t, err.Error(), "could not parse did:key")
 	})
 
 	t.Run("DID but not a valid did:key", func(t *testing.T) {
