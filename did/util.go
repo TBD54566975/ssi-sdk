@@ -22,7 +22,6 @@ var (
 // Encodes the public key provided
 // Using a multi-codec encoding.
 func encodePublicKeyWithKeyMultiCodecType(kt crypto.KeyType, pubKey gocrypto.PublicKey) (string, error) {
-
 	if !isSupportedKeyType(kt) {
 		return "", errors.Wrap(util.UnsupportedError, "not a supported key type")
 	}

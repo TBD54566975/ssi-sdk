@@ -62,7 +62,7 @@ func TestDIDWebResolveDocBytes(t *testing.T) {
 	t.Run("Unresolvable Path", func(tt *testing.T) {
 		_, err := didWebNotADomain.ResolveDocBytes()
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "did:web did:web: is missing the required domain")
+		assert.Contains(tt, err.Error(), "did:web: is missing the required domain")
 	})
 }
 
