@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
-
 	"encoding/base64"
 	"fmt"
 
@@ -492,7 +491,7 @@ type JSONWebKeyVerifier struct {
 // Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
 // and an error should it fail.
 func (v *JSONWebKeyVerifier) Verify(message, signature []byte) error {
-	_, err := jws.Verify(signature, v.SignatureAlgorithm, v.Key, jws.VerifyOption(jws.WithDetachedPayload(message)))
+	_, err := jws.Verify(signature, v.SignatureAlgorithm, v.Key, jws.WithDetachedPayload(message))
 	if err != nil {
 		logrus.WithError(err).Error("could not verify JWK")
 	}
