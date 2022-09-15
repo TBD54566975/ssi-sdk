@@ -9,6 +9,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -60,29 +61,36 @@ func CreateDIDPKH(namespace, reference, address string) (*DIDPKH, error) {
 	return &did, nil
 }
 
+func (d DIDPKH) IsValid() bool {
+	return IsValidPKH(d)
+}
+
+func (d DIDPKH) ToString() string {
+	return string(d)
+}
+
 // Parse returns the value without the `did:pkh` prefix
-func (did DIDPKH) Parse() string {
-	split := strings.Split(string(did), DIDPKHPrefix+":")
+func (d DIDPKH) Parse() (string, error) {
+	split := strings.Split(string(d), DIDPKHPrefix+":")
 	if len(split) != 2 {
-		return ""
+		return "", errors.New("invalid did pkh")
 	}
-	return split[1]
+	return split[1], nil
 }
 
 // GetNetwork returns the network by finding the network prefix in the did
-func GetNetwork(didpkh DIDPKH) (*Network, error) {
+func GetNetwork(did DIDPKH) (*Network, error) {
 	for network, prefix := range didPKHNetworkPrefixMap {
-		if strings.Contains(string(didpkh), prefix[0]+":") {
+		if strings.Contains(string(did), prefix[0]+":") {
 			return &network, nil
 		}
 	}
-
 	return nil, util.LoggingNewError("network not supported")
 }
 
 // Expand turns the DID key into a complaint DID Document
-func (did DIDPKH) Expand() (*DIDDocument, error) {
-	verificationMethod, err := constructPKHVerificationMethod(did)
+func (d DIDPKH) Expand() (*DIDDocument, error) {
+	verificationMethod, err := constructPKHVerificationMethod(d)
 
 	if err != nil {
 		return nil, util.LoggingErrorMsg(err, "could not construct verification method")
@@ -94,12 +102,12 @@ func (did DIDPKH) Expand() (*DIDDocument, error) {
 	}
 
 	verificationMethodSet := []VerificationMethodSet{
-		string(did) + "#blockchainAccountId",
+		string(d) + "#blockchainAccountId",
 	}
 
 	return &DIDDocument{
 		Context:              knownDIDPKHContextJSON,
-		ID:                   string(did),
+		ID:                   string(d),
 		VerificationMethod:   []VerificationMethod{*verificationMethod},
 		Authentication:       verificationMethodSet,
 		AssertionMethod:      verificationMethodSet,
@@ -109,8 +117,11 @@ func (did DIDPKH) Expand() (*DIDDocument, error) {
 }
 
 func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
-	if !IsValidPKH(did) || did.Parse() == "" {
-		return nil, util.LoggingNewError("Pkh DID is not valid")
+	if !IsValidPKH(did) {
+		parsed, err := did.Parse()
+		if err != nil || parsed == "" {
+			return nil, util.LoggingNewError("PKH DID is not valid")
+		}
 	}
 
 	network, err := GetNetwork(did)
@@ -119,11 +130,15 @@ func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
 	}
 	verificationType := didPKHNetworkPrefixMap[*network][1]
 
+	parsed, err := did.Parse()
+	if err != nil {
+		return nil, err
+	}
 	return &VerificationMethod{
 		ID:                  string(did) + "#blockchainAccountId",
 		Type:                cryptosuite.LDKeyType(verificationType),
 		Controller:          string(did),
-		BlockchainAccountID: did.Parse(),
+		BlockchainAccountID: parsed,
 	}, nil
 }
 

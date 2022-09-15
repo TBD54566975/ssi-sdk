@@ -3,7 +3,10 @@ package did
 import (
 	"embed"
 	"testing"
+	"time"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 )
@@ -41,7 +44,58 @@ func TestDIDVectors(t *testing.T) {
 	}
 }
 
+func TestDIDDocument(t *testing.T) {
+	// empty
+	emptyDoc := DIDDocument{}
+	assert.True(t, emptyDoc.IsEmpty())
+
+	// not empty
+	did := DIDDocument{
+		ID: "did:test:123",
+	}
+	assert.False(t, did.IsEmpty())
+}
+
+func TestDIDDocumentMetadata(t *testing.T) {
+	// good
+	metadata := DIDDocumentMetadata{}
+	assert.True(t, metadata.IsValid())
+
+	// bad
+	badMetadata := DIDDocumentMetadata{
+		Created: "bad",
+		Updated: time.Now().UTC().Format(time.RFC3339),
+	}
+	assert.False(t, badMetadata.IsValid())
+}
+
 func getTestVector(fileName string) (string, error) {
 	b, err := testVectorFS.ReadFile("testdata/" + fileName)
 	return string(b), err
+}
+
+func TestKeyTypeToLDKeyType(t *testing.T) {
+	kt, err := KeyTypeToLDKeyType(crypto.Ed25519)
+	assert.NoError(t, err)
+	assert.Equal(t, kt, Ed25519VerificationKey2018)
+
+	kt, err = KeyTypeToLDKeyType(crypto.X25519)
+	assert.NoError(t, err)
+	assert.Equal(t, kt, X25519KeyAgreementKey2019)
+
+	kt, err = KeyTypeToLDKeyType(crypto.Secp256k1)
+	assert.NoError(t, err)
+	assert.Equal(t, kt, EcdsaSecp256k1VerificationKey2019)
+
+	kt, err = KeyTypeToLDKeyType(crypto.Ed25519)
+	assert.NoError(t, err)
+	assert.Equal(t, kt, Ed25519VerificationKey2018)
+
+	kt, err = KeyTypeToLDKeyType(crypto.P256)
+	assert.NoError(t, err)
+	assert.Equal(t, kt, cryptosuite.JsonWebKey2020)
+
+	kt, err = KeyTypeToLDKeyType(crypto.KeyType("bad"))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported keyType")
 }

@@ -42,7 +42,7 @@ const (
 type DIDDocumentMetadata struct {
 	Created       string `json:"created,omitempty" validate:"datetime"`
 	Updated       string `json:"updated,omitempty" validate:"datetime"`
-	Deactivated   bool   `json:"deactivated"`
+	Deactivated   bool   `json:"deactivated,omitempty"`
 	NextUpdate    string `json:"nextUpdate,omitempty"`
 	VersionID     string `json:"versionId,omitempty"`
 	NextVersionID string `json:"nextVersionId,omitempty"`

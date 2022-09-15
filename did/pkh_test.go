@@ -69,11 +69,13 @@ func TestParse(t *testing.T) {
 	didPKH, err := CreateDIDPKHFromNetwork(Ethereum, address)
 	assert.NoError(t, err)
 	assert.True(t, IsValidPKH(*didPKH))
-	parsed := didPKH.Parse()
+	parsed, err := didPKH.Parse()
+	assert.NoError(t, err)
 	assert.NotContains(t, parsed, DIDPKHPrefix)
 
 	// unhappy path
-	badParsed := DIDPKH("bad").Parse()
+	badParsed, err := DIDPKH("bad").Parse()
+	assert.NoError(t, err)
 	assert.Equal(t, badParsed, "")
 }
 

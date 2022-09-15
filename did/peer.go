@@ -31,7 +31,7 @@ type (
 	PurposeType string
 )
 
-var availablePeerMethods = map[string]DIDResolver{
+var availablePeerMethods = map[string]Resolver{
 	"0": PeerMethod0{},
 	"1": PeerMethod1{},
 	"2": PeerMethod2{},
@@ -488,7 +488,7 @@ func (d DIDPeer) GetMethodID() (string, error) {
 }
 
 // id:peer:<method>
-func (d DIDPeer) GetMethod() (DIDResolver, error) {
+func (d DIDPeer) GetMethod() (Resolver, error) {
 
 	m := string(d[9])
 
