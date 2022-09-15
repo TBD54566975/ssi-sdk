@@ -117,7 +117,9 @@ func TestGenerateDIDKey(t *testing.T) {
 			codec, err := keyTypeToMultiCodec(test.keyType)
 			assert.NoError(t, err)
 
-			encoding, decoded, err := multibase.Decode(didKey.Parse())
+			parsed, err := didKey.Parse()
+			assert.NoError(t, err)
+			encoding, decoded, err := multibase.Decode(parsed)
 			assert.NoError(t, err)
 			assert.True(t, encoding == Base58BTCMultiBase)
 

@@ -31,6 +31,23 @@ const (
 	DIDKeyPrefix = "did:key"
 )
 
+func (d DIDKey) IsValid() bool {
+	return true
+}
+
+func (d DIDKey) ToString() string {
+	return string(d)
+}
+
+// Parse returns the value without the `did:key` prefix
+func (d DIDKey) Parse() (string, error) {
+	split := strings.Split(string(d), DIDKeyPrefix+":")
+	if len(split) != 2 {
+		return "", fmt.Errorf("invalid did:key: %s", d)
+	}
+	return split[1], nil
+}
+
 // GenerateDIDKey takes in a key type value that this library supports and constructs a conformant did:key identifier.
 // The function returns the associated private key value cast to the generic golang crypto.PrivateKey interface.
 // To use the private key, it is recommended to re-cast to the associated type. For example, called with the input
@@ -97,7 +114,10 @@ func CreateDIDKey(kt crypto.KeyType, publicKey []byte) (*DIDKey, error) {
 
 // Decode takes a did:key and returns the underlying public key value as bytes, the LD key type, and a possible error
 func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
-	parsed := d.Parse()
+	parsed, err := d.Parse()
+	if err != nil {
+		return nil, "", errors.Wrap(err, "could not parse did:key")
+	}
 	if parsed == "" {
 		err := fmt.Errorf("could not decode did:key value: %s", string(d))
 		logrus.WithError(err).Error()
@@ -146,7 +166,12 @@ func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
 
 // Expand turns the DID key into a compliant DID Document
 func (d DIDKey) Expand() (*DIDDocument, error) {
-	keyReference := "#" + d.Parse()
+	parsed, err := d.Parse()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not parse did:key")
+	}
+
+	keyReference := "#" + parsed
 	id := string(d)
 
 	pubKey, keyType, err := d.Decode()
@@ -206,15 +231,6 @@ func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType
 		Controller:   id,
 		PublicKeyJWK: pubKeyJWK,
 	}, nil
-}
-
-// Parse returns the value without the `did:key` prefix
-func (d DIDKey) Parse() string {
-	split := strings.Split(string(d), DIDKeyPrefix+":")
-	if len(split) != 2 {
-		return ""
-	}
-	return split[1]
 }
 
 func isSupportedKeyType(kt crypto.KeyType) bool {
