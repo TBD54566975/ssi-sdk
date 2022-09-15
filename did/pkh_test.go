@@ -75,7 +75,7 @@ func TestParse(t *testing.T) {
 
 	// unhappy path
 	badParsed, err := DIDPKH("bad").Parse()
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, badParsed, "")
 }
 
