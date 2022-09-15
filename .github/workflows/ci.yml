@@ -27,7 +27,7 @@ jobs:
 
       - name: Install Mage
         run: go install github.com/magefile/mage
-
+              
       - name: Build
         run: mage build
 
@@ -36,3 +36,9 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
+
+      - name: Install govuln
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Check Vulnerabilities
+        run: govulncheck ./...           
