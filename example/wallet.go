@@ -97,7 +97,7 @@ func (s *SimpleWallet) Init(keyType string) error {
 	var didStr string
 	var err error
 
-	if keyType == did.PeerMethodPrefix {
+	if keyType == did.DIDPeerPrefix {
 		kt := crypto.Ed25519
 		pubKey, privKey, err = crypto.GenerateKeyByKeyType(kt)
 		if err != nil {

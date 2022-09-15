@@ -153,14 +153,17 @@ func ResolveDID(did string) (*DIDDocument, error) {
 	if len(split) < 2 {
 		return nil, errors.New("invalid DID, fewer than 2 parts")
 	}
-	method := split[1]
+	method := split[0] + ":" + split[1]
 	switch method {
 	case DIDKeyPrefix:
 		return DIDKey(did).Expand()
 	case DIDWebPrefix:
 		return DIDWeb(did).Resolve()
-	case PeerMethodPrefix:
+	case DIDPeerPrefix:
 		did, _, _, err := DIDPeer(did).Resolve()
+		return did, err
+	case DIDPKHPrefix:
+		did, err := DIDPKH(did).Expand()
 		return did, err
 	default:
 		return nil, fmt.Errorf("%v got %v method", UnsupportedDIDError, method)

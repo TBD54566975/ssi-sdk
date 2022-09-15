@@ -40,8 +40,7 @@ var availablePeerMethods = map[string]Resolver{
 // ANBF specified here:
 // https://identity.foundation/peer-did-method-spec/#method-specific-identifier
 const (
-	PeerMethodPrefix                = "peer"
-	DIDPrefix                       = "did"
+	DIDPeerPrefix                   = "did:peer"
 	PeerEncNumBasis                 = Base58BTCMultiBase
 	PeerDIDRegex                    = `^did:peer:(([01](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))|(2((\.[AEVID](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))+(\.(S)[0-9a-zA-Z=]*)?)))$`
 	PeerKnownContext                = "https://w3id.org/did/v1"
@@ -67,7 +66,7 @@ func (d DIDPeer) IsValid() bool {
 }
 
 func (d DIDPeer) Parse() (string, error) {
-	s, err := ParseDID(d, strings.Join([]string{DIDPrefix, PeerMethodPrefix}, ":")+":")
+	s, err := ParseDID(d, DIDPeerPrefix+":")
 	if err != nil {
 		return "", err
 	}
@@ -99,7 +98,7 @@ type PeerMethod0 struct {
 }
 
 func buildDIDPeerFromEncoded(method int, encoded string) DIDPeer {
-	return DIDPeer(fmt.Sprintf("%s:%s:%d%s", DIDPrefix, PeerMethodPrefix, method, encoded))
+	return DIDPeer(fmt.Sprintf("%s:%d%s", DIDPeerPrefix, method, encoded))
 }
 
 type byValue struct {

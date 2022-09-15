@@ -49,6 +49,10 @@ func TestDIDDocument(t *testing.T) {
 	emptyDoc := DIDDocument{}
 	assert.True(t, emptyDoc.IsEmpty())
 
+	var nilDID *DIDDocument
+	nilDID = nil
+	assert.True(t, nilDID.IsEmpty())
+
 	// not empty
 	did := DIDDocument{
 		ID: "did:test:123",

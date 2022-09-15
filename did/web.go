@@ -24,7 +24,7 @@ type (
 const (
 	DIDWebWellKnownURLPath = ".well-known/"
 	DIDWebDIDDocFilename   = "did.json"
-	DIDWebPrefix           = "did:web:"
+	DIDWebPrefix           = "did:web"
 )
 
 func (d DIDWeb) IsValid() bool {
@@ -87,7 +87,7 @@ func (d DIDWeb) CreateDocBytes(kt crypto.KeyType, publicKey []byte) ([]byte, err
 func (d DIDWeb) GetDocURL() (string, error) {
 	// DIDWeb must be prefixed with d:web:
 	if !strings.HasPrefix(string(d), DIDWebPrefix) {
-		err := fmt.Errorf("d:web DID %+v is missing prefix %s", d, DIDWebPrefix)
+		err := fmt.Errorf("did:web DID %+v is missing prefix %s", d, DIDWebPrefix)
 		logrus.WithError(err).Error()
 		return "", err
 	}
