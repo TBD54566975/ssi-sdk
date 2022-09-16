@@ -86,7 +86,7 @@ func (sv *JWTSigner) SignJWT(kvs map[string]interface{}) ([]byte, error) {
 	t := jwt.New()
 	for k, v := range kvs {
 		if err := t.Set(k, v); err != nil {
-			err := errors.Wrapf(err, "could not set %sv to value: %v", k, v)
+			err := errors.Wrapf(err, "could not set %s to value: %v", k, v)
 			logrus.WithError(err).Error("could not sign JWT")
 			return nil, err
 		}
