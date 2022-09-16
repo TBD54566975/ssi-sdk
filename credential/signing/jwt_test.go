@@ -5,10 +5,10 @@ package signing
 import (
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 )
 
 func TestVerifiableCredentialJWT(t *testing.T) {
@@ -19,11 +19,11 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 		IssuanceDate:      "2021-01-01T19:23:24Z",
 		CredentialSubject: map[string]interface{}{},
 	}
-	signer, key := getTestVectorKey0Signer(t, cryptosuite.AssertionMethod)
+	signer := getTestVectorKey0Signer(t)
 	signed, err := SignVerifiableCredentialJWT(signer, testCredential)
 	assert.NoError(t, err)
 
-	verifier, err := cryptosuite.NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
+	verifier, err := signer.ToVerifier()
 	assert.NoError(t, err)
 
 	token := string(signed)
@@ -46,11 +46,12 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		Type:   []string{"VerifiablePresentation"},
 		Holder: "did:example:123",
 	}
-	signer, key := getTestVectorKey0Signer(t, cryptosuite.AssertionMethod)
+
+	signer := getTestVectorKey0Signer(t)
 	signed, err := SignVerifiablePresentationJWT(signer, testPresentation)
 	assert.NoError(t, err)
 
-	verifier, err := cryptosuite.NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
+	verifier, err := signer.ToVerifier()
 	assert.NoError(t, err)
 
 	token := string(signed)
@@ -66,24 +67,16 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 	assert.Equal(t, parsedPres, pres)
 }
 
-func getTestVectorKey0Signer(t *testing.T, purpose cryptosuite.ProofPurpose) (cryptosuite.JSONWebKeySigner, cryptosuite.JSONWebKey2020) {
+func getTestVectorKey0Signer(t *testing.T) crypto.JWTSigner {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
-	knownJWK := cryptosuite.JSONWebKey2020{
-		ID: "did:example:123#key-0",
-		PublicKeyJWK: cryptosuite.PublicKeyJWK{
-			KTY: "OKP",
-			CRV: "Ed25519",
-			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
-		},
-		PrivateKeyJWK: cryptosuite.PrivateKeyJWK{
-			KTY: "OKP",
-			CRV: "Ed25519",
-			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
-			D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
-		},
+	knownJWK := crypto.PrivateKeyJWK{
+		KTY: "OKP",
+		CRV: "Ed25519",
+		X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
+		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 	}
 
-	signer, err := cryptosuite.NewJSONWebKeySigner(knownJWK.ID, knownJWK.PrivateKeyJWK, purpose)
+	signer, err := crypto.NewJWTSigner(knownJWK.KID, knownJWK)
 	assert.NoError(t, err)
-	return *signer, knownJWK
+	return *signer
 }

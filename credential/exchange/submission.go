@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/oliveagle/jsonpath"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
@@ -124,7 +124,9 @@ func (pc *PresentationClaim) GetClaimJSON() (map[string]interface{}, error) {
 // BuildPresentationSubmission constructs a submission given a presentation definition, set of claims, and an
 // embed target format.
 // https://identity.foundation/presentation-exchange/#presentation-submission
-func BuildPresentationSubmission(signer cryptosuite.Signer, def PresentationDefinition, claims []PresentationClaim, et EmbedTarget) ([]byte, error) {
+// Note: this method does not support LD cryptosuites, and prefers JWT representations. Future refactors
+// may include an analog method for LD suites.
+func BuildPresentationSubmission(signer crypto.JWTSigner, def PresentationDefinition, claims []PresentationClaim, et EmbedTarget) ([]byte, error) {
 	if !IsSupportedEmbedTarget(et) {
 		err := fmt.Errorf("unsupported presentation submission embed target type: %s", et)
 		logrus.WithError(err).Error()
@@ -138,19 +140,13 @@ func BuildPresentationSubmission(signer cryptosuite.Signer, def PresentationDefi
 	}
 	switch et {
 	case JWTVPTarget:
-		jwkSigner, ok := signer.(*cryptosuite.JSONWebKeySigner)
-		if !ok {
-			err := fmt.Errorf("signer not valid for request type: %s", et)
-			logrus.WithError(err).Error()
-			return nil, err
-		}
 		vpSubmission, err := BuildPresentationSubmissionVP(def, normalizedClaims)
 		if err != nil {
 			err := errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
 			logrus.WithError(err).Error()
 			return nil, err
 		}
-		return signing.SignVerifiablePresentationJWT(*jwkSigner, *vpSubmission)
+		return signing.SignVerifiablePresentationJWT(signer, *vpSubmission)
 	default:
 		err := fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
 		logrus.WithError(err).Error()

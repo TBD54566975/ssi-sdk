@@ -54,6 +54,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/example"
 	util "github.com/TBD54566975/ssi-sdk/example"
 	emp "github.com/TBD54566975/ssi-sdk/example/usecase/employer_university_flow/pkg"
@@ -153,14 +154,14 @@ func main() {
 	presentationRequest, _, err := emp.MakePresentationRequest(*jwk, presentationData, holderDID)
 	util.HandleExampleError(err, "failed to make presentation request")
 
-	verifier, err := cryptosuite.NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
+	verifier, err := crypto.NewJWTVerifier(jwk.ID, jwk.PublicKeyJWK)
 	util.HandleExampleError(err, "failed to build json web key verifier")
 
-	signer, err := cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.AssertionMethod)
+	signer, err := crypto.NewJWTSigner(jwk.ID, jwk.PrivateKeyJWK)
 	util.HandleExampleError(err, "failed to build json web key signer")
 
 	example.WriteNote("Student returns claims via a Presentation Submission")
-	submission, err := emp.BuildPresentationSubmission(presentationRequest, signer, *verifier, *vc)
+	submission, err := emp.BuildPresentationSubmission(presentationRequest, *signer, *verifier, *vc)
 	util.HandleExampleError(err, "failed to build presentation submission")
 	vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submission))
 	util.HandleExampleError(err, "failed to verify jwt")

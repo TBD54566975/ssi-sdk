@@ -66,7 +66,7 @@ func makePresentationRequest(presentationData exchange.PresentationDefinition) (
 	// Signer:
 	// https://github.com/TBD54566975/ssi-sdk/blob/main/cryptosuite/jsonwebkey2020.go#L350
 	// Implements: https://github.com/TBD54566975/ssi-sdk/blob/main/cryptosuite/jwt.go#L12
-	signer, err := cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.Authentication)
+	signer, err := crypto.NewJWTSigner(jwk.ID, jwk.PrivateKeyJWK)
 	if err != nil {
 		return
 	}

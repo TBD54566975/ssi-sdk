@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
@@ -11,14 +12,15 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 // VerifyPresentationSubmission verifies a presentation submission for both signature validity and correctness
 // with the specification. It is assumed that the caller knows the submission embed target, and the corresponding
 // presentation definition, and has access to the public key of the signer.
-func VerifyPresentationSubmission(verifier cryptosuite.Verifier, et EmbedTarget, def PresentationDefinition, submission []byte) error {
+// Note: this method does not support LD cryptosuites, and prefers JWT representations. Future refactors
+// may include an analog method for LD suites.
+func VerifyPresentationSubmission(verifier crypto.JWTVerifier, et EmbedTarget, def PresentationDefinition, submission []byte) error {
 	if err := canProcessDefinition(def); err != nil {
 		err := errors.Wrap(err, "feature not supported in processing given presentation definition")
 		logrus.WithError(err).Error("not able to verify presentation submission")
@@ -31,13 +33,7 @@ func VerifyPresentationSubmission(verifier cryptosuite.Verifier, et EmbedTarget,
 	}
 	switch et {
 	case JWTVPTarget:
-		jwkVerifier, ok := verifier.(*cryptosuite.JSONWebKeyVerifier)
-		if !ok {
-			err := fmt.Errorf("verifier not valid for request type: %s", et)
-			logrus.WithError(err).Error()
-			return err
-		}
-		vp, err := signing.VerifyVerifiablePresentationJWT(*jwkVerifier, string(submission))
+		vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(submission))
 		if err != nil {
 			err := errors.Wrap(err, "verification of the presentation submission failed")
 			logrus.WithError(err).Error()

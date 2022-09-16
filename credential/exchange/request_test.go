@@ -4,18 +4,23 @@ import (
 	"testing"
 
 	"github.com/goccy/go-json"
+	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 )
 
 func TestBuildPresentationRequest(t *testing.T) {
 
 	t.Run("JWT Request", func(t *testing.T) {
-		jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
+		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
-		signer, err := cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.Authentication)
+
+		key, err := jwk.New(privKey)
+		require.NoError(t, err)
+
+		signer, err := crypto.NewJWTSigner("test-id", key)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
@@ -23,7 +28,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, requestJWTBytes)
 
-		verifier, err := cryptosuite.NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
+		verifier, err := signer.ToVerifier()
 		assert.NoError(t, err)
 
 		parsed, err := verifier.VerifyAndParseJWT(string(requestJWTBytes))
@@ -35,17 +40,21 @@ func TestBuildPresentationRequest(t *testing.T) {
 	})
 
 	t.Run("Happy Path", func(t *testing.T) {
-		jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
+		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
-		signer, err := cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.Authentication)
+
+		key, err := jwk.New(privKey)
+		require.NoError(t, err)
+
+		signer, err := crypto.NewJWTSigner("test-id", key)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
-		requestJWTBytes, err := BuildPresentationRequest(signer, JWTRequest, testDef, "did:test")
+		requestJWTBytes, err := BuildPresentationRequest(*signer, JWTRequest, testDef, "did:test")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, requestJWTBytes)
 
-		verifier, err := cryptosuite.NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
+		verifier, err := signer.ToVerifier()
 		assert.NoError(t, err)
 
 		parsed, err := verifier.VerifyAndParseJWT(string(requestJWTBytes))
@@ -57,13 +66,17 @@ func TestBuildPresentationRequest(t *testing.T) {
 	})
 
 	t.Run("Unsupported Request Method", func(t *testing.T) {
-		jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
+		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
-		signer, err := cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.Authentication)
+
+		key, err := jwk.New(privKey)
+		require.NoError(t, err)
+
+		signer, err := crypto.NewJWTSigner("test-id", key)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
-		_, err = BuildPresentationRequest(signer, "bad", testDef, "did:test")
+		_, err = BuildPresentationRequest(*signer, "bad", testDef, "did:test")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "unsupported presentation request type")
 	})
