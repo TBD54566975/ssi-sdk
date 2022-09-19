@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/bits-and-blooms/bitset v1.3.3
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0
-	github.com/go-playground/validator/v10 v10.11.0
+	github.com/go-playground/validator/v10 v10.11.1
 	github.com/goccy/go-json v0.9.11
 	github.com/google/uuid v1.3.0
 	github.com/lestrrat-go/jwx v1.2.25
