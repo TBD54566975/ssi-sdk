@@ -438,12 +438,12 @@ func getTestVectorKey0Signer(t *testing.T, purpose ProofPurpose) (JSONWebKeySign
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	knownJWK := JSONWebKey2020{
 		ID: "did:example:123#key-0",
-		PublicKeyJWK: PublicKeyJWK{
+		PublicKeyJWK: crypto.PublicKeyJWK{
 			KTY: "OKP",
 			CRV: "Ed25519",
 			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
 		},
-		PrivateKeyJWK: PrivateKeyJWK{
+		PrivateKeyJWK: crypto.PrivateKeyJWK{
 			KTY: "OKP",
 			CRV: "Ed25519",
 			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",

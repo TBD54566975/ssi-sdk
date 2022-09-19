@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jws"
@@ -48,61 +47,15 @@ const (
 
 // JSONWebKey2020 complies with https://w3c-ccg.github.io/lds-jws2020/#json-web-key-2020
 type JSONWebKey2020 struct {
-	ID            string    `json:"id,omitempty"`
-	Type          LDKeyType `json:"type,omitempty"`
-	Controller    string    `json:"controller,omitempty"`
-	PrivateKeyJWK `json:"privateKeyJwk,omitempty"`
-	PublicKeyJWK  `json:"publicKeyJwk,omitempty"`
+	ID                   string    `json:"id,omitempty"`
+	Type                 LDKeyType `json:"type,omitempty"`
+	Controller           string    `json:"controller,omitempty"`
+	crypto.PrivateKeyJWK `json:"privateKeyJwk,omitempty"`
+	crypto.PublicKeyJWK  `json:"publicKeyJwk,omitempty"`
 }
 
 func (jwk *JSONWebKey2020) IsValid() error {
 	return util.NewValidator().Struct(jwk)
-}
-
-// PrivateKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
-type PrivateKeyJWK struct {
-	KTY    string `json:"kty" validate:"required"`
-	CRV    string `json:"crv,omitempty"`
-	X      string `json:"x,omitempty"`
-	Y      string `json:"y,omitempty"`
-	N      string `json:"n,omitempty"`
-	E      string `json:"e,omitempty"`
-	Use    string `json:"use,omitempty"`
-	KeyOps string `json:"key_ops,omitempty"`
-	Alg    string `json:"alg,omitempty"`
-	KID    string `json:"kid,omitempty"`
-	D      string `json:"d,omitempty"`
-	DP     string `json:"dp,omitempty"`
-	DQ     string `json:"dq,omitempty"`
-	P      string `json:"p,omitempty"`
-	Q      string `json:"q,omitempty"`
-	QI     string `json:"qi,omitempty"`
-}
-
-// PublicKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
-type PublicKeyJWK struct {
-	KTY    string `json:"kty" validate:"required"`
-	CRV    string `json:"crv,omitempty"`
-	X      string `json:"x,omitempty"`
-	Y      string `json:"y,omitempty"`
-	N      string `json:"n,omitempty"`
-	E      string `json:"e,omitempty"`
-	Use    string `json:"use,omitempty"`
-	KeyOps string `json:"key_ops,omitempty"`
-	Alg    string `json:"alg,omitempty"`
-	KID    string `json:"kid,omitempty"`
-}
-
-func ToPublicKeyJWK(key jwk.Key) (*PublicKeyJWK, error) {
-	keyBytes, err := json.Marshal(key)
-	if err != nil {
-		return nil, err
-	}
-	var pubKeyJWK PublicKeyJWK
-	if err := json.Unmarshal(keyBytes, &pubKeyJWK); err != nil {
-		return nil, err
-	}
-	return &pubKeyJWK, nil
 }
 
 // GenerateJSONWebKey2020 The JSONWebKey2020 type specifies a number of key type and curve pairs to enable JOSE conformance
@@ -167,7 +120,7 @@ func JSONWebKey2020FromRSA(privKey rsa.PrivateKey) (*JSONWebKey2020, error) {
 	e := encodeToBase64RawURL(rsaJWK.E())
 	return &JSONWebKey2020{
 		Type: JsonWebKey2020,
-		PrivateKeyJWK: PrivateKeyJWK{
+		PrivateKeyJWK: crypto.PrivateKeyJWK{
 			KTY: kty,
 			N:   n,
 			E:   e,
@@ -178,7 +131,7 @@ func JSONWebKey2020FromRSA(privKey rsa.PrivateKey) (*JSONWebKey2020, error) {
 			Q:   encodeToBase64RawURL(rsaJWK.Q()),
 			QI:  encodeToBase64RawURL(rsaJWK.QI()),
 		},
-		PublicKeyJWK: PublicKeyJWK{
+		PublicKeyJWK: crypto.PublicKeyJWK{
 			KTY: kty,
 			N:   n,
 			E:   e,
@@ -209,13 +162,13 @@ func JSONWebKey2020FromEd25519(privKey ed25519.PrivateKey) (*JSONWebKey2020, err
 	x := encodeToBase64RawURL(ed25519JWK.X())
 	return &JSONWebKey2020{
 		Type: JsonWebKey2020,
-		PrivateKeyJWK: PrivateKeyJWK{
+		PrivateKeyJWK: crypto.PrivateKeyJWK{
 			KTY: kty,
 			CRV: crv,
 			X:   x,
 			D:   encodeToBase64RawURL(ed25519JWK.D()),
 		},
-		PublicKeyJWK: PublicKeyJWK{
+		PublicKeyJWK: crypto.PublicKeyJWK{
 			KTY: kty,
 			CRV: crv,
 			X:   x,
@@ -232,7 +185,6 @@ func GenerateX25519JSONWebKey2020() (*JSONWebKey2020, error) {
 	}
 
 	return JSONWebKey2020FromX25519(privKey)
-
 }
 
 // JSONWebKey2020FromX25519 returns a JsonWebKey2020 value, containing both public and
@@ -248,13 +200,13 @@ func JSONWebKey2020FromX25519(privKey x25519.PrivateKey) (*JSONWebKey2020, error
 	x := encodeToBase64RawURL(x25519JWK.X())
 	return &JSONWebKey2020{
 		Type: JsonWebKey2020,
-		PrivateKeyJWK: PrivateKeyJWK{
+		PrivateKeyJWK: crypto.PrivateKeyJWK{
 			KTY: kty,
 			CRV: crv,
 			X:   x,
 			D:   encodeToBase64RawURL(x25519JWK.D()),
 		},
-		PublicKeyJWK: PublicKeyJWK{
+		PublicKeyJWK: crypto.PublicKeyJWK{
 			KTY: kty,
 			CRV: crv,
 			X:   x,
@@ -292,14 +244,14 @@ func JSONWebKey2020FromSECP256k1(privKey secp256k1.PrivateKey) (*JSONWebKey2020,
 	y := encodeToBase64RawURL(secp256k1JWK.Y())
 	return &JSONWebKey2020{
 		Type: JsonWebKey2020,
-		PrivateKeyJWK: PrivateKeyJWK{
+		PrivateKeyJWK: crypto.PrivateKeyJWK{
 			KTY: kty,
 			CRV: crv,
 			X:   x,
 			Y:   y,
 			D:   encodeToBase64RawURL(secp256k1JWK.D()),
 		},
-		PublicKeyJWK: PublicKeyJWK{
+		PublicKeyJWK: crypto.PublicKeyJWK{
 			KTY: kty,
 			CRV: crv,
 			X:   x,
@@ -334,14 +286,14 @@ func JSONWebKey2020FromP256(privKey ecdsa.PrivateKey) (*JSONWebKey2020, error) {
 	y := encodeToBase64RawURL(p256JWK.Y())
 	return &JSONWebKey2020{
 		Type: JsonWebKey2020,
-		PrivateKeyJWK: PrivateKeyJWK{
+		PrivateKeyJWK: crypto.PrivateKeyJWK{
 			KTY: kty,
 			CRV: crv,
 			X:   x,
 			Y:   y,
 			D:   encodeToBase64RawURL(p256JWK.D()),
 		},
-		PublicKeyJWK: PublicKeyJWK{
+		PublicKeyJWK: crypto.PublicKeyJWK{
 			KTY: kty,
 			CRV: crv,
 			X:   x,
@@ -378,14 +330,14 @@ func JSONWebKey2020FromP384(privKey ecdsa.PrivateKey) (*JSONWebKey2020, error) {
 	y := encodeToBase64RawURL(p384JWK.Y())
 	return &JSONWebKey2020{
 		Type: JsonWebKey2020,
-		PrivateKeyJWK: PrivateKeyJWK{
+		PrivateKeyJWK: crypto.PrivateKeyJWK{
 			KTY: kty,
 			CRV: crv,
 			X:   x,
 			Y:   y,
 			D:   encodeToBase64RawURL(p384JWK.D()),
 		},
-		PublicKeyJWK: PublicKeyJWK{
+		PublicKeyJWK: crypto.PublicKeyJWK{
 			KTY: kty,
 			CRV: crv,
 			X:   x,
@@ -398,8 +350,7 @@ func JSONWebKey2020FromP384(privKey ecdsa.PrivateKey) (*JSONWebKey2020, error) {
 // Given a signature algorithm (e.g. ES256, PS384) and a JSON Web Key (private key), the signer is able to accept
 // a message and provide a valid JSON Web Signature (JWS) value as a result.
 type JSONWebKeySigner struct {
-	jwa.SignatureAlgorithm
-	jwk.Key
+	crypto.JWTSigner
 	purpose ProofPurpose
 	format  PayloadFormat
 }
@@ -450,33 +401,14 @@ func (s *JSONWebKeySigner) GetPayloadFormat() PayloadFormat {
 	return s.format
 }
 
-func NewJSONWebKeySigner(kid string, key PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
-	privKeyJWKBytes, err := json.Marshal(key)
+func NewJSONWebKeySigner(kid string, key crypto.PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
+	signer, err := crypto.NewJWTSigner(kid, key)
 	if err != nil {
 		return nil, err
-	}
-	privKeyJWK, err := jwk.ParseKey(privKeyJWKBytes)
-	if err != nil {
-		return nil, err
-	}
-	crv, err := getCrvFromJWK(privKeyJWK)
-	if err != nil {
-		return nil, err
-	}
-	alg, err := AlgFromKeyAndCurve(privKeyJWK.KeyType(), jwa.EllipticCurveAlgorithm(crv))
-	if err != nil {
-		return nil, errors.Wrap(err, "could not get verification alg from jwk")
-	}
-	if err := privKeyJWK.Set(jwk.KeyIDKey, kid); err != nil {
-		return nil, fmt.Errorf("could not set kid with provided value: %s", kid)
-	}
-	if err := privKeyJWK.Set(jwk.AlgorithmKey, alg); err != nil {
-		return nil, fmt.Errorf("could not set alg with value: %s", alg)
 	}
 	return &JSONWebKeySigner{
-		SignatureAlgorithm: alg,
-		Key:                privKeyJWK,
-		purpose:            purpose,
+		JWTSigner: *signer,
+		purpose:   purpose,
 	}, nil
 }
 
@@ -484,14 +416,13 @@ func NewJSONWebKeySigner(kid string, key PrivateKeyJWK, purpose ProofPurpose) (*
 // Given a signature algorithm (e.g. ES256, PS384) and a JSON Web Key (pub key), the verifier is able to accept
 // a message and signature, and provide a result to whether the signature is valid.
 type JSONWebKeyVerifier struct {
-	jwa.SignatureAlgorithm
-	jwk.Key
+	crypto.JWTVerifier
 }
 
 // Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
 // and an error should it fail.
 func (v *JSONWebKeyVerifier) Verify(message, signature []byte) error {
-	_, err := jws.Verify(signature, v.SignatureAlgorithm, v.Key, jws.WithDetachedPayload(message))
+	_, err := jws.Verify(signature, jwa.SignatureAlgorithm(v.Algorithm()), v.Key, jws.WithDetachedPayload(message))
 	if err != nil {
 		logrus.WithError(err).Error("could not verify JWK")
 	}
@@ -506,83 +437,16 @@ func (v *JSONWebKeyVerifier) GetKeyType() string {
 	return string(v.Key.KeyType())
 }
 
-func NewJSONWebKeyVerifier(kid string, key PublicKeyJWK) (*JSONWebKeyVerifier, error) {
-	pubKeyJWKBytes, err := json.Marshal(key)
+func NewJSONWebKeyVerifier(kid string, key crypto.PublicKeyJWK) (*JSONWebKeyVerifier, error) {
+	verifier, err := crypto.NewJWTVerifier(kid, key)
 	if err != nil {
 		return nil, err
-	}
-	pubKeyJWK, err := jwk.ParseKey(pubKeyJWKBytes)
-	if err != nil {
-		return nil, err
-	}
-	crv, err := getCrvFromJWK(pubKeyJWK)
-	if err != nil {
-		return nil, err
-	}
-	alg, err := AlgFromKeyAndCurve(pubKeyJWK.KeyType(), jwa.EllipticCurveAlgorithm(crv))
-	if err != nil {
-		return nil, errors.Wrap(err, "could not get verification alg from jwk")
-	}
-	if err := pubKeyJWK.Set(jwk.KeyIDKey, kid); err != nil {
-		return nil, fmt.Errorf("could not set kid with provided value: %s", kid)
-	}
-	if err := pubKeyJWK.Set(jwk.AlgorithmKey, alg); err != nil {
-		return nil, fmt.Errorf("could not set alg with value: %s", alg)
 	}
 	return &JSONWebKeyVerifier{
-		SignatureAlgorithm: alg,
-		Key:                pubKeyJWK,
+		JWTVerifier: *verifier,
 	}, nil
-}
-
-// AlgFromKeyAndCurve returns the supported JSON Web Algorithm for signing for a given key type and curve pair
-// The curve parameter is optional (e.g. "") as in the case of RSA.
-func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.SignatureAlgorithm, error) {
-	if kty == jwa.RSA {
-		return jwa.PS256, nil
-	}
-
-	if crv == "" {
-		return "", errors.New("crv must be specified for non-RSA key types")
-	}
-
-	curve := crv
-	if kty == jwa.OKP {
-		switch curve {
-		case jwa.Ed25519:
-			return jwa.EdDSA, nil
-		default:
-			return "", fmt.Errorf("unsupported OKP signing curve: %s", curve)
-		}
-	}
-
-	if kty == jwa.EC {
-		switch curve {
-		case jwa.EllipticCurveAlgorithm(Secp256k1):
-			return jwa.ES256K, nil
-		case jwa.P256:
-			return jwa.ES256, nil
-		case jwa.P384:
-			return jwa.ES384, nil
-		default:
-			return "", fmt.Errorf("unsupported EC curve: %s", curve)
-		}
-	}
-	return "", fmt.Errorf("unsupported key type: %s", kty)
 }
 
 func encodeToBase64RawURL(data []byte) string {
 	return base64.RawURLEncoding.EncodeToString(data)
-}
-
-func getCrvFromJWK(jwk jwk.Key) (string, error) {
-	maybeCrv, hasCrv := jwk.Get("crv")
-	if hasCrv {
-		crv, crvStr := maybeCrv.(jwa.EllipticCurveAlgorithm)
-		if !crvStr {
-			return "", fmt.Errorf("could not get crv value: %+v", maybeCrv)
-		}
-		return crv.String(), nil
-	}
-	return "", nil
 }
