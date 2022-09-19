@@ -1,6 +1,6 @@
 module github.com/TBD54566975/ssi-sdk
 
-go 1.17
+go 1.19
 
 require (
 	github.com/bits-and-blooms/bitset v1.3.2
@@ -22,9 +22,6 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90
 	gopkg.in/h2non/gock.v1 v1.1.2
-)
-
-require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
