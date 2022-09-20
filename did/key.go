@@ -219,7 +219,7 @@ func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType
 		return nil, errors.Wrap(err, errMsg)
 	}
 
-	pubKeyJWK, err := crypto.ToPublicKeyJWK(standardJWK)
+	pubKeyJWK, err := crypto.JWKToPublicKeyJWK(standardJWK)
 	if err != nil {
 		errMsg := "could convert did:key to PublicKeyJWK"
 		logrus.WithError(err).Error(errMsg)

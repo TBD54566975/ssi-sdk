@@ -5,12 +5,10 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
-	"encoding/base64"
 	"fmt"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/x25519"
 
@@ -124,38 +122,20 @@ func GenerateRSAJSONWebKey2020() (*JSONWebKey2020, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return JSONWebKey2020FromRSA(privKey)
 }
 
 // JSONWebKey2020FromRSA returns a JsonWebKey2020 value, containing both public and private keys
 // for an RSA-2048 key. This function coverts a rsa.PrivateKey to a JsonWebKey2020
 func JSONWebKey2020FromRSA(privKey rsa.PrivateKey) (*JSONWebKey2020, error) {
-	rsaJWK := jwk.NewRSAPrivateKey()
-	if err := rsaJWK.FromRaw(&privKey); err != nil {
-		return nil, errors.Wrap(err, "failed to generate rsa jwk")
+	pubKeyJWK, privKeyJWK, err := crypto.JWKFromRSAPrivateKey(privKey)
+	if err != nil {
+		return nil, err
 	}
-	kty := rsaJWK.KeyType().String()
-	n := encodeToBase64RawURL(rsaJWK.N())
-	e := encodeToBase64RawURL(rsaJWK.E())
 	return &JSONWebKey2020{
-		Type: JsonWebKey2020,
-		PrivateKeyJWK: crypto.PrivateKeyJWK{
-			KTY: kty,
-			N:   n,
-			E:   e,
-			D:   encodeToBase64RawURL(rsaJWK.D()),
-			DP:  encodeToBase64RawURL(rsaJWK.DP()),
-			DQ:  encodeToBase64RawURL(rsaJWK.DQ()),
-			P:   encodeToBase64RawURL(rsaJWK.P()),
-			Q:   encodeToBase64RawURL(rsaJWK.Q()),
-			QI:  encodeToBase64RawURL(rsaJWK.QI()),
-		},
-		PublicKeyJWK: crypto.PublicKeyJWK{
-			KTY: kty,
-			N:   n,
-			E:   e,
-		},
+		Type:          JsonWebKey2020,
+		PrivateKeyJWK: *privKeyJWK,
+		PublicKeyJWK:  *pubKeyJWK,
 	}, nil
 }
 
@@ -370,8 +350,4 @@ func NewJSONWebKeyVerifier(kid string, key crypto.PublicKeyJWK) (*JSONWebKeyVeri
 	return &JSONWebKeyVerifier{
 		JWTVerifier: *verifier,
 	}, nil
-}
-
-func encodeToBase64RawURL(data []byte) string {
-	return base64.RawURLEncoding.EncodeToString(data)
 }
