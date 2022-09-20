@@ -53,7 +53,7 @@ func (d DIDKey) Parse() (string, error) {
 // The function returns the associated private key value cast to the generic golang crypto.PrivateKey interface.
 // To use the private key, it is recommended to re-cast to the associated type. For example, called with the input
 // for a secp256k1 key:
-// privKey, didKey, err := GenerateDIDKey(Secp256k1)
+// privKey, didKey, err := GenerateDIDKey(SECP256k1)
 // if err != nil { ... }
 // // where secp is an import alias to the secp256k1 library we use "github.com/decred/dcrd/dcrec/secp256k1/v4"
 // secpPrivKey, ok := privKey.(secp.PrivateKey)
@@ -219,7 +219,7 @@ func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType
 		return nil, errors.Wrap(err, errMsg)
 	}
 
-	pubKeyJWK, err := crypto.ToPublicKeyJWK(standardJWK)
+	pubKeyJWK, err := crypto.JWKToPublicKeyJWK(standardJWK)
 	if err != nil {
 		errMsg := "could convert did:key to PublicKeyJWK"
 		logrus.WithError(err).Error(errMsg)
