@@ -92,13 +92,13 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 		{
 			name:      "secp256k1",
 			kty:       EC,
-			crv:       Secp256k1,
+			crv:       SECP256k1,
 			expectErr: false,
 		},
 		{
 			name:      "secp256k1 as OKP",
 			kty:       OKP,
-			crv:       Secp256k1,
+			crv:       SECP256k1,
 			expectErr: true,
 		},
 		{

@@ -68,7 +68,7 @@ func TestGenerateDIDKey(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name:      "Secp256k1",
+			name:      "SECP256k1",
 			keyType:   crypto.Secp256k1,
 			expectErr: false,
 		},
@@ -369,7 +369,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.Equal(tt, X25519KeyAgreementKey2019, didDoc3.VerificationMethod[0].Type)
 	})
 
-	t.Run("Secp256k1", func(tt *testing.T) {
+	t.Run("SECP256k1", func(tt *testing.T) {
 		did1 := "did:key:zQ3shokFTS3brHcDQrn82RUDfCZESWL1ZdCEJwekUDPQiYBme"
 		didKey1 := DIDKey(did1)
 		didDoc1, err := didKey1.Expand()
