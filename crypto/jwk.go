@@ -77,7 +77,7 @@ func JWKToPublicKeyJWK(key jwk.Key) (*PublicKeyJWK, error) {
 }
 
 // PublicKeyToPublicKeyJWK converts a public key to a PublicKeyJWK
-func PublicKeyToPublicKeyJWK(key crypto.PrivateKey) (*PublicKeyJWK, error) {
+func PublicKeyToPublicKeyJWK(key crypto.PublicKey) (*PublicKeyJWK, error) {
 	switch key.(type) {
 	case rsa.PublicKey:
 		return JWKFromRSAPublicKey(key.(rsa.PublicKey))
