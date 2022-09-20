@@ -1,6 +1,7 @@
 package cryptosuite
 
 import (
+	gocrypto "crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
@@ -97,6 +98,25 @@ func GenerateJSONWebKey2020(kty KTY, crv CRV) (*JSONWebKey2020, error) {
 	return nil, fmt.Errorf("unsupported key type: %s", kty)
 }
 
+// JSONWebKey2020FromPrivateKey returns a JsonWebKey2020 value from a given private key, containing both JWK
+// public and private key representations of the key.
+func JSONWebKey2020FromPrivateKey(key gocrypto.PrivateKey) (*JSONWebKey2020, error) {
+	switch key.(type) {
+	case rsa.PrivateKey:
+		return JSONWebKey2020FromRSA(key.(rsa.PrivateKey))
+	case ed25519.PrivateKey:
+		return JSONWebKey2020FromEd25519(key.(ed25519.PrivateKey))
+	case x25519.PrivateKey:
+		return JSONWebKey2020FromX25519(key.(x25519.PrivateKey))
+	case ecdsa.PrivateKey:
+		return JSONWebKey2020FromECDSA(key.(ecdsa.PrivateKey))
+	case secp256k1.PrivateKey:
+		return JSONWebKey2020FromSECP256k1(key.(secp256k1.PrivateKey))
+	default:
+		return nil, fmt.Errorf("unsupported private key type: %T", key)
+	}
+}
+
 // GenerateRSAJSONWebKey2020 returns a JsonWebKey2020 value, containing both public and private keys
 // for an RSA-2048 key.
 func GenerateRSAJSONWebKey2020() (*JSONWebKey2020, error) {
@@ -152,27 +172,14 @@ func GenerateEd25519JSONWebKey2020() (*JSONWebKey2020, error) {
 // JSONWebKey2020FromEd25519 returns a JsonWebKey2020 value, containing both public and
 // private keys for an Ed25519 key. This function coverts a ed25519.PrivateKey to a JsonWebKey2020
 func JSONWebKey2020FromEd25519(privKey ed25519.PrivateKey) (*JSONWebKey2020, error) {
-	ed25519JWK := jwk.NewOKPPrivateKey()
-	if err := ed25519JWK.FromRaw(privKey); err != nil {
-		return nil, errors.Wrap(err, "failed to generate ed25519 jwk")
+	pubKeyJWK, privKeyJWK, err := crypto.JWKFromEd25519PrivateKey(privKey)
+	if err != nil {
+		return nil, err
 	}
-
-	kty := ed25519JWK.KeyType().String()
-	crv := ed25519JWK.Crv().String()
-	x := encodeToBase64RawURL(ed25519JWK.X())
 	return &JSONWebKey2020{
-		Type: JsonWebKey2020,
-		PrivateKeyJWK: crypto.PrivateKeyJWK{
-			KTY: kty,
-			CRV: crv,
-			X:   x,
-			D:   encodeToBase64RawURL(ed25519JWK.D()),
-		},
-		PublicKeyJWK: crypto.PublicKeyJWK{
-			KTY: kty,
-			CRV: crv,
-			X:   x,
-		},
+		Type:          JsonWebKey2020,
+		PrivateKeyJWK: *privKeyJWK,
+		PublicKeyJWK:  *pubKeyJWK,
 	}, nil
 }
 
@@ -183,34 +190,20 @@ func GenerateX25519JSONWebKey2020() (*JSONWebKey2020, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return JSONWebKey2020FromX25519(privKey)
 }
 
 // JSONWebKey2020FromX25519 returns a JsonWebKey2020 value, containing both public and
 // private keys for an x25519 key. This function coverts a x25519.PrivateKey to a JsonWebKey2020
 func JSONWebKey2020FromX25519(privKey x25519.PrivateKey) (*JSONWebKey2020, error) {
-	x25519JWK := jwk.NewOKPPrivateKey()
-	if err := x25519JWK.FromRaw(privKey); err != nil {
-		return nil, errors.Wrap(err, "failed to generate x25519 jwk")
+	publicKeyJWK, privateKeyJWK, err := crypto.JWKFromX25519PrivateKey(privKey)
+	if err != nil {
+		return nil, err
 	}
-
-	kty := x25519JWK.KeyType().String()
-	crv := x25519JWK.Crv().String()
-	x := encodeToBase64RawURL(x25519JWK.X())
 	return &JSONWebKey2020{
-		Type: JsonWebKey2020,
-		PrivateKeyJWK: crypto.PrivateKeyJWK{
-			KTY: kty,
-			CRV: crv,
-			X:   x,
-			D:   encodeToBase64RawURL(x25519JWK.D()),
-		},
-		PublicKeyJWK: crypto.PublicKeyJWK{
-			KTY: kty,
-			CRV: crv,
-			X:   x,
-		},
+		Type:          JsonWebKey2020,
+		PrivateKeyJWK: *privateKeyJWK,
+		PublicKeyJWK:  *publicKeyJWK,
 	}, nil
 }
 
@@ -231,32 +224,14 @@ func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
 // JSONWebKey2020FromSECP256k1 returns a JsonWebKey2020 value, containing both public and
 // private keys for an secp256k1 key. This function coverts a secp256k1.PrivateKey to a JsonWebKey2020
 func JSONWebKey2020FromSECP256k1(privKey secp256k1.PrivateKey) (*JSONWebKey2020, error) {
-	ecdsaPrivKey := privKey.ToECDSA()
-	secp256k1JWK := jwk.NewECDSAPrivateKey()
-	if err := secp256k1JWK.FromRaw(ecdsaPrivKey); err != nil {
-		err := errors.Wrap(err, "failed to generate secp256k1 jwk")
-		logrus.WithError(err).Error("could not extract key from raw private key")
+	publicKeyJWK, privateKeyJWK, err := crypto.JWKFromSECP256k1PrivateKey(privKey)
+	if err != nil {
 		return nil, err
 	}
-	kty := secp256k1JWK.KeyType().String()
-	crv := secp256k1JWK.Crv().String()
-	x := encodeToBase64RawURL(secp256k1JWK.X())
-	y := encodeToBase64RawURL(secp256k1JWK.Y())
 	return &JSONWebKey2020{
-		Type: JsonWebKey2020,
-		PrivateKeyJWK: crypto.PrivateKeyJWK{
-			KTY: kty,
-			CRV: crv,
-			X:   x,
-			Y:   y,
-			D:   encodeToBase64RawURL(secp256k1JWK.D()),
-		},
-		PublicKeyJWK: crypto.PublicKeyJWK{
-			KTY: kty,
-			CRV: crv,
-			X:   x,
-			Y:   y,
-		},
+		Type:          JsonWebKey2020,
+		PrivateKeyJWK: *privateKeyJWK,
+		PublicKeyJWK:  *publicKeyJWK,
 	}, nil
 }
 
@@ -268,38 +243,7 @@ func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
 		logrus.WithError(err).Error("could not generate p-256 key")
 		return nil, err
 	}
-	return JSONWebKey2020FromP256(privKey)
-}
-
-// JSONWebKey2020FromP256 returns a JsonWebKey2020 value, containing both public and
-// private keys for an P-256 ECDSA key. This function coverts a P-256 ecdsa.PrivateKey to a JsonWebKey2020
-func JSONWebKey2020FromP256(privKey ecdsa.PrivateKey) (*JSONWebKey2020, error) {
-	p256JWK := jwk.NewECDSAPrivateKey()
-	if err := p256JWK.FromRaw(&privKey); err != nil {
-		err := errors.Wrap(err, "failed to generate p-256 jwk")
-		logrus.WithError(err).Error("could not extract key from raw private key")
-		return nil, err
-	}
-	kty := p256JWK.KeyType().String()
-	crv := p256JWK.Crv().String()
-	x := encodeToBase64RawURL(p256JWK.X())
-	y := encodeToBase64RawURL(p256JWK.Y())
-	return &JSONWebKey2020{
-		Type: JsonWebKey2020,
-		PrivateKeyJWK: crypto.PrivateKeyJWK{
-			KTY: kty,
-			CRV: crv,
-			X:   x,
-			Y:   y,
-			D:   encodeToBase64RawURL(p256JWK.D()),
-		},
-		PublicKeyJWK: crypto.PublicKeyJWK{
-			KTY: kty,
-			CRV: crv,
-			X:   x,
-			Y:   y,
-		},
-	}, nil
+	return JSONWebKey2020FromECDSA(privKey)
 }
 
 // GenerateP384JSONWebKey2020 returns a JsonWebKey2020 value, containing both public and
@@ -310,39 +254,20 @@ func GenerateP384JSONWebKey2020() (*JSONWebKey2020, error) {
 		logrus.WithError(err).Error("could not generate p-384 key")
 		return nil, err
 	}
-
-	return JSONWebKey2020FromP384(privKey)
-
+	return JSONWebKey2020FromECDSA(privKey)
 }
 
-// JSONWebKey2020FromP384 returns a JsonWebKey2020 value, containing both public and
-// private keys for an P-384 ECDSA key. This function coverts a P-384 ecdsa.PrivateKey to a JsonWebKey2020
-func JSONWebKey2020FromP384(privKey ecdsa.PrivateKey) (*JSONWebKey2020, error) {
-	p384JWK := jwk.NewECDSAPrivateKey()
-	if err := p384JWK.FromRaw(&privKey); err != nil {
-		err := errors.Wrap(err, "failed to generate p-384 jwk")
-		logrus.WithError(err).Error("could not extract key from raw private key")
+// JSONWebKey2020FromECDSA returns a JsonWebKey2020 value, containing both public and
+// private keys for an ECDSA key. This function coverts an ecdsa.PrivateKey to a JsonWebKey2020
+func JSONWebKey2020FromECDSA(privKey ecdsa.PrivateKey) (*JSONWebKey2020, error) {
+	publicKeyJWK, privateKeyJWK, err := crypto.JWKFromECDSAPrivateKey(privKey)
+	if err != nil {
 		return nil, err
 	}
-	kty := p384JWK.KeyType().String()
-	crv := p384JWK.Crv().String()
-	x := encodeToBase64RawURL(p384JWK.X())
-	y := encodeToBase64RawURL(p384JWK.Y())
 	return &JSONWebKey2020{
-		Type: JsonWebKey2020,
-		PrivateKeyJWK: crypto.PrivateKeyJWK{
-			KTY: kty,
-			CRV: crv,
-			X:   x,
-			Y:   y,
-			D:   encodeToBase64RawURL(p384JWK.D()),
-		},
-		PublicKeyJWK: crypto.PublicKeyJWK{
-			KTY: kty,
-			CRV: crv,
-			X:   x,
-			Y:   y,
-		},
+		Type:          JsonWebKey2020,
+		PrivateKeyJWK: *privateKeyJWK,
+		PublicKeyJWK:  *publicKeyJWK,
 	}, nil
 }
 

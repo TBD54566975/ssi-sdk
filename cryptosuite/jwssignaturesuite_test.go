@@ -175,8 +175,8 @@ func TestCredentialLDProof(t *testing.T) {
 	}
 
 	// create a copy for value verification later
-	var preSigned TestCredential
-	err := util.Copy(&knownCred, &preSigned)
+	var presigned TestCredential
+	err := util.Copy(&knownCred, &presigned)
 	assert.NoError(t, err)
 
 	jwk, err := GenerateJSONWebKey2020(OKP, Ed25519)
@@ -200,12 +200,12 @@ func TestCredentialLDProof(t *testing.T) {
 	assert.NoError(t, err)
 
 	// make sure all values are maintained after signing
-	assert.Equal(t, preSigned.Context, knownCred.Context)
-	assert.Equal(t, preSigned.ID, knownCred.ID)
-	assert.Equal(t, preSigned.Type, knownCred.Type)
-	assert.Equal(t, preSigned.Issuer, knownCred.Issuer)
-	assert.Equal(t, preSigned.IssuanceDate, knownCred.IssuanceDate)
-	assert.Equal(t, preSigned.CredentialSubject, knownCred.CredentialSubject)
+	assert.Equal(t, presigned.Context, knownCred.Context)
+	assert.Equal(t, presigned.ID, knownCred.ID)
+	assert.Equal(t, presigned.Type, knownCred.Type)
+	assert.Equal(t, presigned.Issuer, knownCred.Issuer)
+	assert.Equal(t, presigned.IssuanceDate, knownCred.IssuanceDate)
+	assert.Equal(t, presigned.CredentialSubject, knownCred.CredentialSubject)
 
 	// make sure the proof has valid values
 	assert.NotEmpty(t, knownCred.Proof)
