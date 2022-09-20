@@ -15,6 +15,21 @@ on:
   workflow_dispatch:
 
 jobs:
+  vulnerability-scan: 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Install govuln
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Check Vulnerabilities
+        run: govulncheck ./...              
   build:
     runs-on: ubuntu-latest
     steps:
@@ -36,9 +51,3 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
-
-      - name: Install govuln
-        run: go install golang.org/x/vuln/cmd/govulncheck@latest
-
-      - name: Check Vulnerabilities
-        run: govulncheck ./...           
