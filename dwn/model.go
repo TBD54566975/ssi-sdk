@@ -32,7 +32,7 @@ type DWNDescriptor struct {
 	DataFormat string `json:"dataFormat" validate:"required"`
 
 	// CollectionsQuery and CollectionsWrite
-	RecordId      string `json:"recordId" validate:"required"`
+	RecordID      string `json:"recordId" validate:"required"`
 	DateCreated   int64  `json:"dateCreated" validate:"required"`
 	ContextId     string `json:"contextId,omitempty"`
 	Schema        string `json:"schema,omitempty"`
