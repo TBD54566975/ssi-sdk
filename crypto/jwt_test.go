@@ -62,6 +62,13 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 
+	signerParsed, err := signer.ParseJWT(string(token))
+	assert.NoError(t, err)
+
+	gotSignerID, ok := signerParsed.Get("id")
+	assert.True(t, ok)
+	assert.EqualValues(t, "abcd", gotSignerID)
+
 	err = verifier.VerifyJWT(string(token))
 	assert.NoError(t, err)
 
