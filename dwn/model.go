@@ -28,7 +28,7 @@ type DWNDescriptor struct {
 	// Base messages
 	Nonce      string `json:"nonce" validate:"required"`
 	Method     string `json:"method" validate:"required"`
-	DataCid    string `json:"dataCid" validate:"required"`
+	DataCID    string `json:"dataCid" validate:"required"`
 	DataFormat string `json:"dataFormat" validate:"required"`
 
 	// CollectionsQuery and CollectionsWrite
