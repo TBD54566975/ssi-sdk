@@ -34,7 +34,7 @@ type DWNDescriptor struct {
 	// CollectionsQuery and CollectionsWrite
 	RecordID      string `json:"recordId" validate:"required"`
 	DateCreated   int64  `json:"dateCreated" validate:"required"`
-	ContextId     string `json:"contextId,omitempty"`
+	ContextID     string `json:"contextId,omitempty"`
 	Schema        string `json:"schema,omitempty"`
 	Published     bool   `json:"published,omitempty"`
 	DatePublished int64  `json:"datePublished,omitempty"`
