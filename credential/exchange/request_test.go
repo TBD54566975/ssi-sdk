@@ -12,7 +12,6 @@ import (
 )
 
 func TestBuildPresentationRequest(t *testing.T) {
-
 	t.Run("JWT Request", func(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)

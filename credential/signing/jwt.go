@@ -17,12 +17,13 @@ import (
 )
 
 const (
-	VCJWTProperty string = "credential"
+	VCJWTProperty string = "vc"
 	VPJWTProperty string = "vp"
 	NonceProperty string = "nonce"
 )
 
 // SignVerifiableCredentialJWT is prepared according to https://www.w3.org/TR/vc-data-model/#jwt-encoding
+// which will soon be deprecated by https://w3c.github.io/vc-jwt/ see: https://github.com/TBD54566975/ssi-sdk/issues/191
 func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.VerifiableCredential) ([]byte, error) {
 	if cred.IsEmpty() {
 		return nil, errors.New("credential cannot be empty")
