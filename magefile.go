@@ -23,6 +23,16 @@ const (
 	Go = "go"
 )
 
+func installGoVulnIfNotPresent() error {
+	return installIfNotPresent("govulncheck", "golang.org/x/vuln/cmd/govulncheck@latest")
+}
+
+func Vuln() error {
+	fmt.Println("Vulnerability checks...")
+	installGoVulnIfNotPresent()
+	return sh.Run("govulncheck", "./...")
+}
+
 // Build builds the library.
 func Build() error {
 	fmt.Println("Building...")
