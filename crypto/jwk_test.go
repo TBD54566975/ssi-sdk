@@ -81,7 +81,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("secp256k1", func(tt *testing.T) {
-		pubKey, _, err := GenerateSecp256k1Key()
+		pubKey, _, err := GenerateSECP256k1Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
@@ -154,7 +154,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("secp256k1", func(tt *testing.T) {
-		_, privKey, err := GenerateSecp256k1Key()
+		_, privKey, err := GenerateSECP256k1Key()
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)

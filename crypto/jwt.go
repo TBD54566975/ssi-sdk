@@ -168,7 +168,7 @@ func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.Si
 
 	if kty == jwa.EC {
 		switch curve {
-		case jwa.EllipticCurveAlgorithm(Secp256k1):
+		case jwa.EllipticCurveAlgorithm(SECP256k1):
 			return jwa.ES256K, nil
 		case jwa.P256:
 			return jwa.ES256, nil
