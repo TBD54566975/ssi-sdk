@@ -140,7 +140,7 @@ func GenerateX25519JSONWebKey2020() (*JSONWebKey2020, error) {
 // which is utilized in the widely accepted go bitcoin node implementation from the btcsuite project
 // https://github.com/btcsuite/btcd/blob/master/btcec/btcec.go#L23
 func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
-	_, privKey, err := crypto.GenerateSecp256k1Key()
+	_, privKey, err := crypto.GenerateSECP256k1Key()
 	if err != nil {
 		logrus.WithError(err).Error("could not generate secp256k1 key")
 		return nil, err
