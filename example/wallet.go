@@ -110,7 +110,7 @@ func (s *SimpleWallet) Init(keyType string) error {
 		didStr = didk.ToString()
 	} else {
 		var didKey *did.DIDKey
-		privKey, didKey, err = did.GenerateDIDKey(crypto.Secp256k1)
+		privKey, didKey, err = did.GenerateDIDKey(crypto.SECP256k1)
 		if err != nil {
 			return err
 		}

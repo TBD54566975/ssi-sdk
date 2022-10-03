@@ -129,7 +129,7 @@ func keyTypeToMultiCodec(kt crypto.KeyType) (multicodec.Code, error) {
 		return Ed25519MultiCodec, nil
 	case crypto.X25519:
 		return X25519MultiCodec, nil
-	case crypto.Secp256k1:
+	case crypto.SECP256k1:
 		return Secp256k1MultiCodec, nil
 	case crypto.P256:
 		return P256MultiCodec, nil

@@ -138,7 +138,7 @@ func KeyTypeToLDKeyType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
 		return Ed25519VerificationKey2018, nil
 	case crypto.X25519:
 		return X25519KeyAgreementKey2019, nil
-	case crypto.Secp256k1:
+	case crypto.SECP256k1:
 		return EcdsaSecp256k1VerificationKey2019, nil
 	case crypto.P256, crypto.P384, crypto.P521, crypto.RSA:
 		return cryptosuite.JsonWebKey2020, nil
