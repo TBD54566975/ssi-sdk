@@ -16,22 +16,14 @@ import (
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
 const (
-	Go = "go"
+	Go       = "go"
+	gomobile = "gomobile"
 )
-
-func installGoVulnIfNotPresent() error {
-	return installIfNotPresent("govulncheck", "golang.org/x/vuln/cmd/govulncheck@latest")
-}
-
-func Vuln() error {
-	fmt.Println("Vulnerability checks...")
-	installGoVulnIfNotPresent()
-	return sh.Run("govulncheck", "./...")
-}
 
 // Build builds the library.
 func Build() error {
@@ -42,7 +34,7 @@ func Build() error {
 // Clean deletes any build artifacts.
 func Clean() {
 	fmt.Println("Cleaning...")
-	os.RemoveAll("bin")
+	_ = os.RemoveAll("bin")
 }
 
 // Test runs unit tests without coverage.
@@ -101,26 +93,39 @@ func (w *regexpWriter) Write(p []byte) (int, error) {
 }
 
 func runGo(cmd string, args ...string) error {
-	return sh.Run(findOnPathOrGoPath("go"), append([]string{"run", cmd}, args...)...)
+	return sh.Run(findOnPathOrGoPath(Go), append([]string{"run", cmd}, args...)...)
 }
 
 // InstallIfNotPresent installs a go based tool (if not already installed)
 func installIfNotPresent(execName, goPackage string) error {
 	usr, err := user.Current()
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithError(err).Fatal()
 		return err
 	}
 	pathOfExec := findOnPathOrGoPath(execName)
 	if len(pathOfExec) == 0 {
 		cmd := exec.Command(Go, "get", "-u", goPackage)
-		cmd.Dir = usr.HomeDir
-		if err := cmd.Start(); err != nil {
-			return err
+		if err := runGoCommand(usr, *cmd); err != nil {
+			logrus.WithError(err).Warnf("Error running command: %s", cmd.String())
+			cmd = exec.Command(Go, "install", goPackage)
+			if err := runGoCommand(usr, *cmd); err != nil {
+				logrus.WithError(err).Fatalf("Error running command: %s", cmd.String())
+				return err
+			}
 		}
-		return cmd.Wait()
+		logrus.Info("Successfully installed govuln")
 	}
 	return nil
+}
+
+func runGoCommand(usr *user.User, cmd exec.Cmd) error {
+	cmd.Dir = usr.HomeDir
+	if err := cmd.Start(); err != nil {
+		logrus.WithError(err).Fatalf("Error running command: %s", cmd.String())
+		return err
+	}
+	return cmd.Wait()
 }
 
 func findOnPathOrGoPath(execName string) string {
@@ -202,41 +207,77 @@ func runCITests(extraTestArgs ...string) error {
 }
 
 func installGoMobileIfNotPresent() error {
-	return installIfNotPresent("gomobile", "golang.org/x/mobile/cmd/gomobile@latest")
+	return installIfNotPresent(gomobile, "golang.org/x/mobile/cmd/gomobile@latest")
 }
 
+// Mobile runs gomobile commands on specified packages for both Android and iOS
 func Mobile() {
-	IOS()
-	Android()
+	pkgs := []string{"crypto", "did", "cryptosuite"}
+	if err := IOS(pkgs...); err != nil {
+		logrus.WithError(err).Error("Error building iOS")
+		return
+	}
+	if err := Android(pkgs...); err != nil {
+		logrus.WithError(err).Error("Error building Android")
+		return
+	}
 }
 
-// Generates the iOS packages
+// IOS Generates the iOS packages
 // Note: this command also installs "gomobile" if not present
-func IOS() {
-	installGoMobileIfNotPresent()
+func IOS(pkgs ...string) error {
+	if err := installGoMobileIfNotPresent(); err != nil {
+		logrus.WithError(err).Fatal("Error installing gomobile")
+		return err
+	}
 
 	fmt.Println("Building iOS...")
-	bindIOs := sh.RunCmd("gomobile", "bind", "-target", "ios")
-	fmt.Println("Building crypto package...")
-	bindIOs("crypto")
-	fmt.Println("Building did package...")
-	bindIOs("did")
-	fmt.Println("Building cryptosuite package...")
-	bindIOs("cryptosuite")
+	bindIOS := sh.RunCmd(gomobile, "bind", "-target", "ios")
+
+	for _, pkg := range pkgs {
+		fmt.Printf("Building [%s] package...\n", pkg)
+		if err := bindIOS(pkg); err != nil {
+			logrus.WithError(err).Fatal("Error building iOS pkg: %s", pkg)
+			return err
+		}
+	}
+
+	return nil
 }
 
-// Generates the Android packages
+// Android Generates the Android packages
 // Note: this command also installs "gomobile" if not present
-func Android() {
-	installGoMobileIfNotPresent()
+func Android(pkgs ...string) error {
+	if err := installGoMobileIfNotPresent(); err != nil {
+		logrus.WithError(err).Fatal("Error installing gomobile")
+		return err
+	}
 
 	apiLevel := "23"
-	fmt.Println("Building Android - Api Level: " + apiLevel + "...")
+	fmt.Println("Building Android - API Level: " + apiLevel + "...")
 	bindAndroid := sh.RunCmd("gomobile", "bind", "-target", "android", "-androidapi", "23")
-	fmt.Println("Building crypto package...")
-	bindAndroid("crypto")
-	fmt.Println("Building did package...")
-	bindAndroid("did")
-	fmt.Println("Building cryptosuite package...")
-	bindAndroid("cryptosuite")
+
+	for _, pkg := range pkgs {
+		fmt.Printf("Building [%s] package...\n", pkg)
+		if err := bindAndroid(pkg); err != nil {
+			logrus.WithError(err).Fatal("Error building iOS pkg: %s", pkg)
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Vuln downloads and runs govulncheck https://go.dev/blog/vuln
+func Vuln() error {
+	fmt.Println("Vulnerability checks...")
+	if err := installGoVulnIfNotPresent(); err != nil {
+		fmt.Printf("Error installing go-vuln: %s", err.Error())
+		return err
+	}
+	return sh.Run("govulncheck", "./...")
+}
+
+func installGoVulnIfNotPresent() error {
+	return installIfNotPresent("govulncheck", "golang.org/x/vuln/cmd/govulncheck@latest")
 }
