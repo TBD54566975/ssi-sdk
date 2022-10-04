@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -36,8 +37,16 @@ func (d DIDWeb) ToString() string {
 	return string(d)
 }
 
-func (d DIDWeb) Parse() (string, error) {
-	return ParseDID(d, DIDWebPrefix)
+func (d DIDWeb) Suffix() (string, error) {
+	split := strings.Split(d.ToString(), DIDWebPrefix+":")
+	if len(split) != 2 {
+		return "", errors.Wrap(util.InvalidFormatError, "did is malformed")
+	}
+	return split[1], nil
+}
+
+func (d DIDWeb) Method() Method {
+	return WebMethod
 }
 
 // CreateDoc constructs a did:web DIDDocument from a specific key type and its corresponding public key. This method

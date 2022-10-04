@@ -65,12 +65,16 @@ func (d DIDPeer) IsValid() bool {
 	return isPeerDID(string(d))
 }
 
-func (d DIDPeer) Parse() (string, error) {
-	s, err := ParseDID(d, DIDPeerPrefix+":")
-	if err != nil {
-		return "", err
-	}
+func (d DIDPeer) ToString() string {
+	return string(d)
+}
 
+func (d DIDPeer) Suffix() (string, error) {
+	split := strings.Split(string(d), DIDPeerPrefix+":")
+	if len(split) != 2 {
+		return "", errors.New("invalid did pkh")
+	}
+	s := split[1]
 	method, err := d.GetMethodID()
 	if err != nil {
 		return "", err
@@ -86,6 +90,10 @@ func (d DIDPeer) Parse() (string, error) {
 		index = 2
 	}
 	return s[index:], nil
+}
+
+func (d DIDPeer) Method() Method {
+	return PeerMethod
 }
 
 // PeerMethod0 Method 0: inception key without doc
@@ -184,7 +192,7 @@ func (m PeerMethod0) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DI
 		return nil, nil, nil, errors.Wrap(util.CastingError, "did:peer")
 	}
 
-	v, err := d.Parse()
+	v, err := d.Suffix()
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -255,7 +263,7 @@ func (m PeerMethod2) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DI
 		return nil, nil, nil, errors.Wrap(util.CastingError, "did:peer")
 	}
 
-	parsed, err := d.Parse()
+	parsed, err := d.Suffix()
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -457,22 +465,15 @@ func (d DIDPeer) decodeServiceBlock(s string) (*Service, error) {
 
 type ServiceTypeAbbreviationMap map[string]string
 
-// https://identity.foundation/peer-did-method-spec/#generation-method Create a
-// genesis version of JSON text of the DID doc for the DID. This inception key
-// is the key that creates the DID and authenticates when exchanging it with the
-// first peer CANNOT include the DID itself This lets the doc be created without
-// knowing the DID's value in advance. Suppressing the DID value creates a
-// stored variant of peer DID doc data, as opposed to the resolved variant that
-// would have an actual DID value in the root id property. (In either the stored
-// or resolved variant of the doc, anywhere else that the DID value would
-// appear, it should appear as a relative reference rather than an absolute
-// value. For example, eachcontroller property of a verificationMethod that is
-// owned by this DID would say "controller": "#id".)
-
-// Calculate the SHA256 [RFC4634] hash of the bytes of the stored variant of the
-// genesis version of the DID doc, and make this value the new DID's numeric
-// basis.
-//
+// Generate https://identity.foundation/peer-did-method-spec/#generation-method
+// Creates a genesis version of JSON text of the DID doc for the DID. This inception key is the key that creates the
+// DID and authenticates when exchanging it with the first peer CANNOT include the DID itself This lets the doc be
+// created without knowing the DID's value in advance. Suppressing the DID value creates a stored variant of peer DID
+// doc data, as opposed to the resolved variant that would have an actual DID value in the root id property. (In either
+// the stored or resolved variant of the doc, anywhere else that the DID value would appear, it should appear as a
+// relative reference rather than an absolute value. For example, each controller property of a verificationMethod
+// that is owned by this DID would say "controller": "#id".). Calculate the SHA256 [RFC4634] hash of the bytes of
+// the stored variant of the genesis version of the DID doc, and make this value the new DID's numeric basis.
 func (m PeerMethod1) Generate() (*DIDPeer, error) {
 	// Create a Genesis Version
 	return nil, util.NotImplementedError
@@ -514,8 +515,4 @@ func (d DIDPeer) Resolve() (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMe
 	}
 	did, rm, dm, err := m.Resolve(d, nil)
 	return did, rm, dm, err
-}
-
-func (d DIDPeer) ToString() string {
-	return string(d)
 }
