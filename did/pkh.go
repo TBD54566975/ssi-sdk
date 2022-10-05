@@ -192,3 +192,22 @@ func GetSupportedNetworks() []Network {
 
 	return networks
 }
+
+type PKHResolver struct{}
+
+func (r PKHResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+	if !strings.HasPrefix(did, DIDPKHPrefix) {
+		return nil, fmt.Errorf("not a did:pkh DID: %s", did)
+	}
+	didPKH := DIDPKH(did)
+	doc, err := didPKH.Expand()
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not expand did:pkh DID: %s", did)
+	}
+	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
+	return &DIDResolutionResult{DIDDocument: *doc}, nil
+}
+
+func (r PKHResolver) Method() Method {
+	return PKHMethod
+}

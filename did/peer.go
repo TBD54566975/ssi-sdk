@@ -499,26 +499,26 @@ func peerMethodAvailable(m string) bool {
 
 type PeerResolver struct{}
 
-func (r PeerResolver) Resolve(d DID, opts ResolutionOptions) (*DIDResolutionResult, error) {
-	didPeer, ok := d.(DIDPeer)
-	if !ok {
-		return nil, fmt.Errorf("could not resolve did as a did:peer: %s", d)
+func (r PeerResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+	if !strings.HasPrefix(did, DIDPeerPrefix) {
+		return nil, fmt.Errorf("not a did:peer DID: %s", did)
 	}
+	didPeer := DIDPeer(did)
 	m := string(didPeer[9])
 	if peerMethodAvailable(m) {
 		switch m {
 		case "0":
-			return PeerMethod0{}.resolve(d, opts)
+			return PeerMethod0{}.resolve(didPeer, opts)
 		case "1":
-			return PeerMethod1{}.resolve(d, opts)
+			return PeerMethod1{}.resolve(didPeer, opts)
 		case "2":
-			return PeerMethod2{}.resolve(d, opts)
+			return PeerMethod2{}.resolve(didPeer, opts)
 		default:
 			return nil, errors.New(fmt.Sprintf("%s method not supported", m))
 		}
 	}
 	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
-	return nil, fmt.Errorf("could peer did: %s", d)
+	return nil, fmt.Errorf("could not resolve peer DID: %s", did)
 }
 
 func (r PeerResolver) Method() Method {

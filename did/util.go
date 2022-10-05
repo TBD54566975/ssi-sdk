@@ -14,10 +14,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	UnsupportedDIDError = errors.New("unsupported Method for DID")
-)
-
 // Encodes the public key provided
 // Using a multi-codec encoding.
 func encodePublicKeyWithKeyMultiCodecType(kt crypto.KeyType, pubKey gocrypto.PublicKey) (string, error) {

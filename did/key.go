@@ -254,14 +254,14 @@ func GetSupportedDIDKeyTypes() []crypto.KeyType {
 
 type KeyResolver struct{}
 
-func (r KeyResolver) Resolve(d DID, opts ResolutionOptions) (*DIDResolutionResult, error) {
-	didKey, ok := d.(DIDKey)
-	if !ok {
-		return nil, fmt.Errorf("could not resolve did as a did:key: %s", d)
+func (r KeyResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+	if !strings.HasPrefix(did, DIDKeyPrefix) {
+		return nil, fmt.Errorf("not a did:key DID: %s", did)
 	}
+	didKey := DIDKey(did)
 	doc, err := didKey.Expand()
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not expand did:key: %s", d)
+		return nil, errors.Wrapf(err, "could not expand did:key DID: %s", did)
 	}
 	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
 	return &DIDResolutionResult{DIDDocument: *doc}, nil

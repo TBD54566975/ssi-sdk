@@ -29,7 +29,7 @@ const (
 )
 
 func (d DIDWeb) IsValid() bool {
-	_, err := d.Resolve()
+	_, err := d.ResolveDocBytes()
 	return err == nil
 }
 
@@ -141,6 +141,41 @@ func (d DIDWeb) GetDocURL() (string, error) {
 	return sb.String(), nil
 }
 
+type WebResolver struct{}
+
+// Resolve fetches and returns the DIDDocument from the expected URL
+// specification: https://w3c-ccg.github.io/did-method-web/#read-resolve
+func (r WebResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+	if !strings.HasPrefix(did, DIDWebPrefix) {
+		return nil, fmt.Errorf("not a did:web DID: %s", did)
+	}
+	didWeb := DIDWeb(did)
+	doc, err := didWeb.Resolve()
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not resolve did:web DID: %s", did)
+	}
+	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
+	return &DIDResolutionResult{DIDDocument: *doc}, nil
+}
+
+func (d DIDWeb) Resolve() (*DIDDocument, error) {
+	docBytes, err := d.ResolveDocBytes()
+	if err != nil {
+		errMsg := fmt.Sprintf("could not resolve did:web DID: %s", d)
+		return nil, util.LoggingErrorMsg(err, errMsg)
+	}
+	var doc DIDDocument
+	if err = json.Unmarshal(docBytes, &doc); err != nil {
+		errMsg := fmt.Sprintf("could not resolve with docBytes %s", docBytes)
+		return nil, util.LoggingErrorMsg(err, errMsg)
+	}
+	if doc.ID != d.ToString() {
+		errMsg := fmt.Sprintf("doc.ID %s does not match did:web value: %s", doc.ID, d)
+		return nil, util.LoggingNewError(errMsg)
+	}
+	return &doc, nil
+}
+
 // ResolveDocBytes simply performs a http.Get
 // on the expected URL of the DID Document from GetDocURL
 // and returns the bytes of the fetched file
@@ -167,22 +202,6 @@ func (d DIDWeb) ResolveDocBytes() ([]byte, error) {
 	return body, nil
 }
 
-// Resolve fetches and returns the DIDDocument from the expected URL
-// specification: https://w3c-ccg.github.io/did-method-web/#read-resolve
-func (d DIDWeb) Resolve() (*DIDDocument, error) {
-	docBytes, err := d.ResolveDocBytes()
-	if err != nil {
-		errMsg := fmt.Sprintf("could not resolve DIDWeb %+v", d)
-		return nil, util.LoggingErrorMsg(err, errMsg)
-	}
-	var doc DIDDocument
-	if err = json.Unmarshal(docBytes, &doc); err != nil {
-		errMsg := fmt.Sprintf("could not resolve with docBytes %s", docBytes)
-		return nil, util.LoggingErrorMsg(err, errMsg)
-	}
-	if doc.ID != string(d) {
-		errMsg := fmt.Sprintf("doc.ID %+v does not match DIDWeb %+v", doc.ID, d)
-		return nil, util.LoggingNewError(errMsg)
-	}
-	return &doc, nil
+func (r WebResolver) Method() Method {
+	return WebMethod
 }
