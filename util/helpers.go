@@ -156,6 +156,17 @@ func (a *AppendError) AppendString(err string) {
 	*a = append(*a, err)
 }
 
+func (a *AppendError) IsEmpty() bool {
+	return a == nil || len(*a) == 0
+}
+
+func (a *AppendError) NumErrors() int {
+	if a == nil {
+		return 0
+	}
+	return len(*a)
+}
+
 func (a *AppendError) Error() error {
 	if a == nil || len(*a) == 0 {
 		return nil
