@@ -28,13 +28,13 @@ type DWNDescriptor struct {
 	// Base messages
 	Nonce      string `json:"nonce" validate:"required"`
 	Method     string `json:"method" validate:"required"`
-	DataCid    string `json:"dataCid" validate:"required"`
+	DataCID    string `json:"dataCid" validate:"required"`
 	DataFormat string `json:"dataFormat" validate:"required"`
 
 	// CollectionsQuery and CollectionsWrite
-	RecordId      string `json:"recordId" validate:"required"`
+	RecordID      string `json:"recordId" validate:"required"`
 	DateCreated   int64  `json:"dateCreated" validate:"required"`
-	ContextId     string `json:"contextId,omitempty"`
+	ContextID     string `json:"contextId,omitempty"`
 	Schema        string `json:"schema,omitempty"`
 	Published     bool   `json:"published,omitempty"`
 	DatePublished int64  `json:"datePublished,omitempty"`

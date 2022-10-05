@@ -69,7 +69,7 @@ func TestGenerateDIDKey(t *testing.T) {
 		},
 		{
 			name:      "SECP256k1",
-			keyType:   crypto.Secp256k1,
+			keyType:   crypto.SECP256k1,
 			expectErr: false,
 		},
 		{
@@ -117,7 +117,7 @@ func TestGenerateDIDKey(t *testing.T) {
 			codec, err := keyTypeToMultiCodec(test.keyType)
 			assert.NoError(t, err)
 
-			parsed, err := didKey.Parse()
+			parsed, err := didKey.Suffix()
 			assert.NoError(t, err)
 			encoding, decoded, err := multibase.Decode(parsed)
 			assert.NoError(t, err)
@@ -214,7 +214,7 @@ func TestDIDKeySignVerify(t *testing.T) {
 	})
 
 	t.Run("Test secp256k1 did:key", func(t *testing.T) {
-		privKey, didKey, err := GenerateDIDKey(crypto.Secp256k1)
+		privKey, didKey, err := GenerateDIDKey(crypto.SECP256k1)
 		assert.NoError(t, err)
 		assert.NotNil(t, didKey)
 		assert.NotEmpty(t, privKey)

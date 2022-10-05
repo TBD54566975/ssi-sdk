@@ -31,12 +31,6 @@ type (
 	PurposeType string
 )
 
-var availablePeerMethods = map[string]Resolver{
-	"0": PeerMethod0{},
-	"1": PeerMethod1{},
-	"2": PeerMethod2{},
-}
-
 // ANBF specified here:
 // https://identity.foundation/peer-did-method-spec/#method-specific-identifier
 const (
@@ -65,12 +59,16 @@ func (d DIDPeer) IsValid() bool {
 	return isPeerDID(string(d))
 }
 
-func (d DIDPeer) Parse() (string, error) {
-	s, err := ParseDID(d, DIDPeerPrefix+":")
-	if err != nil {
-		return "", err
-	}
+func (d DIDPeer) ToString() string {
+	return string(d)
+}
 
+func (d DIDPeer) Suffix() (string, error) {
+	split := strings.Split(string(d), DIDPeerPrefix+":")
+	if len(split) != 2 {
+		return "", errors.New("invalid did pkh")
+	}
+	s := split[1]
 	method, err := d.GetMethodID()
 	if err != nil {
 		return "", err
@@ -88,6 +86,10 @@ func (d DIDPeer) Parse() (string, error) {
 	return s[index:], nil
 }
 
+func (d DIDPeer) Method() Method {
+	return PeerMethod
+}
+
 // PeerMethod0 Method 0: inception key without doc
 // https://identity.foundation/peer-did-method-spec/index.html#generation-method
 // The DID doc offers no endpoint. This makes the DID functionally equivalent to a did:key value For example,
@@ -95,6 +97,10 @@ func (d DIDPeer) Parse() (string, error) {
 // did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH
 type PeerMethod0 struct {
 	kt crypto.KeyType
+}
+
+func (m PeerMethod0) Method() Method {
+	return PeerMethod
 }
 
 func buildDIDPeerFromEncoded(method int, encoded string) DIDPeer {
@@ -142,10 +148,18 @@ func (m PeerMethod0) Generate(kt crypto.KeyType, publicKey gocrypto.PublicKey) (
 // PeerMethod1 Method 1: genesis doc
 type PeerMethod1 struct{}
 
+func (m PeerMethod1) Method() Method {
+	return PeerMethod
+}
+
 // PeerMethod2 Method 2: multiple inception key without doc
 type PeerMethod2 struct {
 	KT     crypto.KeyType
 	Values []interface{}
+}
+
+func (m PeerMethod2) Method() Method {
+	return PeerMethod
 }
 
 // https://identity.foundation/peer-did-method-spec/index.html#generation-method
@@ -177,21 +191,21 @@ func (d DIDPeer) IsValidPurpose(p PurposeType) bool {
 
 // Resolve resolves a did:peer into a DID Document
 // To do so, it decodes the key, constructs a verification  method, and returns a DID Document .This allows PeerMethod0
-// to implement the DID Resolver interface and be used to expand the did into the DID Document.
-func (m PeerMethod0) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMetadata, error) {
+// to implement the DID Resolution interface and be used to expand the did into the DID Document.
+func (m PeerMethod0) resolve(did DID, _ ResolutionOptions) (*DIDResolutionResult, error) {
 	d, ok := did.(DIDPeer)
 	if !ok {
-		return nil, nil, nil, errors.Wrap(util.CastingError, "did:peer")
+		return nil, errors.Wrap(util.CastingError, "did:peer")
 	}
 
-	v, err := d.Parse()
+	v, err := d.Suffix()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	pubKey, keyType, err := decodeEncodedKey(v)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	keyReference := Hash + v
@@ -199,14 +213,14 @@ func (m PeerMethod0) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DI
 
 	verificationMethod, err := constructVerificationMethod(id, keyReference, pubKey, keyType)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	verificationMethodSet := []VerificationMethodSet{
 		[]string{keyReference},
 	}
 
-	return &DIDDocument{
+	document := DIDDocument{
 		Context:              KnownDIDContext,
 		ID:                   id,
 		VerificationMethod:   []VerificationMethod{*verificationMethod},
@@ -214,21 +228,18 @@ func (m PeerMethod0) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DI
 		AssertionMethod:      verificationMethodSet,
 		KeyAgreement:         verificationMethodSet,
 		CapabilityDelegation: verificationMethodSet,
-	}, nil, nil, nil
+	}
+	return &DIDResolutionResult{DIDDocument: document}, nil
 }
 
-func (m PeerMethod1) Resolve(d DID, opts ResolutionOptions) (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMetadata, error) {
-	d, ok := d.(DIDPeer)
-	if !ok {
-		return nil, nil, nil, errors.Wrap(util.CastingError, "did:peer")
+func (m PeerMethod1) resolve(d DID, _ ResolutionOptions) (*DIDResolutionResult, error) {
+	if _, ok := d.(DIDPeer); !ok {
+		return nil, errors.Wrap(util.CastingError, DIDPeerPrefix)
 	}
-
-	return nil, nil, nil, util.NotImplementedError
-
+	return nil, util.NotImplementedError
 }
 
 func (d DIDPeer) buildVerificationMethod(data, did string) (*VerificationMethod, error) {
-
 	_, keyType, err := decodePublicKeyWithType([]byte(data))
 	if err != nil {
 		return nil, err
@@ -240,29 +251,26 @@ func (d DIDPeer) buildVerificationMethod(data, did string) (*VerificationMethod,
 		Controller:         string(did),
 		PublicKeyMultibase: data,
 	}
-
 	return &vm, nil
 }
 
 // Resolve Splits the DID string into element.
 // Extract element purpose and decode each key or service.
 // Insert each key or service into the document according to the designated pu
-func (m PeerMethod2) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMetadata, error) {
-
+func (m PeerMethod2) resolve(did DID, _ ResolutionOptions) (*DIDResolutionResult, error) {
 	d, ok := did.(DIDPeer)
-
 	if !ok {
-		return nil, nil, nil, errors.Wrap(util.CastingError, "did:peer")
+		return nil, errors.Wrap(util.CastingError, "did:peer")
 	}
 
-	parsed, err := d.Parse()
+	parsed, err := d.Suffix()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	entries := strings.Split(parsed, ".")
 	if len(entries) == 0 {
-		return nil, nil, nil, errors.New("no entries found")
+		return nil, errors.New("no entries found")
 	}
 
 	doc := DIDDocument{
@@ -271,47 +279,44 @@ func (m PeerMethod2) Resolve(did DID, opts ResolutionOptions) (*DIDDocument, *DI
 	}
 
 	for _, entry := range entries {
-
 		serviceType := PurposeType(entry[0])
-
 		switch serviceType {
-
 		case PeerPurposeCapabilityServiceCode:
 			service, err := d.decodeServiceBlock("." + entry)
 			if err != nil {
-				return nil, nil, nil, err
+				return nil, err
 			}
 			service.ID = string(d) + "#didcommmessaging-0"
 			doc.Services = append(doc.Services, *service)
 		case PeerPurposeEncryptionCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, nil, nil, errors.Wrap(err, "failed to build encryption code")
+				return nil, errors.Wrap(err, "failed to build encryption code")
 			}
 			doc.KeyAgreement = append(doc.KeyAgreement, *vm)
 		case PeerPurposeVerificationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, nil, nil, errors.Wrap(err, "failed to build verification code")
+				return nil, errors.Wrap(err, "failed to build verification code")
 			}
 			doc.Authentication = append(doc.Authentication, *vm)
 		case PeerPurposeCapabilityInvocationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, nil, nil, errors.Wrap(err, "failed to build capabilities invocation code")
+				return nil, errors.Wrap(err, "failed to build capabilities invocation code")
 			}
 			doc.CapabilityInvocation = append(doc.CapabilityInvocation, *vm)
 		case PeerPurposeCapabilityDelegationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, nil, nil, errors.Wrap(err, "failed to build capability delegation code")
+				return nil, errors.Wrap(err, "failed to build capability delegation code")
 			}
 			doc.CapabilityDelegation = append(doc.CapabilityDelegation, *vm)
 		default:
-			return nil, nil, nil, errors.Wrap(util.UnsupportedError, string(entry[0]))
+			return nil, errors.Wrap(util.UnsupportedError, string(entry[0]))
 		}
 	}
-	return &doc, nil, nil, nil
+	return &DIDResolutionResult{DIDDocument: doc}, nil
 }
 
 // Generate If numalgo == 2, the generation mode is similar to Method 0 (and therefore also did:key) with the ability
@@ -419,11 +424,9 @@ func (d DIDPeer) checkValidPeerServiceBlock(s string) bool {
 	return true
 }
 
-// Decodes a service block
-// Assumes that the service block has been stripped of
-// any headers or identifiers.
+// Decodes a service block.
+// Assumes that the service block has been stripped of any headers or identifiers.
 func (d DIDPeer) decodeServiceBlock(s string) (*Service, error) {
-
 	// check it starts with s.
 	if !d.checkValidPeerServiceBlock(s) {
 		return nil, errors.New("invalid string provided")
@@ -436,16 +439,15 @@ func (d DIDPeer) decodeServiceBlock(s string) (*Service, error) {
 		return nil, errors.Wrap(err, "failed to decode service for did:peer")
 	}
 
-	var psj PeerServiceBlockEncoded
-	err = json.Unmarshal([]byte(decoded), &psj)
-	if err != nil {
+	var psbe PeerServiceBlockEncoded
+	if err = json.Unmarshal(decoded, &psbe); err != nil {
 		return nil, errors.Wrap(err, "could not decode JSON for peer service block")
 	}
-	var serviceBlock = Service{
-		Type:            psj.ServiceType,
-		ServiceEndpoint: psj.ServiceEndpoint,
-		RoutingKeys:     psj.RoutingKeys,
-		Accept:          psj.Accept,
+	serviceBlock := Service{
+		Type:            psbe.ServiceType,
+		ServiceEndpoint: psbe.ServiceEndpoint,
+		RoutingKeys:     psbe.RoutingKeys,
+		Accept:          psbe.Accept,
 	}
 
 	if serviceBlock.Type == PeerDIDCommMessagingAbbr {
@@ -457,22 +459,15 @@ func (d DIDPeer) decodeServiceBlock(s string) (*Service, error) {
 
 type ServiceTypeAbbreviationMap map[string]string
 
-// https://identity.foundation/peer-did-method-spec/#generation-method Create a
-// genesis version of JSON text of the DID doc for the DID. This inception key
-// is the key that creates the DID and authenticates when exchanging it with the
-// first peer CANNOT include the DID itself This lets the doc be created without
-// knowing the DID's value in advance. Suppressing the DID value creates a
-// stored variant of peer DID doc data, as opposed to the resolved variant that
-// would have an actual DID value in the root id property. (In either the stored
-// or resolved variant of the doc, anywhere else that the DID value would
-// appear, it should appear as a relative reference rather than an absolute
-// value. For example, eachcontroller property of a verificationMethod that is
-// owned by this DID would say "controller": "#id".)
-
-// Calculate the SHA256 [RFC4634] hash of the bytes of the stored variant of the
-// genesis version of the DID doc, and make this value the new DID's numeric
-// basis.
-//
+// Generate https://identity.foundation/peer-did-method-spec/#generation-method
+// Creates a genesis version of JSON text of the DID doc for the DID. This inception key is the key that creates the
+// DID and authenticates when exchanging it with the first peer CANNOT include the DID itself This lets the doc be
+// created without knowing the DID's value in advance. Suppressing the DID value creates a stored variant of peer DID
+// doc data, as opposed to the resolved variant that would have an actual DID value in the root id property. (In either
+// the stored or resolved variant of the doc, anywhere else that the DID value would appear, it should appear as a
+// relative reference rather than an absolute value. For example, each controller property of a verificationMethod
+// that is owned by this DID would say "controller": "#id".). Calculate the SHA256 [RFC4634] hash of the bytes of
+// the stored variant of the genesis version of the DID doc, and make this value the new DID's numeric basis.
 func (m PeerMethod1) Generate() (*DIDPeer, error) {
 	// Create a Genesis Version
 	return nil, util.NotImplementedError
@@ -480,42 +475,52 @@ func (m PeerMethod1) Generate() (*DIDPeer, error) {
 
 func (d DIDPeer) GetMethodID() (string, error) {
 	m := string(d[9])
-	if _, ok := availablePeerMethods[m]; ok {
+	if peerMethodAvailable(m) {
 		return m, nil
 	}
-	return "", errors.New(fmt.Sprintf("%s method not supported", m))
+	return "", fmt.Errorf("%s method not supported", m)
 }
 
-// id:peer:<method>
-func (d DIDPeer) GetMethod() (Resolver, error) {
+func peerMethodAvailable(m string) bool {
+	switch m {
+	case "0":
+		// PeerMethod0
+		return true
+	case "1":
+		// PeerMethod1
+		return true
+	case "2":
+		// PeerMethod2
+		return true
+	default:
+		return false
+	}
+}
 
-	m := string(d[9])
+type PeerResolver struct{}
 
-	if _, ok := availablePeerMethods[m]; ok {
+func (r PeerResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+	if !strings.HasPrefix(did, DIDPeerPrefix) {
+		return nil, fmt.Errorf("not a did:peer DID: %s", did)
+	}
+	didPeer := DIDPeer(did)
+	m := string(didPeer[9])
+	if peerMethodAvailable(m) {
 		switch m {
 		case "0":
-			return PeerMethod0{}, nil
+			return PeerMethod0{}.resolve(didPeer, opts)
 		case "1":
-			return PeerMethod1{}, nil
+			return PeerMethod1{}.resolve(didPeer, opts)
 		case "2":
-			return PeerMethod2{}, nil
+			return PeerMethod2{}.resolve(didPeer, opts)
 		default:
 			return nil, errors.New(fmt.Sprintf("%s method not supported", m))
 		}
 	}
-
-	return nil, errors.New(fmt.Sprintf("%s method not supported", m))
+	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
+	return nil, fmt.Errorf("could not resolve peer DID: %s", did)
 }
 
-func (d DIDPeer) Resolve() (*DIDDocument, *DIDResolutionMetadata, *DIDDocumentMetadata, error) {
-	m, err := d.GetMethod()
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	did, rm, dm, err := m.Resolve(d, nil)
-	return did, rm, dm, err
-}
-
-func (d DIDPeer) ToString() string {
-	return string(d)
+func (r PeerResolver) Method() Method {
+	return PeerMethod
 }

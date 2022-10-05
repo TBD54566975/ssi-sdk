@@ -89,7 +89,7 @@ func TestDIDWebResolve(t *testing.T) {
 
 		_, err := didWebCannotBeResolved.Resolve()
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "could not resolve DIDWeb did:web:doesnotexist.com")
+		assert.Contains(tt, err.Error(), "could not resolve did:web DID: did:web:doesnotexist.com")
 	})
 
 	t.Run("Unhappy Path - Unknown DID", func(t *testing.T) {

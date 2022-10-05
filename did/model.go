@@ -38,6 +38,13 @@ const (
 	EcdsaSecp256k1VerificationKey2019 cryptosuite.LDKeyType = "EcdsaSecp256k1VerificationKey2019"
 )
 
+// DIDResolutionResult encapsulates the tuple of a DID resolution https://www.w3.org/TR/did-core/#did-resolution
+type DIDResolutionResult struct {
+	DIDResolutionMetadata
+	DIDDocument
+	DIDDocumentMetadata
+}
+
 // DIDDocumentMetadata https://www.w3.org/TR/did-core/#did-document-metadata
 type DIDDocumentMetadata struct {
 	Created       string `json:"created,omitempty" validate:"datetime"`
@@ -138,7 +145,7 @@ func KeyTypeToLDKeyType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
 		return Ed25519VerificationKey2018, nil
 	case crypto.X25519:
 		return X25519KeyAgreementKey2019, nil
-	case crypto.Secp256k1:
+	case crypto.SECP256k1:
 		return EcdsaSecp256k1VerificationKey2019, nil
 	case crypto.P256, crypto.P384, crypto.P521, crypto.RSA:
 		return cryptosuite.JsonWebKey2020, nil
