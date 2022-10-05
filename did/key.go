@@ -40,13 +40,17 @@ func (d DIDKey) ToString() string {
 	return string(d)
 }
 
-// Parse returns the value without the `did:key` prefix
-func (d DIDKey) Parse() (string, error) {
+// Suffix returns the value without the `did:key` prefix
+func (d DIDKey) Suffix() (string, error) {
 	split := strings.Split(string(d), DIDKeyPrefix+":")
 	if len(split) != 2 {
 		return "", fmt.Errorf("invalid did:key: %s", d)
 	}
 	return split[1], nil
+}
+
+func (d DIDKey) Method() Method {
+	return KeyMethod
 }
 
 // GenerateDIDKey takes in a key type value that this library supports and constructs a conformant did:key identifier.
@@ -115,7 +119,7 @@ func CreateDIDKey(kt crypto.KeyType, publicKey []byte) (*DIDKey, error) {
 
 // Decode takes a did:key and returns the underlying public key value as bytes, the LD key type, and a possible error
 func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
-	parsed, err := d.Parse()
+	parsed, err := d.Suffix()
 	if err != nil {
 		return nil, "", errors.Wrap(err, "could not parse did:key")
 	}
@@ -167,7 +171,7 @@ func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
 
 // Expand turns the DID key into a compliant DID Document
 func (d DIDKey) Expand() (*DIDDocument, error) {
-	parsed, err := d.Parse()
+	parsed, err := d.Suffix()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse did:key")
 	}
@@ -246,4 +250,23 @@ func isSupportedKeyType(kt crypto.KeyType) bool {
 
 func GetSupportedDIDKeyTypes() []crypto.KeyType {
 	return []crypto.KeyType{crypto.Ed25519, crypto.X25519, crypto.SECP256k1, crypto.P256, crypto.P384, crypto.P521, crypto.RSA}
+}
+
+type KeyResolver struct{}
+
+func (r KeyResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+	if !strings.HasPrefix(did, DIDKeyPrefix) {
+		return nil, fmt.Errorf("not a did:key DID: %s", did)
+	}
+	didKey := DIDKey(did)
+	doc, err := didKey.Expand()
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not expand did:key DID: %s", did)
+	}
+	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
+	return &DIDResolutionResult{DIDDocument: *doc}, nil
+}
+
+func (r KeyResolver) Method() Method {
+	return KeyMethod
 }

@@ -69,13 +69,17 @@ func (d DIDPKH) ToString() string {
 	return string(d)
 }
 
-// Parse returns the value without the `did:pkh` prefix
-func (d DIDPKH) Parse() (string, error) {
+// Suffix Parse returns the value without the `did:pkh` prefix
+func (d DIDPKH) Suffix() (string, error) {
 	split := strings.Split(string(d), DIDPKHPrefix+":")
 	if len(split) != 2 {
 		return "", errors.New("invalid did pkh")
 	}
 	return split[1], nil
+}
+
+func (d DIDPKH) Method() Method {
+	return PKHMethod
 }
 
 // GetNetwork returns the network by finding the network prefix in the did
@@ -118,7 +122,7 @@ func (d DIDPKH) Expand() (*DIDDocument, error) {
 
 func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
 	if !IsValidPKH(did) {
-		parsed, err := did.Parse()
+		parsed, err := did.Suffix()
 		if err != nil || parsed == "" {
 			return nil, util.LoggingNewError("PKH DID is not valid")
 		}
@@ -130,7 +134,7 @@ func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
 	}
 	verificationType := didPKHNetworkPrefixMap[*network][1]
 
-	parsed, err := did.Parse()
+	parsed, err := did.Suffix()
 	if err != nil {
 		return nil, err
 	}
@@ -187,4 +191,23 @@ func GetSupportedNetworks() []Network {
 	}
 
 	return networks
+}
+
+type PKHResolver struct{}
+
+func (r PKHResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+	if !strings.HasPrefix(did, DIDPKHPrefix) {
+		return nil, fmt.Errorf("not a did:pkh DID: %s", did)
+	}
+	didPKH := DIDPKH(did)
+	doc, err := didPKH.Expand()
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not expand did:pkh DID: %s", did)
+	}
+	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
+	return &DIDResolutionResult{DIDDocument: *doc}, nil
+}
+
+func (r PKHResolver) Method() Method {
+	return PKHMethod
 }

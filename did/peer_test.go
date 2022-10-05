@@ -39,9 +39,8 @@ func makeSamplePeerDIDDocument1() *DIDDocument {
 }
 
 func TestPeerMethod0(t *testing.T) {
-
-	kt := crypto.Ed25519
 	var m0 PeerMethod0
+	kt := crypto.Ed25519
 
 	// TODO: Add known key so reproducible results
 	pubKey, _, err := crypto.GenerateKeyByKeyType(kt)
@@ -50,16 +49,15 @@ func TestPeerMethod0(t *testing.T) {
 	did, err := m0.Generate(kt, pubKey)
 	assert.NoError(t, err)
 
-	doc, _, _, err := m0.Resolve(*did, nil)
+	resolved, err := m0.resolve(*did, nil)
 	assert.NoError(t, err)
 	testDoc := makeSamplePeerDIDDocument1()
 
-	assert.Equal(t, testDoc.Context, doc.Context)
+	assert.Equal(t, testDoc.Context, resolved.Context)
 
 }
 
 func TestPeerMethod2(t *testing.T) {
-
 	var d DIDPeer
 	kt := crypto.Ed25519
 
@@ -82,7 +80,6 @@ func TestPeerMethod2(t *testing.T) {
 }
 
 func makeSamplePeerDIDDocument() *DIDDocument {
-
 	return &DIDDocument{
 		Context: "https://w3id.org/did/v1",
 		ID:      "did:peer:2.Ez6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc.Vz6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V.Vz6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0",
@@ -127,22 +124,24 @@ func getSampleDIDDocumentMethod0() *DIDDocument {
 
 func TestPeerResolveMethod0(t *testing.T) {
 	did := DIDPeer("did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH")
-	didDoc, _, _, err := PeerMethod0{}.Resolve(did, nil)
+	resolved, err := PeerMethod0{}.resolve(did, nil)
 	assert.NoError(t, err)
 	gtestDoc := getSampleDIDDocumentMethod0()
-	assert.Equal(t, gtestDoc.Context, didDoc.Context)
-	assert.Equal(t, gtestDoc.ID, didDoc.ID)
+	assert.Equal(t, gtestDoc.Context, resolved.Context)
+	assert.Equal(t, gtestDoc.ID, resolved.ID)
 }
 
 // Encoded Encryption Key: .Ez6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH
 // Encoded Signing Key: .VzXwpBnMdCm1cLmKuzgESn29nqnonp1ioqrQMRHNsmjMyppzx8xB2pv7cw8q1PdDacSrdWE3dtB9f7Nxk886mdzNFoPtY
 // Service Block:
-// {
-// 	"type": "DIDCommMessaging",
-// 	"serviceEndpoint": "https://example.com/endpoint",
-// 	"routingKeys": ["did:example:somemediator#somekey"],
-//           "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"]
-// }
+//
+//	{
+//		"type": "DIDCommMessaging",
+//		"serviceEndpoint": "https://example.com/endpoint",
+//		"routingKeys": ["did:example:somemediator#somekey"],
+//	          "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"]
+//	}
+//
 // Service Block, after whitespace removal and common word substitution:
 // {"t":"dm","s":"https://example.com/endpoint","r":["did:example:somemediator#somekey"],"a":["didcomm/v2","didcomm/aip2;env=rfc587"]}
 // Encoded Service Endpoint: .SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0=
@@ -152,30 +151,30 @@ func TestPeerResolveMethod2(t *testing.T) {
 	testDoc := makeSamplePeerDIDDocument()
 	did := DIDPeer(testDoc.ID)
 
-	doc, _, _, err := did.Resolve()
+	resolved, err := PeerMethod2{}.resolve(did, nil)
 	assert.NoError(t, err)
 
-	assert.Equal(t, testDoc.Context, doc.Context)
-	assert.Equal(t, testDoc.ID, doc.ID)
+	assert.Equal(t, testDoc.Context, resolved.Context)
+	assert.Equal(t, testDoc.ID, resolved.ID)
 
-	assert.Equal(t, testDoc.Services[0].ID, doc.Services[0].ID)
-	assert.Equal(t, testDoc.Services[0].Type, doc.Services[0].Type)
-	assert.Equal(t, testDoc.Services[0].ServiceEndpoint, doc.Services[0].ServiceEndpoint)
-	assert.Equal(t, testDoc.Services[0].Accept, doc.Services[0].Accept)
+	assert.Equal(t, testDoc.Services[0].ID, resolved.Services[0].ID)
+	assert.Equal(t, testDoc.Services[0].Type, resolved.Services[0].Type)
+	assert.Equal(t, testDoc.Services[0].ServiceEndpoint, resolved.Services[0].ServiceEndpoint)
+	assert.Equal(t, testDoc.Services[0].Accept, resolved.Services[0].Accept)
 
-	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).ID, doc.KeyAgreement[0].(VerificationMethod).ID)
-	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).Type, doc.KeyAgreement[0].(VerificationMethod).Type)
-	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).Controller, doc.KeyAgreement[0].(VerificationMethod).Controller)
-	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).PublicKeyMultibase, doc.KeyAgreement[0].(VerificationMethod).PublicKeyMultibase)
+	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).ID, resolved.KeyAgreement[0].(VerificationMethod).ID)
+	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).Type, resolved.KeyAgreement[0].(VerificationMethod).Type)
+	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).Controller, resolved.KeyAgreement[0].(VerificationMethod).Controller)
+	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).PublicKeyMultibase, resolved.KeyAgreement[0].(VerificationMethod).PublicKeyMultibase)
 
-	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).ID, doc.Authentication[0].(VerificationMethod).ID)
-	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).Type, doc.Authentication[0].(VerificationMethod).Type)
-	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).Controller, doc.Authentication[0].(VerificationMethod).Controller)
-	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).PublicKeyMultibase, doc.Authentication[0].(VerificationMethod).PublicKeyMultibase)
+	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).ID, resolved.Authentication[0].(VerificationMethod).ID)
+	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).Type, resolved.Authentication[0].(VerificationMethod).Type)
+	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).Controller, resolved.Authentication[0].(VerificationMethod).Controller)
+	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).PublicKeyMultibase, resolved.Authentication[0].(VerificationMethod).PublicKeyMultibase)
 
-	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).ID, doc.Authentication[1].(VerificationMethod).ID)
-	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).Type, doc.Authentication[1].(VerificationMethod).Type)
-	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).Controller, doc.Authentication[1].(VerificationMethod).Controller)
-	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).PublicKeyMultibase, doc.Authentication[1].(VerificationMethod).PublicKeyMultibase)
+	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).ID, resolved.Authentication[1].(VerificationMethod).ID)
+	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).Type, resolved.Authentication[1].(VerificationMethod).Type)
+	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).Controller, resolved.Authentication[1].(VerificationMethod).Controller)
+	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).PublicKeyMultibase, resolved.Authentication[1].(VerificationMethod).PublicKeyMultibase)
 
 }
