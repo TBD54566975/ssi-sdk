@@ -251,3 +251,22 @@ func isSupportedKeyType(kt crypto.KeyType) bool {
 func GetSupportedDIDKeyTypes() []crypto.KeyType {
 	return []crypto.KeyType{crypto.Ed25519, crypto.X25519, crypto.SECP256k1, crypto.P256, crypto.P384, crypto.P521, crypto.RSA}
 }
+
+type KeyResolver struct{}
+
+func (r KeyResolver) Resolve(d DID, opts ResolutionOptions) (*DIDResolutionResult, error) {
+	didKey, ok := d.(DIDKey)
+	if !ok {
+		return nil, fmt.Errorf("could not resolve did as a did:key: %s", d)
+	}
+	doc, err := didKey.Expand()
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not expand did:key: %s", d)
+	}
+	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
+	return &DIDResolutionResult{DIDDocument: *doc}, nil
+}
+
+func (r KeyResolver) Method() Method {
+	return KeyMethod
+}

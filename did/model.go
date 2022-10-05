@@ -38,6 +38,13 @@ const (
 	EcdsaSecp256k1VerificationKey2019 cryptosuite.LDKeyType = "EcdsaSecp256k1VerificationKey2019"
 )
 
+// DIDResolutionResult encapsulates the tuple of a DID resolution https://www.w3.org/TR/did-core/#did-resolution
+type DIDResolutionResult struct {
+	DIDResolutionMetadata
+	DIDDocument
+	DIDDocumentMetadata
+}
+
 // DIDDocumentMetadata https://www.w3.org/TR/did-core/#did-document-metadata
 type DIDDocumentMetadata struct {
 	Created       string `json:"created,omitempty" validate:"datetime"`
