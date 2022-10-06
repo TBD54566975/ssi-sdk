@@ -15,11 +15,11 @@ const (
 
 var KnownVerifiers = []Verifier{
 	{
-		ID:         "Go Validation",
+		ID:         "Object Validation",
 		VerifyFunc: VerifyValidCredential,
 	},
 	{
-		ID:         "Expiry",
+		ID:         "Expiry Check",
 		VerifyFunc: VerifyExpiry,
 	},
 	{

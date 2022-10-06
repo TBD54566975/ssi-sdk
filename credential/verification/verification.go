@@ -28,7 +28,7 @@ type VerificationOption struct {
 	Option interface{}
 }
 
-// GetVerificationOption	returns a verification option given an ID
+// GetVerificationOption returns a verification option given an ID
 func GetVerificationOption(opts []VerificationOption, id OptionKey) (interface{}, error) {
 	for _, opt := range opts {
 		if opt.ID == id {
@@ -43,18 +43,18 @@ type Verify func(credential credential.VerifiableCredential, opts ...Verificatio
 // NewCredentialVerifier creates a new credential verifier which executes in the order of the verifiers provided
 func NewCredentialVerifier(verifiers []Verifier) (*CredentialVerifier, error) {
 	// dedupe
-	var res []Verifier
+	var deduplicatedVerifiers []Verifier
 	verifierCheck := make(map[string]bool)
 	for _, verifier := range verifiers {
 		if _, ok := verifierCheck[verifier.ID]; !ok {
 			verifierCheck[verifier.ID] = true
-			res = append(res, verifier)
+			deduplicatedVerifiers = append(deduplicatedVerifiers, verifier)
 		}
 	}
-	if len(res) == 0 {
+	if len(deduplicatedVerifiers) == 0 {
 		return nil, errors.New("no verifiers provided")
 	}
-	return &CredentialVerifier{verifiers: res}, nil
+	return &CredentialVerifier{verifiers: deduplicatedVerifiers}, nil
 }
 
 // VerifyCredential verifies a credential given a credential verifier
