@@ -12,6 +12,8 @@
 package main
 
 import (
+	"embed"
+	"encoding/json"
 	"fmt"
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
@@ -19,7 +21,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/example"
-	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwk"
 )
 
@@ -31,6 +32,11 @@ type Entity struct {
 	credentialResponse    manifest.CredentialResponse
 	verifiableCredentials []credential.VerifiableCredential
 }
+
+var (
+	//go:embed testdata
+	exampleFS embed.FS
+)
 
 func (t *Entity) GenerateWallet() {
 	walletDIDPrivateKey, walletDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
@@ -235,86 +241,46 @@ func main() {
 	aliceWalletEntity.FlexFullyValidatedCredentials()
 }
 
-func createCredentialApplication(cm manifest.CredentialManifest) manifest.CredentialApplication {
-	return manifest.CredentialApplication{
-		ID:          uuid.New().String(),
-		SpecVersion: "https://identity.foundation/credential-manifest/spec/v1.0.0/",
-		ManifestID:  cm.ID,
-		Format: &exchange.ClaimFormat{
-			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
-		},
-		PresentationSubmission: &exchange.PresentationSubmission{
-			ID:           "psid",
-			DefinitionID: "definitionId",
-			DescriptorMap: []exchange.SubmissionDescriptor{
-				{
-					ID:     "ps-id",
-					Format: "jwt",
-					Path:   "path",
-				},
-			},
-		},
+func getFileBytes(filename string) []byte {
+	caBytes, err := exampleFS.ReadFile(filename)
+
+	if err != nil {
+		example.HandleExampleError(err, "can not open file")
 	}
+
+	return caBytes
+}
+
+func createCredentialApplication(cm manifest.CredentialManifest) manifest.CredentialApplication {
+	caBytes := getFileBytes("testdata/ca.json")
+
+	credApp := manifest.CredentialApplication{}
+	json.Unmarshal(caBytes, &credApp)
+
+	credApp.ManifestID = cm.ID
+
+	return credApp
 }
 
 func createVerifiableCredential(issuerDID string, walletDID string, descriptor manifest.OutputDescriptor) credential.VerifiableCredential {
-	knownIssuanceDate := "2020-01-01T19:23:24Z"
-	knownSubject := map[string]interface{}{
-		"id":        string(walletDID),
-		"birthdate": "1975-01-01",
-	}
+	vcBytes := getFileBytes("testdata/vc.json")
 
-	vcBuilder := credential.NewVerifiableCredentialBuilder()
+	vc := credential.VerifiableCredential{}
+	json.Unmarshal(vcBytes, &vc)
 
-	err := vcBuilder.SetIssuer(issuerDID)
-	example.HandleExampleError(err, "Failed to set issuer")
-	err = vcBuilder.SetIssuanceDate(knownIssuanceDate)
-	example.HandleExampleError(err, "Failed to set issuance date")
-	err = vcBuilder.SetCredentialSubject(knownSubject)
-	example.HandleExampleError(err, "Failed to set subject")
+	vc.CredentialSubject["id"] = walletDID
+	vc.Issuer = issuerDID
 
-	vc, err := vcBuilder.Build()
-	example.HandleExampleError(err, "Failed to make verifiable credential")
-	example.HandleExampleError(vc.IsValid(), "Verifiable credential is not valid")
-
-	return *vc
+	return vc
 }
 
 func createCredentialManifest(issuer string) manifest.CredentialManifest {
-	return manifest.CredentialManifest{
-		ID:          "WA-DL-CLASS-A",
-		SpecVersion: "https://identity.foundation/credential-manifest/spec/v1.0.0/",
-		Issuer: manifest.Issuer{
-			ID: issuer,
-		},
-		PresentationDefinition: &exchange.PresentationDefinition{
-			ID: "pres-def-id",
-			InputDescriptors: []exchange.InputDescriptor{
-				{
-					ID: "test-id",
-					Constraints: &exchange.Constraints{
-						Fields: []exchange.Field{
-							{
-								Path: []string{".vc.id"},
-							},
-						},
-					},
-				},
-			},
-		},
-		OutputDescriptors: []manifest.OutputDescriptor{
-			{
-				ID:          "id1",
-				Schema:      "https://test.com/schema",
-				Name:        "good ID",
-				Description: "it's all good",
-			},
-			{
-				ID:          "id2",
-				Schema:      "https://test.com/schema",
-				Name:        "good ID",
-				Description: "it's all good",
-			},
-		},
-	}
+	cmBytes := getFileBytes("testdata/cm.json")
+
+	mfst := manifest.CredentialManifest{}
+	json.Unmarshal(cmBytes, &mfst)
+
+	mfst.Issuer.ID = issuer
+
+	return mfst
 }
