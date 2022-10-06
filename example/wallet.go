@@ -24,7 +24,7 @@ type SimpleWallet struct {
 func NewSimpleWallet() *SimpleWallet {
 	return &SimpleWallet{
 		vcs:  make(map[string]credential.VerifiableCredential),
-		mux:  &sync.Mutex{},
+		mux:  new(sync.Mutex),
 		dids: make(map[string]string),
 		keys: make(map[string]gocrypto.PrivateKey),
 	}
@@ -37,7 +37,7 @@ func (s *SimpleWallet) AddPrivateKey(k string, key gocrypto.PrivateKey) error {
 	if _, ok := s.keys[k]; !ok {
 		s.keys[k] = key
 	} else {
-		return errors.New("Already an entry")
+		return errors.New("already an entry")
 	}
 	return nil
 }
@@ -48,7 +48,7 @@ func (s *SimpleWallet) AddDIDKey(k string, key string) error {
 	if _, ok := s.dids[k]; !ok {
 		s.dids[k] = key
 	} else {
-		return errors.New("Already an entry")
+		return errors.New("already an entry")
 	}
 	return nil
 }
@@ -79,9 +79,6 @@ func (s *SimpleWallet) AddCredentials(cred credential.VerifiableCredential) erro
 
 // Init stores a DID for a particular user and adds it to the registry
 func (s *SimpleWallet) Init(keyType string) error {
-	s.mux.Lock()
-	defer s.mux.Unlock()
-
 	var privKey gocrypto.PrivateKey
 	var pubKey gocrypto.PublicKey
 
