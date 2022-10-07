@@ -4,7 +4,6 @@ import (
 	gocrypto "crypto"
 	"fmt"
 
-	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/pkg/errors"
@@ -284,11 +283,11 @@ func PubKeyBytesToTypedKey(keyBytes []byte, kt LDKeyType) (gocrypto.PublicKey, e
 	case JsonWebKey2020.String():
 		// we cannot know this key type based on the bytes alone
 		return keyBytes, nil
-	case crypto.Ed25519.String(), did.Ed25519VerificationKey2018.String(), did.Ed25519VerificationKey2020.String():
+	case crypto.Ed25519.String(), Ed25519VerificationKey2018.String(), Ed25519VerificationKey2020.String():
 		convertedKeyType = crypto.Ed25519
-	case crypto.X25519.String(), did.X25519KeyAgreementKey2019.String(), did.X25519KeyAgreementKey2020.String():
+	case crypto.X25519.String(), X25519KeyAgreementKey2019.String(), X25519KeyAgreementKey2020.String():
 		convertedKeyType = crypto.X25519
-	case crypto.SECP256k1.String(), did.EcdsaSecp256k1VerificationKey2019.String():
+	case crypto.SECP256k1.String(), EcdsaSecp256k1VerificationKey2019.String():
 		convertedKeyType = crypto.SECP256k1
 	default:
 		return nil, fmt.Errorf("unsupported key type: %s", kt)

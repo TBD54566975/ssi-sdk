@@ -81,19 +81,19 @@ func getTestVector(fileName string) (string, error) {
 func TestKeyTypeToLDKeyType(t *testing.T) {
 	kt, err := KeyTypeToLDKeyType(crypto.Ed25519)
 	assert.NoError(t, err)
-	assert.Equal(t, kt, Ed25519VerificationKey2018)
+	assert.Equal(t, kt, cryptosuite.Ed25519VerificationKey2018)
 
 	kt, err = KeyTypeToLDKeyType(crypto.X25519)
 	assert.NoError(t, err)
-	assert.Equal(t, kt, X25519KeyAgreementKey2019)
+	assert.Equal(t, kt, cryptosuite.X25519KeyAgreementKey2019)
 
 	kt, err = KeyTypeToLDKeyType(crypto.SECP256k1)
 	assert.NoError(t, err)
-	assert.Equal(t, kt, EcdsaSecp256k1VerificationKey2019)
+	assert.Equal(t, kt, cryptosuite.EcdsaSecp256k1VerificationKey2019)
 
 	kt, err = KeyTypeToLDKeyType(crypto.Ed25519)
 	assert.NoError(t, err)
-	assert.Equal(t, kt, Ed25519VerificationKey2018)
+	assert.Equal(t, kt, cryptosuite.Ed25519VerificationKey2018)
 
 	kt, err = KeyTypeToLDKeyType(crypto.P256)
 	assert.NoError(t, err)
