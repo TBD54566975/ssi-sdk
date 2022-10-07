@@ -114,7 +114,7 @@ func installIfNotPresent(execName, goPackage string) error {
 				return err
 			}
 		}
-		logrus.Info("Successfully installed govuln")
+		logrus.Infof("Successfully installed %s", goPackage)
 	}
 	return nil
 }
