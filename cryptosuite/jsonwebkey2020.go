@@ -282,6 +282,7 @@ func PubKeyBytesToTypedKey(keyBytes []byte, kt LDKeyType) (gocrypto.PublicKey, e
 	var convertedKeyType crypto.KeyType
 	switch kt.String() {
 	case JsonWebKey2020.String():
+		// we cannot know this key type based on the bytes alone
 		return keyBytes, nil
 	case crypto.Ed25519.String(), did.Ed25519VerificationKey2018.String(), did.Ed25519VerificationKey2020.String():
 		convertedKeyType = crypto.Ed25519
