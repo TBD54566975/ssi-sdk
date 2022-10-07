@@ -145,7 +145,7 @@ func TestDecode(t *testing.T) {
 		pubKey, ldKeyType, err := didKey.Decode()
 		assert.NoError(t, err)
 		assert.NotEmpty(t, pubKey)
-		assert.Equal(t, ldKeyType, Ed25519VerificationKey2018)
+		assert.Equal(t, ldKeyType, cryptosuite.Ed25519VerificationKey2018)
 	})
 
 	t.Run("bad DID", func(t *testing.T) {
@@ -324,7 +324,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did1, didDoc1.ID)
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, Ed25519VerificationKey2018, didDoc1.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.Ed25519VerificationKey2018, didDoc1.VerificationMethod[0].Type)
 
 		did2 := "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
 		didKey2 := DIDKey(did2)
@@ -332,7 +332,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did2, didDoc2.ID)
 		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, Ed25519VerificationKey2018, didDoc2.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.Ed25519VerificationKey2018, didDoc2.VerificationMethod[0].Type)
 
 		did3 := "did:key:z6MknGc3ocHs3zdPiJbnaaqDi58NGb4pk1Sp9WxWufuXSdxf"
 		didKey3 := DIDKey(did3)
@@ -340,7 +340,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did3, didDoc3.ID)
 		assert.Equal(tt, 1, len(didDoc3.VerificationMethod))
-		assert.Equal(tt, Ed25519VerificationKey2018, didDoc3.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.Ed25519VerificationKey2018, didDoc3.VerificationMethod[0].Type)
 	})
 
 	t.Run("X25519", func(tt *testing.T) {
@@ -350,7 +350,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did1, didDoc1.ID)
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, X25519KeyAgreementKey2019, didDoc1.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.X25519KeyAgreementKey2019, didDoc1.VerificationMethod[0].Type)
 
 		did2 := "did:key:z6LStiZsmxiK4odS4Sb6JmdRFuJ6e1SYP157gtiCyJKfrYha"
 		didKey2 := DIDKey(did2)
@@ -358,7 +358,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did2, didDoc2.ID)
 		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, X25519KeyAgreementKey2019, didDoc2.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.X25519KeyAgreementKey2019, didDoc2.VerificationMethod[0].Type)
 
 		did3 := "did:key:z6LSoMdmJz2Djah2P4L9taDmtqeJ6wwd2HhKZvNToBmvaczQ"
 		didKey3 := DIDKey(did3)
@@ -366,7 +366,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did3, didDoc3.ID)
 		assert.Equal(tt, 1, len(didDoc3.VerificationMethod))
-		assert.Equal(tt, X25519KeyAgreementKey2019, didDoc3.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.X25519KeyAgreementKey2019, didDoc3.VerificationMethod[0].Type)
 	})
 
 	t.Run("SECP256k1", func(tt *testing.T) {
@@ -376,7 +376,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did1, didDoc1.ID)
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, EcdsaSecp256k1VerificationKey2019, didDoc1.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.EcdsaSecp256k1VerificationKey2019, didDoc1.VerificationMethod[0].Type)
 
 		did2 := "did:key:zQ3shtxV1FrJfhqE1dvxYRcCknWNjHc3c5X1y3ZSoPDi2aur2"
 		didKey2 := DIDKey(did2)
@@ -384,7 +384,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did2, didDoc2.ID)
 		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, EcdsaSecp256k1VerificationKey2019, didDoc2.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.EcdsaSecp256k1VerificationKey2019, didDoc2.VerificationMethod[0].Type)
 
 		did3 := "did:key:zQ3shZc2QzApp2oymGvQbzP8eKheVshBHbU4ZYjeXqwSKEn6N"
 		didKey3 := DIDKey(did3)
@@ -392,7 +392,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did3, didDoc3.ID)
 		assert.Equal(tt, 1, len(didDoc3.VerificationMethod))
-		assert.Equal(tt, EcdsaSecp256k1VerificationKey2019, didDoc3.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.EcdsaSecp256k1VerificationKey2019, didDoc3.VerificationMethod[0].Type)
 	})
 
 	t.Run("P-256", func(tt *testing.T) {

@@ -32,6 +32,10 @@ const (
 	PS256 SignatureAlgorithm = "PS256"
 )
 
+func (kt KeyType) String() string {
+	return string(kt)
+}
+
 func IsSupportedKeyType(kt KeyType) bool {
 	supported := GetSupportedKeyTypes()
 	for _, t := range supported {

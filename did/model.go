@@ -28,14 +28,6 @@ const (
 	P384MultiCodec      = multicodec.P384Pub
 	P521MultiCodec      = multicodec.P521Pub
 	RSAMultiCodec       = multicodec.RsaPub
-
-	// DID Key Types
-
-	X25519KeyAgreementKey2020         cryptosuite.LDKeyType = "X25519KeyAgreementKey2020"
-	Ed25519VerificationKey2020        cryptosuite.LDKeyType = "Ed25519VerificationKey2020"
-	X25519KeyAgreementKey2019         cryptosuite.LDKeyType = "X25519KeyAgreementKey2019"
-	Ed25519VerificationKey2018        cryptosuite.LDKeyType = "Ed25519VerificationKey2018"
-	EcdsaSecp256k1VerificationKey2019 cryptosuite.LDKeyType = "EcdsaSecp256k1VerificationKey2019"
 )
 
 // DIDResolutionResult encapsulates the tuple of a DID resolution https://www.w3.org/TR/did-core/#did-resolution
@@ -142,11 +134,11 @@ func (d *DIDDocument) IsValid() error {
 func KeyTypeToLDKeyType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
 	switch kt {
 	case crypto.Ed25519:
-		return Ed25519VerificationKey2018, nil
+		return cryptosuite.Ed25519VerificationKey2018, nil
 	case crypto.X25519:
-		return X25519KeyAgreementKey2019, nil
+		return cryptosuite.X25519KeyAgreementKey2019, nil
 	case crypto.SECP256k1:
-		return EcdsaSecp256k1VerificationKey2019, nil
+		return cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
 	case crypto.P256, crypto.P384, crypto.P521, crypto.RSA:
 		return cryptosuite.JsonWebKey2020, nil
 	default:
