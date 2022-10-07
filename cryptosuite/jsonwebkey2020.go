@@ -4,6 +4,7 @@ import (
 	gocrypto "crypto"
 	"fmt"
 
+	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/pkg/errors"
@@ -49,6 +50,10 @@ type JSONWebKey2020 struct {
 
 func (jwk *JSONWebKey2020) IsValid() error {
 	return util.NewValidator().Struct(jwk)
+}
+
+func (ld LDKeyType) String() string {
+	return string(ld)
 }
 
 // GenerateJSONWebKey2020 The JSONWebKey2020 type specifies a number of key type and curve pairs to enable JOSE conformance
@@ -269,4 +274,23 @@ func NewJSONWebKeyVerifier(kid string, key crypto.PublicKeyJWK) (*JSONWebKeyVeri
 	return &JSONWebKeyVerifier{
 		JWTVerifier: *verifier,
 	}, nil
+}
+
+// PubKeyBytesToTypedKey converts a public key byte slice to a crypto.PublicKey based on a given key type, merging
+// both LD key types and JWK key types
+func PubKeyBytesToTypedKey(keyBytes []byte, kt LDKeyType) (gocrypto.PublicKey, error) {
+	var convertedKeyType crypto.KeyType
+	switch kt.String() {
+	case JsonWebKey2020.String():
+		return keyBytes, nil
+	case crypto.Ed25519.String(), did.Ed25519VerificationKey2018.String(), did.Ed25519VerificationKey2020.String():
+		convertedKeyType = crypto.Ed25519
+	case crypto.X25519.String(), did.X25519KeyAgreementKey2019.String(), did.X25519KeyAgreementKey2020.String():
+		convertedKeyType = crypto.X25519
+	case crypto.SECP256k1.String(), did.EcdsaSecp256k1VerificationKey2019.String():
+		convertedKeyType = crypto.SECP256k1
+	default:
+		return nil, fmt.Errorf("unsupported key type: %s", kt)
+	}
+	return crypto.BytesToPubKey(keyBytes, convertedKeyType)
 }
