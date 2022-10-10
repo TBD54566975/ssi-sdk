@@ -22,8 +22,6 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-//import _ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
-
 const (
 	Go              = "go"
 	gomobile        = "gomobile"
