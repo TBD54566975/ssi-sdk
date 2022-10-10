@@ -285,6 +285,11 @@ func installGoVulnIfNotPresent() error {
 	return installIfNotPresent("govulncheck", "golang.org/x/vuln/cmd/govulncheck@latest")
 }
 
+// DerefSchemas takes our known schemas and dereferences the schema's $ref http links to be a part of the json schema object.
+// This makes our code faster when doing validation checks and allows us to not ping outside sources for schemas refs which may go down or change.
+// TODO: (Neal) Currently we do not use these dereferenced schemas in code because there is more work to be done here.
+// Currently these dereferenced schemas are missing some information and fail validation with our known json objects
+// I believe some more work in the investigation library needs to be done and we need to handle circular dependencies
 func DerefSchemas() error {
 	files, err := ioutil.ReadDir(schemaDirectory)
 	if err != nil {
