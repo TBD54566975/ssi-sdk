@@ -11,12 +11,9 @@ import (
 	"github.com/TBD54566975/ssi-sdk/did"
 )
 
-// A sample wallet
-// This would NOT be how it would be stored in production
-// But serves for demonstrative purposes
-// This holds the assigned dids
-// private keys
-// and vCs
+// SimpleWallet is a sample wallet
+// This would NOT be how it would be stored in production, but serves for demonstrative purposes
+// This holds the assigned DIDs, their associated private keys, and VCs
 type SimpleWallet struct {
 	vcs  map[string]credential.VerifiableCredential
 	keys map[string]gocrypto.PrivateKey
@@ -27,20 +24,20 @@ type SimpleWallet struct {
 func NewSimpleWallet() *SimpleWallet {
 	return &SimpleWallet{
 		vcs:  make(map[string]credential.VerifiableCredential),
-		mux:  &sync.Mutex{},
+		mux:  new(sync.Mutex),
 		dids: make(map[string]string),
 		keys: make(map[string]gocrypto.PrivateKey),
 	}
 }
 
-// Adds a Private Key to a wallet
+// AddPrivateKey Adds a Private Key to a wallet
 func (s *SimpleWallet) AddPrivateKey(k string, key gocrypto.PrivateKey) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if _, ok := s.keys[k]; !ok {
 		s.keys[k] = key
 	} else {
-		return errors.New("Already an entry")
+		return errors.New("already an entry")
 	}
 	return nil
 }
@@ -51,7 +48,7 @@ func (s *SimpleWallet) AddDIDKey(k string, key string) error {
 	if _, ok := s.dids[k]; !ok {
 		s.dids[k] = key
 	} else {
-		return errors.New("Already an entry")
+		return errors.New("already an entry")
 	}
 	return nil
 }
@@ -61,14 +58,11 @@ func (s *SimpleWallet) GetDID(k string) (string, error) {
 	defer s.mux.Unlock()
 	if v, ok := s.dids[k]; ok {
 		return v, nil
-	} else {
-		return "", errors.New("Not found")
 	}
-	return "", nil
+	return "", errors.New("not found")
 }
 
 func (s *SimpleWallet) AddCredentials(cred credential.VerifiableCredential) error {
-
 	if s.mux == nil {
 		return errors.New("no mux for wallet")
 	}
@@ -78,19 +72,13 @@ func (s *SimpleWallet) AddCredentials(cred credential.VerifiableCredential) erro
 	if _, ok := s.vcs[cred.ID]; !ok {
 		s.vcs[cred.ID] = cred
 	} else {
-		return errors.New("Duplicate Credential. Could not add.")
+		return fmt.Errorf("duplicate credential<%s>; could not add", cred.ID)
 	}
 	return nil
 }
 
-// In the simple wallet
-// Stores a DID for a particular user and
-// adds it to the registry
+// Init stores a DID for a particular user and adds it to the registry
 func (s *SimpleWallet) Init(keyType string) error {
-
-	s.mux.Lock() // TODO: remove the muxes?
-	s.mux.Unlock()
-
 	var privKey gocrypto.PrivateKey
 	var pubKey gocrypto.PublicKey
 
@@ -118,9 +106,13 @@ func (s *SimpleWallet) Init(keyType string) error {
 	}
 
 	WriteNote(fmt.Sprintf("DID for holder is: %s", didStr))
-	s.AddPrivateKey("main", privKey)
+	if err := s.AddPrivateKey("main", privKey); err != nil {
+		return err
+	}
 	WriteNote(fmt.Sprintf("Private Key stored with wallet"))
-	s.AddDIDKey("main", string(didStr))
+	if err := s.AddDIDKey("main", string(didStr)); err != nil {
+		return err
+	}
 	WriteNote(fmt.Sprintf("DID Key stored in wallet"))
 
 	return nil

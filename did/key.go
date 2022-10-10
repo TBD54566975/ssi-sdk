@@ -155,11 +155,11 @@ func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
 	multiCodecValue := multicodec.Code(multiCodec)
 	switch multiCodecValue {
 	case Ed25519MultiCodec:
-		return pubKeyBytes, Ed25519VerificationKey2018, nil
+		return pubKeyBytes, cryptosuite.Ed25519VerificationKey2018, nil
 	case X25519MultiCodec:
-		return pubKeyBytes, X25519KeyAgreementKey2019, nil
+		return pubKeyBytes, cryptosuite.X25519KeyAgreementKey2019, nil
 	case Secp256k1MultiCodec:
-		return pubKeyBytes, EcdsaSecp256k1VerificationKey2019, nil
+		return pubKeyBytes, cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
 	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
 		return pubKeyBytes, cryptosuite.JsonWebKey2020, nil
 	default:
