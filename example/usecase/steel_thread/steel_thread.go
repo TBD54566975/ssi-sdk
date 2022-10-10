@@ -255,8 +255,7 @@ func createCredentialApplication(cm manifest.CredentialManifest) manifest.Creden
 	caBytes := getFileBytes("testdata/ca.json")
 
 	var credApp manifest.CredentialApplication
-	err := json.Unmarshal(caBytes, &credApp)
-	if err != nil {
+	if err := json.Unmarshal(caBytes, &credApp); err != nil {
 		example.HandleExampleError(err, "problem unmarshalling credential application")
 	}
 
@@ -268,9 +267,8 @@ func createCredentialApplication(cm manifest.CredentialManifest) manifest.Creden
 func createVerifiableCredential(issuerDID string, walletDID string, descriptor manifest.OutputDescriptor) credential.VerifiableCredential {
 	vcBytes := getFileBytes("testdata/vc.json")
 
-	vc := credential.VerifiableCredential{}
-	err := json.Unmarshal(vcBytes, &vc)
-	if err != nil {
+	var vc credential.VerifiableCredential
+	if err := json.Unmarshal(vcBytes, &vc); err != nil {
 		example.HandleExampleError(err, "problem unmarshalling verifiable credential")
 	}
 
@@ -298,8 +296,7 @@ func createCredentialManifest(issuer string) manifest.CredentialManifest {
 	cmBytes := getFileBytes("testdata/cm.json")
 
 	var mfst manifest.CredentialManifest
-	err := json.Unmarshal(cmBytes, &mfst)
-	if err != nil {
+	if err := json.Unmarshal(cmBytes, &mfst); err != nil {
 		example.HandleExampleError(err, "problem unmarshalling credential manifest")
 	}
 
