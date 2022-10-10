@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -14,6 +15,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/flowstack-com/jsonschema"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"github.com/sirupsen/logrus"
@@ -21,8 +23,9 @@ import (
 )
 
 const (
-	Go       = "go"
-	gomobile = "gomobile"
+	Go              = "go"
+	gomobile        = "gomobile"
+	schemaDirectory = "./schema/known_schemas/"
 )
 
 // Build builds the library.
@@ -280,4 +283,63 @@ func Vuln() error {
 
 func installGoVulnIfNotPresent() error {
 	return installIfNotPresent("govulncheck", "golang.org/x/vuln/cmd/govulncheck@latest")
+}
+
+// DerefSchemas takes our known schemas and dereferences the schema's $ref http links to be a part of the json schema object.
+// This makes our code faster when doing validation checks and allows us to not ping outside sources for schemas refs which may go down or change.
+// TODO: (Neal) Currently we do not use these dereferenced schemas in code because there is more work to be done here.
+// Currently these dereferenced schemas are missing some information and fail validation with our known json objects
+// I believe some more work in the investigation library needs to be done and we need to handle circular dependencies
+func DerefSchemas() error {
+	files, err := ioutil.ReadDir(schemaDirectory)
+	if err != nil {
+		logrus.WithError(err).Fatal("problem reading directory at: " + schemaDirectory)
+		return err
+	}
+
+	os.Chmod(schemaDirectory, 0777)
+
+	for _, file := range files {
+
+		// dont deref already deref'd json schemas
+		if strings.Contains(file.Name(), "-deref") {
+			continue
+		}
+
+		logrus.Println("dereferenceing file at: " + file.Name())
+
+		fileBytes, err := os.ReadFile(schemaDirectory + file.Name())
+		if err != nil {
+			logrus.WithError(err).Fatal("problem reading file at: " + schemaDirectory + file.Name())
+			continue
+		}
+
+		sch, err := jsonschema.New(fileBytes)
+		if err != nil {
+			logrus.WithError(err).Fatal("problem creating schema")
+			continue
+		}
+
+		// dereference schema
+		err = sch.DeRef()
+		if err != nil {
+			logrus.WithError(err).Fatal("problem dereferenceing schema")
+			continue
+		}
+
+		schemaBytes, err := sch.MarshalJSON()
+		if err != nil {
+			logrus.WithError(err).Fatal("problem marshalling schema json")
+			continue
+		}
+
+		err = os.WriteFile("./schema/known_schemas/"+strings.ReplaceAll(file.Name(), ".json", "")+"-deref.json", schemaBytes, 0644)
+		if err != nil {
+			logrus.WithError(err).Fatal("problem writing deref json to file")
+			continue
+		}
+
+	}
+	logrus.Println("\n\nFinished dereferenceing schemas")
+	return nil
 }
