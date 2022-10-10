@@ -254,8 +254,11 @@ func getFileBytes(filename string) []byte {
 func createCredentialApplication(cm manifest.CredentialManifest) manifest.CredentialApplication {
 	caBytes := getFileBytes("testdata/ca.json")
 
-	credApp := manifest.CredentialApplication{}
-	json.Unmarshal(caBytes, &credApp)
+	var credApp manifest.CredentialApplication
+	err := json.Unmarshal(caBytes, &credApp)
+	if err != nil {
+		example.HandleExampleError(err, "problem unmarshalling credential application")
+	}
 
 	credApp.ManifestID = cm.ID
 
@@ -266,19 +269,39 @@ func createVerifiableCredential(issuerDID string, walletDID string, descriptor m
 	vcBytes := getFileBytes("testdata/vc.json")
 
 	vc := credential.VerifiableCredential{}
-	json.Unmarshal(vcBytes, &vc)
+	err := json.Unmarshal(vcBytes, &vc)
+	if err != nil {
+		example.HandleExampleError(err, "problem unmarshalling verifiable credential")
+	}
 
-	vc.CredentialSubject["id"] = walletDID
-	vc.Issuer = issuerDID
+	credSubject := vc.CredentialSubject
+	credSubject["id"] = walletDID
 
-	return vc
+	builder := credential.NewVerifiableCredentialBuilder()
+	builder.SetIssuer(issuerDID)
+	builder.SetCredentialSubject(credSubject)
+	builder.SetCredentialSchema(*vc.CredentialSchema)
+	builder.SetIssuanceDate(vc.IssuanceDate)
+	builder.SetCredentialStatus(vc.CredentialStatus)
+	builder.SetEvidence(vc.Evidence)
+	builder.SetExpirationDate(vc.ExpirationDate)
+
+	builderVC, err := builder.Build()
+	if err != nil {
+		example.HandleExampleError(err, "could not build verifiable credential")
+	}
+
+	return *builderVC
 }
 
 func createCredentialManifest(issuer string) manifest.CredentialManifest {
 	cmBytes := getFileBytes("testdata/cm.json")
 
-	mfst := manifest.CredentialManifest{}
-	json.Unmarshal(cmBytes, &mfst)
+	var mfst manifest.CredentialManifest
+	err := json.Unmarshal(cmBytes, &mfst)
+	if err != nil {
+		example.HandleExampleError(err, "problem unmarshalling credential manifest")
+	}
 
 	mfst.Issuer.ID = issuer
 
