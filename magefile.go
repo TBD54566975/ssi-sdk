@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -14,15 +15,19 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/flowstack-com/jsonschema"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+//import _ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
+
 const (
-	Go       = "go"
-	gomobile = "gomobile"
+	Go              = "go"
+	gomobile        = "gomobile"
+	schemaDirectory = "./schema/known_schemas/"
 )
 
 // Build builds the library.
@@ -280,4 +285,58 @@ func Vuln() error {
 
 func installGoVulnIfNotPresent() error {
 	return installIfNotPresent("govulncheck", "golang.org/x/vuln/cmd/govulncheck@latest")
+}
+
+func DerefSchemas() error {
+	files, err := ioutil.ReadDir(schemaDirectory)
+	if err != nil {
+		logrus.WithError(err).Fatal("problem reading directory at: " + schemaDirectory)
+		return err
+	}
+
+	os.Chmod(schemaDirectory, 0777)
+
+	for _, file := range files {
+
+		// dont deref already deref'd json schemas
+		if strings.Contains(file.Name(), "-deref") {
+			continue
+		}
+
+		logrus.Println("dereferenceing file at: " + file.Name())
+
+		fileBytes, err := os.ReadFile(schemaDirectory + file.Name())
+		if err != nil {
+			logrus.WithError(err).Fatal("problem reading file at: " + schemaDirectory + file.Name())
+			continue
+		}
+
+		sch, err := jsonschema.New(fileBytes)
+		if err != nil {
+			logrus.WithError(err).Fatal("problem creating schema")
+			continue
+		}
+
+		// dereference schema
+		err = sch.DeRef()
+		if err != nil {
+			logrus.WithError(err).Fatal("problem dereferenceing schema")
+			continue
+		}
+
+		schemaBytes, err := sch.MarshalJSON()
+		if err != nil {
+			logrus.WithError(err).Fatal("problem marshalling schema json")
+			continue
+		}
+
+		err = os.WriteFile("./schema/known_schemas/"+strings.ReplaceAll(file.Name(), ".json", "")+"-deref.json", schemaBytes, 0644)
+		if err != nil {
+			logrus.WithError(err).Fatal("problem writing deref json to file")
+			continue
+		}
+
+	}
+	logrus.Println("\n\nFinished dereferenceing schemas")
+	return nil
 }
