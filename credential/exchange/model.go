@@ -122,6 +122,13 @@ type ClaimFormat struct {
 	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty,dive"`
 }
 
+func SupportedClaimFormats() map[string]bool {
+	supportedFormats := map[string]bool{
+		string(JWT): true, string(JWTVC): true, string(JWTVP): true, string(LDP): true, string(LDPVC): true, string(LDPVP): true,
+	}
+	return supportedFormats
+}
+
 func (cf *ClaimFormat) IsEmpty() bool {
 	if cf == nil {
 		return true

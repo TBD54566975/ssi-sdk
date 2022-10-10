@@ -141,4 +141,80 @@ func (cf *CredentialResponse) IsValid() error {
 	return util.NewValidator().Struct(cf)
 }
 
+// IsValidPair validates the rules on how a credential manifest [cm] and credential application [ca] relate to each other https://identity.foundation/credential-manifest/#credential-application
+func IsValidPair(cm CredentialManifest, ca CredentialApplication) error {
+
+	err := cm.IsValid()
+	if err != nil {
+		return errors.Wrap(err, "credential manifest is not valid")
+	}
+
+	err = ca.IsValid()
+	if err != nil {
+		return errors.Wrap(err, "credential application is not valid")
+	}
+
+	// The object MUST contain a manifest_id property. The value of this property MUST be the id of a valid Credential Manifest.
+	if cm.ID != ca.ManifestID {
+		return errors.New("the credential application's manifest id must be equal to the credential manifest's id")
+	}
+
+	// The ca must have a format property if the related Credential Manifest specifies a format property.
+	// Its value must be a subset of the format property in the Credential Manifest that this Credential Submission
+	if !cm.Format.IsEmpty() {
+		cmFormats := map[string]bool{}
+		for _, format := range cm.Format.FormatValues() {
+			cmFormats[format] = true
+		}
+
+		for _, format := range ca.Format.FormatValues() {
+			if cmFormats[format] == false {
+				return errors.New("credential application's format must be a subset of the format property in the credential manifest")
+			}
+		}
+	}
+
+	// The Credential Application object MUST contain a presentation_submission property IF the related Credential Manifest contains a presentation_definition.
+	// Its value MUST be a valid Presentation Submission:
+	if !cm.PresentationDefinition.IsEmpty() {
+
+		if ca.PresentationSubmission.IsEmpty() {
+			return errors.New("credential application's presentation submission cannot be empty")
+		}
+
+		err := cm.PresentationDefinition.IsValid()
+		if err != nil {
+			return errors.Wrap(err, "credential manifest's presentation definition is not valid")
+		}
+
+		err = ca.PresentationSubmission.IsValid()
+		if err != nil {
+			return errors.Wrap(err, "credential application's presentation submission is not valid")
+		}
+
+		// https://identity.foundation/presentation-exchange/#presentation-submission
+		// The presentation_submission object MUST contain a definition_id property. The value of this property MUST be the id value of a valid Presentation Definition.
+		if cm.PresentationDefinition.ID != ca.PresentationSubmission.DefinitionID {
+			return errors.New("credential application's presentation submission's definition id does not match the credential manifest's id")
+		}
+
+		// The descriptor_map object MUST include a format property. The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
+		supportedClaimFormats := exchange.SupportedClaimFormats()
+		for _, submissionDescriptor := range ca.PresentationSubmission.DescriptorMap {
+			if supportedClaimFormats[submissionDescriptor.Format] != true {
+				return errors.New("claim format is invalid or not supported")
+			}
+		}
+
+		// TODO: Path validation
+		// ?? The descriptor_map object MUST include a path property. The value of this property MUST be a JSONPath string expression.
+		// The path property indicates the Claim submitted in relation to the identified Input Descriptor, when executed against the top-level of the object the Presentation Submission is embedded within.
+		// cm.PresentationDefinition.InputDescriptors[0].
+		// ca.PresentationSubmission.DescriptorMap[0].Path
+
+	}
+
+	return nil
+}
+
 // TODO(gabe) support multiple embed targets https://github.com/TBD54566975/ssi-sdk/issues/57

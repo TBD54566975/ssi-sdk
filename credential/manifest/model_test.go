@@ -2,6 +2,9 @@ package manifest
 
 import (
 	"embed"
+	"github.com/TBD54566975/ssi-sdk/credential/exchange"
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"testing"
 
 	"github.com/goccy/go-json"
@@ -118,6 +121,141 @@ func TestCredentialResponse(t *testing.T) {
 		roundTripBytes, err := json.Marshal(response)
 		assert.NoError(tt, err)
 		assert.JSONEq(tt, vector, string(roundTripBytes))
+	})
+}
+
+func TestIsValidPair(t *testing.T) {
+
+	t.Run("Credential Application and Credential Manifest Pair Valid", func(tt *testing.T) {
+		credAppJson, err := getTestVector(ApplicationVector1)
+		assert.NoError(tt, err)
+
+		var app CredentialApplication
+		err = json.Unmarshal([]byte(credAppJson), &app)
+
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, app)
+		assert.NoError(tt, app.IsValid())
+
+		manifestJson, err := getTestVector(ManifestVector1)
+
+		assert.NoError(tt, err)
+
+		var man CredentialManifest
+		err = json.Unmarshal([]byte(manifestJson), &man)
+
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, man)
+		assert.NoError(tt, man.IsValid())
+
+		err = IsValidPair(man, app)
+
+		assert.NoError(tt, err)
+	})
+
+	t.Run("Credential Application and Credential Manifest Pair Full Test", func(tt *testing.T) {
+
+		manifestJson, err := getTestVector(ManifestVector1)
+
+		assert.NoError(tt, err)
+
+		var cm CredentialManifest
+		err = json.Unmarshal([]byte(manifestJson), &cm)
+
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, cm)
+		assert.NoError(tt, cm.IsValid())
+
+		credAppJson, err := getTestVector(ApplicationVector1)
+		assert.NoError(tt, err)
+
+		var ca CredentialApplication
+		err = json.Unmarshal([]byte(credAppJson), &ca)
+
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, ca)
+		assert.NoError(tt, ca.IsValid())
+
+		ca.ManifestID = "bad-id"
+
+		err = IsValidPair(cm, ca)
+		assert.Contains(t, err.Error(), "the credential application's manifest id must be equal to the credential manifest's id")
+
+		// reset
+		ca.ManifestID = cm.ID
+
+		cm.Format = &exchange.ClaimFormat{
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+		}
+
+		ca.Format = &exchange.ClaimFormat{
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+		}
+
+		err = IsValidPair(cm, ca)
+		assert.NoError(tt, err)
+
+		cm.Format = &exchange.ClaimFormat{
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+			LDP: &exchange.LDPType{ProofType: []cryptosuite.SignatureType{"sigtype"}},
+		}
+
+		ca.Format = &exchange.ClaimFormat{
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+		}
+
+		err = IsValidPair(cm, ca)
+		assert.NoError(tt, err)
+
+		cm.Format = &exchange.ClaimFormat{
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+		}
+
+		ca.Format = &exchange.ClaimFormat{
+			LDP: &exchange.LDPType{ProofType: []cryptosuite.SignatureType{"sigtype"}},
+		}
+
+		err = IsValidPair(cm, ca)
+		assert.Contains(t, err.Error(), "credential application's format must be a subset of the format property in the credential manifest")
+
+		// reset
+		ca.Format = &exchange.ClaimFormat{
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+		}
+
+		def := exchange.PresentationDefinition{
+			ID: "test-id",
+			InputDescriptors: []exchange.InputDescriptor{
+				{
+					ID: "id-1",
+					Constraints: &exchange.Constraints{
+						Fields: []exchange.Field{
+							{
+								Path:    []string{"$.vc.issuer", "$.issuer"},
+								ID:      "issuer-input-descriptor",
+								Purpose: "need to check the issuer",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		cm.PresentationDefinition = &def
+		ca.PresentationSubmission.DefinitionID = "badid"
+
+		err = IsValidPair(cm, ca)
+		assert.Contains(t, err.Error(), "credential application's presentation submission's definition id does not match the credential manifest's id")
+
+		ca.PresentationSubmission.DefinitionID = def.ID
+
+		err = IsValidPair(cm, ca)
+		assert.NoError(tt, err)
+
+		ca.PresentationSubmission.DescriptorMap[0].Format = "badformat"
+
+		err = IsValidPair(cm, ca)
+		assert.Contains(t, err.Error(), "must be one of the following:")
 	})
 }
 
