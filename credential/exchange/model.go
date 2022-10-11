@@ -42,8 +42,16 @@ func (f LinkedDataFormat) Ptr() *LinkedDataFormat {
 	return &f
 }
 
+func (f LinkedDataFormat) String() string {
+	return string(*f.Ptr())
+}
+
 func (f JWTFormat) Ptr() *JWTFormat {
 	return &f
+}
+
+func (f JWTFormat) String() string {
+	return string(*f.Ptr())
 }
 
 type PresentationDefinitionEnvelope struct {
@@ -124,7 +132,7 @@ type ClaimFormat struct {
 
 func SupportedClaimFormats() map[string]bool {
 	supportedFormats := map[string]bool{
-		string(JWT): true, string(JWTVC): true, string(JWTVP): true, string(LDP): true, string(LDPVC): true, string(LDPVP): true,
+		JWT.String(): true, JWTVC.String(): true, JWTVP.String(): true, LDP.String(): true, LDPVC.String(): true, LDPVP.String(): true,
 	}
 	return supportedFormats
 }
@@ -151,22 +159,22 @@ func (cf *ClaimFormat) IsValid() error {
 func (cf *ClaimFormat) FormatValues() []string {
 	var res []string
 	if cf.JWT != nil {
-		res = append(res, string(JWT))
+		res = append(res, JWT.String())
 	}
 	if cf.JWTVC != nil {
-		res = append(res, string(JWTVC))
+		res = append(res, JWTVC.String())
 	}
 	if cf.JWTVP != nil {
-		res = append(res, string(JWTVP))
+		res = append(res, JWTVP.String())
 	}
 	if cf.LDP != nil {
-		res = append(res, string(LDP))
+		res = append(res, LDP.String())
 	}
 	if cf.LDPVC != nil {
-		res = append(res, string(LDPVC))
+		res = append(res, LDPVC.String())
 	}
 	if cf.LDPVP != nil {
-		res = append(res, string(LDPVP))
+		res = append(res, LDPVP.String())
 	}
 	return res
 }

@@ -127,50 +127,50 @@ func TestCredentialResponse(t *testing.T) {
 func TestIsValidPair(t *testing.T) {
 
 	t.Run("Credential Application and Credential Manifest Pair Valid", func(tt *testing.T) {
-		credAppJson, err := getTestVector(ApplicationVector1)
+		credAppJSON, err := getTestVector(ApplicationVector1)
 		assert.NoError(tt, err)
 
 		var app CredentialApplication
-		err = json.Unmarshal([]byte(credAppJson), &app)
+		err = json.Unmarshal([]byte(credAppJSON), &app)
 
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, app)
 		assert.NoError(tt, app.IsValid())
 
-		manifestJson, err := getTestVector(ManifestVector1)
+		manifestJSON, err := getTestVector(ManifestVector1)
 
 		assert.NoError(tt, err)
 
 		var man CredentialManifest
-		err = json.Unmarshal([]byte(manifestJson), &man)
+		err = json.Unmarshal([]byte(manifestJSON), &man)
 
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, man)
 		assert.NoError(tt, man.IsValid())
 
-		err = IsValidPair(man, app)
+		err = IsValidCredentialApplicationForManifest(man, app)
 
 		assert.NoError(tt, err)
 	})
 
 	t.Run("Credential Application and Credential Manifest Pair Full Test", func(tt *testing.T) {
 
-		manifestJson, err := getTestVector(ManifestVector1)
+		manifestJSON, err := getTestVector(ManifestVector1)
 
 		assert.NoError(tt, err)
 
 		var cm CredentialManifest
-		err = json.Unmarshal([]byte(manifestJson), &cm)
+		err = json.Unmarshal([]byte(manifestJSON), &cm)
 
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, cm)
 		assert.NoError(tt, cm.IsValid())
 
-		credAppJson, err := getTestVector(ApplicationVector1)
+		credAppJSON, err := getTestVector(ApplicationVector1)
 		assert.NoError(tt, err)
 
 		var ca CredentialApplication
-		err = json.Unmarshal([]byte(credAppJson), &ca)
+		err = json.Unmarshal([]byte(credAppJSON), &ca)
 
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, ca)
@@ -178,8 +178,8 @@ func TestIsValidPair(t *testing.T) {
 
 		ca.ManifestID = "bad-id"
 
-		err = IsValidPair(cm, ca)
-		assert.Contains(t, err.Error(), "the credential application's manifest id must be equal to the credential manifest's id")
+		err = IsValidCredentialApplicationForManifest(cm, ca)
+		assert.Contains(t, err.Error(), "the credential application's manifest id: WA-DL-CLASS-A must be equal to the credential manifest's id: bad-id")
 
 		// reset
 		ca.ManifestID = cm.ID
@@ -192,7 +192,7 @@ func TestIsValidPair(t *testing.T) {
 			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
 		}
 
-		err = IsValidPair(cm, ca)
+		err = IsValidCredentialApplicationForManifest(cm, ca)
 		assert.NoError(tt, err)
 
 		cm.Format = &exchange.ClaimFormat{
@@ -204,7 +204,7 @@ func TestIsValidPair(t *testing.T) {
 			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
 		}
 
-		err = IsValidPair(cm, ca)
+		err = IsValidCredentialApplicationForManifest(cm, ca)
 		assert.NoError(tt, err)
 
 		cm.Format = &exchange.ClaimFormat{
@@ -215,7 +215,7 @@ func TestIsValidPair(t *testing.T) {
 			LDP: &exchange.LDPType{ProofType: []cryptosuite.SignatureType{"sigtype"}},
 		}
 
-		err = IsValidPair(cm, ca)
+		err = IsValidCredentialApplicationForManifest(cm, ca)
 		assert.Contains(t, err.Error(), "credential application's format must be a subset of the format property in the credential manifest")
 
 		// reset
@@ -244,18 +244,31 @@ func TestIsValidPair(t *testing.T) {
 		cm.PresentationDefinition = &def
 		ca.PresentationSubmission.DefinitionID = "badid"
 
-		err = IsValidPair(cm, ca)
-		assert.Contains(t, err.Error(), "credential application's presentation submission's definition id does not match the credential manifest's id")
+		err = IsValidCredentialApplicationForManifest(cm, ca)
+		assert.Contains(t, err.Error(), "credential application's presentation submission's definition id: test-id does not match the credential manifest's id: badid")
 
+		// reset
 		ca.PresentationSubmission.DefinitionID = def.ID
 
-		err = IsValidPair(cm, ca)
+		err = IsValidCredentialApplicationForManifest(cm, ca)
 		assert.NoError(tt, err)
 
 		ca.PresentationSubmission.DescriptorMap[0].Format = "badformat"
 
-		err = IsValidPair(cm, ca)
+		err = IsValidCredentialApplicationForManifest(cm, ca)
 		assert.Contains(t, err.Error(), "must be one of the following:")
+
+		// reset
+		ca.PresentationSubmission.DescriptorMap[0].Format = "jwt_vc"
+
+		err = IsValidCredentialApplicationForManifest(cm, ca)
+		assert.NoError(tt, err)
+
+		ca.PresentationSubmission.DescriptorMap[0].Path = "bad-path"
+
+		err = IsValidCredentialApplicationForManifest(cm, ca)
+		assert.Contains(t, err.Error(), "invalid json path: bad-path")
+
 	})
 }
 
