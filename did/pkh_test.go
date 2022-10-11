@@ -59,8 +59,6 @@ func TestDIDPKHVectors(t *testing.T) {
 		// Compare Known and Testing DIDPKH Document. This compares the known PKH DID Document with the one we generate
 		generatedDIDBytes, err := json.Marshal(testDIDPKHDoc)
 		assert.NoError(t, err)
-		println(string(generatedDIDBytes))
-		println(string(knownDIDBytes))
 		assert.JSONEqf(t, string(generatedDIDBytes), string(knownDIDBytes), "Generated DIDPKH does not match known DIDPKH")
 	}
 }
