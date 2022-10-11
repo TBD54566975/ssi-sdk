@@ -156,7 +156,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 
 	// The object MUST contain a manifest_id property. The value of this property MUST be the id of a valid Credential Manifest.
 	if cm.ID != ca.ManifestID {
-		return errors.New(fmt.Sprintf("the credential application's manifest id: %s must be equal to the credential manifest's id: %s", cm.ID, ca.ManifestID))
+		return fmt.Errorf("the credential application's manifest id: %s must be equal to the credential manifest's id: %s", cm.ID, ca.ManifestID)
 	}
 
 	// The ca must have a format property if the related Credential Manifest specifies a format property.
@@ -194,19 +194,23 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 		// https://identity.foundation/presentation-exchange/#presentation-submission
 		// The presentation_submission object MUST contain a definition_id property. The value of this property MUST be the id value of a valid Presentation Definition.
 		if cm.PresentationDefinition.ID != ca.PresentationSubmission.DefinitionID {
-			return errors.New(fmt.Sprintf("credential application's presentation submission's definition id: %s does not match the credential manifest's id: %s", cm.PresentationDefinition.ID, ca.PresentationSubmission.DefinitionID))
+			return fmt.Errorf("credential application's presentation submission's definition id: %s does not match the credential manifest's id: %s", cm.PresentationDefinition.ID, ca.PresentationSubmission.DefinitionID)
 		}
 
 		// The descriptor_map object MUST include a format property. The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
-		supportedClaimFormats := exchange.SupportedClaimFormats()
+		claimFormats := make(map[string]bool)
+		for _, format := range exchange.SupportedClaimFormats() {
+			claimFormats[string(format)] = true
+		}
+
 		for _, submissionDescriptor := range ca.PresentationSubmission.DescriptorMap {
-			if _, ok := supportedClaimFormats[submissionDescriptor.Format]; !ok {
+			if _, ok := claimFormats[submissionDescriptor.Format]; !ok {
 				return errors.New("claim format is invalid or not supported")
 			}
 
 			// The descriptor_map object MUST include a path property. The value of this property MUST be a JSONPath string expression.
 			if _, err := jsonpath.Compile(submissionDescriptor.Path); err != nil {
-				return errors.New(fmt.Sprintf("invalid json path: %s", submissionDescriptor.Path))
+				return fmt.Errorf("invalid json path: %s", submissionDescriptor.Path)
 			}
 
 		}

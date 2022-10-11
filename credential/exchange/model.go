@@ -43,7 +43,11 @@ func (f LinkedDataFormat) Ptr() *LinkedDataFormat {
 }
 
 func (f LinkedDataFormat) String() string {
-	return string(*f.Ptr())
+	return string(f)
+}
+
+func (f LinkedDataFormat) CredentialFormat() CredentialFormat {
+	return CredentialFormat(f)
 }
 
 func (f JWTFormat) Ptr() *JWTFormat {
@@ -51,7 +55,11 @@ func (f JWTFormat) Ptr() *JWTFormat {
 }
 
 func (f JWTFormat) String() string {
-	return string(*f.Ptr())
+	return string(f)
+}
+
+func (f JWTFormat) CredentialFormat() CredentialFormat {
+	return CredentialFormat(f)
 }
 
 type PresentationDefinitionEnvelope struct {
@@ -130,11 +138,8 @@ type ClaimFormat struct {
 	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty,dive"`
 }
 
-func SupportedClaimFormats() map[string]bool {
-	supportedFormats := map[string]bool{
-		JWT.String(): true, JWTVC.String(): true, JWTVP.String(): true, LDP.String(): true, LDPVC.String(): true, LDPVP.String(): true,
-	}
-	return supportedFormats
+func SupportedClaimFormats() []CredentialFormat {
+	return []CredentialFormat{JWT.CredentialFormat(), JWTVC.CredentialFormat(), JWTVP.CredentialFormat(), LDP.CredentialFormat(), LDPVC.CredentialFormat(), JWTVC.CredentialFormat()}
 }
 
 func (cf *ClaimFormat) IsEmpty() bool {
