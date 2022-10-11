@@ -42,8 +42,24 @@ func (f LinkedDataFormat) Ptr() *LinkedDataFormat {
 	return &f
 }
 
+func (f LinkedDataFormat) String() string {
+	return string(f)
+}
+
+func (f LinkedDataFormat) CredentialFormat() CredentialFormat {
+	return CredentialFormat(f)
+}
+
 func (f JWTFormat) Ptr() *JWTFormat {
 	return &f
+}
+
+func (f JWTFormat) String() string {
+	return string(f)
+}
+
+func (f JWTFormat) CredentialFormat() CredentialFormat {
+	return CredentialFormat(f)
 }
 
 type PresentationDefinitionEnvelope struct {
@@ -122,6 +138,10 @@ type ClaimFormat struct {
 	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty,dive"`
 }
 
+func SupportedClaimFormats() []CredentialFormat {
+	return []CredentialFormat{JWT.CredentialFormat(), JWTVC.CredentialFormat(), JWTVP.CredentialFormat(), LDP.CredentialFormat(), LDPVC.CredentialFormat(), JWTVC.CredentialFormat()}
+}
+
 func (cf *ClaimFormat) IsEmpty() bool {
 	if cf == nil {
 		return true
@@ -144,22 +164,22 @@ func (cf *ClaimFormat) IsValid() error {
 func (cf *ClaimFormat) FormatValues() []string {
 	var res []string
 	if cf.JWT != nil {
-		res = append(res, string(JWT))
+		res = append(res, JWT.String())
 	}
 	if cf.JWTVC != nil {
-		res = append(res, string(JWTVC))
+		res = append(res, JWTVC.String())
 	}
 	if cf.JWTVP != nil {
-		res = append(res, string(JWTVP))
+		res = append(res, JWTVP.String())
 	}
 	if cf.LDP != nil {
-		res = append(res, string(LDP))
+		res = append(res, LDP.String())
 	}
 	if cf.LDPVC != nil {
-		res = append(res, string(LDPVC))
+		res = append(res, LDPVC.String())
 	}
 	if cf.LDPVP != nil {
-		res = append(res, string(LDPVP))
+		res = append(res, LDPVP.String())
 	}
 	return res
 }

@@ -1,6 +1,8 @@
 package manifest
 
 import (
+	"fmt"
+	"github.com/oliveagle/jsonpath"
 	"reflect"
 
 	"github.com/pkg/errors"
@@ -139,6 +141,82 @@ func (cf *CredentialResponse) IsValid() error {
 		return errors.Wrap(err, "response failed json schema validation")
 	}
 	return util.NewValidator().Struct(cf)
+}
+
+// IsValidCredentialApplicationForManifest validates the rules on how a credential manifest [cm] and credential application [ca] relate to each other https://identity.foundation/credential-manifest/#credential-application
+func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca CredentialApplication) error {
+
+	if err := cm.IsValid(); err != nil {
+		return errors.Wrap(err, "credential manifest is not valid")
+	}
+
+	if err := ca.IsValid(); err != nil {
+		return errors.Wrap(err, "credential application is not valid")
+	}
+
+	// The object MUST contain a manifest_id property. The value of this property MUST be the id of a valid Credential Manifest.
+	if cm.ID != ca.ManifestID {
+		return fmt.Errorf("the credential application's manifest id: %s must be equal to the credential manifest's id: %s", cm.ID, ca.ManifestID)
+	}
+
+	// The ca must have a format property if the related Credential Manifest specifies a format property.
+	// Its value must be a subset of the format property in the Credential Manifest that this Credential Submission
+	if !cm.Format.IsEmpty() {
+		cmFormats := make(map[string]bool)
+
+		for _, format := range cm.Format.FormatValues() {
+			cmFormats[format] = true
+		}
+
+		for _, format := range ca.Format.FormatValues() {
+			if _, ok := cmFormats[format]; !ok {
+				return errors.New("credential application's format must be a subset of the format property in the credential manifest")
+			}
+		}
+	}
+
+	// The Credential Application object MUST contain a presentation_submission property IF the related Credential Manifest contains a presentation_definition.
+	// Its value MUST be a valid Presentation Submission:
+	if !cm.PresentationDefinition.IsEmpty() {
+
+		if ca.PresentationSubmission.IsEmpty() {
+			return errors.New("credential application's presentation submission cannot be empty")
+		}
+
+		if err := cm.PresentationDefinition.IsValid(); err != nil {
+			return errors.Wrap(err, "credential manifest's presentation definition is not valid")
+		}
+
+		if err := ca.PresentationSubmission.IsValid(); err != nil {
+			return errors.Wrap(err, "credential application's presentation submission is not valid")
+		}
+
+		// https://identity.foundation/presentation-exchange/#presentation-submission
+		// The presentation_submission object MUST contain a definition_id property. The value of this property MUST be the id value of a valid Presentation Definition.
+		if cm.PresentationDefinition.ID != ca.PresentationSubmission.DefinitionID {
+			return fmt.Errorf("credential application's presentation submission's definition id: %s does not match the credential manifest's id: %s", cm.PresentationDefinition.ID, ca.PresentationSubmission.DefinitionID)
+		}
+
+		// The descriptor_map object MUST include a format property. The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
+		claimFormats := make(map[string]bool)
+		for _, format := range exchange.SupportedClaimFormats() {
+			claimFormats[string(format)] = true
+		}
+
+		for _, submissionDescriptor := range ca.PresentationSubmission.DescriptorMap {
+			if _, ok := claimFormats[submissionDescriptor.Format]; !ok {
+				return errors.New("claim format is invalid or not supported")
+			}
+
+			// The descriptor_map object MUST include a path property. The value of this property MUST be a JSONPath string expression.
+			if _, err := jsonpath.Compile(submissionDescriptor.Path); err != nil {
+				return fmt.Errorf("invalid json path: %s", submissionDescriptor.Path)
+			}
+
+		}
+	}
+
+	return nil
 }
 
 // TODO(gabe) support multiple embed targets https://github.com/TBD54566975/ssi-sdk/issues/57
