@@ -1,16 +1,10 @@
 package dwn
 
 import (
-	"github.com/TBD54566975/ssi-sdk/schema"
-	"github.com/TBD54566975/ssi-sdk/util"
-	"github.com/goccy/go-json"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"reflect"
-)
 
-const (
-	dwnMessageSchema string = "dwn-message.json"
+	"github.com/TBD54566975/ssi-sdk/util"
+	"github.com/pkg/errors"
 )
 
 // DWNMessage https://identity.foundation/decentralized-web-node/spec/#messages
@@ -19,7 +13,7 @@ type DWNMessage struct {
 	Descriptor DWNDescriptor `json:"descriptor" validate:"required"`
 }
 
-// DWNMessage https://identity.foundation/decentralized-web-node/spec/#messages
+// DWNDescriptor https://identity.foundation/decentralized-web-node/spec/#message-descriptors
 type DWNDescriptor struct {
 	Target    string `json:"target,omitempty"`
 	Recipient string `json:"recipient,omitempty"`
@@ -53,7 +47,7 @@ func (msg *DWNMessage) IsValid() error {
 	}
 
 	// validate against json schema
-	if err := IsValidDwnMessage(*msg); err != nil {
+	if err := IsValidDWNMessage(*msg); err != nil {
 		return errors.Wrap(err, "dwn message failed json schema validation")
 	}
 
@@ -61,19 +55,20 @@ func (msg *DWNMessage) IsValid() error {
 	return util.NewValidator().Struct(msg)
 }
 
-// IsValidDwnMessage validates a given dwn message object against its known JSON schema
-func IsValidDwnMessage(msg DWNMessage) error {
-	jsonBytes, err := json.Marshal(msg)
-	if err != nil {
-		return errors.Wrap(err, "could not marshal dwn message to JSON")
-	}
-	s, err := schema.GetKnownSchema(dwnMessageSchema)
-	if err != nil {
-		return errors.Wrap(err, "could not get dwn message schema")
-	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Errorf("dwn message not valid against schema")
-		return err
-	}
-	return nil
+// IsValidDWNMessage validates a given dwn message object against its known JSON schema
+func IsValidDWNMessage(msg DWNMessage) error {
+	// TODO: add a schema when there is one
+	// jsonBytes, err := json.Marshal(msg)
+	// if err != nil {
+	// 	return errors.Wrap(err, "could not marshal dwn message to JSON")
+	// }
+	// s, err := schema.GetKnownSchema(dwnMessageSchema)
+	// if err != nil {
+	// 	return errors.Wrap(err, "could not get dwn message schema")
+	// }
+	// if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	// 	logrus.WithError(err).Errorf("dwn message not valid against schema")
+	// 	return err
+	// }
+	return util.NewValidator().Struct(msg)
 }

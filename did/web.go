@@ -33,12 +33,12 @@ func (d DIDWeb) IsValid() bool {
 	return err == nil
 }
 
-func (d DIDWeb) ToString() string {
+func (d DIDWeb) String() string {
 	return string(d)
 }
 
 func (d DIDWeb) Suffix() (string, error) {
-	split := strings.Split(d.ToString(), DIDWebPrefix+":")
+	split := strings.Split(d.String(), DIDWebPrefix+":")
 	if len(split) != 2 {
 		return "", errors.Wrap(util.InvalidFormatError, "did is malformed")
 	}
@@ -169,7 +169,7 @@ func (d DIDWeb) Resolve() (*DIDDocument, error) {
 		errMsg := fmt.Sprintf("could not resolve with docBytes %s", docBytes)
 		return nil, util.LoggingErrorMsg(err, errMsg)
 	}
-	if doc.ID != d.ToString() {
+	if doc.ID != d.String() {
 		errMsg := fmt.Sprintf("doc.ID %s does not match did:web value: %s", doc.ID, d)
 		return nil, util.LoggingNewError(errMsg)
 	}

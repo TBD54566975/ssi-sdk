@@ -19,15 +19,15 @@ var (
 	testVectorPKHDIDFS embed.FS
 )
 
-var PKHTestVectors = map[Network][]string{
-	Bitcoin:  {"bip122:000000000019d6689c085ae165831e93", "did-pkh-bitcoin-doc.json"},
-	Ethereum: {"eip155:1", "did-pkh-ethereum-doc.json"},
-	Polygon:  {"eip155:137", "did-pkh-polygon-doc.json"},
+var pkhTestVectors = map[Network][]string{
+	Bitcoin:  {BitcoinNetworkPrefix, "did-pkh-bitcoin-doc.json"},
+	Ethereum: {EthereumNetworkPrefix, "did-pkh-ethereum-doc.json"},
+	Polygon:  {PolygonNetworkPrefix, "did-pkh-polygon-doc.json"},
 }
 
 func TestDIDPKHVectors(t *testing.T) {
 	// round trip serialize and de-serialize from json to our object model
-	for network, tv := range PKHTestVectors {
+	for network, tv := range pkhTestVectors {
 		gotTestVector, err := testVectorPKHDIDFS.ReadFile(testDataDirectory + "/" + tv[1])
 		assert.NoError(t, err)
 
@@ -59,6 +59,8 @@ func TestDIDPKHVectors(t *testing.T) {
 		// Compare Known and Testing DIDPKH Document. This compares the known PKH DID Document with the one we generate
 		generatedDIDBytes, err := json.Marshal(testDIDPKHDoc)
 		assert.NoError(t, err)
+		println(string(generatedDIDBytes))
+		println(string(knownDIDBytes))
 		assert.JSONEqf(t, string(generatedDIDBytes), string(knownDIDBytes), "Generated DIDPKH does not match known DIDPKH")
 	}
 }
@@ -96,7 +98,7 @@ func TestCreateDIDPKH(t *testing.T) {
 		generatedDIDDocBytes, err := json.Marshal(didDoc)
 		assert.NoError(tt, err)
 
-		testVectorDIDDoc, err := testVectorPKHDIDFS.ReadFile(testDataDirectory + "/" + PKHTestVectors[Ethereum][1])
+		testVectorDIDDoc, err := testVectorPKHDIDFS.ReadFile(testDataDirectory + "/" + pkhTestVectors[Ethereum][1])
 		assert.NoError(tt, err)
 
 		var expandedTestDIDDoc DIDDocument
@@ -111,7 +113,7 @@ func TestCreateDIDPKH(t *testing.T) {
 	t.Run("Test Unhappy Path", func(tt *testing.T) {
 		_, err := CreateDIDPKHFromNetwork("bad", "bad")
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "unsupported network: bad")
+		assert.Contains(tt, err.Error(), "unsupported did:pkh network: bad")
 	})
 }
 
@@ -138,14 +140,14 @@ func TestIsValidPKH(t *testing.T) {
 
 func TestGetNetwork(t *testing.T) {
 	t.Run("Test Known Networks", func(tt *testing.T) {
-		for network := range PKHTestVectors {
+		for network := range pkhTestVectors {
 			didPKH, err := CreateDIDPKHFromNetwork(network, "dummyaddress")
 			assert.NoError(t, err)
 
-			n, err := GetNetwork(*didPKH)
+			n, err := GetDIDPKHNetworkForDID(didPKH.String())
 			assert.NoError(tt, err)
 
-			assert.Equal(tt, network, *n)
+			assert.Equal(tt, network, n)
 		}
 	})
 
@@ -153,19 +155,19 @@ func TestGetNetwork(t *testing.T) {
 	t.Run("Test Unknown Network", func(tt *testing.T) {
 		_, err := CreateDIDPKHFromNetwork("bad", "dummyaddress")
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "unsupported network: bad")
+		assert.Contains(tt, err.Error(), "unsupported did:pkh network: bad")
 	})
 }
 
 func TestGetSupportedNetworks(t *testing.T) {
-	supportedNetworks := GetSupportedNetworks()
+	supportedNetworks := GetSupportedPKHNetworks()
 
 	supportedNetworksSet := make(map[Network]bool)
 	for i := range supportedNetworks {
 		supportedNetworksSet[supportedNetworks[i]] = true
 	}
 
-	for network := range PKHTestVectors {
+	for network := range pkhTestVectors {
 		assert.True(t, supportedNetworksSet[network])
 	}
 }
