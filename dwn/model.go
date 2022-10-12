@@ -57,7 +57,7 @@ func (msg *DWNMessage) IsValid() error {
 
 // IsValidDWNMessage validates a given dwn message object against its known JSON schema
 func IsValidDWNMessage(msg DWNMessage) error {
-	// TODO: add a schema when there is one
+	// TODO(neal): add support for schemas https://github.com/TBD54566975/ssi-sdk/issues/62
 	// jsonBytes, err := json.Marshal(msg)
 	// if err != nil {
 	// 	return errors.Wrap(err, "could not marshal dwn message to JSON")

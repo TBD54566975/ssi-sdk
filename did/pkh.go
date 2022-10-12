@@ -41,7 +41,7 @@ const (
 	EcdsaSecp256k1RecoveryMethod2020 = "EcdsaSecp256k1RecoveryMethod2020"
 )
 
-// GetDIDPKHContext returns a context  which should be manually inserted into each did:pkh document. This will likely
+// GetDIDPKHContext returns a context which should be manually inserted into each did:pkh document. This will likely
 // change over time as new verification methods are supported, and general-purpose methods are specified.
 func GetDIDPKHContext() (string, error) {
 	b, err := knownContexts.ReadFile("context/" + pkhContextFilename)
