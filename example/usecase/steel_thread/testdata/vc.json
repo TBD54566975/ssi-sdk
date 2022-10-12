@@ -1,0 +1,30 @@
+{
+
+    "id" : "vcid",
+    "@context": ["https://www.w3.org/2018/credentials/v1"],
+    "type": ["KycCredential"],
+    "issuer": "did:janky:alice",
+    "issuanceDate": "2022-09-29T00:00:00Z",
+    "credentialSchema": {
+      "id": "https://compliance-is-kewl.com/json-schemas/kyc.json",
+      "type": "JsonSchemaValidator2018"
+    },
+    "credentialSubject": {
+      "id": "did:janky:alice",
+      "givenName": "Randy",
+      "additionalName": "N/A",
+      "familyName": "McJanky",
+      "birthDate": "1988-03-28",
+      "postalAddress": {
+        "addressCountry": "USA",
+        "addressLocality": "Austin",
+        "addressRegion": "TX",
+        "postalCode": "78724",
+        "streetAddress": "7405 Janktopia Ave."
+      },
+      "taxID": "123-45-6789"
+    },
+
+  "iss": "did:janky:alice",
+  "sub": "did:janky:alice"
+}
