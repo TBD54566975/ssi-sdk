@@ -105,6 +105,12 @@ func ToJSON(i interface{}) (string, error) {
 	return string(b), err
 }
 
+func ToJSONInterface(data string) (interface{}, error) {
+	var result interface{}
+	err := json.Unmarshal([]byte(data), &result)
+	return result, err
+}
+
 func validateCopy(src interface{}, dst interface{}) error {
 	if src == nil {
 		return errors.New("src is nil")

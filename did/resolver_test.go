@@ -24,7 +24,7 @@ func TestResolveDID(t *testing.T) {
 	_, didKey, err := GenerateDIDKey(crypto.Ed25519)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, didKey)
-	doc, err := resolver.Resolve(didKey.ToString())
+	doc, err := resolver.Resolve(didKey.String())
 	assert.NoError(t, err)
 	assert.NotEmpty(t, doc)
 
@@ -33,7 +33,7 @@ func TestResolveDID(t *testing.T) {
 	didPKH, err := CreateDIDPKHFromNetwork(Ethereum, address)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, didPKH)
-	doc, err = resolver.Resolve(didPKH.ToString())
+	doc, err = resolver.Resolve(didPKH.String())
 	assert.NoError(t, err)
 	assert.NotEmpty(t, doc)
 
