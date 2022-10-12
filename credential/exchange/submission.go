@@ -473,6 +473,9 @@ func processInputDescriptorField(field Field, claimData map[string]interface{}) 
 			return
 		}
 	}
+	if field.Optional {
+		return nil, true
+	}
 	return nil, false
 }
 
