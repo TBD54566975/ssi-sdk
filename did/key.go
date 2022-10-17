@@ -36,7 +36,7 @@ func (d DIDKey) IsValid() bool {
 	return err == nil
 }
 
-func (d DIDKey) ToString() string {
+func (d DIDKey) String() string {
 	return string(d)
 }
 

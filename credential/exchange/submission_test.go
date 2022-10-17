@@ -126,9 +126,10 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 					Constraints: &Constraints{
 						Fields: []Field{
 							{
-								Path:    []string{"$.vc.issuer", "$.issuer"},
-								ID:      "issuer-input-descriptor",
-								Purpose: "need to check the issuer",
+								Path:     []string{"$.vc.issuer", "$.issuer"},
+								ID:       "issuer-input-descriptor",
+								Purpose:  "need to check the issuer",
+								Optional: false,
 							},
 						},
 					},
@@ -300,9 +301,10 @@ func TestProcessInputDescriptor(t *testing.T) {
 			Constraints: &Constraints{
 				Fields: []Field{
 					{
-						Path:    []string{"$.vc.issuer", "$.issuer"},
-						ID:      "issuer-input-descriptor",
-						Purpose: "need to check the issuer",
+						Path:     []string{"$.vc.issuer", "$.issuer"},
+						ID:       "issuer-input-descriptor",
+						Purpose:  "need to check the issuer",
+						Optional: true,
 					},
 				},
 			},

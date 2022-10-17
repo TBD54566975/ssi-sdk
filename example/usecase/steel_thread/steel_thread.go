@@ -15,6 +15,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/manifest"
@@ -43,7 +44,7 @@ func (t *Entity) GenerateWallet() {
 	example.HandleExampleError(err, "Failed to generate DID")
 	walletDIDWJWK, err := jwk.New(walletDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate JWK")
-	walletSigner, err := crypto.NewJWTSigner(walletDIDKey.ToString(), walletDIDWJWK)
+	walletSigner, err := crypto.NewJWTSigner(walletDIDKey.String(), walletDIDWJWK)
 	example.HandleExampleError(err, "Failed to generate signer")
 	walletVerifier, err := walletSigner.ToVerifier()
 	example.HandleExampleError(err, "Failed to generate verifier")
@@ -53,7 +54,7 @@ func (t *Entity) GenerateWallet() {
 }
 
 func (t *Entity) CreateCredentialManifest() {
-	credManifest := createCredentialManifest(t.didKey.ToString())
+	credManifest := createCredentialManifest(t.didKey.String())
 	t.credentialManifest = credManifest
 }
 
@@ -63,15 +64,15 @@ func (t *Entity) CreateCredentialApplication() {
 }
 
 func (t *Entity) SignCredentialManifest() {
-	//TODO: SignCredentialManifestJWT(issuer) -> JWTString
+	// TODO: SignCredentialManifestJWT(issuer) -> JWTString
 }
 
 func (t *Entity) SignCredentialApplication() {
-	//TODO: SignCredentialApplicationJWT(issuer) -> JWTString
+	// TODO: SignCredentialApplicationJWT(issuer) -> JWTString
 }
 
 func (t *Entity) SignCredentialResponse() {
-	//TODO: SignCredentialResponseJWT(issuer) -> JWTString
+	// TODO: SignCredentialResponseJWT(issuer) -> JWTString
 }
 
 func (t *Entity) SetCredentialManifest(manifest manifest.CredentialManifest) {
@@ -91,17 +92,17 @@ func (t *Entity) SetVerifiableCredentials(credentials []credential.VerifiableCre
 }
 
 func (t *Entity) ValidateCredentialManifest() error {
-	//TODO: Validate Signature
+	// TODO: Validate Signature
 	return t.credentialManifest.IsValid()
 }
 
 func (t *Entity) ValidateCredentialApplication() error {
-	//TODO: Validate Signature
+	// TODO: Validate Signature
 	return t.credentialApplication.IsValid()
 }
 
 func (t *Entity) ValidateCredentialResponse() error {
-	//TODO: Validate Signature
+	// TODO: Validate Signature
 	return t.credentialResponse.IsValid()
 }
 
@@ -215,7 +216,7 @@ func main() {
 		Step 7: The SSI Service creates Verifiable Credentials signed with `didI`. The SSI Service creates a
 		Credential Response signed with `didI`
 	**/
-	credentialResponse, verifiableCredentials := issuerWalletEntity.ProcessCredentialApplication(issuerWalletEntity.didKey.ToString(), aliceWalletEntity.didKey.ToString())
+	credentialResponse, verifiableCredentials := issuerWalletEntity.ProcessCredentialApplication(issuerWalletEntity.didKey.String(), aliceWalletEntity.didKey.String())
 
 	/**
 		Step 8: Alice receives Credential Response containing the Verifiable Credentials and

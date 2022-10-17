@@ -138,8 +138,9 @@ func TestInputDescriptorBuilder(t *testing.T) {
 	err = builder.SetConstraints(Constraints{
 		Fields: []Field{
 			{
-				Path: []string{"path"},
-				ID:   "field-id",
+				Path:     []string{"path"},
+				ID:       "field-id",
+				Optional: true,
 			},
 		},
 		LimitDisclosure: &requiredPref,

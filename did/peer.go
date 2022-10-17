@@ -59,7 +59,7 @@ func (d DIDPeer) IsValid() bool {
 	return isPeerDID(string(d))
 }
 
-func (d DIDPeer) ToString() string {
+func (d DIDPeer) String() string {
 	return string(d)
 }
 

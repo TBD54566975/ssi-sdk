@@ -20,7 +20,7 @@ type DID interface {
 	// IsValid checks if the DID is compliant with its methods definition
 	IsValid() bool
 	// ToString Returns the string representation of the DID identifier (e.g. did:example:abcd)
-	ToString() string
+	String() string
 	// Suffix provides the value of the DID without the method prefix
 	Suffix() (string, error)
 	// Method provides the method for the DID

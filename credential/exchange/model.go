@@ -276,6 +276,7 @@ type Field struct {
 	// https://identity.foundation/presentation-exchange/#predicate-feature
 	Predicate *Preference `json:"predicate,omitempty"`
 	Filter    *Filter     `json:"filter,omitempty"`
+	Optional  bool        `json:"optional,omitempty"`
 }
 
 type RelationalConstraint struct {
@@ -284,23 +285,20 @@ type RelationalConstraint struct {
 }
 
 type Filter struct {
-	Type             string      `json:"type,omitempty"`
-	Format           string      `json:"format,omitempty"`
-	Pattern          string      `json:"pattern,omitempty"`
-	Minimum          interface{} `json:"minimum,omitempty"`
-	Maximum          interface{} `json:"maximum,omitempty"`
-	MinLength        int         `json:"minLength,omitempty"`
-	MaxLength        int         `json:"maxLength,omitempty"`
-	ExclusiveMinimum interface{} `json:"exclusiveMinimum,omitempty"`
-	ExclusiveMaximum interface{} `json:"exclusiveMaximum,omitempty"`
-	// TODO(gabe) these may not be valid https://github.com/decentralized-identity/presentation-exchange/issues/312
-	FormatMinimum interface{}   `json:"formatMinimum,omitempty"`
-	FormatMaximum interface{}   `json:"formatMaximum,omitempty"`
-	Const         interface{}   `json:"const,omitempty"`
-	Enum          []interface{} `json:"enum,omitempty"`
-	Not           interface{}   `json:"not,omitempty"`
-	AllOf         interface{}   `json:"allOf,omitempty"`
-	OneOf         interface{}   `json:"oneOf,omitempty"`
+	Type             string        `json:"type,omitempty"`
+	Format           string        `json:"format,omitempty"`
+	Pattern          string        `json:"pattern,omitempty"`
+	Minimum          interface{}   `json:"minimum,omitempty"`
+	Maximum          interface{}   `json:"maximum,omitempty"`
+	MinLength        int           `json:"minLength,omitempty"`
+	MaxLength        int           `json:"maxLength,omitempty"`
+	ExclusiveMinimum interface{}   `json:"exclusiveMinimum,omitempty"`
+	ExclusiveMaximum interface{}   `json:"exclusiveMaximum,omitempty"`
+	Const            interface{}   `json:"const,omitempty"`
+	Enum             []interface{} `json:"enum,omitempty"`
+	Not              interface{}   `json:"not,omitempty"`
+	AllOf            interface{}   `json:"allOf,omitempty"`
+	OneOf            interface{}   `json:"oneOf,omitempty"`
 }
 
 // CredentialStatus https://identity.foundation/presentation-exchange/#credential-status-constraint-feature
