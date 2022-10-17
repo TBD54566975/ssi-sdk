@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"embed"
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
@@ -15,8 +16,13 @@ const (
 	ManifestVector1    string = "cm-manifest-example-1.json"
 	ManifestVector2    string = "cm-manifest-example-2.json"
 	ApplicationVector1 string = "cm-application-example-1.json"
+	CredentialVector1  string = "cm-credential-example-1.json"
 	ResponseVector1    string = "cm-response-example-1.json"
 	ResponseVector2    string = "cm-response-example-2.json"
+
+	FullApplicationVector string = "full-application.json"
+	FullCredentialVector  string = "full-credential.json"
+	FullManifestVector    string = "full-manifest.json"
 )
 
 var (
@@ -124,66 +130,66 @@ func TestCredentialResponse(t *testing.T) {
 	})
 }
 
-func TestIsValidPair(t *testing.T) {
+func getValidTestCmCaVc(tt *testing.T) (CredentialManifest, CredentialApplication, []credential.VerifiableCredential) {
+
+	// manifest
+	manifestJSON, err := getTestVector(FullManifestVector)
+	assert.NoError(tt, err)
+
+	var cm CredentialManifest
+	err = json.Unmarshal([]byte(manifestJSON), &cm)
+
+	assert.NoError(tt, err)
+	assert.NotEmpty(tt, cm)
+	assert.NoError(tt, cm.IsValid())
+
+	// application
+	credAppJSON, err := getTestVector(FullApplicationVector)
+	assert.NoError(tt, err)
+
+	var ca CredentialApplication
+	err = json.Unmarshal([]byte(credAppJSON), &ca)
+
+	assert.NoError(tt, err)
+	assert.NotEmpty(tt, ca)
+	assert.NoError(tt, ca.IsValid())
+
+	vcJSON, err := getTestVector(FullCredentialVector)
+	assert.NoError(tt, err)
+
+	var vc credential.VerifiableCredential
+	err = json.Unmarshal([]byte(vcJSON), &vc)
+
+	assert.NoError(tt, err)
+	assert.NotEmpty(tt, vc)
+	assert.NoError(tt, vc.IsValid())
+
+	return cm, ca, []credential.VerifiableCredential{vc}
+}
+
+func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 	t.Run("Credential Application and Credential Manifest Pair Valid", func(tt *testing.T) {
-		credAppJSON, err := getTestVector(ApplicationVector1)
-		assert.NoError(tt, err)
+		cm, ca, vcs := getValidTestCmCaVc(tt)
 
-		var app CredentialApplication
-		err = json.Unmarshal([]byte(credAppJSON), &app)
-
-		assert.NoError(tt, err)
-		assert.NotEmpty(tt, app)
-		assert.NoError(tt, app.IsValid())
-
-		manifestJSON, err := getTestVector(ManifestVector1)
-
-		assert.NoError(tt, err)
-
-		var man CredentialManifest
-		err = json.Unmarshal([]byte(manifestJSON), &man)
-
-		assert.NoError(tt, err)
-		assert.NotEmpty(tt, man)
-		assert.NoError(tt, man.IsValid())
-
-		err = IsValidCredentialApplicationForManifest(man, app)
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
 
 		assert.NoError(tt, err)
 	})
 
 	t.Run("Credential Application and Credential Manifest Pair Full Test", func(tt *testing.T) {
 
-		manifestJSON, err := getTestVector(ManifestVector1)
-
-		assert.NoError(tt, err)
-
-		var cm CredentialManifest
-		err = json.Unmarshal([]byte(manifestJSON), &cm)
-
-		assert.NoError(tt, err)
-		assert.NotEmpty(tt, cm)
-		assert.NoError(tt, cm.IsValid())
-
-		credAppJSON, err := getTestVector(ApplicationVector1)
-		assert.NoError(tt, err)
-
-		var ca CredentialApplication
-		err = json.Unmarshal([]byte(credAppJSON), &ca)
-
-		assert.NoError(tt, err)
-		assert.NotEmpty(tt, ca)
-		assert.NoError(tt, ca.IsValid())
+		cm, ca, vcs := getValidTestCmCaVc(tt)
 
 		ca.ManifestID = "bad-id"
 
-		err = IsValidCredentialApplicationForManifest(cm, ca)
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
 		assert.Contains(t, err.Error(), "the credential application's manifest id: WA-DL-CLASS-A must be equal to the credential manifest's id: bad-id")
 
 		// reset
 		ca.ManifestID = cm.ID
 
+		// test claim format
 		cm.Format = &exchange.ClaimFormat{
 			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
 		}
@@ -192,7 +198,7 @@ func TestIsValidPair(t *testing.T) {
 			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
 		}
 
-		err = IsValidCredentialApplicationForManifest(cm, ca)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
 		assert.NoError(tt, err)
 
 		cm.Format = &exchange.ClaimFormat{
@@ -204,7 +210,7 @@ func TestIsValidPair(t *testing.T) {
 			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
 		}
 
-		err = IsValidCredentialApplicationForManifest(cm, ca)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
 		assert.NoError(tt, err)
 
 		cm.Format = &exchange.ClaimFormat{
@@ -215,7 +221,7 @@ func TestIsValidPair(t *testing.T) {
 			LDP: &exchange.LDPType{ProofType: []cryptosuite.SignatureType{"sigtype"}},
 		}
 
-		err = IsValidCredentialApplicationForManifest(cm, ca)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
 		assert.Contains(t, err.Error(), "credential application's format must be a subset of the format property in the credential manifest")
 
 		// reset
@@ -223,53 +229,54 @@ func TestIsValidPair(t *testing.T) {
 			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
 		}
 
-		def := exchange.PresentationDefinition{
-			ID: "test-id",
-			InputDescriptors: []exchange.InputDescriptor{
-				{
-					ID: "id-1",
-					Constraints: &exchange.Constraints{
-						Fields: []exchange.Field{
-							{
-								Path:    []string{"$.vc.issuer", "$.issuer"},
-								ID:      "issuer-input-descriptor",
-								Purpose: "need to check the issuer",
-							},
-						},
-					},
-				},
-			},
-		}
-
-		cm.PresentationDefinition = &def
 		ca.PresentationSubmission.DefinitionID = "badid"
 
-		err = IsValidCredentialApplicationForManifest(cm, ca)
-		assert.Contains(t, err.Error(), "credential application's presentation submission's definition id: test-id does not match the credential manifest's id: badid")
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		assert.Contains(t, err.Error(), "credential application's presentation submission's definition id: 32f54163-7166-48f1-93d8-ff217bdb0653 does not match the credential manifest's id: badid")
 
 		// reset
-		ca.PresentationSubmission.DefinitionID = def.ID
+		cm, ca, vcs = getValidTestCmCaVc(tt)
 
-		err = IsValidCredentialApplicationForManifest(cm, ca)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
 		assert.NoError(tt, err)
 
 		ca.PresentationSubmission.DescriptorMap[0].Format = "badformat"
 
-		err = IsValidCredentialApplicationForManifest(cm, ca)
-		assert.Contains(t, err.Error(), "must be one of the following:")
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		assert.Contains(t, err.Error(), "format must be one of the following:")
 
 		// reset
 		ca.PresentationSubmission.DescriptorMap[0].Format = "jwt_vc"
 
-		err = IsValidCredentialApplicationForManifest(cm, ca)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
 		assert.NoError(tt, err)
 
 		ca.PresentationSubmission.DescriptorMap[0].Path = "bad-path"
 
-		err = IsValidCredentialApplicationForManifest(cm, ca)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
 		assert.Contains(t, err.Error(), "invalid json path: bad-path")
 
 	})
+
+	t.Run("Credential Application and Credential Manifest Pair VC id test", func(tt *testing.T) {
+		cm, ca, vcs := getValidTestCmCaVc(tt)
+
+		ca.PresentationSubmission.DescriptorMap[0].ID = "badbadid"
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+
+		assert.Contains(t, err.Error(), "unfulfilled input descriptor")
+	})
+
+	t.Run("Credential Application and Credential Manifest Pair VC path fulfilled", func(tt *testing.T) {
+		cm, ca, vcs := getValidTestCmCaVc(tt)
+
+		cm.PresentationDefinition.InputDescriptors[0].Constraints.Fields[0].Path[0] = "$.credentialSubject.badPath"
+		cm.PresentationDefinition.InputDescriptors[0].Constraints.Fields[0].ID = "badPath"
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+
+		assert.Contains(t, err.Error(), "not fulfilled for field")
+	})
+
 }
 
 func getTestVector(fileName string) (string, error) {

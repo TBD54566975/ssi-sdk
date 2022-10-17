@@ -2,14 +2,15 @@ package manifest
 
 import (
 	"fmt"
-	"github.com/oliveagle/jsonpath"
-	"reflect"
-
-	"github.com/pkg/errors"
-
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/rendering"
 	"github.com/TBD54566975/ssi-sdk/util"
+	"github.com/goccy/go-json"
+	"github.com/oliveagle/jsonpath"
+	"github.com/pkg/errors"
+	"reflect"
+	"strings"
 )
 
 // CredentialManifest https://identity.foundation/credential-manifest/#general-composition
@@ -144,14 +145,21 @@ func (cf *CredentialResponse) IsValid() error {
 }
 
 // IsValidCredentialApplicationForManifest validates the rules on how a credential manifest [cm] and credential application [ca] relate to each other https://identity.foundation/credential-manifest/#credential-application
-func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca CredentialApplication) error {
+func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca CredentialApplication, vcs []credential.VerifiableCredential) error {
 
+	// Basic Validation Checks
 	if err := cm.IsValid(); err != nil {
 		return errors.Wrap(err, "credential manifest is not valid")
 	}
 
 	if err := ca.IsValid(); err != nil {
 		return errors.Wrap(err, "credential application is not valid")
+	}
+
+	for _, vc := range vcs {
+		if err := vc.IsValid(); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("verifiable credential with id %s is not valid", vc.ID))
+		}
 	}
 
 	// The object MUST contain a manifest_id property. The value of this property MUST be the id of a valid Credential Manifest.
@@ -175,12 +183,16 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 		}
 	}
 
+	if cm.PresentationDefinition != nil && len(cm.PresentationDefinition.InputDescriptors) > 0 && len(vcs) == 0 {
+		return fmt.Errorf("no credentials provided for application: %s against manifest: %s", ca.ID, cm.ID)
+	}
+
 	// The Credential Application object MUST contain a presentation_submission property IF the related Credential Manifest contains a presentation_definition.
 	// Its value MUST be a valid Presentation Submission:
 	if !cm.PresentationDefinition.IsEmpty() {
 
 		if ca.PresentationSubmission.IsEmpty() {
-			return errors.New("credential application's presentation submission cannot be empty")
+			return errors.New("credential application's presentation submission cannot be empty because the credential manifest's presentation definition is not empty")
 		}
 
 		if err := cm.PresentationDefinition.IsValid(); err != nil {
@@ -212,11 +224,80 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 			if _, err := jsonpath.Compile(submissionDescriptor.Path); err != nil {
 				return fmt.Errorf("invalid json path: %s", submissionDescriptor.Path)
 			}
+		}
 
+		// index submission descriptors by id of the input descriptor
+		submissionDescriptorLookup := make(map[string]exchange.SubmissionDescriptor)
+		for _, d := range ca.PresentationSubmission.DescriptorMap {
+			submissionDescriptorLookup[d.ID] = d
+		}
+
+		// validate each input descriptor is fulfilled
+		for _, inputDescriptor := range cm.PresentationDefinition.InputDescriptors {
+			submissionDescriptor, ok := submissionDescriptorLookup[inputDescriptor.ID]
+			if !ok {
+				return fmt.Errorf("unfulfilled input descriptor<%s>; submission not valid", inputDescriptor.ID)
+			}
+
+			// if the format on the submitted claim does not match the input descriptor, we cannot process
+			if inputDescriptor.Format != nil && !util.Contains(submissionDescriptor.Format, inputDescriptor.Format.FormatValues()) {
+				return fmt.Errorf("for input descriptor<%s>, the format of submission descriptor<%s> is not one"+
+					"  of the supported formats: %s", inputDescriptor.ID, submissionDescriptor.Format,
+					strings.Join(inputDescriptor.Format.FormatValues(), ", "))
+			}
+
+			// TODO(gabe) support nested paths in presentation submissions
+			// https://github.com/TBD54566975/ssi-sdk/issues/73
+			if submissionDescriptor.PathNested != nil {
+				return fmt.Errorf("submission with nested paths not supported: %s", submissionDescriptor.ID)
+			}
+
+			// resolve the claim from the JSON path expression in the submission descriptor
+			submittedClaim, err := jsonpath.JsonPathLookup(vcs, submissionDescriptor.Path)
+
+			if err != nil {
+				return errors.Wrapf(err, "could not resolve claim from submission descriptor<%s> with path: %s", submissionDescriptor.ID, submissionDescriptor.Path)
+			}
+
+			// convert submitted claim vc to map[string]interface{}
+			cred := submittedClaim.(credential.VerifiableCredential)
+
+			if err := cred.IsValid(); err != nil {
+				return errors.Wrap(err, "vc is not valid")
+			}
+
+			var vcMap map[string]interface{}
+			credJson, _ := json.Marshal(cred)
+			json.Unmarshal(credJson, &vcMap)
+
+			// verify the submitted claim complies with the input descriptor
+
+			// if there are no constraints, we are done checking for validity
+			if inputDescriptor.Constraints == nil {
+				continue
+			}
+
+			// TODO(gabe) consider enforcing limited disclosure if present
+			// for each field we need to verify at least one path matches
+			for _, field := range inputDescriptor.Constraints.Fields {
+				if err := findMatchingPath(vcMap, field.Path); err != nil {
+					return errors.Wrapf(err, "input descriptor<%s> not fulfilled for field: %s", inputDescriptor.ID, field.ID)
+				}
+			}
 		}
 	}
 
 	return nil
+}
+
+func findMatchingPath(claim interface{}, paths []string) error {
+	for _, path := range paths {
+		if _, err := jsonpath.JsonPathLookup(claim, path); err == nil {
+			return nil
+		}
+	}
+	return errors.New("matching path for claim could not be found")
+
 }
 
 // TODO(gabe) support multiple embed targets https://github.com/TBD54566975/ssi-sdk/issues/57
