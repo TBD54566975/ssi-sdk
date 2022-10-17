@@ -258,7 +258,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 	})
 
-	t.Run("Credential Application and Credential Manifest Pair VC id test", func(tt *testing.T) {
+	t.Run("PresentationSubmission DescriptorMap mismatch id", func(tt *testing.T) {
 		cm, ca, vcs := getValidTestCmCaVc(tt)
 
 		ca.PresentationSubmission.DescriptorMap[0].ID = "badbadid"
@@ -267,7 +267,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		assert.Contains(t, err.Error(), "unfulfilled input descriptor")
 	})
 
-	t.Run("Credential Application and Credential Manifest Pair VC path fulfilled", func(tt *testing.T) {
+	t.Run("VC path fulfilled", func(tt *testing.T) {
 		cm, ca, vcs := getValidTestCmCaVc(tt)
 
 		cm.PresentationDefinition.InputDescriptors[0].Constraints.Fields[0].Path[0] = "$.credentialSubject.badPath"
@@ -275,6 +275,74 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
 
 		assert.Contains(t, err.Error(), "not fulfilled for field")
+	})
+
+	t.Run("InputDescriptors format mismatch", func(tt *testing.T) {
+		cm, ca, vcs := getValidTestCmCaVc(tt)
+
+		cm.PresentationDefinition.InputDescriptors[0].Format = &exchange.ClaimFormat{
+			LDP: &exchange.LDPType{ProofType: []cryptosuite.SignatureType{cryptosuite.JSONWebSignature2020}},
+		}
+
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+
+		assert.Contains(t, err.Error(), "is not one of the supported formats:")
+	})
+
+	t.Run("Not all input descriptors fulfilled", func(tt *testing.T) {
+		cm, ca, vcs := getValidTestCmCaVc(tt)
+
+		ca.PresentationSubmission.DescriptorMap = ca.PresentationSubmission.DescriptorMap[:len(ca.PresentationSubmission.DescriptorMap)-1]
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+
+		assert.Contains(t, err.Error(), "unfulfilled input descriptor")
+	})
+
+	t.Run("one cred can fulfill multiple input descriptors", func(tt *testing.T) {
+		cm, ca, vcs := getValidTestCmCaVc(tt)
+
+		cm.PresentationDefinition.InputDescriptors = append(cm.PresentationDefinition.InputDescriptors, cm.PresentationDefinition.InputDescriptors[0])
+		cm.PresentationDefinition.InputDescriptors[1].ID = "kycid2"
+		ca.PresentationSubmission.DescriptorMap = append(ca.PresentationSubmission.DescriptorMap, ca.PresentationSubmission.DescriptorMap[0])
+		ca.PresentationSubmission.DescriptorMap[1].ID = "kycid2"
+
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+
+		assert.NoError(tt, err)
+	})
+
+	t.Run("multiple creds can fulfill multiple input descriptors", func(tt *testing.T) {
+		cm, ca, vcs := getValidTestCmCaVc(tt)
+
+		vcs = append(vcs, vcs[0])
+
+		cm.PresentationDefinition.InputDescriptors = append(cm.PresentationDefinition.InputDescriptors, cm.PresentationDefinition.InputDescriptors[0])
+		cm.PresentationDefinition.InputDescriptors[1].ID = "kycid2"
+
+		ca.PresentationSubmission.DescriptorMap = append(ca.PresentationSubmission.DescriptorMap, ca.PresentationSubmission.DescriptorMap[0])
+		ca.PresentationSubmission.DescriptorMap[1].ID = "kycid2"
+		ca.PresentationSubmission.DescriptorMap[1].Path = "$[1]"
+
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+
+		assert.NoError(tt, err)
+	})
+
+	t.Run("vc path does not exist", func(tt *testing.T) {
+		cm, ca, vcs := getValidTestCmCaVc(tt)
+
+		vcs = append(vcs, vcs[0])
+
+		cm.PresentationDefinition.InputDescriptors = append(cm.PresentationDefinition.InputDescriptors, cm.PresentationDefinition.InputDescriptors[0])
+		cm.PresentationDefinition.InputDescriptors[1].ID = "kycid2"
+
+		ca.PresentationSubmission.DescriptorMap = append(ca.PresentationSubmission.DescriptorMap, ca.PresentationSubmission.DescriptorMap[0])
+		ca.PresentationSubmission.DescriptorMap[1].ID = "kycid2"
+		ca.PresentationSubmission.DescriptorMap[1].Path = "$[3]"
+
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+
+		assert.Contains(t, err.Error(), "could not resolve claim from submission descriptor<kycid2> with path: $[3]")
 	})
 
 }

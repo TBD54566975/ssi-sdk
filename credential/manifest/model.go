@@ -242,7 +242,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 			// if the format on the submitted claim does not match the input descriptor, we cannot process
 			if inputDescriptor.Format != nil && !util.Contains(submissionDescriptor.Format, inputDescriptor.Format.FormatValues()) {
 				return fmt.Errorf("for input descriptor<%s>, the format of submission descriptor<%s> is not one"+
-					"  of the supported formats: %s", inputDescriptor.ID, submissionDescriptor.Format,
+					" of the supported formats: %s", inputDescriptor.ID, submissionDescriptor.Format,
 					strings.Join(inputDescriptor.Format.FormatValues(), ", "))
 			}
 
@@ -267,8 +267,14 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 			}
 
 			var vcMap map[string]interface{}
-			credJson, _ := json.Marshal(cred)
-			json.Unmarshal(credJson, &vcMap)
+			credJson, err := json.Marshal(cred)
+			if err != nil {
+				return errors.Wrap(err, "problem in marshalling credential")
+			}
+
+			if err := json.Unmarshal(credJson, &vcMap); err != nil {
+				return errors.Wrap(err, "problem in unmarshalling credential")
+			}
 
 			// verify the submitted claim complies with the input descriptor
 
