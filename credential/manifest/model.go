@@ -81,6 +81,11 @@ func (od *OutputDescriptor) IsValid() error {
 	return util.NewValidator().Struct(od)
 }
 
+type CredentialApplicationWrapper struct {
+	CredentialApplication CredentialApplication `json:"credential_application"`
+	Credentials           []interface{}         `json:"verifiableCredentials,omitempty"`
+}
+
 // CredentialApplication https://identity.foundation/credential-manifest/#credential-application
 type CredentialApplication struct {
 	ID          string                `json:"id" validate:"required"`
@@ -111,6 +116,11 @@ func (ca *CredentialApplication) IsValid() error {
 		}
 	}
 	return util.NewValidator().Struct(ca)
+}
+
+type CredentialResponseWrapper struct {
+	CredentialResponse CredentialResponse `json:"credential_response"`
+	Credentials        []interface{}      `json:"verifiableCredentials,omitempty"`
 }
 
 // CredentialResponse https://identity.foundation/credential-manifest/#credential-response
@@ -145,8 +155,9 @@ func (cf *CredentialResponse) IsValid() error {
 	return util.NewValidator().Struct(cf)
 }
 
-// IsValidCredentialApplicationForManifest validates the rules on how a credential manifest [cm] and credential application [ca] relate to each other https://identity.foundation/credential-manifest/#credential-application
-func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca CredentialApplication, vcs ...credential.VerifiableCredential) error {
+// IsValidCredentialApplicationForManifest validates the rules on how a credential manifest [cm] and credential
+// application [ca] relate to each other https://identity.foundation/credential-manifest/#credential-application
+func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca CredentialApplication, applicationJSON map[string]interface{}) error {
 
 	// Basic Validation Checks
 	if err := cm.IsValid(); err != nil {
@@ -155,12 +166,6 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 
 	if err := ca.IsValid(); err != nil {
 		return errors.Wrap(err, "credential application is not valid")
-	}
-
-	for _, vc := range vcs {
-		if err := vc.IsValid(); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("verifiable credential with id %s is not valid", vc.ID))
-		}
 	}
 
 	// The object MUST contain a manifest_id property. The value of this property MUST be the id of a valid Credential Manifest.
@@ -184,14 +189,14 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 		}
 	}
 
-	if cm.PresentationDefinition != nil && len(cm.PresentationDefinition.InputDescriptors) > 0 && len(vcs) == 0 {
-		return fmt.Errorf("no credentials provided for application: %s against manifest: %s", ca.ID, cm.ID)
+	if (cm.PresentationDefinition != nil && len(cm.PresentationDefinition.InputDescriptors) > 0) &&
+		(ca.PresentationSubmission == nil || len(ca.PresentationSubmission.DescriptorMap) == 0) {
+		return fmt.Errorf("no descriptors provided for application: %s against manifest: %s", ca.ID, cm.ID)
 	}
 
 	// The Credential Application object MUST contain a presentation_submission property IF the related Credential Manifest contains a presentation_definition.
 	// Its value MUST be a valid Presentation Submission:
 	if !cm.PresentationDefinition.IsEmpty() {
-
 		if ca.PresentationSubmission.IsEmpty() {
 			return errors.New("credential application's presentation submission cannot be empty because the credential manifest's presentation definition is not empty")
 		}
@@ -254,27 +259,22 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 			}
 
 			// resolve the claim from the JSON path expression in the submission descriptor
-			submittedClaim, err := jsonpath.JsonPathLookup(vcs, submissionDescriptor.Path)
-
+			submittedClaim, err := jsonpath.JsonPathLookup(applicationJSON, submissionDescriptor.Path)
 			if err != nil {
 				return errors.Wrapf(err, "could not resolve claim from submission descriptor<%s> with path: %s", submissionDescriptor.ID, submissionDescriptor.Path)
 			}
 
 			// convert submitted claim vc to map[string]interface{}
-			cred := submittedClaim.(credential.VerifiableCredential)
-
-			if err := cred.IsValid(); err != nil {
-				return errors.Wrap(err, "vc is not valid")
-			}
-
-			vcMap := make(map[string]interface{})
-			credJSON, err := json.Marshal(cred)
+			var cred credential.VerifiableCredential
+			credBytes, err := json.Marshal(submittedClaim)
 			if err != nil {
-				return errors.Wrap(err, "problem in marshalling credential")
+				return errors.Wrap(err, "failed to marshal submitted vc")
 			}
-
-			if err := json.Unmarshal(credJSON, &vcMap); err != nil {
-				return errors.Wrap(err, "problem in unmarshalling credential")
+			if err = json.Unmarshal(credBytes, &cred); err != nil {
+				return errors.Wrap(err, "failed to unmarshal submitted vc")
+			}
+			if err = cred.IsValid(); err != nil {
+				return errors.Wrap(err, "vc is not valid")
 			}
 
 			// verify the submitted claim complies with the input descriptor
@@ -286,8 +286,12 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 
 			// TODO(gabe) consider enforcing limited disclosure if present
 			// for each field we need to verify at least one path matches
+			vcMap := make(map[string]interface{})
+			if err = json.Unmarshal(credBytes, &vcMap); err != nil {
+				return errors.Wrap(err, "problem in unmarshalling credential")
+			}
 			for _, field := range inputDescriptor.Constraints.Fields {
-				if err := findMatchingPath(vcMap, field.Path); err != nil {
+				if err = findMatchingPath(vcMap, field.Path); err != nil {
 					return errors.Wrapf(err, "input descriptor<%s> not fulfilled for field: %s", inputDescriptor.ID, field.ID)
 				}
 			}
