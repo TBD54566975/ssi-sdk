@@ -67,10 +67,14 @@ func jwtSignerVerifier(kid string, key interface{}) (jwk.Key, *jwa.SignatureAlgo
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not get verification alg from jwk")
 	}
-	if err := parsedKey.Set(jwk.KeyIDKey, kid); err != nil {
+	// TODO(gabe) distinguish between issuer and kid
+	if err = parsedKey.Set(jwt.IssuerKey, kid); err != nil {
 		return nil, nil, fmt.Errorf("could not set kid with provided value: %s", kid)
 	}
-	if err := parsedKey.Set(jwk.AlgorithmKey, alg); err != nil {
+	if err = parsedKey.Set(jwk.KeyIDKey, kid); err != nil {
+		return nil, nil, fmt.Errorf("could not set kid with provided value: %s", kid)
+	}
+	if err = parsedKey.Set(jwk.AlgorithmKey, alg); err != nil {
 		return nil, nil, fmt.Errorf("could not set alg with value: %s", alg)
 	}
 	return parsedKey, &alg, nil
@@ -86,7 +90,7 @@ func (sv *JWTSigner) SignJWT(kvs map[string]interface{}) ([]byte, error) {
 	t := jwt.New()
 	for k, v := range kvs {
 		if err := t.Set(k, v); err != nil {
-			err := errors.Wrapf(err, "could not set %s to value: %v", k, v)
+			err = errors.Wrapf(err, "could not set %s to value: %v", k, v)
 			logrus.WithError(err).Error("could not sign JWT")
 			return nil, err
 		}
