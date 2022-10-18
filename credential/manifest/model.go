@@ -266,13 +266,13 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 				return errors.Wrap(err, "vc is not valid")
 			}
 
-			vcMap := make(map[string]interface)
+			vcMap := make(map[string]interface{})
 			credJSON, err := json.Marshal(cred)
 			if err != nil {
 				return errors.Wrap(err, "problem in marshalling credential")
 			}
 
-			if err := json.Unmarshal(credJson, &vcMap); err != nil {
+			if err := json.Unmarshal(credJSON, &vcMap); err != nil {
 				return errors.Wrap(err, "problem in unmarshalling credential")
 			}
 
