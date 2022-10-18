@@ -102,9 +102,9 @@ func (sv *JWTSigner) SignJWT(kvs map[string]interface{}) ([]byte, error) {
 	if err := t.Set(jwk.AlgorithmKey, alg); err != nil {
 		return nil, fmt.Errorf("could not set alg with value: %s", alg)
 	}
-	iat := time.Now().Format(time.RFC3339)
+	iat := time.Now().Unix()
 	if err := t.Set(jwt.IssuedAtKey, iat); err != nil {
-		return nil, fmt.Errorf("could not set iat with value: %s", iat)
+		return nil, fmt.Errorf("could not set iat with value: %d", iat)
 	}
 
 	for k, v := range kvs {
