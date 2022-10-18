@@ -454,7 +454,7 @@ func normalizeJSONPartPath(partPath string) string {
 }
 
 func normalizeJSONPath(path string) string {
-	pathRegex := regexp.MustCompile(`\[.*\]`)
+	pathRegex := regexp.MustCompile(`\[.*]`)
 	return pathRegex.ReplaceAllString(path, "")
 }
 

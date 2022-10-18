@@ -130,7 +130,7 @@ func getVCJSONSchema() string {
 		"author": "did:example:MDP8AsFhHzhwUvGNuYkX7T",
 		"authored": "2021-01-01T00:00:00+00:00",
 		"schema": {
-		"$id": "email-schema-1.0",
+			"$id": "email-schema-1.0",
 			"$schema": "https://json-schema.org/draft/2019-09/schema",
 			"description": "Email",
 			"type": "object",
