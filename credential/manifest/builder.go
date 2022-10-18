@@ -261,7 +261,7 @@ func (crb *CredentialResponseBuilder) SetFulfillment(descriptors []exchange.Subm
 	return nil
 }
 
-func (crb *CredentialResponseBuilder) SetDenial(reason string, inputDescriptors []string) error {
+func (crb *CredentialResponseBuilder) SetDenial(reason string, inputDescriptors ...string) error {
 	if crb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -272,7 +272,7 @@ func (crb *CredentialResponseBuilder) SetDenial(reason string, inputDescriptors 
 
 	crb.Denial = &struct {
 		Reason           string   `json:"reason" validate:"required"`
-		InputDescriptors []string `json:"input_descriptors"`
+		InputDescriptors []string `json:"input_descriptors,omitempty"`
 	}{
 		Reason:           reason,
 		InputDescriptors: inputDescriptors,

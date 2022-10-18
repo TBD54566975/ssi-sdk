@@ -2,6 +2,9 @@ package manifest
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/rendering"
@@ -9,8 +12,6 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
-	"reflect"
-	"strings"
 )
 
 // CredentialManifest https://identity.foundation/credential-manifest/#general-composition
@@ -123,7 +124,7 @@ type CredentialResponse struct {
 	} `json:"fulfillment,omitempty" validate:"omitempty,dive"`
 	Denial *struct {
 		Reason           string   `json:"reason" validate:"required"`
-		InputDescriptors []string `json:"input_descriptors"`
+		InputDescriptors []string `json:"input_descriptors,omitempty"`
 	} `json:"denial,omitempty" validate:"omitempty,dive"`
 }
 
