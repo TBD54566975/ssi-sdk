@@ -172,7 +172,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 	t.Run("Credential Application and Credential Manifest Pair Valid", func(tt *testing.T) {
 		cm, ca, vcs := getValidTestCmCaVc(tt)
 
-		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 
 		assert.NoError(tt, err)
 	})
@@ -183,7 +183,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		ca.ManifestID = "bad-id"
 
-		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 		assert.Contains(t, err.Error(), "the credential application's manifest id: WA-DL-CLASS-A must be equal to the credential manifest's id: bad-id")
 
 		// reset
@@ -198,7 +198,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
 		}
 
-		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 		assert.NoError(tt, err)
 
 		cm.Format = &exchange.ClaimFormat{
@@ -210,7 +210,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
 		}
 
-		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 		assert.NoError(tt, err)
 
 		cm.Format = &exchange.ClaimFormat{
@@ -221,7 +221,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 			LDP: &exchange.LDPType{ProofType: []cryptosuite.SignatureType{"sigtype"}},
 		}
 
-		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 		assert.Contains(t, err.Error(), "credential application's format must be a subset of the format property in the credential manifest")
 
 		// reset
@@ -231,29 +231,29 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		ca.PresentationSubmission.DefinitionID = "badid"
 
-		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 		assert.Contains(t, err.Error(), "credential application's presentation submission's definition id: 32f54163-7166-48f1-93d8-ff217bdb0653 does not match the credential manifest's id: badid")
 
 		// reset
 		cm, ca, vcs = getValidTestCmCaVc(tt)
 
-		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 		assert.NoError(tt, err)
 
 		ca.PresentationSubmission.DescriptorMap[0].Format = "badformat"
 
-		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 		assert.Contains(t, err.Error(), "format must be one of the following:")
 
 		// reset
 		ca.PresentationSubmission.DescriptorMap[0].Format = "jwt_vc"
 
-		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 		assert.NoError(tt, err)
 
 		ca.PresentationSubmission.DescriptorMap[0].Path = "bad-path"
 
-		err = IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err = IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 		assert.Contains(t, err.Error(), "invalid json path: bad-path")
 
 	})
@@ -262,7 +262,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		cm, ca, vcs := getValidTestCmCaVc(tt)
 
 		ca.PresentationSubmission.DescriptorMap[0].ID = "badbadid"
-		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 
 		assert.Contains(t, err.Error(), "unfulfilled input descriptor")
 	})
@@ -272,7 +272,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		cm.PresentationDefinition.InputDescriptors[0].Constraints.Fields[0].Path[0] = "$.credentialSubject.badPath"
 		cm.PresentationDefinition.InputDescriptors[0].Constraints.Fields[0].ID = "badPath"
-		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs[0])
 
 		assert.Contains(t, err.Error(), "not fulfilled for field")
 	})
@@ -284,7 +284,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 			LDP: &exchange.LDPType{ProofType: []cryptosuite.SignatureType{cryptosuite.JSONWebSignature2020}},
 		}
 
-		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs[0])
 
 		assert.Contains(t, err.Error(), "is not one of the supported formats:")
 	})
@@ -293,7 +293,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		cm, ca, vcs := getValidTestCmCaVc(tt)
 
 		ca.PresentationSubmission.DescriptorMap = ca.PresentationSubmission.DescriptorMap[:len(ca.PresentationSubmission.DescriptorMap)-1]
-		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs[0])
 
 		assert.Contains(t, err.Error(), "unfulfilled input descriptor")
 	})
@@ -306,7 +306,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		ca.PresentationSubmission.DescriptorMap = append(ca.PresentationSubmission.DescriptorMap, ca.PresentationSubmission.DescriptorMap[0])
 		ca.PresentationSubmission.DescriptorMap[1].ID = "kycid2"
 
-		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs[0])
 
 		assert.NoError(tt, err)
 	})
@@ -323,7 +323,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		ca.PresentationSubmission.DescriptorMap[1].ID = "kycid2"
 		ca.PresentationSubmission.DescriptorMap[1].Path = "$[1]"
 
-		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 
 		assert.NoError(tt, err)
 	})
@@ -340,9 +340,18 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		ca.PresentationSubmission.DescriptorMap[1].ID = "kycid2"
 		ca.PresentationSubmission.DescriptorMap[1].Path = "$[3]"
 
-		err := IsValidCredentialApplicationForManifest(cm, ca, vcs)
+		err := IsValidCredentialApplicationForManifest(cm, ca, vcs...)
 
 		assert.Contains(t, err.Error(), "could not resolve claim from submission descriptor<kycid2> with path: $[3]")
+	})
+
+	t.Run("only ca cm validation, no vcs", func(tt *testing.T) {
+		cm, ca, _ := getValidTestCmCaVc(tt)
+
+		cm.PresentationDefinition = nil
+		err := IsValidCredentialApplicationForManifest(cm, ca)
+
+		assert.NoError(tt, err)
 	})
 
 }

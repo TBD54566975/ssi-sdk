@@ -145,7 +145,7 @@ func (cf *CredentialResponse) IsValid() error {
 }
 
 // IsValidCredentialApplicationForManifest validates the rules on how a credential manifest [cm] and credential application [ca] relate to each other https://identity.foundation/credential-manifest/#credential-application
-func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca CredentialApplication, vcs []credential.VerifiableCredential) error {
+func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca CredentialApplication, vcs ...credential.VerifiableCredential) error {
 
 	// Basic Validation Checks
 	if err := cm.IsValid(); err != nil {
