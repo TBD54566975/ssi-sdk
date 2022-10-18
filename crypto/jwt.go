@@ -3,6 +3,7 @@ package crypto
 import (
 	"crypto"
 	"fmt"
+	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/jwa"
@@ -88,6 +89,24 @@ func (sv *JWTSigner) GetSigningAlgorithm() string {
 // SignJWT takes a set of JWT keys and values to add to a JWT before singing them with the key defined in the signer
 func (sv *JWTSigner) SignJWT(kvs map[string]interface{}) ([]byte, error) {
 	t := jwt.New()
+
+	// set known default values, which can be overridden by the kvs
+	kid := sv.Key.KeyID()
+	if err := t.Set(jwt.IssuerKey, kid); err != nil {
+		return nil, fmt.Errorf("could not set iss with provided value: %s", kid)
+	}
+	if err := t.Set(jwk.KeyIDKey, kid); err != nil {
+		return nil, fmt.Errorf("could not set kid with provided value: %s", kid)
+	}
+	alg := sv.Key.Algorithm()
+	if err := t.Set(jwk.AlgorithmKey, alg); err != nil {
+		return nil, fmt.Errorf("could not set alg with value: %s", alg)
+	}
+	iat := time.Now().Unix()
+	if err := t.Set(jwt.IssuedAtKey, iat); err != nil {
+		return nil, fmt.Errorf("could not set iat with value: %d", iat)
+	}
+
 	for k, v := range kvs {
 		if err := t.Set(k, v); err != nil {
 			err = errors.Wrapf(err, "could not set %s to value: %v", k, v)
