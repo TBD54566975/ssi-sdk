@@ -14,6 +14,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	CredentialManifestJSONProperty    = "credential_manifest"
+	CredentialApplicationJSONProperty = "credential_application"
+	CredentialResponseJSONProperty    = "credential_response"
+)
+
 // CredentialManifest https://identity.foundation/credential-manifest/#general-composition
 type CredentialManifest struct {
 	ID                     string                           `json:"id" validate:"required"`
@@ -157,14 +163,29 @@ func (cf *CredentialResponse) IsValid() error {
 
 // IsValidCredentialApplicationForManifest validates the rules on how a credential manifest [cm] and credential
 // application [ca] relate to each other https://identity.foundation/credential-manifest/#credential-application
-func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca CredentialApplication, applicationJSON map[string]interface{}) error {
+// applicationAndCredsJSON is the credential application and credentials as a JSON object
+func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationAndCredsJSON map[string]interface{}) error {
+	// parse out the application to its known object model
+	applicationJSON, ok := applicationAndCredsJSON[CredentialApplicationJSONProperty]
+	if !ok {
+		return errors.New("credential_application property not found")
+	}
+
+	applicationBytes, err := json.Marshal(applicationJSON)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal credential application")
+	}
+	var ca CredentialApplication
+	if err = json.Unmarshal(applicationBytes, &ca); err != nil {
+		return errors.Wrap(err, "failed to unmarshal credential application")
+	}
 
 	// Basic Validation Checks
-	if err := cm.IsValid(); err != nil {
+	if err = cm.IsValid(); err != nil {
 		return errors.Wrap(err, "credential manifest is not valid")
 	}
 
-	if err := ca.IsValid(); err != nil {
+	if err = ca.IsValid(); err != nil {
 		return errors.Wrap(err, "credential application is not valid")
 	}
 
@@ -201,11 +222,11 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 			return errors.New("credential application's presentation submission cannot be empty because the credential manifest's presentation definition is not empty")
 		}
 
-		if err := cm.PresentationDefinition.IsValid(); err != nil {
+		if err = cm.PresentationDefinition.IsValid(); err != nil {
 			return errors.Wrap(err, "credential manifest's presentation definition is not valid")
 		}
 
-		if err := ca.PresentationSubmission.IsValid(); err != nil {
+		if err = ca.PresentationSubmission.IsValid(); err != nil {
 			return errors.Wrap(err, "credential application's presentation submission is not valid")
 		}
 
@@ -259,7 +280,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, ca Credentia
 			}
 
 			// resolve the claim from the JSON path expression in the submission descriptor
-			submittedClaim, err := jsonpath.JsonPathLookup(applicationJSON, submissionDescriptor.Path)
+			submittedClaim, err := jsonpath.JsonPathLookup(applicationAndCredsJSON, submissionDescriptor.Path)
 			if err != nil {
 				return errors.Wrapf(err, "could not resolve claim from submission descriptor<%s> with path: %s", submissionDescriptor.ID, submissionDescriptor.Path)
 			}
