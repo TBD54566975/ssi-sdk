@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/rendering"
+	credutil "github.com/TBD54566975/ssi-sdk/credential/util"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
@@ -204,7 +204,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 		}
 
 		for _, format := range ca.Format.FormatValues() {
-			if _, ok := cmFormats[format]; !ok {
+			if _, ok = cmFormats[format]; !ok {
 				return errors.New("credential application's format must be a subset of the format property in the credential manifest")
 			}
 		}
@@ -286,16 +286,12 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 			}
 
 			// convert submitted claim vc to map[string]interface{}
-			var cred credential.VerifiableCredential
-			credBytes, err := json.Marshal(submittedClaim)
+			cred, err := credutil.CredentialsFromInterface(submittedClaim)
 			if err != nil {
-				return errors.Wrap(err, "failed to marshal submitted vc")
-			}
-			if err = json.Unmarshal(credBytes, &cred); err != nil {
-				return errors.Wrap(err, "failed to unmarshal submitted vc")
+				return errors.Wrap(err, "failed to extract cred from json")
 			}
 			if err = cred.IsValid(); err != nil {
-				return errors.Wrap(err, "vc is not valid")
+				return errors.Wrap(err, "credential is not valid")
 			}
 
 			// verify the submitted claim complies with the input descriptor
@@ -307,12 +303,16 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 
 			// TODO(gabe) consider enforcing limited disclosure if present
 			// for each field we need to verify at least one path matches
-			vcMap := make(map[string]interface{})
-			if err = json.Unmarshal(credBytes, &vcMap); err != nil {
+			credMap := make(map[string]interface{})
+			claimBytes, err := json.Marshal(cred)
+			if err != nil {
+				return errors.Wrap(err, "failed to marshal submitted claim")
+			}
+			if err = json.Unmarshal(claimBytes, &credMap); err != nil {
 				return errors.Wrap(err, "problem in unmarshalling credential")
 			}
 			for _, field := range inputDescriptor.Constraints.Fields {
-				if err = findMatchingPath(vcMap, field.Path); err != nil {
+				if err = findMatchingPath(credMap, field.Path); err != nil {
 					return errors.Wrapf(err, "input descriptor<%s> not fulfilled for field: %s", inputDescriptor.ID, field.ID)
 				}
 			}

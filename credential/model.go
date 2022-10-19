@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
-
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
