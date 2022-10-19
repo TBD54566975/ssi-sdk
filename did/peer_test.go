@@ -12,6 +12,117 @@ func TestDIDPeerValid(t *testing.T) {
 	invalid := "did:peer:az6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
 	assert.True(t, DIDPeer(valid).IsValid())
 	assert.False(t, DIDPeer(invalid).IsValid())
+
+	assert.True(t, isPeerDID(valid))
+	assert.False(t, isPeerDID(invalid))
+}
+
+func TestDIDPeerUtilities(t *testing.T) {
+	validDIDPeerStr := "did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+	invalidDIDPeerStr := "did:peer:az6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+	invalidDIDPeerMethodStr := "did:peer:4z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+
+	t.Run("test string method", func(tt *testing.T) {
+		assert.Equal(tt, validDIDPeerStr, DIDPeer(validDIDPeerStr).String())
+	})
+
+	t.Run("test did:peer suffix", func(tt *testing.T) {
+		did := DIDPeer(validDIDPeerStr)
+		d, err := did.Suffix()
+		assert.NoError(tt, err)
+		assert.Equal(tt, validDIDPeerStr[10:], d)
+	})
+
+	t.Run("test invalid format did:peer ", func(tt *testing.T) {
+		did := DIDPeer(invalidDIDPeerStr)
+		_, err := did.Suffix()
+		assert.Error(tt, err)
+	})
+
+	t.Run("test suffix function against method 1", func(tt *testing.T) {
+		ds := "did:peer:1z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+		did := DIDPeer(ds)
+		_, err := did.Suffix()
+		assert.Error(tt, err)
+	})
+
+	t.Run("test suffix method against unknown method", func(tt *testing.T) {
+		did := DIDPeer(invalidDIDPeerMethodStr)
+		_, err := did.Suffix()
+		assert.Error(tt, err)
+	})
+
+	t.Run("test generate key by type", func(tt *testing.T) {
+		badKt := crypto.KeyType("bad")
+		goodKT := crypto.Ed25519
+		did := DIDPeer(validDIDPeerStr)
+		_, _, err := did.generateKeyByType(badKt)
+		assert.Error(tt, err)
+		publicKey, privKey, err := did.generateKeyByType(goodKT)
+		assert.NoError(tt, err)
+		assert.NotNil(tt, publicKey)
+		assert.NotNil(tt, privKey)
+	})
+
+	t.Run("test valid purpose", func(tt *testing.T) {
+		did := DIDPeer(validDIDPeerStr)
+		assert.True(tt, did.IsValidPurpose(PeerPurposeEncryptionCode))
+		assert.False(tt, did.IsValidPurpose(PurposeType("M")))
+	})
+
+	t.Run("test valid service block method", func(tt *testing.T) {
+		did := DIDPeer("")
+		s := ".SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0="
+		b := did.checkValidPeerServiceBlock(s)
+		assert.True(tt, b)
+		s = "bad"
+		b = did.checkValidPeerServiceBlock(s)
+		assert.False(tt, b)
+	})
+
+	t.Run("test avilable peer methods", func(tt *testing.T) {
+		assert.True(tt, peerMethodAvailable("0"))
+		assert.False(tt, peerMethodAvailable("1"))
+		assert.True(tt, peerMethodAvailable("2"))
+		assert.False(tt, peerMethodAvailable("3"))
+	})
+
+	t.Run("test encode service block", func(tt *testing.T) {
+		res := "eyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0="
+		sbe := Service{
+			Type:            "DIDCommMessaging",
+			ServiceEndpoint: "https://example.com/endpoint",
+			RoutingKeys:     []string{"did:example:somemediator#somekey"},
+			Accept:          []string{"didcomm/v2", "didcomm/aip2;env=rfc587"},
+		}
+		d := DIDPeer("")
+		s2, err := d.encodeService(sbe)
+		assert.NoError(tt, err)
+		assert.Equal(tt, res, s2)
+	})
+
+}
+
+func TestPeerResolver(t *testing.T) {
+	bad := "asdf"
+	r := PeerResolver{}
+	_, err := r.Resolve(bad, nil)
+	assert.Error(t, err)
+
+	m0 := "did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+	_, err = r.Resolve(m0, nil)
+	assert.NoError(t, err)
+
+	mbad := "did:peer:4z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+	_, err = r.Resolve(mbad, nil)
+	assert.Error(t, err)
+}
+
+func TestDIDPeerDeltaError(t *testing.T) {
+	ds := DIDPeer("did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH")
+	_, err := ds.Delta(ds) // delta should be empty
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not implemented")
 }
 
 func makeSamplePeerDIDDocument1() *DIDDocument {
@@ -54,7 +165,6 @@ func TestPeerMethod0(t *testing.T) {
 	testDoc := makeSamplePeerDIDDocument1()
 
 	assert.Equal(t, testDoc.Context, resolved.Context)
-
 }
 
 func TestPeerMethod2(t *testing.T) {

@@ -488,7 +488,7 @@ func peerMethodAvailable(m string) bool {
 		return true
 	case "1":
 		// PeerMethod1
-		return true
+		return false
 	case "2":
 		// PeerMethod2
 		return true
