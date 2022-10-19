@@ -265,14 +265,13 @@ func (m PeerMethod2) resolve(did DID, _ ResolutionOptions) (*DIDResolutionResult
 		return nil, errors.Wrap(util.CastingError, "did:peer")
 	}
 
-	//if !d.IsValid() {
-	//return nil, errors.New("did is not valid")
-	//}
-
-	ds := string(d)
-	if ds[len(ds)-1] == '=' {
-		d = DIDPeer(ds[:len(ds)-1])
-	}
+	// The '=' at the end is an artifact of the encoding, and will mess up the decoding
+	// over the partials, so is removed.
+	// https://identity.foundation/peer-did-method-spec/index.html#generation-method
+	// ds := string(d)
+	// if ds[len(ds)-1] == '=' {
+	// 	d = DIDPeer(ds[:len(ds)-1])
+	// }
 
 	parsed, err := d.Suffix()
 	if err != nil {
@@ -438,6 +437,7 @@ func (d DIDPeer) checkValidPeerServiceBlock(s string) bool {
 // Decodes a service block.
 // Assumes that the service block has been stripped of any headers or identifiers.
 func (d DIDPeer) decodeServiceBlock(s string) (*Service, error) {
+
 	// check it starts with s.
 	if !d.checkValidPeerServiceBlock(s) {
 		return nil, errors.New("invalid string provided")
@@ -445,7 +445,13 @@ func (d DIDPeer) decodeServiceBlock(s string) (*Service, error) {
 
 	s2 := s[2:]
 
-	decoded, err := b64.RawURLEncoding.DecodeString(s2)
+	// Remove the padding if present.
+	padding := b64.NoPadding
+	if s2[len(s2)-1] == '=' {
+		padding = b64.StdPadding
+	}
+	encoder := b64.RawURLEncoding.WithPadding(padding)
+	decoded, err := encoder.DecodeString(s2)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to decode service for did:peer")
 	}

@@ -128,8 +128,6 @@ func keyTypeToMultiCodec(kt crypto.KeyType) (multicodec.Code, error) {
 		return P256MultiCodec, nil
 	case crypto.P384:
 		return P384MultiCodec, nil
-	case crypto.SHA256:
-		return SHA256MultiCodec, nil
 	case crypto.P521:
 		return P521MultiCodec, nil
 	case crypto.RSA:

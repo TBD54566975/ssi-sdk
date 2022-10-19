@@ -54,7 +54,7 @@ func TestDIDPeerUtilities(t *testing.T) {
 	})
 
 	t.Run("test resolve method 1", func(tt *testing.T) {
-		m1 := PeerMethod1{}
+		var m1 PeerMethod1
 		_, err := m1.resolve(DIDPeer("did:peer:1z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"), nil)
 		assert.Error(tt, err)
 	})
@@ -118,7 +118,7 @@ func TestDIDPeerUtilities(t *testing.T) {
 
 func TestPeerResolver(t *testing.T) {
 	bad := "asdf"
-	r := PeerResolver{}
+	var r PeerResolver
 	_, err := r.Resolve(bad, nil)
 	assert.Error(t, err)
 
@@ -219,7 +219,7 @@ func TestPeerMethod2(t *testing.T) {
 }
 
 func TestPeerMethod1(t *testing.T) {
-	m1 := PeerMethod1{}
+	var m1 PeerMethod1
 	_, err := m1.Generate()
 	assert.Error(t, err)
 	assert.Contains(t, "not implemented", err.Error())
