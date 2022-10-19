@@ -98,7 +98,7 @@ func TestCredentialApplication(t *testing.T) {
 func TestCredentialResponse(t *testing.T) {
 	// example here https://identity.foundation/credential-manifest/#credential-response
 
-	t.Run("Credential Response - Fulfillment Vector 1", func(tt *testing.T) {
+	t.Run("Credential ErrorResponse - Fulfillment Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(ResponseVector1)
 		assert.NoError(tt, err)
 
@@ -114,7 +114,7 @@ func TestCredentialResponse(t *testing.T) {
 		assert.JSONEq(tt, vector, string(roundTripBytes))
 	})
 
-	t.Run("Credential Response - Denial Vector 1", func(tt *testing.T) {
+	t.Run("Credential ErrorResponse - Denial Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(ResponseVector2)
 		assert.NoError(tt, err)
 
@@ -196,7 +196,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		assert.NoError(tt, err)
 
 		err = IsValidCredentialApplicationForManifest(cm, request)
-		assert.Contains(t, err.Error(), "the credential application's manifest id: WA-DL-CLASS-A must be equal to the credential manifest's id: bad-id")
+		assert.Contains(t, err.Error(), "the credential application's manifest id: bad-id must be equal to the credential manifest's id: WA-DL-CLASS-A")
 
 		// reset
 		ca.CredentialApplication.ManifestID = cm.ID
@@ -264,7 +264,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		assert.NoError(tt, err)
 
 		err = IsValidCredentialApplicationForManifest(cm, request)
-		assert.Contains(t, err.Error(), "credential application's presentation submission's definition id: 32f54163-7166-48f1-93d8-ff217bdb0653 does not match the credential manifest's id: badid")
+		assert.Contains(t, err.Error(), "credential application's presentation submission's definition id: badid does not match the credential manifest's id: 32f54163-7166-48f1-93d8-ff217bdb0653")
 
 		// reset
 		cm, ca = getValidTestCredManifestCredApplication(tt)
@@ -282,7 +282,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		assert.NoError(tt, err)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
-		
+
 		err = IsValidCredentialApplicationForManifest(cm, request)
 		assert.Contains(t, err.Error(), "format must be one of the following:")
 
@@ -441,7 +441,6 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = IsValidCredentialApplicationForManifest(cm, request)
 		assert.NoError(tt, err)
 	})
-
 }
 
 func getTestVector(fileName string) (string, error) {
