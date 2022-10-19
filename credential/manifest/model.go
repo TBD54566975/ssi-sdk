@@ -8,6 +8,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/rendering"
+	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
@@ -204,7 +205,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 		}
 
 		for _, format := range ca.Format.FormatValues() {
-			if _, ok := cmFormats[format]; !ok {
+			if _, ok = cmFormats[format]; !ok {
 				return errors.New("credential application's format must be a subset of the format property in the credential manifest")
 			}
 		}
@@ -286,16 +287,12 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 			}
 
 			// convert submitted claim vc to map[string]interface{}
-			var cred credential.VerifiableCredential
-			credBytes, err := json.Marshal(submittedClaim)
+			cred, err := credentialsFromInterface(submittedClaim)
 			if err != nil {
-				return errors.Wrap(err, "failed to marshal submitted vc")
-			}
-			if err = json.Unmarshal(credBytes, &cred); err != nil {
-				return errors.Wrap(err, "failed to unmarshal submitted vc")
+				return errors.Wrap(err, "failed to extract cred from json")
 			}
 			if err = cred.IsValid(); err != nil {
-				return errors.Wrap(err, "vc is not valid")
+				return errors.Wrap(err, "credential is not valid")
 			}
 
 			// verify the submitted claim complies with the input descriptor
@@ -308,7 +305,11 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 			// TODO(gabe) consider enforcing limited disclosure if present
 			// for each field we need to verify at least one path matches
 			vcMap := make(map[string]interface{})
-			if err = json.Unmarshal(credBytes, &vcMap); err != nil {
+			claimBytes, err := json.Marshal(submittedClaim)
+			if err != nil {
+				return errors.Wrap(err, "failed to marshal submitted claim")
+			}
+			if err = json.Unmarshal(claimBytes, &vcMap); err != nil {
 				return errors.Wrap(err, "problem in unmarshalling credential")
 			}
 			for _, field := range inputDescriptor.Constraints.Fields {
@@ -320,6 +321,36 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 	}
 
 	return nil
+}
+
+// turn a generic cred into a known shape without maintaining the proof/signature wrapper
+func credentialsFromInterface(genericCred interface{}) (*credential.VerifiableCredential, error) {
+	switch genericCred.(type) {
+	case string:
+		// JWT
+		cred, err := signing.ParseVerifiableCredentialFromJWT(genericCred.(string))
+		if err != nil {
+			return nil, errors.Wrap(err, "could not parse credential from JWT")
+		}
+		return cred, nil
+	case map[string]interface{}:
+		// JSON
+		var cred credential.VerifiableCredential
+		credMapBytes, err := json.Marshal(genericCred.(map[string]interface{}))
+		if err != nil {
+			return nil, errors.Wrap(err, "could not marshal credential map")
+		}
+		if err = json.Unmarshal(credMapBytes, &cred); err != nil {
+			return nil, errors.Wrap(err, "could not unmarshal credential map")
+		}
+		return &cred, nil
+	case credential.VerifiableCredential:
+		// VerifiableCredential
+		cred := genericCred.(credential.VerifiableCredential)
+		return &cred, nil
+	default:
+		return nil, fmt.Errorf("invalid credential type: %s", reflect.TypeOf(genericCred).Kind().String())
+	}
 }
 
 func findMatchingPath(claim interface{}, paths []string) error {

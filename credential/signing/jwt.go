@@ -35,6 +35,8 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 		var expirationDate = expirationVal
 		if unixTime, err := rfc3339ToUnix(expirationVal); err == nil {
 			expirationDate = string(unixTime)
+		} else {
+			logrus.WithError(err).Error("could not convert expiration date to unix time")
 		}
 		if err := t.Set(jwt.ExpirationKey, expirationDate); err != nil {
 			return nil, errors.Wrap(err, "could not set exp value")
@@ -48,6 +50,10 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 	var issuanceDate = cred.IssuanceDate
 	if unixTime, err := rfc3339ToUnix(cred.IssuanceDate); err == nil {
 		issuanceDate = string(unixTime)
+	} else {
+		logrus.WithError(err).Error("could not convert iat to unix time; setting to present moment")
+		issuanceDate = strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+
 	}
 
 	if err := t.Set(jwt.NotBeforeKey, issuanceDate); err != nil {
