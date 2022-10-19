@@ -53,13 +53,13 @@ func TestDIDPeerUtilities(t *testing.T) {
 		assert.Error(tt, err)
 	})
 
-	t.Run("teset resolve", func(tt *testing.T) {
+	t.Run("test resolve method 1", func(tt *testing.T) {
 		m1 := PeerMethod1{}
 		_, err := m1.resolve(DIDPeer("did:peer:1z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"), nil)
 		assert.Error(tt, err)
 	})
 
-	t.Run("teset resolve method 1", func(tt *testing.T) {
+	t.Run("test suffix empty", func(tt *testing.T) {
 		did := DIDPeer("")
 		_, err := did.Suffix()
 		assert.Error(tt, err)
