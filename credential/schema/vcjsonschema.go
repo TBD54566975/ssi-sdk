@@ -11,7 +11,6 @@ import (
 
 const (
 	verifiableCredentialJSONSchemaSchema string = "vc-json-schema.json"
-	verifiableCredentialIDProperty       string = "id"
 )
 
 // StringToVCJSONCredentialSchema marshals a string into a credential json credential schema
@@ -67,10 +66,15 @@ func IsCredentialValidForVCJSONSchema(credential credential.VerifiableCredential
 
 // IsCredentialValidForSchema determines whether a given Verifiable Credential is valid against
 // a specified credential schema
-func IsCredentialValidForSchema(credential credential.VerifiableCredential, s string) error {
+func IsCredentialValidForSchema(cred credential.VerifiableCredential, s string) error {
 	// First pull out credential subject and remove the ID property
-	credSubjectMap := credential.CredentialSubject
-	delete(credSubjectMap, verifiableCredentialIDProperty)
+	credSubjectMap := cred.CredentialSubject
+
+	gotID, _ := credSubjectMap[credential.VerifiableCredentialIDProperty]
+	delete(credSubjectMap, credential.VerifiableCredentialIDProperty)
+
+	// set the id back after validation
+	defer func() { credSubjectMap[credential.VerifiableCredentialIDProperty] = gotID }()
 
 	// JSON-ify the subject
 	subjectBytes, err := json.Marshal(credSubjectMap)
