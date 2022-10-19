@@ -66,7 +66,7 @@ func (d DIDPeer) String() string {
 func (d DIDPeer) Suffix() (string, error) {
 	split := strings.Split(string(d), DIDPeerPrefix+":")
 	if len(split) != 2 {
-		return "", errors.New("invalid did pkh")
+		return "", errors.New("invalid did peer")
 	}
 	s := split[1]
 	method, err := d.GetMethodID()
@@ -193,6 +193,7 @@ func (d DIDPeer) IsValidPurpose(p PurposeType) bool {
 // To do so, it decodes the key, constructs a verification  method, and returns a DID Document .This allows PeerMethod0
 // to implement the DID Resolution interface and be used to expand the did into the DID Document.
 func (m PeerMethod0) resolve(did DID, _ ResolutionOptions) (*DIDResolutionResult, error) {
+
 	d, ok := did.(DIDPeer)
 	if !ok {
 		return nil, errors.Wrap(util.CastingError, "did:peer")
@@ -258,9 +259,19 @@ func (d DIDPeer) buildVerificationMethod(data, did string) (*VerificationMethod,
 // Extract element purpose and decode each key or service.
 // Insert each key or service into the document according to the designated pu
 func (m PeerMethod2) resolve(did DID, _ ResolutionOptions) (*DIDResolutionResult, error) {
+
 	d, ok := did.(DIDPeer)
 	if !ok {
 		return nil, errors.Wrap(util.CastingError, "did:peer")
+	}
+
+	//if !d.IsValid() {
+	//return nil, errors.New("did is not valid")
+	//}
+
+	ds := string(d)
+	if ds[len(ds)-1] == '=' {
+		d = DIDPeer(ds[:len(ds)-1])
 	}
 
 	parsed, err := d.Suffix()
@@ -295,6 +306,7 @@ func (m PeerMethod2) resolve(did DID, _ ResolutionOptions) (*DIDResolutionResult
 			}
 			doc.KeyAgreement = append(doc.KeyAgreement, *vm)
 		case PeerPurposeVerificationCode:
+			//return nil, errors.New("verification decoding not implemented")
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to build verification code")
@@ -500,10 +512,16 @@ func peerMethodAvailable(m string) bool {
 type PeerResolver struct{}
 
 func (r PeerResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+
 	if !strings.HasPrefix(did, DIDPeerPrefix) {
 		return nil, fmt.Errorf("not a did:peer DID: %s", did)
 	}
+
 	didPeer := DIDPeer(did)
+	if len(didPeer) < len(DIDPeerPrefix)+2 {
+		return nil, errors.New("did is too short")
+	}
+
 	m := string(didPeer[9])
 	if peerMethodAvailable(m) {
 		switch m {

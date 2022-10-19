@@ -44,10 +44,23 @@ func TestDIDPeerUtilities(t *testing.T) {
 		did := DIDPeer(ds)
 		_, err := did.Suffix()
 		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "method not supported")
 	})
 
 	t.Run("test suffix method against unknown method", func(tt *testing.T) {
 		did := DIDPeer(invalidDIDPeerMethodStr)
+		_, err := did.Suffix()
+		assert.Error(tt, err)
+	})
+
+	t.Run("teset resolve", func(tt *testing.T) {
+		m1 := PeerMethod1{}
+		_, err := m1.resolve(DIDPeer("did:peer:1z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"), nil)
+		assert.Error(tt, err)
+	})
+
+	t.Run("teset resolve method 1", func(tt *testing.T) {
+		did := DIDPeer("")
 		_, err := did.Suffix()
 		assert.Error(tt, err)
 	})
@@ -116,6 +129,22 @@ func TestPeerResolver(t *testing.T) {
 	mbad := "did:peer:4z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
 	_, err = r.Resolve(mbad, nil)
 	assert.Error(t, err)
+
+	// https://identity.foundation/peer-did-method-spec/#multi-key-creation - key agreement
+	m2 := "did:peer:2.Ez6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0="
+	_, err = r.Resolve(m2, nil)
+	assert.NoError(t, err)
+
+	// https://identity.foundation/peer-did-method-spec/#multi-key-creation w/ key agreement
+	// We currently don't support key agreement, so should throw error
+	m2 = "did:peer:2.Ez6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH.VzXwpBnMdCm1cLmKuzgESn29nqnonp1ioqrQMRHNsmjMyppzx8xB2pv7cw8q1PdDacSrdWE3dtB9f7Nxk886mdzNFoPtY.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0="
+	_, err = r.Resolve(m2, nil)
+	assert.NoError(t, err)
+
+	m1 := "did:peer:1z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+	_, err = r.Resolve(m1, nil)
+	assert.Error(t, err)
+
 }
 
 func TestDIDPeerDeltaError(t *testing.T) {
@@ -187,6 +216,13 @@ func TestPeerMethod2(t *testing.T) {
 	did, err := m2.Generate()
 	assert.NoError(t, err)
 	assert.True(t, did.IsValid())
+}
+
+func TestPeerMethod1(t *testing.T) {
+	m1 := PeerMethod1{}
+	_, err := m1.Generate()
+	assert.Error(t, err)
+	assert.Contains(t, "not implemented", err.Error())
 }
 
 func makeSamplePeerDIDDocument() *DIDDocument {
