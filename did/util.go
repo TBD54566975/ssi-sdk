@@ -83,7 +83,7 @@ func decodeEncodedKey(d string) ([]byte, cryptosuite.LDKeyType, error) {
 func decodePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyType, error) {
 	encoding, decoded, err := multibase.Decode(string(data))
 	if err != nil {
-		return nil, "", errors.Wrap(err, "failed to decode public key for did:peer")
+		return nil, "", errors.Wrap(err, "failed to decode public key")
 	}
 
 	if encoding != Base58BTCMultiBase {
@@ -97,10 +97,6 @@ func decodePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyType, error)
 		return nil, "", err
 	}
 
-	if n != 2 {
-		return nil, "", errors.New("Error parsing did:peer varint")
-	}
-
 	pubKeyBytes := decoded[n:]
 	multiCodecValue := multicodec.Code(multiCodec)
 	switch multiCodecValue {
@@ -108,6 +104,8 @@ func decodePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyType, error)
 		return pubKeyBytes, cryptosuite.Ed25519VerificationKey2020, nil
 	case X25519MultiCodec:
 		return pubKeyBytes, cryptosuite.X25519KeyAgreementKey2020, nil
+	case SHA256MultiCodec:
+		return pubKeyBytes, cryptosuite.Ed25519VerificationKey2020, nil
 	case Secp256k1MultiCodec:
 		return pubKeyBytes, cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
 	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:

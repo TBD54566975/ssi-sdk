@@ -28,6 +28,7 @@ const (
 	P384MultiCodec      = multicodec.P384Pub
 	P521MultiCodec      = multicodec.P521Pub
 	RSAMultiCodec       = multicodec.RsaPub
+	SHA256MultiCodec    = multicodec.Sha2_256
 )
 
 // DIDResolutionResult encapsulates the tuple of a DID resolution https://www.w3.org/TR/did-core/#did-resolution

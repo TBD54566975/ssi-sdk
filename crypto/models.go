@@ -3,6 +3,7 @@ package crypto
 type (
 	Proof              interface{}
 	KeyType            string
+	HashType           string
 	SignatureAlgorithm string
 )
 
@@ -17,6 +18,10 @@ const (
 	RSA       KeyType = "RSA"
 
 	RSAKeySize int = 2048
+)
+
+const (
+	SHA256 HashType = "SHA256"
 )
 
 const (
