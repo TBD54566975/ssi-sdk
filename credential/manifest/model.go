@@ -304,16 +304,16 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 
 			// TODO(gabe) consider enforcing limited disclosure if present
 			// for each field we need to verify at least one path matches
-			vcMap := make(map[string]interface{})
-			claimBytes, err := json.Marshal(submittedClaim)
+			credMap := make(map[string]interface{})
+			claimBytes, err := json.Marshal(cred)
 			if err != nil {
 				return errors.Wrap(err, "failed to marshal submitted claim")
 			}
-			if err = json.Unmarshal(claimBytes, &vcMap); err != nil {
+			if err = json.Unmarshal(claimBytes, &credMap); err != nil {
 				return errors.Wrap(err, "problem in unmarshalling credential")
 			}
 			for _, field := range inputDescriptor.Constraints.Fields {
-				if err = findMatchingPath(vcMap, field.Path); err != nil {
+				if err = findMatchingPath(credMap, field.Path); err != nil {
 					return errors.Wrapf(err, "input descriptor<%s> not fulfilled for field: %s", inputDescriptor.ID, field.ID)
 				}
 			}

@@ -212,7 +212,7 @@ func getValidTestCredManifestCredApplicationJWTCred(t *testing.T) (CredentialMan
 	assert.NoError(t, err)
 	assert.NotEmpty(t, jwt)
 
-	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []interface{}{jwt}}
+	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []interface{}{string(jwt)}}
 }
 
 func TestIsValidCredentialApplicationForManifest(t *testing.T) {
