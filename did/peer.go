@@ -306,7 +306,6 @@ func (m PeerMethod2) resolve(did DID, _ ResolutionOptions) (*DIDResolutionResult
 			}
 			doc.KeyAgreement = append(doc.KeyAgreement, *vm)
 		case PeerPurposeVerificationCode:
-			//return nil, errors.New("verification decoding not implemented")
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to build verification code")

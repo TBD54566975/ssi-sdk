@@ -15,6 +15,7 @@ const (
 	P384      KeyType = "P-384"
 	P521      KeyType = "P-521"
 	RSA       KeyType = "RSA"
+	SHA256    KeyType = "SHA256"
 
 	RSAKeySize int = 2048
 )
