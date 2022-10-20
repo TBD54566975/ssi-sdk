@@ -3,8 +3,6 @@ package error
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"reflect"
-	"strings"
 )
 
 type (
@@ -45,21 +43,13 @@ func NewErrorResponseWithError(err error, errorType ErrorType) *ErrorResponse {
 
 // GetErrorResponse will get the type of err, if the type is a ErrorResponse it will return that as an ErrorResponse, otherwise it will construct a new default ErrorResponse
 func GetErrorResponse(err error) ErrorResponse {
-	errResponseTypeString := reflect.TypeOf(ErrorResponse{}).String()
-	errTypeString := reflect.TypeOf(err).String()
+	var errRes *ErrorResponse
 
-	// take out pointers for comparison
-	errResponseTypeString = strings.Replace(errResponseTypeString, "*", "", -1)
-	errTypeString = strings.Replace(errTypeString, "*", "", -1)
-
-	// if this is an og error wrap it into an ErrorResponse
-	if errResponseTypeString != errTypeString {
-		return ErrorResponse{Valid: false, Err: err, ErrorType: UnknownError}
+	if errors.As(err, &errRes) {
+		return *errRes
 	}
 
-	// otherwise get an error response
-	errRes := err.(*ErrorResponse)
-	return *errRes
+	return ErrorResponse{Valid: false, Err: err, ErrorType: UnknownError}
 }
 
 func isValid(errorType ErrorType) bool {
