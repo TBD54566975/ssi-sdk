@@ -66,7 +66,7 @@ func (d DIDPeer) String() string {
 func (d DIDPeer) Suffix() (string, error) {
 	split := strings.Split(string(d), DIDPeerPrefix+":")
 	if len(split) != 2 {
-		return "", errors.New("invalid did pkh")
+		return "", errors.New("invalid did peer")
 	}
 	s := split[1]
 	method, err := d.GetMethodID()
@@ -193,6 +193,7 @@ func (d DIDPeer) IsValidPurpose(p PurposeType) bool {
 // To do so, it decodes the key, constructs a verification  method, and returns a DID Document .This allows PeerMethod0
 // to implement the DID Resolution interface and be used to expand the did into the DID Document.
 func (m PeerMethod0) resolve(did DID, _ ResolutionOptions) (*DIDResolutionResult, error) {
+
 	d, ok := did.(DIDPeer)
 	if !ok {
 		return nil, errors.Wrap(util.CastingError, "did:peer")
@@ -258,10 +259,19 @@ func (d DIDPeer) buildVerificationMethod(data, did string) (*VerificationMethod,
 // Extract element purpose and decode each key or service.
 // Insert each key or service into the document according to the designated pu
 func (m PeerMethod2) resolve(did DID, _ ResolutionOptions) (*DIDResolutionResult, error) {
+
 	d, ok := did.(DIDPeer)
 	if !ok {
 		return nil, errors.Wrap(util.CastingError, "did:peer")
 	}
+
+	// The '=' at the end is an artifact of the encoding, and will mess up the decoding
+	// over the partials, so is removed.
+	// https://identity.foundation/peer-did-method-spec/index.html#generation-method
+	// ds := string(d)
+	// if ds[len(ds)-1] == '=' {
+	// 	d = DIDPeer(ds[:len(ds)-1])
+	// }
 
 	parsed, err := d.Suffix()
 	if err != nil {
@@ -427,6 +437,7 @@ func (d DIDPeer) checkValidPeerServiceBlock(s string) bool {
 // Decodes a service block.
 // Assumes that the service block has been stripped of any headers or identifiers.
 func (d DIDPeer) decodeServiceBlock(s string) (*Service, error) {
+
 	// check it starts with s.
 	if !d.checkValidPeerServiceBlock(s) {
 		return nil, errors.New("invalid string provided")
@@ -434,7 +445,13 @@ func (d DIDPeer) decodeServiceBlock(s string) (*Service, error) {
 
 	s2 := s[2:]
 
-	decoded, err := b64.RawURLEncoding.DecodeString(s2)
+	// Remove the padding if present.
+	padding := b64.NoPadding
+	if s2[len(s2)-1] == '=' {
+		padding = b64.StdPadding
+	}
+	encoder := b64.RawURLEncoding.WithPadding(padding)
+	decoded, err := encoder.DecodeString(s2)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to decode service for did:peer")
 	}
@@ -488,7 +505,7 @@ func peerMethodAvailable(m string) bool {
 		return true
 	case "1":
 		// PeerMethod1
-		return true
+		return false
 	case "2":
 		// PeerMethod2
 		return true
@@ -500,10 +517,16 @@ func peerMethodAvailable(m string) bool {
 type PeerResolver struct{}
 
 func (r PeerResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+
 	if !strings.HasPrefix(did, DIDPeerPrefix) {
 		return nil, fmt.Errorf("not a did:peer DID: %s", did)
 	}
+
 	didPeer := DIDPeer(did)
+	if len(didPeer) < len(DIDPeerPrefix)+2 {
+		return nil, errors.New("did is too short")
+	}
+
 	m := string(didPeer[9])
 	if peerMethodAvailable(m) {
 		switch m {

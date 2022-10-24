@@ -6,8 +6,10 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
+	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
@@ -167,10 +169,70 @@ func getValidTestCredManifestCredApplication(t *testing.T) (CredentialManifest, 
 	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []interface{}{vc}}
 }
 
+func getValidTestCredManifestCredApplicationJWTCred(t *testing.T) (CredentialManifest, CredentialApplicationWrapper) {
+	// manifest
+	manifestJSON, err := getTestVector(FullManifestVector)
+	assert.NoError(t, err)
+
+	var cm CredentialManifest
+	err = json.Unmarshal([]byte(manifestJSON), &cm)
+
+	assert.NoError(t, err)
+	assert.NotEmpty(t, cm)
+	assert.NoError(t, cm.IsValid())
+
+	// application
+	credAppJSON, err := getTestVector(FullApplicationVector)
+	assert.NoError(t, err)
+
+	var ca CredentialApplication
+	err = json.Unmarshal([]byte(credAppJSON), &ca)
+
+	assert.NoError(t, err)
+	assert.NotEmpty(t, ca)
+	assert.NoError(t, ca.IsValid())
+
+	vcJSON, err := getTestVector(FullCredentialVector)
+	assert.NoError(t, err)
+
+	var vc credential.VerifiableCredential
+	err = json.Unmarshal([]byte(vcJSON), &vc)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, vc)
+	assert.NoError(t, vc.IsValid())
+
+	// turn into a jwt
+	_, privKey, err := crypto.GenerateEd25519Key()
+	assert.NoError(t, err)
+	key, err := jwk.New(privKey)
+	assert.NoError(t, err)
+	signer, err := crypto.NewJWTSigner("test-kid", key)
+	assert.NoError(t, err)
+	jwt, err := signing.SignVerifiableCredentialJWT(*signer, vc)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, jwt)
+
+	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []interface{}{string(jwt)}}
+}
+
 func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 	t.Run("Credential Application and Credential Manifest Pair Valid", func(tt *testing.T) {
 		cm, ca := getValidTestCredManifestCredApplication(tt)
+
+		credAppRequestBytes, err := json.Marshal(ca)
+		assert.NoError(tt, err)
+
+		request := make(map[string]interface{})
+		err = json.Unmarshal(credAppRequestBytes, &request)
+		assert.NoError(tt, err)
+
+		err = IsValidCredentialApplicationForManifest(cm, request)
+		assert.NoError(tt, err)
+	})
+
+	t.Run("Credential Application and Credential Manifest Pair Valid with JWT", func(tt *testing.T) {
+		cm, ca := getValidTestCredManifestCredApplicationJWTCred(tt)
 
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)

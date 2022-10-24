@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/rendering"
+	credutil "github.com/TBD54566975/ssi-sdk/credential/util"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
@@ -289,8 +289,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 			}
 
 			// convert submitted claim vc to map[string]interface{}
-			var cred credential.VerifiableCredential
-			credBytes, err := json.Marshal(submittedClaim)
+			cred, err := credutil.CredentialsFromInterface(submittedClaim)
 			if err != nil {
 				return errorresponse.NewErrorResponseWithError(errors.Wrap(err, "failed to marshal submitted vc"), errorresponse.CriticalError)
 
@@ -320,7 +319,6 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 			for _, field := range inputDescriptor.Constraints.Fields {
 				if err = findMatchingPath(vcMap, field.Path); err != nil {
 					return errorresponse.NewErrorResponseWithError(errors.Wrapf(err, "input descriptor<%s> not fulfilled for field: %s", inputDescriptor.ID, field.ID), errorresponse.ApplicationError)
-
 				}
 			}
 		}
