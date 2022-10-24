@@ -100,7 +100,7 @@ func TestCredentialApplication(t *testing.T) {
 func TestCredentialResponse(t *testing.T) {
 	// example here https://identity.foundation/credential-manifest/#credential-response
 
-	t.Run("Credential ErrorResponse - Fulfillment Vector 1", func(tt *testing.T) {
+	t.Run("Credential Response - Fulfillment Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(ResponseVector1)
 		assert.NoError(tt, err)
 
@@ -116,7 +116,7 @@ func TestCredentialResponse(t *testing.T) {
 		assert.JSONEq(tt, vector, string(roundTripBytes))
 	})
 
-	t.Run("Credential ErrorResponse - Denial Vector 1", func(tt *testing.T) {
+	t.Run("Credential Error - Denial Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(ResponseVector2)
 		assert.NoError(tt, err)
 
