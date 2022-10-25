@@ -40,7 +40,7 @@ func TestErrorResponse(t *testing.T) {
 		resp := GetErrorResponse(err)
 
 		assert.Equal(tt, resp.Valid, false)
-		assert.Equal(tt, resp.ErrorType, ApplicationError)
+		assert.Equal(tt, resp.ErrorType, CriticalError)
 		assert.Equal(tt, resp.Err, err.(*Response).Err)
 		assert.Contains(tt, resp.Error(), "the best number: 5")
 	})
