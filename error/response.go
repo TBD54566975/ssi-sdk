@@ -37,7 +37,7 @@ func NewErrorResponse(errorType Type, errorMessage string) *Response {
 func NewErrorResponsef(errorType Type, format string, a ...interface{}) *Response {
 	return &Response{
 		Valid:     false,
-		ErrorType: ApplicationError,
+		ErrorType: errorType,
 		Err:       errors.Errorf(format, a...),
 	}
 }
