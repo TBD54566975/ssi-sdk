@@ -144,6 +144,7 @@ func TestInputDescriptorBuilderProperties(t *testing.T) {
 	assert.NoError(t, err)
 	definition, err := builder.Build()
 	assert.NoError(t, err)
+	assert.NotEmpty(t, definition)
 }
 
 func TestInputDescriptorBuilder(t *testing.T) {
