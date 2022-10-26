@@ -95,6 +95,39 @@
               "filter": {
                 "type": "string"
               }
+            },
+            {
+              "id":"postalAddress",
+              "path":[
+                "$.credentialSubject.postalAddress"
+              ],
+              "filter":{
+                "type":"object",
+                "properties":{
+                  "addressCountry":{
+                    "type":"string"
+                  },
+                  "addressLocality":{
+                    "type":"string"
+                  },
+                  "addressRegion":{
+                    "type":"string"
+                  },
+                  "postalCode":{
+                    "type":"string"
+                  },
+                  "streetAddress":{
+                    "type":"string"
+                  }
+                },
+                "required":[
+                  "addressCountry",
+                  "addressLocality",
+                  "addressRegion",
+                  "postalCode",
+                  "streetAddress"
+                ]
+              }
             }
           ]
         }
