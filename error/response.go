@@ -11,7 +11,7 @@ type (
 )
 
 const (
-	ApplicationError Type = "ApplicationError"
+	ApplicationError Type = "Valid"
 	CriticalError    Type = "CriticalError"
 	UnknownError     Type = "UnknownError"
 )
@@ -32,7 +32,7 @@ func (r *Response) IsUnknownError() bool {
 
 func NewErrorResponse(errorType Type, errorMessage string) *Response {
 	return &Response{
-		Valid:     isValid(errorType),
+		Valid:     isApplicationErr(errorType),
 		ErrorType: errorType,
 		Err:       errors.New(errorMessage),
 	}
@@ -40,15 +40,15 @@ func NewErrorResponse(errorType Type, errorMessage string) *Response {
 
 func NewErrorResponsef(errorType Type, msg string, a ...interface{}) *Response {
 	return &Response{
-		Valid:     false,
-		ErrorType: ApplicationError,
+		Valid:     isApplicationErr(errorType),
+		ErrorType: errorType,
 		Err:       errors.Errorf(msg, a...),
 	}
 }
 
 func NewErrorResponseWithError(errorType Type, err error) *Response {
 	return &Response{
-		Valid:     isValid(errorType),
+		Valid:     isApplicationErr(errorType),
 		ErrorType: errorType,
 		Err:       err,
 	}
@@ -56,7 +56,7 @@ func NewErrorResponseWithError(errorType Type, err error) *Response {
 
 func NewErrorResponseWithErrorAndMsg(errorType Type, err error, msg string) *Response {
 	return &Response{
-		Valid:     isValid(errorType),
+		Valid:     isApplicationErr(errorType),
 		ErrorType: errorType,
 		Err:       errors.Wrap(err, msg),
 	}
@@ -64,9 +64,9 @@ func NewErrorResponseWithErrorAndMsg(errorType Type, err error, msg string) *Res
 
 func NewErrorResponseWithErrorAndMsgf(errorType Type, err error, msg string, a ...interface{}) *Response {
 	return &Response{
-		Valid:     isValid(errorType),
+		Valid:     isApplicationErr(errorType),
 		ErrorType: errorType,
-		Err:       errors.Wrapf(err, msg, a),
+		Err:       errors.Wrapf(err, msg, a...),
 	}
 }
 
@@ -81,9 +81,8 @@ func GetErrorResponse(err error) Response {
 	return Response{Valid: false, Err: err, ErrorType: UnknownError}
 }
 
-func isValid(errorType Type) bool {
-	if errorType == ApplicationError {
-		return true
-	}
-	return false
+// isApplicationError will return true if the error is a application error
+// this is used to determine whether a response is valid or a 'real' error
+func isApplicationErr(errorType Type) bool {
+	return errorType == ApplicationError
 }
