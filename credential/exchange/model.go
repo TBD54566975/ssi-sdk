@@ -287,6 +287,7 @@ type RelationalConstraint struct {
 type Filter struct {
 	Type             string        `json:"type,omitempty"`
 	Format           string        `json:"format,omitempty"`
+	Properties       interface{}   `json:"properties,omitempty"`
 	Pattern          string        `json:"pattern,omitempty"`
 	Minimum          interface{}   `json:"minimum,omitempty"`
 	Maximum          interface{}   `json:"maximum,omitempty"`

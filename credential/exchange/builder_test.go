@@ -3,6 +3,7 @@ package exchange
 import (
 	"testing"
 
+	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
@@ -94,7 +95,60 @@ func TestPresentationDefinitionBuilder(t *testing.T) {
 	assert.NotEmpty(t, presentationDefinition)
 }
 
+func TestInputDescriptorBuilderProperties(t *testing.T) {
+	builder := NewPresentationDefinitionBuilder()
+
+	b := []byte(
+		`{
+		   "addressCountry":{
+			  "type":"string"
+		   },
+		   "addressLocality":{
+			  "type":"string"
+		   },
+		   "addressRegion":{
+			  "type":"string"
+		   },
+		   "postalCode":{
+			  "type":"string"
+		   },
+		   "streetAddress":{
+			  "type":"string"
+		   }
+		}`)
+
+	var f interface{}
+	err := json.Unmarshal(b, &f)
+	assert.NoError(t, err)
+
+	err = builder.SetInputDescriptors([]InputDescriptor{
+		{
+			ID:   uuid.NewString(),
+			Name: "children-info",
+			Constraints: &Constraints{
+				Fields: []Field{
+					{
+						Path: []string{"$.vc.credentialSubject.children[*].firstName", "$.credentialSubject.children[*].firstName"},
+						ID:   "children-info-first-name",
+						Filter: &Filter{
+							Type:       "string",
+							MinLength:  1,
+							Properties: f,
+						},
+					},
+				},
+			},
+		},
+	})
+
+	assert.NoError(t, err)
+	definition, err := builder.Build()
+	assert.NoError(t, err)
+	println(util.PrettyJSON(definition))
+}
+
 func TestInputDescriptorBuilder(t *testing.T) {
+
 	builder := NewInputDescriptorBuilder()
 	_, err := builder.Build()
 
