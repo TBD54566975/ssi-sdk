@@ -26,6 +26,10 @@ func (r *Response) Error() string {
 	return fmt.Sprintf("valid %v: err %v, error type: %s", r.Valid, r.Err, r.ErrorType)
 }
 
+func (r *Response) IsUnknownError() bool {
+	return r == nil || r.ErrorType == UnknownError
+}
+
 func NewErrorResponse(errorType Type, errorMessage string) *Response {
 	return &Response{
 		Valid:     isValid(errorType),
@@ -34,11 +38,11 @@ func NewErrorResponse(errorType Type, errorMessage string) *Response {
 	}
 }
 
-func NewErrorResponsef(errorType Type, format string, a ...interface{}) *Response {
+func NewErrorResponsef(errorType Type, msg string, a ...interface{}) *Response {
 	return &Response{
 		Valid:     false,
 		ErrorType: ApplicationError,
-		Err:       errors.Errorf(format, a...),
+		Err:       errors.Errorf(msg, a...),
 	}
 }
 
@@ -47,6 +51,22 @@ func NewErrorResponseWithError(errorType Type, err error) *Response {
 		Valid:     isValid(errorType),
 		ErrorType: errorType,
 		Err:       err,
+	}
+}
+
+func NewErrorResponseWithErrorAndMsg(errorType Type, err error, msg string) *Response {
+	return &Response{
+		Valid:     isValid(errorType),
+		ErrorType: errorType,
+		Err:       errors.Wrap(err, msg),
+	}
+}
+
+func NewErrorResponseWithErrorAndMsgf(errorType Type, err error, msg string, a ...interface{}) *Response {
+	return &Response{
+		Valid:     isValid(errorType),
+		ErrorType: errorType,
+		Err:       errors.Wrapf(err, msg, a),
 	}
 }
 

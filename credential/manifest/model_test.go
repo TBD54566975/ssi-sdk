@@ -227,8 +227,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err := IsValidCredentialApplicationForManifest(cm, request)
 		assert.NoError(tt, err)
+		assert.Empty(tt, unfulfilledIDs)
 	})
 
 	t.Run("Credential Application and Credential Manifest Pair Valid with JWT", func(tt *testing.T) {
@@ -241,8 +242,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err := IsValidCredentialApplicationForManifest(cm, request)
 		assert.NoError(tt, err)
+		assert.Empty(tt, unfulfilledIDs)
 	})
 
 	t.Run("Credential Application and Credential Manifest Pair Full Test", func(tt *testing.T) {
@@ -257,8 +259,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err := IsValidCredentialApplicationForManifest(cm, request)
 		assert.Contains(t, err.Error(), "the credential application's manifest id: bad-id must be equal to the credential manifest's id: WA-DL-CLASS-A")
+		assert.Empty(tt, unfulfilledIDs)
 
 		// reset
 		ca.CredentialApplication.ManifestID = cm.ID
@@ -277,8 +280,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err = IsValidCredentialApplicationForManifest(cm, request)
 		assert.NoError(tt, err)
+		assert.Empty(tt, unfulfilledIDs)
 
 		cm.Format = &exchange.ClaimFormat{
 			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
@@ -294,8 +298,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err = IsValidCredentialApplicationForManifest(cm, request)
 		assert.NoError(tt, err)
+		assert.Empty(tt, unfulfilledIDs)
 
 		cm.Format = &exchange.ClaimFormat{
 			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
@@ -310,8 +315,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err = IsValidCredentialApplicationForManifest(cm, request)
 		assert.Contains(t, err.Error(), "credential application's format must be a subset of the format property in the credential manifest")
+		assert.Empty(tt, unfulfilledIDs)
 
 		// reset
 		ca.CredentialApplication.Format = &exchange.ClaimFormat{
@@ -325,8 +331,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err = IsValidCredentialApplicationForManifest(cm, request)
 		assert.Contains(t, err.Error(), "credential application's presentation submission's definition id: badid does not match the credential manifest's id: 32f54163-7166-48f1-93d8-ff217bdb0653")
+		assert.Empty(tt, unfulfilledIDs)
 
 		// reset
 		cm, ca = getValidTestCredManifestCredApplication(tt)
@@ -335,8 +342,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err = IsValidCredentialApplicationForManifest(cm, request)
 		assert.NoError(tt, err)
+		assert.Empty(tt, unfulfilledIDs)
 
 		ca.CredentialApplication.PresentationSubmission.DescriptorMap[0].Format = "badformat"
 
@@ -345,8 +353,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err = IsValidCredentialApplicationForManifest(cm, request)
 		assert.Contains(t, err.Error(), "format must be one of the following:")
+		assert.Empty(tt, unfulfilledIDs)
 
 		// reset
 		ca.CredentialApplication.PresentationSubmission.DescriptorMap[0].Format = "jwt_vc"
@@ -356,8 +365,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err = IsValidCredentialApplicationForManifest(cm, request)
 		assert.NoError(tt, err)
+		assert.Empty(tt, unfulfilledIDs)
 
 		ca.CredentialApplication.PresentationSubmission.DescriptorMap[0].Path = "bad-path"
 
@@ -366,9 +376,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err = IsValidCredentialApplicationForManifest(cm, request)
 		assert.Contains(t, err.Error(), "invalid json path: bad-path")
-
+		assert.Empty(tt, unfulfilledIDs)
 	})
 
 	t.Run("PresentationSubmission DescriptorMap mismatch id", func(tt *testing.T) {
@@ -381,8 +391,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err := IsValidCredentialApplicationForManifest(cm, request)
 		assert.Contains(t, err.Error(), "unfulfilled input descriptor")
+		assert.Len(tt, unfulfilledIDs, 1)
 	})
 
 	t.Run("VC path fulfilled", func(tt *testing.T) {
@@ -397,8 +408,10 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
-		assert.Contains(t, err.Error(), "not fulfilled for field")
+		unfulfilledIDs, err := IsValidCredentialApplicationForManifest(cm, request)
+		assert.Contains(t, err.Error(), "<1>unfulfilled input descriptor(s)")
+		assert.Len(tt, unfulfilledIDs, 1)
+		assert.Contains(tt, unfulfilledIDs[cm.PresentationDefinition.InputDescriptors[0].ID], "not fulfilled for field")
 	})
 
 	t.Run("InputDescriptors format mismatch", func(tt *testing.T) {
@@ -414,8 +427,10 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
-		assert.Contains(t, err.Error(), "is not one of the supported formats:")
+		unfulfilledIDs, err := IsValidCredentialApplicationForManifest(cm, request)
+		assert.Contains(t, err.Error(), "<1>unfulfilled input descriptor(s)")
+		assert.Len(tt, unfulfilledIDs, 1)
+		assert.Contains(tt, unfulfilledIDs[cm.PresentationDefinition.InputDescriptors[0].ID], "is not one of the supported formats")
 	})
 
 	t.Run("Not all input descriptors fulfilled", func(tt *testing.T) {
@@ -428,8 +443,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err := IsValidCredentialApplicationForManifest(cm, request)
 		assert.Contains(t, err.Error(), "no descriptors provided for application")
+		assert.Empty(tt, unfulfilledIDs)
 	})
 
 	t.Run("one cred can fulfill multiple input descriptors", func(tt *testing.T) {
@@ -446,8 +462,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err := IsValidCredentialApplicationForManifest(cm, request)
 		assert.NoError(tt, err)
+		assert.Empty(tt, unfulfilledIDs)
 	})
 
 	t.Run("multiple creds can fulfill multiple input descriptors", func(tt *testing.T) {
@@ -468,8 +485,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err := IsValidCredentialApplicationForManifest(cm, request)
 		assert.NoError(tt, err)
+		assert.Empty(tt, unfulfilledIDs)
 	})
 
 	t.Run("vc path does not exist", func(tt *testing.T) {
@@ -487,8 +505,10 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
-		err = IsValidCredentialApplicationForManifest(cm, request)
-		assert.Contains(t, err.Error(), "could not resolve claim from submission descriptor<kycid2> with path: $.verifiableCredentials[3]")
+		unfulfilledIDs, err := IsValidCredentialApplicationForManifest(cm, request)
+		assert.Contains(t, err.Error(), "<1>unfulfilled input descriptor(s)")
+		assert.Len(tt, unfulfilledIDs, 1)
+		assert.Contains(tt, unfulfilledIDs[cm.PresentationDefinition.InputDescriptors[1].ID], "could not resolve claim from submission descriptor<kycid2> with path: $.verifiableCredentials[3]")
 	})
 
 	t.Run("only ca cm validation, no vcs", func(tt *testing.T) {
@@ -500,8 +520,9 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		assert.NoError(tt, err)
 
 		cm.PresentationDefinition = nil
-		err = IsValidCredentialApplicationForManifest(cm, request)
+		unfulfilledIDs, err := IsValidCredentialApplicationForManifest(cm, request)
 		assert.NoError(tt, err)
+		assert.Empty(tt, unfulfilledIDs)
 	})
 }
 
