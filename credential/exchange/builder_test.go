@@ -134,7 +134,6 @@ func TestInputDescriptorBuilderProperties(t *testing.T) {
 							Type:       "string",
 							MinLength:  1,
 							Properties: props,
-<<<<<<< HEAD
 						},
 					},
 				},
