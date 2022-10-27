@@ -117,8 +117,8 @@ func TestInputDescriptorBuilderProperties(t *testing.T) {
 		   }
 		}`)
 
-	var f interface{}
-	err := json.Unmarshal(b, &f)
+	var props interface{}
+	err := json.Unmarshal(b, &props)
 	assert.NoError(t, err)
 
 	err = builder.SetInputDescriptors([]InputDescriptor{
@@ -133,7 +133,7 @@ func TestInputDescriptorBuilderProperties(t *testing.T) {
 						Filter: &Filter{
 							Type:       "string",
 							MinLength:  1,
-							Properties: f,
+							Properties: props,
 						},
 					},
 				},
@@ -143,8 +143,10 @@ func TestInputDescriptorBuilderProperties(t *testing.T) {
 
 	assert.NoError(t, err)
 	definition, err := builder.Build()
+	assert.NotEmpty(t, definition)
 	assert.NoError(t, err)
 	println(util.PrettyJSON(definition))
+
 }
 
 func TestInputDescriptorBuilder(t *testing.T) {
