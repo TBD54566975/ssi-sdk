@@ -30,19 +30,19 @@ var KnownVerifiers = []Verifier{
 
 // VerifyValidCredential verifies a credential's object model depending on the struct tags used on VerifiableCredential
 // TODO(gabe) add support for JSON schema validation of the VCDM after https://github.com/w3c/vc-data-model/issues/934
-func VerifyValidCredential(credential credential.VerifiableCredential, _ ...VerificationOption) error {
-	return credential.IsValid()
+func VerifyValidCredential(cred credential.VerifiableCredential, _ ...VerificationOption) error {
+	return cred.IsValid()
 }
 
 // VerifyExpiry verifies a credential's expiry date is not in the past. We assume the date is parseable as
 // an RFC3339 date time value.
-func VerifyExpiry(credential credential.VerifiableCredential, _ ...VerificationOption) error {
-	if credential.ExpirationDate == "" {
+func VerifyExpiry(verifiableCred credential.VerifiableCredential, _ ...VerificationOption) error {
+	if verifiableCred.ExpirationDate == "" {
 		return nil
 	}
-	expiryTime, err := time.Parse(time.RFC3339, credential.ExpirationDate)
+	expiryTime, err := time.Parse(time.RFC3339, verifiableCred.ExpirationDate)
 	if err != nil {
-		return errors.Wrapf(err, "failed to parse expiry date: %s", credential.ExpirationDate)
+		return errors.Wrapf(err, "failed to parse expiry date: %s", verifiableCred.ExpirationDate)
 	}
 	if expiryTime.Before(time.Now()) {
 		return fmt.Errorf("credential has expired as of %s", expiryTime.String())
@@ -61,17 +61,17 @@ func WithSchema(schema string) VerificationOption {
 // VerifyJSONSchema verifies a credential's data against a Verifiable Credential JSON Schema:
 // https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
 // There is a required single option which is a string JSON value representing the Credential Schema Object
-func VerifyJSONSchema(credential credential.VerifiableCredential, opts ...VerificationOption) error {
-	hasSchemaProperty := credential.CredentialSchema != nil
+func VerifyJSONSchema(cred credential.VerifiableCredential, opts ...VerificationOption) error {
+	hasSchemaProperty := cred.CredentialSchema != nil
 	schema, err := GetVerificationOption(opts, SchemaOption)
 	if err != nil {
-		// if the credential does not have a schema property, we cannot perform this check
+		// if the cred does not have a schema property, we cannot perform this check
 		if !hasSchemaProperty {
 			return nil
 		}
 		return errors.Wrap(err, "cannot verify the credential against a JSON schema, no schema provided")
 	}
-	// if the credential does not have a schema property, we cannot perform this check
+	// if the cred does not have a schema property, we cannot perform this check
 	if !hasSchemaProperty {
 		return errors.New("credential does not have a credentialSchema property")
 	}
@@ -79,7 +79,7 @@ func VerifyJSONSchema(credential credential.VerifiableCredential, opts ...Verifi
 	if err != nil {
 		return err
 	}
-	return credschema.IsCredentialValidForVCJSONSchema(credential, *credSchema)
+	return credschema.IsCredentialValidForVCJSONSchema(cred, *credSchema)
 }
 
 func optionToCredentialSchema(maybeSchema interface{}) (*credschema.VCJSONSchema, error) {

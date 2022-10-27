@@ -81,7 +81,6 @@ func TestIsValidJSON(t *testing.T) {
 }
 
 func TestJSONSchemaValidation(t *testing.T) {
-
 	t.Run("Test Invalid JSON Against Schema", func(tt *testing.T) {
 		err := IsJSONValidAgainstSchema(string([]byte("bad")), string([]byte("bad")))
 		assert.Error(tt, err)

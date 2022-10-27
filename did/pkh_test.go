@@ -133,7 +133,6 @@ func TestIsValidPKH(t *testing.T) {
 	assert.False(t, IsValidPKH("did:pkh:eip155:1:"))
 	assert.False(t, IsValidPKH("did:pkh:eip155::0xb9c5714089478a327f09197987f16f9e5d936e8a"))
 	assert.False(t, IsValidPKH("did:pkh:NOCAP:1:0xb9c5714089478a327f09197987f16f9e5d936e8a"))
-
 }
 
 func TestGetNetwork(t *testing.T) {

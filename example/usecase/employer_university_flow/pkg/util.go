@@ -39,35 +39,34 @@ func GenerateDIDPeer() (did.DID, error) {
 	if err != nil {
 		return nil, err
 	}
-	did, err := did.PeerMethod0{}.Generate(kt, pubKey)
+	dID, err := did.PeerMethod0{}.Generate(kt, pubKey)
 	if err != nil {
 		return nil, err
 	}
-	return did, nil
+	return dID, nil
 }
 
 // This validates the VC.
 // TODO: Expand on this more
 // Simplify it?
 func validateVC(vc credential.VerifiableCredential) error {
-
 	issuer := "https://example.edu/issuers/565049"
-	AssertionMethod := cryptosuite.ProofPurpose("assertionMethod")
+	assertionMethod := cryptosuite.ProofPurpose("assertionMethod")
 
 	var vc2 credential.VerifiableCredential
 	if err := util.Copy(&vc, &vc2); err != nil {
 		return err
 	}
 
-	var OKP = cryptosuite.KTY("OKP")
-	var Ed25519 = cryptosuite.CRV("Ed25519")
+	var okp = cryptosuite.KTY("OKP")
+	var ed25519 = cryptosuite.CRV("Ed25519")
 
-	jwk, err := cryptosuite.GenerateJSONWebKey2020(OKP, Ed25519)
+	jwk, err := cryptosuite.GenerateJSONWebKey2020(okp, ed25519)
 	if err != nil {
 		return err
 	}
 
-	signer, err := cryptosuite.NewJSONWebKeySigner(issuer, jwk.PrivateKeyJWK, AssertionMethod)
+	signer, err := cryptosuite.NewJSONWebKeySigner(issuer, jwk.PrivateKeyJWK, assertionMethod)
 	if err != nil {
 		return err
 	}
@@ -82,11 +81,7 @@ func validateVC(vc credential.VerifiableCredential) error {
 		return err
 	}
 
-	if err = suite.Verify(verifier, &vc2); err != nil {
-		return err
-	}
-
-	return nil
+	return suite.Verify(verifier, &vc2)
 }
 
 // MakePresentationRequest Builds a presentation request (PR). A PR is sent by a holder to a verifier. It can be sent
@@ -99,14 +94,14 @@ func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData ex
 	// Signer uses a JWK
 	signer, err = crypto.NewJWTSigner(jwk.ID, jwk.PrivateKeyJWK)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 
 	// Builds a presentation request
 	// Requires a signer, the presentation data, and a target which is the Audience Key
 	requestJWTBytes, err := exchange.BuildJWTPresentationRequest(*signer, presentationData, targetID)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 
 	return requestJWTBytes, signer, err

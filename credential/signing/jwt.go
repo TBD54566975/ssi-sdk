@@ -53,7 +53,6 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 	} else {
 		logrus.WithError(err).Error("could not convert iat to unix time; setting to present moment")
 		issuanceDate = strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-
 	}
 
 	if err := t.Set(jwt.NotBeforeKey, issuanceDate); err != nil {

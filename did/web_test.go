@@ -1,11 +1,11 @@
 package did
 
 import (
+	"gopkg.in/h2non/gock.v1"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/h2non/gock.v1"
 )
 
 const (
@@ -36,14 +36,13 @@ func TestDIDWebGetURL(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "https://example.com/user/alice/did.json", docURL)
 
-	docURL, err = didWebNotADomain.GetDocURL()
+	_, err = didWebNotADomain.GetDocURL()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "missing the required domain")
 
-	docURL, err = didWebBadQueryURL.GetDocURL()
+	_, err = didWebBadQueryURL.GetDocURL()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "url.QueryUnescape failed for subSt")
-
 }
 
 func TestDIDWebResolveDocBytes(t *testing.T) {
@@ -77,7 +76,6 @@ func TestDIDWebResolve(t *testing.T) {
 		doc, err := didWebToBeResolved.Resolve()
 		assert.NoError(tt, err)
 		assert.Equal(tt, string(didWebToBeResolved), doc.ID)
-
 	})
 
 	t.Run("Unhappy Path - Mismatched DID", func(tt *testing.T) {

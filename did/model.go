@@ -141,7 +141,7 @@ func KeyTypeToLDKeyType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
 	case crypto.SECP256k1:
 		return cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
 	case crypto.P256, crypto.P384, crypto.P521, crypto.RSA:
-		return cryptosuite.JsonWebKey2020, nil
+		return cryptosuite.JSONWebKey2020Name, nil
 	default:
 		err := fmt.Errorf("unsupported keyType: %+v", kt)
 		errMsg := fmt.Sprintf("keyType %+v failed to convert to LDKeyType", kt)

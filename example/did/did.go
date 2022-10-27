@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-
 	// Create a did:key. This is a specific did using the "key" method
 	// GenerateDIDKey takes in a key type value that this library supports and constructs a conformant did:key identifier.
 	// To use the private key, it is recommended to re-cast to the associated type.
@@ -39,5 +38,4 @@ func main() {
 		// Some basic DID information printed out here.
 		fmt.Printf("Generated DID document for did:key method:\n%s\n", string(dat))
 	}
-
 }

@@ -87,7 +87,7 @@ func (d DIDPKH) Suffix() (string, error) {
 	return split[1], nil
 }
 
-func (d DIDPKH) Method() Method {
+func (DIDPKH) Method() Method {
 	return PKHMethod
 }
 
@@ -246,7 +246,7 @@ func IsValidPKH(did DIDPKH) bool {
 
 type PKHResolver struct{}
 
-func (r PKHResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+func (PKHResolver) Resolve(did string, _ ResolutionOptions) (*DIDResolutionResult, error) {
 	if !strings.HasPrefix(did, DIDPKHPrefix) {
 		return nil, fmt.Errorf("not a did:pkh DID: %s", did)
 	}
@@ -259,6 +259,6 @@ func (r PKHResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolution
 	return &DIDResolutionResult{DIDDocument: *doc}, nil
 }
 
-func (r PKHResolver) Method() Method {
+func (PKHResolver) Method() Method {
 	return PKHMethod
 }

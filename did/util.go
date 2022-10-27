@@ -72,7 +72,7 @@ func decodeEncodedKey(d string) ([]byte, cryptosuite.LDKeyType, error) {
 	case Secp256k1MultiCodec:
 		return pubKeyBytes, cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
 	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
-		return pubKeyBytes, cryptosuite.JsonWebKey2020, nil
+		return pubKeyBytes, cryptosuite.JSONWebKey2020Name, nil
 	default:
 		err := fmt.Errorf("unknown multicodec for did:key: %d", multiCodecValue)
 		return nil, "", err
@@ -109,7 +109,7 @@ func decodePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyType, error)
 	case Secp256k1MultiCodec:
 		return pubKeyBytes, cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
 	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
-		return pubKeyBytes, cryptosuite.JsonWebKey2020, nil
+		return pubKeyBytes, cryptosuite.JSONWebKey2020Name, nil
 	default:
 		err := fmt.Errorf("unknown multicodec for did:peer: %d", multiCodecValue)
 		return nil, "", err

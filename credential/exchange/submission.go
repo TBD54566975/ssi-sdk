@@ -461,16 +461,15 @@ func normalizeJSONPath(path string) string {
 // processInputDescriptorField applies all possible path values to a claim, and checks to see if any match.
 // if a path matches fulfilled will be set to true and no processed value will be returned. if limitDisclosure is
 // set to true, the processed value will be returned as well.
-func processInputDescriptorField(field Field, claimData map[string]interface{}) (limited *limitedInputDescriptor, fulfilled bool) {
+func processInputDescriptorField(field Field, claimData map[string]interface{}) (*limitedInputDescriptor, bool) {
 	for _, path := range field.Path {
 		pathedData, err := jsonpath.JsonPathLookup(claimData, path)
 		if err == nil {
-			limited = &limitedInputDescriptor{
+			limited := &limitedInputDescriptor{
 				Path: path,
 				Data: pathedData,
 			}
-			fulfilled = true
-			return
+			return limited, true
 		}
 	}
 	if field.Optional {

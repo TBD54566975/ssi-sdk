@@ -14,12 +14,12 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 	assert.NotEmpty(t, privateKey)
 
 	// convert to JWK
-	jwk, err := jwk.New(privateKey)
+	jwkKey, err := jwk.New(privateKey)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, jwk)
+	assert.NotEmpty(t, jwkKey)
 
 	// to our representation of a jwk
-	privKeyJWK, err := JWKToPrivateKeyJWK(jwk)
+	privKeyJWK, err := JWKToPrivateKeyJWK(jwkKey)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, privKeyJWK)
 
@@ -34,12 +34,12 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 	assert.NotEmpty(t, publicKey)
 
 	// convert to JWK
-	jwk, err := jwk.New(publicKey)
+	key, err := jwk.New(publicKey)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, jwk)
+	assert.NotEmpty(t, key)
 
 	// to our representation of a jwk
-	pubKeyJWK, err := JWKToPublicKeyJWK(jwk)
+	pubKeyJWK, err := JWKToPublicKeyJWK(key)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, pubKeyJWK)
 

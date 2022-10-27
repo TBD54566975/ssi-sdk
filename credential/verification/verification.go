@@ -38,7 +38,7 @@ func GetVerificationOption(opts []VerificationOption, id OptionKey) (interface{}
 	return nil, errors.Errorf("option with id <%s> not found", id)
 }
 
-type Verify func(credential credential.VerifiableCredential, opts ...VerificationOption) error
+type Verify func(cred credential.VerifiableCredential, opts ...VerificationOption) error
 
 // NewCredentialVerifier creates a new credential verifier which executes in the order of the verifiers provided
 func NewCredentialVerifier(verifiers []Verifier) (*CredentialVerifier, error) {

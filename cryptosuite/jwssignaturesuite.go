@@ -22,7 +22,7 @@ const (
 	JSONWebSignature2020Context                string        = "https://w3id.org/security/suites/jws-2020/v1"
 	JSONWebSignature2020                       SignatureType = "JsonWebSignature2020"
 	JWSSignatureSuiteID                        string        = "https://w3c-ccg.github.io/security-vocab/#JsonWebSignature2020"
-	JWSSignatureSuiteType                      LDKeyType     = JsonWebKey2020
+	JWSSignatureSuiteType                      LDKeyType     = JSONWebKey2020Name
 	JWSSignatureSuiteCanonicalizationAlgorithm string        = "https://w3id.org/security#URDNA2015"
 	// JWSSignatureSuiteDigestAlgorithm uses https://www.rfc-editor.org/rfc/rfc4634
 	JWSSignatureSuiteDigestAlgorithm gocrypto.Hash = gocrypto.SHA256
@@ -40,27 +40,27 @@ func GetJSONWebSignature2020Suite() CryptoSuite {
 
 // CryptoSuiteInfo interface
 
-func (j JWSSignatureSuite) ID() string {
+func (JWSSignatureSuite) ID() string {
 	return JWSSignatureSuiteID
 }
 
-func (j JWSSignatureSuite) Type() LDKeyType {
+func (JWSSignatureSuite) Type() LDKeyType {
 	return JWSSignatureSuiteType
 }
 
-func (j JWSSignatureSuite) CanonicalizationAlgorithm() string {
+func (JWSSignatureSuite) CanonicalizationAlgorithm() string {
 	return JWSSignatureSuiteCanonicalizationAlgorithm
 }
 
-func (j JWSSignatureSuite) MessageDigestAlgorithm() gocrypto.Hash {
+func (JWSSignatureSuite) MessageDigestAlgorithm() gocrypto.Hash {
 	return JWSSignatureSuiteDigestAlgorithm
 }
 
-func (j JWSSignatureSuite) SignatureAlgorithm() SignatureType {
+func (JWSSignatureSuite) SignatureAlgorithm() SignatureType {
 	return JWSSignatureSuiteProofAlgorithm
 }
 
-func (j JWSSignatureSuite) RequiredContexts() []string {
+func (JWSSignatureSuite) RequiredContexts() []string {
 	return []string{JSONWebSignature2020Context}
 }
 
@@ -148,7 +148,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 
 // CryptoSuiteProofType interface
 
-func (j JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
+func (JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 	// JSONify the provable object
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
@@ -157,7 +157,7 @@ func (j JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 	return jsonBytes, nil
 }
 
-func (j JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
+func (JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	// the LD library anticipates a generic golang json object to normalize
 	var generic map[string]interface{}
 	if err := json.Unmarshal(marshaled, &generic); err != nil {
@@ -279,7 +279,7 @@ func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) 
 	return &p, nil
 }
 
-type JsonWebSignature2020Proof struct {
+type JSONWebSignature2020Proof struct {
 	Type               SignatureType `json:"type,omitempty"`
 	Created            string        `json:"created,omitempty"`
 	JWS                string        `json:"jws,omitempty"`
@@ -288,7 +288,7 @@ type JsonWebSignature2020Proof struct {
 	VerificationMethod string        `json:"verificationMethod,omitempty"`
 }
 
-func FromGenericProof(p crypto.Proof) (*JsonWebSignature2020Proof, error) {
+func FromGenericProof(p crypto.Proof) (*JSONWebSignature2020Proof, error) {
 	proofBytes, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
@@ -321,7 +321,7 @@ func FromGenericProof(p crypto.Proof) (*JsonWebSignature2020Proof, error) {
 	if !ok {
 		methodValue = ""
 	}
-	return &JsonWebSignature2020Proof{
+	return &JSONWebSignature2020Proof{
 		Type:               SignatureType(typeValue),
 		Created:            createdValue,
 		JWS:                jwsValue,
@@ -331,24 +331,24 @@ func FromGenericProof(p crypto.Proof) (*JsonWebSignature2020Proof, error) {
 	}, nil
 }
 
-func (j *JsonWebSignature2020Proof) ToGenericProof() crypto.Proof {
+func (j *JSONWebSignature2020Proof) ToGenericProof() crypto.Proof {
 	return j
 }
 
-func (j *JsonWebSignature2020Proof) SetDetachedJWS(jws string) {
+func (j *JSONWebSignature2020Proof) SetDetachedJWS(jws string) {
 	if j != nil {
 		j.JWS = jws
 	}
 }
 
-func (j *JsonWebSignature2020Proof) GetDetachedJWS() string {
+func (j *JSONWebSignature2020Proof) GetDetachedJWS() string {
 	if j != nil {
 		return ""
 	}
 	return j.JWS
 }
 
-func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
+func (j *JSONWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 	if j == nil {
 		return nil, errors.New("cannot decode jws on empty proof")
 	}
@@ -359,12 +359,12 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(jwsParts[2])
 }
 
-func (j JWSSignatureSuite) createProof(verificationMethod string, purpose ProofPurpose) JsonWebSignature2020Proof {
+func (j JWSSignatureSuite) createProof(verificationMethod string, purpose ProofPurpose) JSONWebSignature2020Proof {
 	var challenge string
 	if purpose == Authentication {
 		challenge = uuid.NewString()
 	}
-	return JsonWebSignature2020Proof{
+	return JSONWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
 		Created:            GetRFC3339Timestamp(),
 		ProofPurpose:       purpose,

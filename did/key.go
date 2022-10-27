@@ -49,7 +49,7 @@ func (d DIDKey) Suffix() (string, error) {
 	return split[1], nil
 }
 
-func (d DIDKey) Method() Method {
+func (DIDKey) Method() Method {
 	return KeyMethod
 }
 
@@ -161,7 +161,7 @@ func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
 	case Secp256k1MultiCodec:
 		return pubKeyBytes, cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
 	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
-		return pubKeyBytes, cryptosuite.JsonWebKey2020, nil
+		return pubKeyBytes, cryptosuite.JSONWebKey2020Name, nil
 	default:
 		err := fmt.Errorf("unknown multicodec for did:key: %d", multiCodecValue)
 		logrus.WithError(err).Error()
@@ -207,7 +207,7 @@ func (d DIDKey) Expand() (*DIDDocument, error) {
 }
 
 func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType cryptosuite.LDKeyType) (*VerificationMethod, error) {
-	if keyType != cryptosuite.JsonWebKey2020 {
+	if keyType != cryptosuite.JSONWebKey2020Name {
 		return &VerificationMethod{
 			ID:              keyReference,
 			Type:            keyType,
@@ -254,7 +254,7 @@ func GetSupportedDIDKeyTypes() []crypto.KeyType {
 
 type KeyResolver struct{}
 
-func (r KeyResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+func (KeyResolver) Resolve(did string, _ ResolutionOptions) (*DIDResolutionResult, error) {
 	if !strings.HasPrefix(did, DIDKeyPrefix) {
 		return nil, fmt.Errorf("not a did:key DID: %s", did)
 	}
@@ -267,6 +267,6 @@ func (r KeyResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolution
 	return &DIDResolutionResult{DIDDocument: *doc}, nil
 }
 
-func (r KeyResolver) Method() Method {
+func (KeyResolver) Method() Method {
 	return KeyMethod
 }
