@@ -117,9 +117,9 @@ func (t *Entity) ValidateVerifiableCredentials() error {
 
 func (t *Entity) ProcessCredentialApplication(issuer string, subject string) (*manifest.CredentialResponse, []credential.VerifiableCredential) {
 	var creds []credential.VerifiableCredential
-	for _, od := range t.credentialManifest.OutputDescriptors {
+	for i := 0; i < len(t.credentialManifest.OutputDescriptors); i++ {
 		// TODO: Create Cred off of OD
-		creds = append(creds, createVerifiableCredential(issuer, subject, od))
+		creds = append(creds, createVerifiableCredential(issuer, subject))
 	}
 
 	responseBuilder := manifest.NewCredentialResponseBuilder(t.credentialManifest.ID)
@@ -261,7 +261,7 @@ func createCredentialApplication(cm manifest.CredentialManifest) manifest.Creden
 	return credApp
 }
 
-func createVerifiableCredential(issuerDID string, walletDID string, _ manifest.OutputDescriptor) credential.VerifiableCredential {
+func createVerifiableCredential(issuerDID string, walletDID string) credential.VerifiableCredential {
 	vcBytes := getFileBytes("testdata/vc.json")
 
 	var vc credential.VerifiableCredential

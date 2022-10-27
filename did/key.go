@@ -161,7 +161,7 @@ func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
 	case Secp256k1MultiCodec:
 		return pubKeyBytes, cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
 	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
-		return pubKeyBytes, cryptosuite.JSONWebKey2020Name, nil
+		return pubKeyBytes, cryptosuite.JSONWebKey2020Type, nil
 	default:
 		err := fmt.Errorf("unknown multicodec for did:key: %d", multiCodecValue)
 		logrus.WithError(err).Error()
@@ -207,7 +207,7 @@ func (d DIDKey) Expand() (*DIDDocument, error) {
 }
 
 func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType cryptosuite.LDKeyType) (*VerificationMethod, error) {
-	if keyType != cryptosuite.JSONWebKey2020Name {
+	if keyType != cryptosuite.JSONWebKey2020Type {
 		return &VerificationMethod{
 			ID:              keyReference,
 			Type:            keyType,

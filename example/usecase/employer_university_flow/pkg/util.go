@@ -39,11 +39,11 @@ func GenerateDIDPeer() (did.DID, error) {
 	if err != nil {
 		return nil, err
 	}
-	dID, err := did.PeerMethod0{}.Generate(kt, pubKey)
+	peer, err := did.PeerMethod0{}.Generate(kt, pubKey)
 	if err != nil {
 		return nil, err
 	}
-	return dID, nil
+	return peer, nil
 }
 
 // This validates the VC.

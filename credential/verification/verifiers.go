@@ -36,13 +36,13 @@ func VerifyValidCredential(cred credential.VerifiableCredential, _ ...Verificati
 
 // VerifyExpiry verifies a credential's expiry date is not in the past. We assume the date is parseable as
 // an RFC3339 date time value.
-func VerifyExpiry(verifiableCred credential.VerifiableCredential, _ ...VerificationOption) error {
-	if verifiableCred.ExpirationDate == "" {
+func VerifyExpiry(cred credential.VerifiableCredential, _ ...VerificationOption) error {
+	if cred.ExpirationDate == "" {
 		return nil
 	}
-	expiryTime, err := time.Parse(time.RFC3339, verifiableCred.ExpirationDate)
+	expiryTime, err := time.Parse(time.RFC3339, cred.ExpirationDate)
 	if err != nil {
-		return errors.Wrapf(err, "failed to parse expiry date: %s", verifiableCred.ExpirationDate)
+		return errors.Wrapf(err, "failed to parse expiry date: %s", cred.ExpirationDate)
 	}
 	if expiryTime.Before(time.Now()) {
 		return fmt.Errorf("credential has expired as of %s", expiryTime.String())

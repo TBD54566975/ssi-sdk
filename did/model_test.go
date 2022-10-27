@@ -97,7 +97,7 @@ func TestKeyTypeToLDKeyType(t *testing.T) {
 
 	kt, err = KeyTypeToLDKeyType(crypto.P256)
 	assert.NoError(t, err)
-	assert.Equal(t, kt, cryptosuite.JSONWebKey2020Name)
+	assert.Equal(t, kt, cryptosuite.JSONWebKey2020Type)
 
 	_, err = KeyTypeToLDKeyType(crypto.KeyType("bad"))
 	assert.Error(t, err)

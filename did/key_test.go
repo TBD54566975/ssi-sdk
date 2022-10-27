@@ -402,7 +402,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did1, didDoc1.ID)
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Name, didDoc1.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc1.VerificationMethod[0].Type)
 
 		did2 := "did:key:zDnaerx9CtbPJ1q36T5Ln5wYt3MQYeGRG5ehnPAmxcf5mDZpv"
 		didKey2 := DIDKey(did2)
@@ -410,7 +410,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did2, didDoc2.ID)
 		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Name, didDoc2.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc2.VerificationMethod[0].Type)
 	})
 
 	t.Run("P-384", func(tt *testing.T) {
@@ -420,7 +420,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did1, didDoc1.ID)
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Name, didDoc1.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc1.VerificationMethod[0].Type)
 
 		did2 := "did:key:z82LkvCwHNreneWpsgPEbV3gu1C6NFJEBg4srfJ5gdxEsMGRJUz2sG9FE42shbn2xkZJh54"
 		didKey2 := DIDKey(did2)
@@ -428,7 +428,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did2, didDoc2.ID)
 		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Name, didDoc2.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc2.VerificationMethod[0].Type)
 	})
 
 	t.Run("P-521", func(tt *testing.T) {
@@ -438,7 +438,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did1, didDoc1.ID)
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Name, didDoc1.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc1.VerificationMethod[0].Type)
 
 		did2 := "did:key:z2J9gcGdb2nEyMDmzQYv2QZQcM1vXktvy1Pw4MduSWxGabLZ9XESSWLQgbuPhwnXN7zP7HpTzWqrMTzaY5zWe6hpzJ2jnw4f"
 		didKey2 := DIDKey(did2)
@@ -446,7 +446,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did2, didDoc2.ID)
 		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Name, didDoc2.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc2.VerificationMethod[0].Type)
 	})
 
 	t.Run("RSA 2048", func(tt *testing.T) {
@@ -456,6 +456,6 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, did1, didDoc1.ID)
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Name, didDoc1.VerificationMethod[0].Type)
+		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc1.VerificationMethod[0].Type)
 	})
 }

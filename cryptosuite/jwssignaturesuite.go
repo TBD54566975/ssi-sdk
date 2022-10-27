@@ -22,7 +22,7 @@ const (
 	JSONWebSignature2020Context                string        = "https://w3id.org/security/suites/jws-2020/v1"
 	JSONWebSignature2020                       SignatureType = "JsonWebSignature2020"
 	JWSSignatureSuiteID                        string        = "https://w3c-ccg.github.io/security-vocab/#JsonWebSignature2020"
-	JWSSignatureSuiteType                      LDKeyType     = JSONWebKey2020Name
+	JWSSignatureSuiteType                      LDKeyType     = JSONWebKey2020Type
 	JWSSignatureSuiteCanonicalizationAlgorithm string        = "https://w3id.org/security#URDNA2015"
 	// JWSSignatureSuiteDigestAlgorithm uses https://www.rfc-editor.org/rfc/rfc4634
 	JWSSignatureSuiteDigestAlgorithm gocrypto.Hash = gocrypto.SHA256
