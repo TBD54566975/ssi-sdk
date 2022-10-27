@@ -16,41 +16,43 @@ import (
 // IsValidCredentialApplicationForManifest validates the rules on how a credential manifest [cm] and credential
 // application [ca] relate to each other https://identity.foundation/credential-manifest/#credential-application
 // applicationAndCredsJSON is the credential application and credentials as a JSON object
-func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationAndCredsJSON map[string]interface{}) (unfulfilledInputDescriptors map[string]string, err error) {
+func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationAndCredsJSON map[string]interface{}) (map[string]string, error) {
+	var err error
+
 	// parse out the application to its known object model
 	applicationJSON, ok := applicationAndCredsJSON[CredentialApplicationJSONProperty]
 	if !ok {
 		err = errresp.NewErrorResponse(errresp.ApplicationError, "credential_application property not found")
-		return
+		return nil, err
 	}
 
 	applicationBytes, err := json.Marshal(applicationJSON)
 	if err != nil {
 		err = errresp.NewErrorResponseWithErrorAndMsg(errresp.CriticalError, err, "failed to marshal credential application")
-		return
+		return nil, err
 	}
 	var ca CredentialApplication
 	if err = json.Unmarshal(applicationBytes, &ca); err != nil {
 		err = errresp.NewErrorResponseWithErrorAndMsg(errresp.CriticalError, err, "failed to unmarshal credential application")
-		return
+		return nil, err
 	}
 
 	// Basic Validation Checks
 	if err = cm.IsValid(); err != nil {
 		err = errresp.NewErrorResponseWithErrorAndMsg(errresp.ApplicationError, err, "credential manifest is not valid")
-		return
+		return nil, err
 	}
 
 	if err = ca.IsValid(); err != nil {
 		err = errresp.NewErrorResponseWithErrorAndMsg(errresp.ApplicationError, err, "credential application is not valid")
-		return
+		return nil, err
 	}
 
 	// The object MUST contain a manifest_id property. The value of this property MUST be the id of a valid Credential Manifest.
 	if cm.ID != ca.ManifestID {
 		err = errresp.NewErrorResponsef(errresp.ApplicationError, "the credential application's manifest id: "+
 			"%s must be equal to the credential manifest's id: %s", ca.ManifestID, cm.ID)
-		return
+		return nil, err
 	}
 
 	// The ca must have a format property if the related Credential Manifest specifies a format property.
@@ -66,7 +68,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 			if _, ok = cmFormats[format]; !ok {
 				err = errresp.NewErrorResponse(errresp.ApplicationError, "credential application's "+
 					"format must be a subset of the format property in the credential manifest")
-				return
+				return nil, err
 			}
 		}
 	}
@@ -75,7 +77,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 		(ca.PresentationSubmission == nil || len(ca.PresentationSubmission.DescriptorMap) == 0) {
 		err = errresp.NewErrorResponsef(errresp.ApplicationError, "no descriptors provided for application: "+
 			"%s against manifest: %s", ca.ID, cm.ID)
-		return
+		return nil, err
 	}
 
 	// The Credential Application object MUST contain a presentation_submission property IF the related Credential
@@ -85,25 +87,25 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 			err = errresp.NewErrorResponse(errresp.ApplicationError, "credential application's "+
 				"presentation submission is invalid; the credential manifest's presentation definition is empty")
 		}
-		return
+		return nil, err
 	}
 
 	if ca.PresentationSubmission.IsEmpty() {
 		err = errresp.NewErrorResponse(errresp.ApplicationError, "credential application's "+
 			"presentation submission cannot be empty because the credential manifest's presentation definition is not empty")
-		return
+		return nil, err
 	}
 
 	if err = cm.PresentationDefinition.IsValid(); err != nil {
 		err = errresp.NewErrorResponseWithErrorAndMsg(errresp.ApplicationError, err, "credential manifest's"+
 			" presentation definition is not valid")
-		return
+		return nil, err
 	}
 
 	if err = ca.PresentationSubmission.IsValid(); err != nil {
 		err = errresp.NewErrorResponseWithErrorAndMsg(errresp.ApplicationError, err, "credential "+
 			"application's presentation submission is not valid")
-		return
+		return nil, err
 	}
 
 	// https://identity.foundation/presentation-exchange/#presentation-submission
@@ -111,7 +113,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 	if cm.PresentationDefinition.ID != ca.PresentationSubmission.DefinitionID {
 		err = errresp.NewErrorResponsef(errresp.ApplicationError, "credential application's presentation "+
 			"submission's definition id: %s does not match the credential manifest's id: %s", ca.PresentationSubmission.DefinitionID, cm.PresentationDefinition.ID)
-		return
+		return nil, err
 	}
 
 	// The descriptor_map object MUST include a format property. The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
@@ -123,13 +125,13 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 	for _, submissionDescriptor := range ca.PresentationSubmission.DescriptorMap {
 		if _, ok = claimFormats[submissionDescriptor.Format]; !ok {
 			err = errresp.NewErrorResponse(errresp.ApplicationError, "claim format is invalid or not supported")
-			return
+			return nil, err
 		}
 
 		// The descriptor_map object MUST include a path property. The value of this property MUST be a JSONPath string expression.
 		if _, err = jsonpath.Compile(submissionDescriptor.Path); err != nil {
 			err = errresp.NewErrorResponsef(errresp.ApplicationError, "invalid json path: %s", submissionDescriptor.Path)
-			return
+			return nil, err
 		}
 	}
 
@@ -140,7 +142,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 	}
 
 	// validate each input descriptor is fulfilled
-	unfulfilledInputDescriptors = make(map[string]string)
+	unfulfilledInputDescriptors := make(map[string]string)
 	for _, inputDescriptor := range cm.PresentationDefinition.InputDescriptors {
 		submissionDescriptor, ok := submissionDescriptorLookup[inputDescriptor.ID]
 		if !ok {
@@ -198,11 +200,11 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 		claimBytes, jsonErr := json.Marshal(cred)
 		if jsonErr != nil {
 			err = errresp.NewErrorResponseWithErrorAndMsg(errresp.CriticalError, err, "failed to marshal vc")
-			return
+			return unfulfilledInputDescriptors, err
 		}
 		if err = json.Unmarshal(claimBytes, &credMap); err != nil {
 			err = errresp.NewErrorResponseWithErrorAndMsg(errresp.CriticalError, err, "problem in unmarshalling credential")
-			return
+			return unfulfilledInputDescriptors, err
 		}
 		for _, field := range inputDescriptor.Constraints.Fields {
 			if err = findMatchingPath(credMap, field.Path); err != nil {
@@ -216,10 +218,10 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 	if numUnfulfilledInputDescriptors > 0 {
 		err = errresp.NewErrorResponsef(errresp.ApplicationError, "credential application not valid; "+
 			"<%d>unfulfilled input descriptor(s)", numUnfulfilledInputDescriptors)
-		return
+		return unfulfilledInputDescriptors, err
 	}
 
-	return
+	return unfulfilledInputDescriptors, err
 }
 
 func findMatchingPath(claim interface{}, paths []string) error {
@@ -229,7 +231,6 @@ func findMatchingPath(claim interface{}, paths []string) error {
 		}
 	}
 	return errors.New("matching path for claim could not be found")
-
 }
 
 // TODO(gabe) support multiple embed targets https://github.com/TBD54566975/ssi-sdk/issues/57

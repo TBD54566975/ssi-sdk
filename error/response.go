@@ -70,7 +70,8 @@ func NewErrorResponseWithErrorAndMsgf(errorType Type, err error, msg string, a .
 	}
 }
 
-// GetErrorResponse will get the type of err, if the type is a ErrorResponse it will return that as an ErrorResponse, otherwise it will construct a new default ErrorResponse
+// GetErrorResponse will get the type of err, if the type is a ErrorResponse it will return that as an ErrorResponse,
+// otherwise it will construct a new default ErrorResponse
 func GetErrorResponse(err error) Response {
 	var errRes *Response
 

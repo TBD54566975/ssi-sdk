@@ -64,6 +64,18 @@ func runTests(extraTestArgs ...string) error {
 	return err
 }
 
+func Deps() error {
+	return brewInstall("golangci-lint")
+}
+
+func brewInstall(formula string) error {
+	return sh.Run("brew", "install", formula)
+}
+
+func Lint() error {
+	return sh.Run("golangci-lint", "run")
+}
+
 func ColorizeTestOutput(w io.Writer) io.Writer {
 	writer := NewRegexpWriter(w, `PASS.*`, "\033[32m$0\033[0m")
 	return NewRegexpWriter(writer, `FAIL.*`, "\033[31m$0\033[0m")

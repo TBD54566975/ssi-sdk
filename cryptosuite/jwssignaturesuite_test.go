@@ -211,7 +211,7 @@ func TestCredentialLDProof(t *testing.T) {
 	assert.NotEmpty(t, knownCred.Proof)
 
 	// cast to known proof type
-	p, ok := (*knownCred.Proof).(JsonWebSignature2020Proof)
+	p, ok := (*knownCred.Proof).(JSONWebSignature2020Proof)
 	assert.True(t, ok)
 	assert.Equal(t, JSONWebSignature2020, p.Type)
 	assert.NotEmpty(t, p.JWS)
@@ -245,7 +245,7 @@ func TestJsonWebSignature2020TestVectorCredential0(t *testing.T) {
 	assert.NoError(t, err)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/implementations/transmute/credential-0--key-0-ed25519.vc.json
-	knownProof := JsonWebSignature2020Proof{
+	knownProof := JSONWebSignature2020Proof{
 		Type:               "JsonWebSignature2020",
 		Created:            "2022-01-24T23:26:38Z",
 		JWS:                "eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..377mL0aIk_YL_scEZh1BIzje17vD4F7U8WPo2ufgkkGLwDNXHDhN99zpnsvsozD5Si82gRbDHqFu3Rp6dLH7Ag",

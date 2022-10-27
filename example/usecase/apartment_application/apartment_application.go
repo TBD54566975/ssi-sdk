@@ -26,7 +26,6 @@ import (
 )
 
 func main() {
-
 	/**
 		 Step 1: Create new entities as DIDs. Govt Issuer, User Holder, and Apartment Verifier.
 	**/
@@ -59,10 +58,10 @@ func main() {
 	govtSigner, err := crypto.NewJWTSigner(govtDIDKey.String(), govtDIDJWK)
 	example.HandleExampleError(err, "Failed to generate signer")
 
-	fmt.Print("\n\nStep 1: Create new DIDs for entities\n\n")
-	fmt.Printf("Tenant: %s\n", string(*holderDIDKey))
-	fmt.Printf("Apartment: %s\n", string(*aptDIDKey))
-	fmt.Printf("Government: %s\n", string(*govtDIDKey))
+	_, _ = fmt.Print("\n\nStep 1: Create new DIDs for entities\n\n")
+	_, _ = fmt.Printf("Tenant: %s\n", string(*holderDIDKey))
+	_, _ = fmt.Printf("Apartment: %s\n", string(*aptDIDKey))
+	_, _ = fmt.Printf("Government: %s\n", string(*govtDIDKey))
 
 	/**
 		 Step 2: Government issuer issues a credential to the holder providing their age. The government issuer then signs the verifiable credentials to holder claiming age.
@@ -92,9 +91,9 @@ func main() {
 
 	example.HandleExampleError(err, "Failed to sign vc")
 
-	fmt.Print("\n\nStep 2: Government issues Verifiable Credential new for tenant verifying birthdate and signs\n\n")
+	_, _ = fmt.Print("\n\nStep 2: Government issues Verifiable Credential new for tenant verifying birthdate and signs\n\n")
 	if dat, err := util.PrettyJSON(vc); err == nil {
-		fmt.Printf("Verifiable Credential:%s\n", string(dat))
+		_, _ = fmt.Printf("Verifiable Credential:%s\n", string(dat))
 	}
 
 	/**
@@ -128,9 +127,9 @@ func main() {
 	presentationRequestBytes, err := exchange.BuildPresentationRequest(*aptSigner, exchange.JWTRequest, *presentationDefinition, string(*holderDIDKey))
 	example.HandleExampleError(err, "Failed to make presentation request")
 
-	fmt.Print("\n\nStep 3: The apartment creates a presentation request that confirms which information is required from the tenant\n\n")
+	_, _ = fmt.Print("\n\nStep 3: The apartment creates a presentation request that confirms which information is required from the tenant\n\n")
 	if dat, err := util.PrettyJSON(presentationDefinition); err == nil {
-		fmt.Printf("Presentation Definition that gets added to presentation request:%s\n", string(dat))
+		_, _ = fmt.Printf("Presentation Definition that gets added to presentation request:%s\n", string(dat))
 	}
 
 	/**
@@ -157,9 +156,9 @@ func main() {
 	presentationSubmissionBytes, err := exchange.BuildPresentationSubmission(*holderSigner, *presentationDefinition, []exchange.PresentationClaim{presentationClaim}, exchange.JWTVPTarget)
 	example.HandleExampleError(err, "Failed to create presentation submission")
 
-	fmt.Print("\n\nStep 4: The holder creates a presentation submission to give to the apartment\n\n")
+	_, _ = fmt.Print("\n\nStep 4: The holder creates a presentation submission to give to the apartment\n\n")
 	if dat, err := util.PrettyJSON(presentationClaim); err == nil {
-		fmt.Printf("Presentation Claim that gets added to presentation submission:%s\n", string(dat))
+		_, _ = fmt.Printf("Presentation Claim that gets added to presentation submission:%s\n", string(dat))
 	}
 
 	/**
@@ -169,7 +168,7 @@ func main() {
 	err = exchange.VerifyPresentationSubmission(*holderVerifier, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
 	example.HandleExampleError(err, "Failed to verify presentation submission")
 
-	fmt.Print("\n\nStep 5: The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic\n\n")
+	_, _ = fmt.Print("\n\nStep 5: The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic\n\n")
 
-	fmt.Print("\n\n\n🎉 The tenant's age has now been verified and can now move into the apartment! 🎉\n\n\n")
+	_, _ = fmt.Print("\n\n\n🎉 The tenant's age has now been verified and can now move into the apartment! 🎉\n\n\n")
 }

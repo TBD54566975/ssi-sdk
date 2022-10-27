@@ -45,7 +45,7 @@ func (d DIDWeb) Suffix() (string, error) {
 	return split[1], nil
 }
 
-func (d DIDWeb) Method() Method {
+func (DIDWeb) Method() Method {
 	return WebMethod
 }
 
@@ -128,16 +128,22 @@ func (d DIDWeb) GetDocURL() (string, error) {
 	// https://w3c-ccg.github.io/did-method-web/#optional-path-considerations
 	// Optional Path Considerations
 	var sb strings.Builder
-	sb.WriteString("https://" + decodedDomain + "/")
+	if _, err := sb.WriteString("https://" + decodedDomain + "/"); err != nil {
+		return "", err
+	}
 	for i := 3; i < numSubStrs; i++ {
 		str, err := url.QueryUnescape(subStrs[i])
 		if err != nil {
 			logrus.WithError(err).Errorf("url.QueryUnescape failed for subStr %s", subStrs[i])
 			return "", err
 		}
-		sb.WriteString(str + "/")
+		if _, err := sb.WriteString(str + "/"); err != nil {
+			return "", err
+		}
 	}
-	sb.WriteString(DIDWebDIDDocFilename)
+	if _, err := sb.WriteString(DIDWebDIDDocFilename); err != nil {
+		return "", err
+	}
 	return sb.String(), nil
 }
 
@@ -145,7 +151,7 @@ type WebResolver struct{}
 
 // Resolve fetches and returns the DIDDocument from the expected URL
 // specification: https://w3c-ccg.github.io/did-method-web/#read-resolve
-func (r WebResolver) Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error) {
+func (WebResolver) Resolve(did string, _ ResolutionOptions) (*DIDResolutionResult, error) {
 	if !strings.HasPrefix(did, DIDWebPrefix) {
 		return nil, fmt.Errorf("not a did:web DID: %s", did)
 	}
@@ -188,7 +194,7 @@ func (d DIDWeb) ResolveDocBytes() ([]byte, error) {
 	// Specification https://w3c-ccg.github.io/did-method-web/#read-resolve
 	// 6. Perform an HTTP GET request to the URL using an agent that can successfully negotiate a secure HTTPS
 	// connection, which enforces the security requirements as described in 2.5 Security and privacy considerations.
-	resp, err := http.Get(docURL)
+	resp, err := http.Get(docURL) // #nosec
 	if err != nil {
 		logrus.WithError(err).Errorf("could not resolve with docURL %+v", docURL)
 		return nil, err
@@ -202,6 +208,6 @@ func (d DIDWeb) ResolveDocBytes() ([]byte, error) {
 	return body, nil
 }
 
-func (r WebResolver) Method() Method {
+func (WebResolver) Method() Method {
 	return WebMethod
 }

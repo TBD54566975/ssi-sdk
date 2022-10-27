@@ -63,20 +63,20 @@ func (t *Entity) CreateCredentialApplication() {
 	t.credentialApplication = credApplication
 }
 
-func (t *Entity) SignCredentialManifest() {
+func (*Entity) SignCredentialManifest() {
 	// TODO: SignCredentialManifestJWT(issuer) -> JWTString
 }
 
-func (t *Entity) SignCredentialApplication() {
+func (*Entity) SignCredentialApplication() {
 	// TODO: SignCredentialApplicationJWT(issuer) -> JWTString
 }
 
-func (t *Entity) SignCredentialResponse() {
+func (*Entity) SignCredentialResponse() {
 	// TODO: SignCredentialResponseJWT(issuer) -> JWTString
 }
 
-func (t *Entity) SetCredentialManifest(manifest manifest.CredentialManifest) {
-	t.credentialManifest = manifest
+func (t *Entity) SetCredentialManifest(credManifest manifest.CredentialManifest) {
+	t.credentialManifest = credManifest
 }
 
 func (t *Entity) SetCredentialApplication(application manifest.CredentialApplication) {
@@ -107,7 +107,6 @@ func (t *Entity) ValidateCredentialResponse() error {
 }
 
 func (t *Entity) ValidateVerifiableCredentials() error {
-
 	for _, vc := range t.verifiableCredentials {
 		if vc.IsValid() != nil {
 			return vc.IsValid()
@@ -117,11 +116,10 @@ func (t *Entity) ValidateVerifiableCredentials() error {
 }
 
 func (t *Entity) ProcessCredentialApplication(issuer string, subject string) (*manifest.CredentialResponse, []credential.VerifiableCredential) {
-
 	var creds []credential.VerifiableCredential
-	for _, od := range t.credentialManifest.OutputDescriptors {
+	for i := 0; i < len(t.credentialManifest.OutputDescriptors); i++ {
 		// TODO: Create Cred off of OD
-		creds = append(creds, createVerifiableCredential(issuer, subject, od))
+		creds = append(creds, createVerifiableCredential(issuer, subject))
 	}
 
 	responseBuilder := manifest.NewCredentialResponseBuilder(t.credentialManifest.ID)
@@ -136,7 +134,6 @@ func (t *Entity) ProcessCredentialApplication(issuer string, subject string) (*m
 
 	var descriptors []exchange.SubmissionDescriptor
 	for i, c := range creds {
-
 		format := string(exchange.JWTVC)
 
 		descriptors = append(descriptors, exchange.SubmissionDescriptor{
@@ -159,14 +156,13 @@ func (t *Entity) ProcessCredentialApplication(issuer string, subject string) (*m
 }
 
 func (t *Entity) FlexFullyValidatedCredentials() {
-	fmt.Print("\n#ShowingOffMyNewlyMintedCredentials: \n")
+	_, _ = fmt.Print("\n#ShowingOffMyNewlyMintedCredentials: \n")
 	for _, vc := range t.verifiableCredentials {
-		fmt.Print(vc.CredentialSubject)
+		_, _ = fmt.Print(vc.CredentialSubject)
 	}
 }
 
 func main() {
-
 	/**
 		Step 1: Alice creates a DID, stored in her wallet, didW
 	**/
@@ -265,7 +261,7 @@ func createCredentialApplication(cm manifest.CredentialManifest) manifest.Creden
 	return credApp
 }
 
-func createVerifiableCredential(issuerDID string, walletDID string, descriptor manifest.OutputDescriptor) credential.VerifiableCredential {
+func createVerifiableCredential(issuerDID string, walletDID string) credential.VerifiableCredential {
 	vcBytes := getFileBytes("testdata/vc.json")
 
 	var vc credential.VerifiableCredential

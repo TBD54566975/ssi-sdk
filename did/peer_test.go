@@ -113,7 +113,6 @@ func TestDIDPeerUtilities(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.Equal(tt, res, s2)
 	})
-
 }
 
 func TestPeerResolver(t *testing.T) {
@@ -144,7 +143,6 @@ func TestPeerResolver(t *testing.T) {
 	m1 := "did:peer:1z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
 	_, err = r.Resolve(m1, nil)
 	assert.Error(t, err)
-
 }
 
 func TestDIDPeerDeltaError(t *testing.T) {
@@ -293,7 +291,6 @@ func TestPeerResolveMethod0(t *testing.T) {
 // Encoded Service Endpoint: .SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0=
 // Method 2 peer DID: did:peer:2.Ez6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH.VzXwpBnMdCm1cLmKuzgESn29nqnonp1ioqrQMRHNsmjMyppzx8xB2pv7cw8q1PdDacSrdWE3dtB9f7Nxk886mdzNFoPtY.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0=
 func TestPeerResolveMethod2(t *testing.T) {
-
 	testDoc := makeSamplePeerDIDDocument()
 	did := DIDPeer(testDoc.ID)
 
@@ -322,5 +319,4 @@ func TestPeerResolveMethod2(t *testing.T) {
 	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).Type, resolved.Authentication[1].(VerificationMethod).Type)
 	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).Controller, resolved.Authentication[1].(VerificationMethod).Controller)
 	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).PublicKeyMultibase, resolved.Authentication[1].(VerificationMethod).PublicKeyMultibase)
-
 }

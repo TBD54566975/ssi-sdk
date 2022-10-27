@@ -34,22 +34,20 @@ func NewSimpleWallet() *SimpleWallet {
 func (s *SimpleWallet) AddPrivateKey(k string, key gocrypto.PrivateKey) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	if _, ok := s.keys[k]; !ok {
-		s.keys[k] = key
-	} else {
+	if _, ok := s.keys[k]; ok {
 		return errors.New("already an entry")
 	}
+	s.keys[k] = key
 	return nil
 }
 
 func (s *SimpleWallet) AddDIDKey(k string, key string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	if _, ok := s.dids[k]; !ok {
-		s.dids[k] = key
-	} else {
+	if _, ok := s.dids[k]; ok {
 		return errors.New("already an entry")
 	}
+	s.dids[k] = key
 	return nil
 }
 
@@ -69,11 +67,10 @@ func (s *SimpleWallet) AddCredentials(cred credential.VerifiableCredential) erro
 
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	if _, ok := s.vcs[cred.ID]; !ok {
-		s.vcs[cred.ID] = cred
-	} else {
+	if _, ok := s.vcs[cred.ID]; ok {
 		return fmt.Errorf("duplicate credential<%s>; could not add", cred.ID)
 	}
+	s.vcs[cred.ID] = cred
 	return nil
 }
 

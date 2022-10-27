@@ -56,12 +56,12 @@ func IsValidCredentialSchema(maybeCredentialSchema string) error {
 	return nil
 }
 
-func IsCredentialValidForVCJSONSchema(credential credential.VerifiableCredential, vcJSONSchema VCJSONSchema) error {
+func IsCredentialValidForVCJSONSchema(cred credential.VerifiableCredential, vcJSONSchema VCJSONSchema) error {
 	schemaBytes, err := json.Marshal(vcJSONSchema.Schema)
 	if err != nil {
 		return err
 	}
-	return IsCredentialValidForSchema(credential, string(schemaBytes))
+	return IsCredentialValidForSchema(cred, string(schemaBytes))
 }
 
 // IsCredentialValidForSchema determines whether a given Verifiable Credential is valid against

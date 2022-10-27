@@ -118,7 +118,7 @@ func (sv *JWTSigner) SignJWT(kvs map[string]interface{}) ([]byte, error) {
 }
 
 // ParseJWT attempts to turn a string into a jwt.Token
-func (sv *JWTSigner) ParseJWT(token string) (jwt.Token, error) {
+func (*JWTSigner) ParseJWT(token string) (jwt.Token, error) {
 	parsed, err := jwt.Parse([]byte(token))
 	if err != nil {
 		logrus.WithError(err).Error("could not parse JWT")
@@ -137,7 +137,7 @@ func (sv *JWTVerifier) VerifyJWT(token string) error {
 }
 
 // ParseJWT attempts to turn a string into a jwt.Token
-func (sv *JWTVerifier) ParseJWT(token string) (jwt.Token, error) {
+func (*JWTVerifier) ParseJWT(token string) (jwt.Token, error) {
 	parsed, err := jwt.Parse([]byte(token))
 	if err != nil {
 		logrus.WithError(err).Error("could not parse JWT")
@@ -156,8 +156,8 @@ func (sv *JWTVerifier) VerifyAndParseJWT(token string) (jwt.Token, error) {
 	return parsed, nil
 }
 
-func GetCRVFromJWK(jwk jwk.Key) (string, error) {
-	maybeCrv, hasCrv := jwk.Get("crv")
+func GetCRVFromJWK(key jwk.Key) (string, error) {
+	maybeCrv, hasCrv := key.Get("crv")
 	if hasCrv {
 		crv, crvStr := maybeCrv.(jwa.EllipticCurveAlgorithm)
 		if !crvStr {

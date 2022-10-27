@@ -15,7 +15,6 @@ import (
 )
 
 func TestIsValidCredentialApplicationForManifest(t *testing.T) {
-
 	t.Run("Credential Application and Credential Manifest Pair Valid", func(tt *testing.T) {
 		cm, ca := getValidTestCredManifestCredApplication(tt)
 

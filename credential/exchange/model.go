@@ -186,7 +186,7 @@ func (cf *ClaimFormat) FormatValues() []string {
 
 // AlgOrProofTypePerFormat for a given format, return the supported alg or proof types. A nil response indicates
 // that the format is not supported.
-func (cf *ClaimFormat) AlgOrProofTypePerFormat(format string) []string {
+func (cf *ClaimFormat) AlgOrProofTypePerFormat(_ string) []string {
 	var res []string
 	if cf.JWT != nil {
 		for _, a := range cf.JWT.Alg {

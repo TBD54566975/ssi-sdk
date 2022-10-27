@@ -2,12 +2,12 @@ package did
 
 import (
 	"embed"
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
-	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -97,9 +97,9 @@ func TestKeyTypeToLDKeyType(t *testing.T) {
 
 	kt, err = KeyTypeToLDKeyType(crypto.P256)
 	assert.NoError(t, err)
-	assert.Equal(t, kt, cryptosuite.JsonWebKey2020)
+	assert.Equal(t, kt, cryptosuite.JSONWebKey2020Type)
 
-	kt, err = KeyTypeToLDKeyType(crypto.KeyType("bad"))
+	_, err = KeyTypeToLDKeyType(crypto.KeyType("bad"))
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unsupported keyType")
 }

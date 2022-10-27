@@ -21,7 +21,7 @@ type (
 )
 
 const (
-	JsonWebKey2020 LDKeyType = "JsonWebKey2020"
+	JSONWebKey2020Type LDKeyType = "JsonWebKey2020"
 
 	// Supported key types
 
@@ -77,7 +77,6 @@ func GenerateJSONWebKey2020(kty KTY, crv CRV) (*JSONWebKey2020, error) {
 		default:
 			return nil, fmt.Errorf("unsupported OKP curve: %s", crv)
 		}
-
 	}
 	if kty == EC {
 		switch crv {
@@ -102,7 +101,7 @@ func JSONWebKey2020FromPrivateKey(key gocrypto.PrivateKey) (*JSONWebKey2020, err
 		return nil, err
 	}
 	return &JSONWebKey2020{
-		Type:          JsonWebKey2020,
+		Type:          JSONWebKey2020Type,
 		PrivateKeyJWK: *privKeyJWK,
 		PublicKeyJWK:  *pubKeyJWK,
 	}, nil
@@ -205,7 +204,7 @@ func (s *JSONWebKeySigner) GetKeyType() string {
 	return string(s.Key.KeyType())
 }
 
-func (s *JSONWebKeySigner) GetSignatureType() SignatureType {
+func (*JSONWebKeySigner) GetSignatureType() SignatureType {
 	return JSONWebSignature2020
 }
 
@@ -280,7 +279,7 @@ func NewJSONWebKeyVerifier(kid string, key crypto.PublicKeyJWK) (*JSONWebKeyVeri
 func PubKeyBytesToTypedKey(keyBytes []byte, kt LDKeyType) (gocrypto.PublicKey, error) {
 	var convertedKeyType crypto.KeyType
 	switch kt.String() {
-	case JsonWebKey2020.String():
+	case JSONWebKey2020Type.String():
 		// we cannot know this key type based on the bytes alone
 		return keyBytes, nil
 	case crypto.Ed25519.String(), Ed25519VerificationKey2018.String(), Ed25519VerificationKey2020.String():

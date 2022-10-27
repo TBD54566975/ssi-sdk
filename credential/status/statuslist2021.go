@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strconv"
 	"strings"
 
 	"github.com/bits-and-blooms/bitset"
-	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -228,7 +228,7 @@ func bitstringExpansion(compressedBitstring string) ([]string, error) {
 		return nil, errors.Wrap(err, "could not unzip status list bitstring using GZIP")
 	}
 
-	unzipped, err := ioutil.ReadAll(zr)
+	unzipped, err := io.ReadAll(zr)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not expand status list bitstring using GZIP")
 	}

@@ -8,7 +8,6 @@ import (
 )
 
 func TestVerifier(t *testing.T) {
-
 	t.Run("Test Basic Verifier", func(tt *testing.T) {
 		// empty verifier
 		_, err := NewCredentialVerifier(nil)
@@ -97,10 +96,9 @@ func TestVerifier(t *testing.T) {
 		err = verifier.VerifyCredential(sampleCredential, WithSchema(knownSchema))
 		assert.NoError(tt, err)
 	})
-
 }
 
-func NoOpVerifier(credential credential.VerifiableCredential, _ ...VerificationOption) error {
+func NoOpVerifier(_ credential.VerifiableCredential, _ ...VerificationOption) error {
 	return nil
 }
 

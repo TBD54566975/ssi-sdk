@@ -16,7 +16,6 @@ import (
 // VerifiableCredential is the verifiable credential model outlined in the vc-data-model spec:
 // https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concept
 func BuildExampleUniversityVC(universityID, recipient string) (*credential.VerifiableCredential, error) {
-
 	knownContext := []string{"https://www.w3.org/2018/credentials/v1",
 		"https://www.w3.org/2018/credentials/examples/v1"} // JSON-LD context statement
 	knownID := "http://example.edu/credentials/1872"
@@ -57,11 +56,11 @@ func BuildExampleUniversityVC(universityID, recipient string) (*credential.Verif
 		return nil, err
 	}
 
-	if dat, err := json.Marshal(knownCred); err == nil {
-		logrus.Debug(string(dat))
-	} else {
+	dat, err := json.Marshal(knownCred)
+	if err != nil {
 		return nil, err
 	}
+	logrus.Debug(string(dat))
 
 	example.WriteNote(fmt.Sprintf("VC issued from %s to %s", universityID, recipient))
 

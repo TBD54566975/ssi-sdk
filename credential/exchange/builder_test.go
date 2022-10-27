@@ -199,11 +199,9 @@ func TestInputDescriptorBuilderRequired(t *testing.T) {
 	definition, err := builder.Build()
 	assert.NotEmpty(t, definition)
 	assert.NoError(t, err)
-
 }
 
 func TestInputDescriptorBuilder(t *testing.T) {
-
 	builder := NewInputDescriptorBuilder()
 	_, err := builder.Build()
 
