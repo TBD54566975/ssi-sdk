@@ -11,7 +11,7 @@ type (
 )
 
 const (
-	ApplicationError Type = "Valid"
+	ApplicationError Type = "ApplicationError"
 	CriticalError    Type = "CriticalError"
 	UnknownError     Type = "UnknownError"
 )

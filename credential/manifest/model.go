@@ -228,6 +228,9 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 	// The Credential Application object MUST contain a presentation_submission property IF the related Credential
 	// Manifest contains a presentation_definition. Its value MUST be a valid Presentation Submission:
 	if cm.PresentationDefinition.IsEmpty() {
+		if ca.PresentationSubmission != nil {
+			err = errresp.NewErrorResponse(errresp.ApplicationError, "credential application's presentation submission is invalid; the credential manifest's presentation definition is empty")
+		}
 		return
 	}
 
