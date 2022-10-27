@@ -198,7 +198,6 @@ func TestInputDescriptorBuilderRequired(t *testing.T) {
 	definition, err := builder.Build()
 	assert.NotEmpty(t, definition)
 	assert.NoError(t, err)
-	println(util.PrettyJSON(definition))
 
 }
 
