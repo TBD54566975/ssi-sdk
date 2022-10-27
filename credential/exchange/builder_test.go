@@ -134,6 +134,7 @@ func TestInputDescriptorBuilderProperties(t *testing.T) {
 							Type:       "string",
 							MinLength:  1,
 							Properties: props,
+<<<<<<< HEAD
 						},
 					},
 				},
@@ -196,8 +197,10 @@ func TestInputDescriptorBuilderRequired(t *testing.T) {
 
 	assert.NoError(t, err)
 	definition, err := builder.Build()
+	assert.NotEmpty(t, definition)
 	assert.NoError(t, err)
 	println(util.PrettyJSON(definition))
+
 }
 
 func TestInputDescriptorBuilder(t *testing.T) {
