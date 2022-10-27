@@ -285,21 +285,23 @@ type RelationalConstraint struct {
 }
 
 type Filter struct {
-	Type             string        `json:"type,omitempty"`
-	Format           string        `json:"format,omitempty"`
-	Properties       interface{}   `json:"properties,omitempty"`
-	Pattern          string        `json:"pattern,omitempty"`
-	Minimum          interface{}   `json:"minimum,omitempty"`
-	Maximum          interface{}   `json:"maximum,omitempty"`
-	MinLength        int           `json:"minLength,omitempty"`
-	MaxLength        int           `json:"maxLength,omitempty"`
-	ExclusiveMinimum interface{}   `json:"exclusiveMinimum,omitempty"`
-	ExclusiveMaximum interface{}   `json:"exclusiveMaximum,omitempty"`
-	Const            interface{}   `json:"const,omitempty"`
-	Enum             []interface{} `json:"enum,omitempty"`
-	Not              interface{}   `json:"not,omitempty"`
-	AllOf            interface{}   `json:"allOf,omitempty"`
-	OneOf            interface{}   `json:"oneOf,omitempty"`
+	Type                 string        `json:"type,omitempty"`
+	Format               string        `json:"format,omitempty"`
+	Properties           interface{}   `json:"properties,omitempty"`
+	Required             []string      `json:"required,omitempty"`
+	AdditionalProperties bool          `json:"additionalProperties,omitempty"`
+	Pattern              string        `json:"pattern,omitempty"`
+	Minimum              interface{}   `json:"minimum,omitempty"`
+	Maximum              interface{}   `json:"maximum,omitempty"`
+	MinLength            int           `json:"minLength,omitempty"`
+	MaxLength            int           `json:"maxLength,omitempty"`
+	ExclusiveMinimum     interface{}   `json:"exclusiveMinimum,omitempty"`
+	ExclusiveMaximum     interface{}   `json:"exclusiveMaximum,omitempty"`
+	Const                interface{}   `json:"const,omitempty"`
+	Enum                 []interface{} `json:"enum,omitempty"`
+	Not                  interface{}   `json:"not,omitempty"`
+	AllOf                interface{}   `json:"allOf,omitempty"`
+	OneOf                interface{}   `json:"oneOf,omitempty"`
 }
 
 // CredentialStatus https://identity.foundation/presentation-exchange/#credential-status-constraint-feature

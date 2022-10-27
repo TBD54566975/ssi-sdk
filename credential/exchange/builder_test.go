@@ -143,8 +143,63 @@ func TestInputDescriptorBuilderProperties(t *testing.T) {
 
 	assert.NoError(t, err)
 	definition, err := builder.Build()
-	assert.NoError(t, err)
 	assert.NotEmpty(t, definition)
+	assert.NoError(t, err)
+}
+
+func TestInputDescriptorBuilderRequired(t *testing.T) {
+	builder := NewPresentationDefinitionBuilder()
+
+	b := []byte(
+		`{
+		   "addressCountry":{
+			  "type":"string"
+		   },
+		   "addressLocality":{
+			  "type":"string"
+		   },
+		   "addressRegion":{
+			  "type":"string"
+		   },
+		   "postalCode":{
+			  "type":"string"
+		   },
+		   "streetAddress":{
+			  "type":"string"
+		   }
+		}`)
+
+	var props interface{}
+	err := json.Unmarshal(b, &props)
+	assert.NoError(t, err)
+
+	err = builder.SetInputDescriptors([]InputDescriptor{
+		{
+			ID:   uuid.NewString(),
+			Name: "children-info",
+			Constraints: &Constraints{
+				Fields: []Field{
+					{
+						Path: []string{"$.vc.credentialSubject.children[*].firstName", "$.credentialSubject.children[*].firstName"},
+						ID:   "children-info-first-name",
+						Filter: &Filter{
+							Type:                 "string",
+							MinLength:            1,
+							Properties:           props,
+							Required:             []string{"postalCode, streetAddress"},
+							AdditionalProperties: true,
+						},
+					},
+				},
+			},
+		},
+	})
+
+	assert.NoError(t, err)
+	definition, err := builder.Build()
+	assert.NotEmpty(t, definition)
+	assert.NoError(t, err)
+
 }
 
 func TestInputDescriptorBuilder(t *testing.T) {
