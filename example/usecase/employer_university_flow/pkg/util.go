@@ -58,10 +58,7 @@ func validateVC(vc credential.VerifiableCredential) error {
 		return err
 	}
 
-	var okp = cryptosuite.KTY("OKP")
-	var ed25519 = cryptosuite.CRV("Ed25519")
-
-	jwk, err := cryptosuite.GenerateJSONWebKey2020(okp, ed25519)
+	jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
 	if err != nil {
 		return err
 	}
