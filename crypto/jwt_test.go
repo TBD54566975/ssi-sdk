@@ -76,10 +76,6 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 	parsed, err := verifier.ParseJWT(string(token))
 	assert.NoError(t, err)
 
-	gotAlg, ok := parsed.Get("alg")
-	assert.True(t, ok)
-	assert.EqualValues(t, "abcd", gotAlg)
-
 	gotID, ok := parsed.Get("id")
 	assert.True(t, ok)
 	assert.EqualValues(t, "abcd", gotID)
@@ -99,8 +95,8 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 	jws, err := verifier.ParseJWS(string(token))
 	assert.NoError(t, err)
 	assert.NotEmpty(t, jws)
-	assert.EqualValues(t, "EdDSA", jws.PublicHeaders().Algorithm)
-	assert.EqualValues(t, "did:example:123#key-0", jws.PublicHeaders().KeyID)
+	assert.EqualValues(t, "EdDSA", jws.ProtectedHeaders().Algorithm())
+	assert.EqualValues(t, "did:example:123#key-0", jws.ProtectedHeaders().KeyID())
 }
 
 func getTestVectorKey0Signer(t *testing.T) JWTSigner {
