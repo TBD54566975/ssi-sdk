@@ -3,6 +3,7 @@ package crypto
 import (
 	"testing"
 
+	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -75,11 +76,15 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 	parsed, err := verifier.ParseJWT(string(token))
 	assert.NoError(t, err)
 
+	gotAlg, ok := parsed.Get("alg")
+	assert.True(t, ok)
+	assert.EqualValues(t, "abcd", gotAlg)
+
 	gotID, ok := parsed.Get("id")
 	assert.True(t, ok)
 	assert.EqualValues(t, "abcd", gotID)
 
-	gotJTI, ok := parsed.Get("jti")
+	gotJTI, ok := parsed.Get(jwt.JwtIDKey)
 	assert.True(t, ok)
 	assert.EqualValues(t, "1234", gotJTI)
 
@@ -89,6 +94,13 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 
 	_, err = verifier.VerifyAndParseJWT(string(token))
 	assert.NoError(t, err)
+
+	// parse out the headers
+	jws, err := verifier.ParseJWS(string(token))
+	assert.NoError(t, err)
+	assert.NotEmpty(t, jws)
+	assert.EqualValues(t, "EdDSA", jws.PublicHeaders().Algorithm)
+	assert.EqualValues(t, "did:example:123#key-0", jws.PublicHeaders().KeyID)
 }
 
 func getTestVectorKey0Signer(t *testing.T) JWTSigner {
