@@ -8,6 +8,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -95,13 +96,6 @@ func (sv *JWTSigner) SignJWT(kvs map[string]interface{}) ([]byte, error) {
 	if err := t.Set(jwt.IssuerKey, kid); err != nil {
 		return nil, fmt.Errorf("could not set iss with provided value: %s", kid)
 	}
-	if err := t.Set(jwk.KeyIDKey, kid); err != nil {
-		return nil, fmt.Errorf("could not set kid with provided value: %s", kid)
-	}
-	alg := sv.Key.Algorithm()
-	if err := t.Set(jwk.AlgorithmKey, alg); err != nil {
-		return nil, fmt.Errorf("could not set alg with value: %s", alg)
-	}
 	iat := time.Now().Unix()
 	if err := t.Set(jwt.IssuedAtKey, iat); err != nil {
 		return nil, fmt.Errorf("could not set iat with value: %d", iat)
@@ -144,6 +138,20 @@ func (*JWTVerifier) ParseJWT(token string) (jwt.Token, error) {
 		return nil, err
 	}
 	return parsed, nil
+}
+
+// ParseJWS attempts to pull of a single signature from a token, containing its headers
+func (*JWTVerifier) ParseJWS(token string) (*jws.Signature, error) {
+	parsed, err := jws.Parse([]byte(token))
+	if err != nil {
+		logrus.WithError(err).Error("could not parse JWS")
+		return nil, err
+	}
+	signatures := parsed.Signatures()
+	if len(signatures) != 1 {
+		return nil, fmt.Errorf("expected 1 signature, got %d", len(signatures))
+	}
+	return signatures[0], nil
 }
 
 // VerifyAndParseJWT attempts to turn a string into a jwt.Token and verify its signature using the verifier
