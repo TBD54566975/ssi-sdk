@@ -69,10 +69,10 @@ type PresentationDefinitionEnvelope struct {
 // PresentationDefinition https://identity.foundation/presentation-exchange/#presentation-definition
 type PresentationDefinition struct {
 	ID                     string                  `json:"id,omitempty" validate:"required"`
-	InputDescriptors       []InputDescriptor       `json:"input_descriptors" validate:"required,dive"`
 	Name                   string                  `json:"name,omitempty"`
 	Purpose                string                  `json:"purpose,omitempty"`
 	Format                 *ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`
+	InputDescriptors       []InputDescriptor       `json:"input_descriptors" validate:"required,dive"`
 	SubmissionRequirements []SubmissionRequirement `json:"submission_requirements,omitempty" validate:"omitempty,dive"`
 
 	// https://identity.foundation/presentation-exchange/#json-ld-framing-feature
@@ -269,14 +269,16 @@ type Constraints struct {
 }
 
 type Field struct {
-	Path    []string `json:"path,omitempty" validate:"required"`
-	ID      string   `json:"id,omitempty"`
-	Purpose string   `json:"purpose,omitempty"`
+	ID             string   `json:"id,omitempty"`
+	Name           string   `json:"name,omitempty"`
+	Path           []string `json:"path,omitempty" validate:"required"`
+	Purpose        string   `json:"purpose,omitempty"`
+	Optional       bool     `json:"optional,omitempty"`
+	IntentToRetain bool     `json:"intent_to_retain,omitempty"`
 	// If a predicate property is present, filter must be too
 	// https://identity.foundation/presentation-exchange/#predicate-feature
 	Predicate *Preference `json:"predicate,omitempty"`
 	Filter    *Filter     `json:"filter,omitempty"`
-	Optional  bool        `json:"optional,omitempty"`
 }
 
 type RelationalConstraint struct {
