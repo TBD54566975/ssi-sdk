@@ -401,7 +401,7 @@ func filterClaimsByFormat(claims []NormalizedClaim, format *ClaimFormat) []Norma
 		// if the format matches, check the alg type
 		if util.Contains(claim.Format, formatValues) {
 			// get the supported alg or proof types for this format
-			algOrProofTypes := format.AlgOrProofTypePerFormat(claim.Format)
+			algOrProofTypes := format.AlgOrProofTypePerFormat()
 			if util.Contains(claim.AlgOrProofType, algOrProofTypes) {
 				filteredClaims = append(filteredClaims, claim)
 			}
