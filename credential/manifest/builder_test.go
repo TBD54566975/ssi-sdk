@@ -18,6 +18,12 @@ func TestCredentialManifestBuilder(t *testing.T) {
 
 	assert.False(t, builder.IsEmpty())
 
+	err = builder.SetName("name")
+	assert.NoError(t, err)
+
+	err = builder.SetDescription("description")
+	assert.NoError(t, err)
+	
 	// set a bad issuer
 	err = builder.SetIssuer(Issuer{
 		Name: "Satoshi",

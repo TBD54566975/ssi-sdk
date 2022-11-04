@@ -47,6 +47,24 @@ func (cmb *CredentialManifestBuilder) IsEmpty() bool {
 	return reflect.DeepEqual(cmb, &CredentialManifestBuilder{})
 }
 
+func (cmb *CredentialManifestBuilder) SetName(name string) error {
+	if cmb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+
+	cmb.Name = name
+	return nil
+}
+
+func (cmb *CredentialManifestBuilder) SetDescription(description string) error {
+	if cmb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+
+	cmb.Description = description
+	return nil
+}
+
 func (cmb *CredentialManifestBuilder) SetIssuer(i Issuer) error {
 	if cmb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
