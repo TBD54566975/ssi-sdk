@@ -19,6 +19,8 @@ const (
 type CredentialManifest struct {
 	ID                     string                           `json:"id" validate:"required"`
 	SpecVersion            string                           `json:"spec_version" validate:"required"`
+	Name                   string                           `json:"name,omitempty"`
+	Description            string                           `json:"description,omitempty"`
 	Issuer                 Issuer                           `json:"issuer" validate:"required,dive"`
 	OutputDescriptors      []OutputDescriptor               `json:"output_descriptors" validate:"required,dive"`
 	Format                 *exchange.ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`

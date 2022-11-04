@@ -28,7 +28,7 @@
           "$ref": "#/definitions/descriptor"
         },
         "format": {
-          "$ref": "https://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json#/definitions/format"
+          "$ref": "http://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json#/definitions/format"
         }
       },
       "required": ["id", "path", "format"],
