@@ -44,7 +44,7 @@ func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestSignVerifyJWTForEachKeyType(t *testing.T) {
+func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 	testKID := "test-kid"
 	testData := map[string]interface{}{
 		"test": "data",
@@ -57,13 +57,7 @@ func TestSignVerifyJWTForEachKeyType(t *testing.T) {
 			kt: Ed25519,
 		},
 		{
-			kt: X25519,
-		},
-		{
 			kt: SECP256k1,
-		},
-		{
-			kt: P224,
 		},
 		{
 			kt: P256,

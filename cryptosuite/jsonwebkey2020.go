@@ -265,7 +265,7 @@ func (v *JSONWebKeyVerifier) GetKeyType() string {
 }
 
 func NewJSONWebKeyVerifier(kid string, key crypto.PublicKeyJWK) (*JSONWebKeyVerifier, error) {
-	verifier, err := crypto.NewJWTVerifier(kid, key)
+	verifier, err := crypto.NewJWTVerifierFromJWK(kid, key)
 	if err != nil {
 		return nil, err
 	}

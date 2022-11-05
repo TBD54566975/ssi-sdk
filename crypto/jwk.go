@@ -76,6 +76,24 @@ func JWKToPublicKeyJWK(key jwk.Key) (*PublicKeyJWK, error) {
 	return &pubKeyJWK, nil
 }
 
+// PublicKeyToJWK converts a public key to a JWK
+func PublicKeyToJWK(key crypto.PublicKey) (jwk.Key, error) {
+	switch key.(type) {
+	case rsa.PublicKey:
+		return jwkKeyFromRSAPublicKey(key.(rsa.PublicKey))
+	case ed25519.PublicKey:
+		return jwkKeyFromEd25519PublicKey(key.(ed25519.PublicKey))
+	case x25519.PublicKey:
+		return jwkKeyFromX25519PublicKey(key.(x25519.PublicKey))
+	case secp256k1.PublicKey:
+		return jwkKeyFromSECP256k1PublicKey(key.(secp256k1.PublicKey))
+	case ecdsa.PublicKey:
+		return jwkKeyFromECDSAPublicKey(key.(ecdsa.PublicKey))
+	default:
+		return nil, fmt.Errorf("unsupported public key type: %T", key)
+	}
+}
+
 // PublicKeyToPublicKeyJWK converts a public key to a PublicKeyJWK
 func PublicKeyToPublicKeyJWK(key crypto.PublicKey) (*PublicKeyJWK, error) {
 	switch key.(type) {
@@ -91,6 +109,24 @@ func PublicKeyToPublicKeyJWK(key crypto.PublicKey) (*PublicKeyJWK, error) {
 		return jwkFromECDSAPublicKey(key.(ecdsa.PublicKey))
 	default:
 		return nil, fmt.Errorf("unsupported public key type: %T", key)
+	}
+}
+
+// PrivateKeyToJWK converts a private key to a JWK
+func PrivateKeyToJWK(key crypto.PrivateKey) (jwk.Key, error) {
+	switch key.(type) {
+	case rsa.PrivateKey:
+		return jwkKeyFromRSAPrivateKey(key.(rsa.PrivateKey))
+	case ed25519.PrivateKey:
+		return jwkKeyFromEd25519PrivateKey(key.(ed25519.PrivateKey))
+	case x25519.PrivateKey:
+		return jwkKeyFromX25519PrivateKey(key.(x25519.PrivateKey))
+	case secp256k1.PrivateKey:
+		return jwkKeyFromSECP256k1PrivateKey(key.(secp256k1.PrivateKey))
+	case ecdsa.PrivateKey:
+		return jwkKeyFromECDSAPrivateKey(key.(ecdsa.PrivateKey))
+	default:
+		return nil, fmt.Errorf("unsupported private key type: %T", key)
 	}
 }
 
@@ -110,6 +146,15 @@ func PrivateKeyToPrivateKeyJWK(key crypto.PrivateKey) (*PublicKeyJWK, *PrivateKe
 	default:
 		return nil, nil, fmt.Errorf("unsupported private key type: %T", key)
 	}
+}
+
+// jwkKeyFromRSAPrivateKey converts a RSA private key to a JWK
+func jwkKeyFromRSAPrivateKey(key rsa.PrivateKey) (jwk.Key, error) {
+	rsaJWK := jwk.NewRSAPrivateKey()
+	if err := rsaJWK.FromRaw(&key); err != nil {
+		return nil, errors.Wrap(err, "failed to generate rsa jwk")
+	}
+	return rsaJWK, nil
 }
 
 // jwkFromRSAPrivateKey converts a RSA private key to a JWK
@@ -141,6 +186,15 @@ func jwkFromRSAPrivateKey(key rsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, er
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
 
+// jwkKeyFromRSAPublicKey converts a RSA public key to a JWK
+func jwkKeyFromRSAPublicKey(key rsa.PublicKey) (jwk.Key, error) {
+	rsaJWK := jwk.NewRSAPublicKey()
+	if err := rsaJWK.FromRaw(&key); err != nil {
+		return nil, errors.Wrap(err, "failed to generate rsa jwk")
+	}
+	return rsaJWK, nil
+}
+
 // jwkFromRSAPublicKey converts a RSA public key to a JWK
 func jwkFromRSAPublicKey(key rsa.PublicKey) (*PublicKeyJWK, error) {
 	rsaJWK := jwk.NewRSAPublicKey()
@@ -155,6 +209,15 @@ func jwkFromRSAPublicKey(key rsa.PublicKey) (*PublicKeyJWK, error) {
 		N:   n,
 		E:   e,
 	}, nil
+}
+
+// jwkKeyFromEd25519PrivateKey converts a Ed25519 private key to a JWK
+func jwkKeyFromEd25519PrivateKey(key ed25519.PrivateKey) (jwk.Key, error) {
+	ed25519JWK := jwk.NewOKPPrivateKey()
+	if err := ed25519JWK.FromRaw(key); err != nil {
+		return nil, errors.Wrap(err, "failed to generate ed25519 jwk")
+	}
+	return ed25519JWK, nil
 }
 
 // jwkFromEd25519PrivateKey converts a Ed25519 private key to a JWK
@@ -181,6 +244,15 @@ func jwkFromEd25519PrivateKey(key ed25519.PrivateKey) (*PublicKeyJWK, *PrivateKe
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
 
+// jwkKeyFromEd25519PublicKey converts a Ed25519 public key to a JWK
+func jwkKeyFromEd25519PublicKey(key ed25519.PublicKey) (jwk.Key, error) {
+	ed25519JWK := jwk.NewOKPPublicKey()
+	if err := ed25519JWK.FromRaw(key); err != nil {
+		return nil, errors.Wrap(err, "failed to generate ed25519 jwk")
+	}
+	return ed25519JWK, nil
+}
+
 // jwkFromEd25519PublicKey converts a Ed25519 public key to a JWK
 func jwkFromEd25519PublicKey(key ed25519.PublicKey) (*PublicKeyJWK, error) {
 	ed25519JWK := jwk.NewOKPPublicKey()
@@ -198,8 +270,18 @@ func jwkFromEd25519PublicKey(key ed25519.PublicKey) (*PublicKeyJWK, error) {
 }
 
 // jwkFromX25519PrivateKey converts a X25519 private key to a JWK
+func jwkKeyFromX25519PrivateKey(key x25519.PrivateKey) (jwk.Key, error) {
+	return jwkKeyFromEd25519PrivateKey(ed25519.PrivateKey(key))
+}
+
+// jwkFromX25519PrivateKey converts a X25519 private key to a JWK
 func jwkFromX25519PrivateKey(key x25519.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	return jwkFromEd25519PrivateKey(ed25519.PrivateKey(key))
+}
+
+// jwkKeyFromX25519PublicKey converts a X25519 public key to a JWK
+func jwkKeyFromX25519PublicKey(key x25519.PublicKey) (jwk.Key, error) {
+	return jwkKeyFromEd25519PublicKey(ed25519.PublicKey(key))
 }
 
 // jwkFromX25519PublicKey converts a X25519 public key to a JWK
@@ -207,12 +289,24 @@ func jwkFromX25519PublicKey(key x25519.PublicKey) (*PublicKeyJWK, error) {
 	return jwkFromEd25519PublicKey(ed25519.PublicKey(key))
 }
 
+// jwkKeyFromSECP256k1PrivateKey converts a SECP256k1 private key to a JWK
+func jwkKeyFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (jwk.Key, error) {
+	ecdsaPrivKey := key.ToECDSA()
+	secp256k1JWK := jwk.NewECDSAPrivateKey()
+	if err := secp256k1JWK.FromRaw(ecdsaPrivKey); err != nil {
+		err = errors.Wrap(err, "failed to generate secp256k1 jwk")
+		logrus.WithError(err).Error("could not extract key from raw private key")
+		return nil, err
+	}
+	return secp256k1JWK, nil
+}
+
 // jwkFromSECP256k1PrivateKey converts a SECP256k1 private key to a JWK
 func jwkFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	ecdsaPrivKey := key.ToECDSA()
 	secp256k1JWK := jwk.NewECDSAPrivateKey()
 	if err := secp256k1JWK.FromRaw(ecdsaPrivKey); err != nil {
-		err := errors.Wrap(err, "failed to generate secp256k1 jwk")
+		err = errors.Wrap(err, "failed to generate secp256k1 jwk")
 		logrus.WithError(err).Error("could not extract key from raw private key")
 		return nil, nil, err
 	}
@@ -237,12 +331,24 @@ func jwkFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (*PublicKeyJWK, *Priva
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
 
+// jwkKeyFromSECP256k1PublicKey converts a SECP256k1 public key to a JWK
+func jwkKeyFromSECP256k1PublicKey(key secp256k1.PublicKey) (jwk.Key, error) {
+	ecdsaPubKey := key.ToECDSA()
+	secp256k1JWK := jwk.NewECDSAPublicKey()
+	if err := secp256k1JWK.FromRaw(ecdsaPubKey); err != nil {
+		err = errors.Wrap(err, "failed to generate secp256k1 jwk")
+		logrus.WithError(err).Error("could not extract key from raw public key")
+		return nil, err
+	}
+	return secp256k1JWK, nil
+}
+
 // jwkFromSECP256k1PublicKey converts a SECP256k1 public key to a JWK
 func jwkFromSECP256k1PublicKey(key secp256k1.PublicKey) (*PublicKeyJWK, error) {
 	ecdsaPubKey := key.ToECDSA()
 	secp256k1JWK := jwk.NewECDSAPublicKey()
 	if err := secp256k1JWK.FromRaw(ecdsaPubKey); err != nil {
-		err := errors.Wrap(err, "failed to generate secp256k1 jwk")
+		err = errors.Wrap(err, "failed to generate secp256k1 jwk")
 		logrus.WithError(err).Error("could not extract key from raw public key")
 		return nil, err
 	}
@@ -256,6 +362,17 @@ func jwkFromSECP256k1PublicKey(key secp256k1.PublicKey) (*PublicKeyJWK, error) {
 		X:   x,
 		Y:   y,
 	}, nil
+}
+
+// jwkKeyFromECDSAPrivateKey converts a ECDSA private key to a JWK
+func jwkKeyFromECDSAPrivateKey(key ecdsa.PrivateKey) (jwk.Key, error) {
+	ecdsaKey := jwk.NewECDSAPrivateKey()
+	if err := ecdsaKey.FromRaw(&key); err != nil {
+		err = errors.Wrap(err, "failed to generate ecdsa jwk")
+		logrus.WithError(err).Error("could not extract key from raw private key")
+		return nil, err
+	}
+	return ecdsaKey, nil
 }
 
 // jwkFromECDSAPrivateKey converts a ECDSA private key to a JWK
@@ -285,6 +402,17 @@ func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK
 		D:   encodeToBase64RawURL(ecdsaKey.D()),
 	}
 	return &publicKeyJWK, &privateKeyJWK, nil
+}
+
+// jwkKeyFromECDSAPublicKey converts a ECDSA public key to a JWK
+func jwkKeyFromECDSAPublicKey(key ecdsa.PublicKey) (jwk.Key, error) {
+	ecdsaKey := jwk.NewECDSAPublicKey()
+	if err := ecdsaKey.FromRaw(&key); err != nil {
+		err = errors.Wrap(err, "failed to generate ecdsa jwk")
+		logrus.WithError(err).Error("could not extract key from raw private key")
+		return nil, err
+	}
+	return ecdsaKey, nil
 }
 
 // jwkFromECDSAPublicKey converts a ECDSA public key to a JWK
