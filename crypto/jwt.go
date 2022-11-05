@@ -31,6 +31,17 @@ func NewJWTSigner(kid string, key crypto.PrivateKey) (*JWTSigner, error) {
 	}, nil
 }
 
+func NewJWTSignerFromJWK(kid string, key PrivateKeyJWK) (*JWTSigner, error) {
+	gotJWK, alg, err := jwtSignerVerifier(kid, key)
+	if err != nil {
+		return nil, err
+	}
+	return &JWTSigner{
+		SignatureAlgorithm: *alg,
+		Key:                gotJWK,
+	}, nil
+}
+
 func (sv *JWTSigner) ToVerifier() (*JWTVerifier, error) {
 	key, err := sv.Key.PublicKey()
 	if err != nil {

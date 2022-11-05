@@ -22,7 +22,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
-	"github.com/lestrrat-go/jwx/jwk"
 )
 
 func main() {
@@ -33,9 +32,7 @@ func main() {
 	// User Holder
 	holderDIDPrivateKey, holderDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
-	holderDIDWJWK, err := jwk.New(holderDIDPrivateKey)
-	example.HandleExampleError(err, "Failed to generate JWK")
-	holderSigner, err := crypto.NewJWTSigner(holderDIDKey.String(), holderDIDWJWK)
+	holderSigner, err := crypto.NewJWTSigner(holderDIDKey.String(), holderDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 	holderVerifier, err := holderSigner.ToVerifier()
 	example.HandleExampleError(err, "Failed to generate verifier")
@@ -43,9 +40,7 @@ func main() {
 	// Apt Verifier
 	aptDIDPrivateKey, aptDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID key")
-	aptDIDJWK, err := jwk.New(aptDIDPrivateKey)
-	example.HandleExampleError(err, "Failed to generate JWK")
-	aptSigner, err := crypto.NewJWTSigner(aptDIDKey.String(), aptDIDJWK)
+	aptSigner, err := crypto.NewJWTSigner(aptDIDKey.String(), aptDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 	aptVerifier, err := aptSigner.ToVerifier()
 	example.HandleExampleError(err, "Failed to generate verifier")
@@ -53,9 +48,7 @@ func main() {
 	// Government Issuer
 	govtDIDPrivateKey, govtDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID key")
-	govtDIDJWK, err := jwk.New(govtDIDPrivateKey)
-	example.HandleExampleError(err, "Failed to generate JWK")
-	govtSigner, err := crypto.NewJWTSigner(govtDIDKey.String(), govtDIDJWK)
+	govtSigner, err := crypto.NewJWTSigner(govtDIDKey.String(), govtDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 
 	_, _ = fmt.Print("\n\nStep 1: Create new DIDs for entities\n\n")

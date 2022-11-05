@@ -229,7 +229,7 @@ func (s *JSONWebKeySigner) GetPayloadFormat() PayloadFormat {
 }
 
 func NewJSONWebKeySigner(kid string, key crypto.PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
-	signer, err := crypto.NewJWTSigner(kid, key)
+	signer, err := crypto.NewJWTSignerFromJWK(kid, key)
 	if err != nil {
 		return nil, err
 	}

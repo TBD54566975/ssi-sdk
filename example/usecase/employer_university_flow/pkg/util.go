@@ -89,7 +89,7 @@ func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData ex
 	example.WriteNote("Presentation Request (JWT) is created")
 
 	// Signer uses a JWK
-	signer, err = crypto.NewJWTSigner(jwk.ID, jwk.PrivateKeyJWK)
+	signer, err = crypto.NewJWTSignerFromJWK(jwk.ID, jwk.PrivateKeyJWK)
 	if err != nil {
 		return nil, nil, err
 	}
