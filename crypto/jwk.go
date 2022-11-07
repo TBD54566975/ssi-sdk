@@ -114,17 +114,17 @@ func PublicKeyToPublicKeyJWK(key crypto.PublicKey) (*PublicKeyJWK, error) {
 
 // PrivateKeyToJWK converts a private key to a JWK
 func PrivateKeyToJWK(key crypto.PrivateKey) (jwk.Key, error) {
-	switch key.(type) {
+	switch k := key.(type) {
 	case rsa.PrivateKey:
-		return jwkKeyFromRSAPrivateKey(key.(rsa.PrivateKey))
+		return jwkKeyFromRSAPrivateKey(k)
 	case ed25519.PrivateKey:
-		return jwkKeyFromEd25519PrivateKey(key.(ed25519.PrivateKey))
+		return jwkKeyFromEd25519PrivateKey(k)
 	case x25519.PrivateKey:
-		return jwkKeyFromX25519PrivateKey(key.(x25519.PrivateKey))
+		return jwkKeyFromX25519PrivateKey(k)
 	case secp256k1.PrivateKey:
-		return jwkKeyFromSECP256k1PrivateKey(key.(secp256k1.PrivateKey))
+		return jwkKeyFromSECP256k1PrivateKey(k)
 	case ecdsa.PrivateKey:
-		return jwkKeyFromECDSAPrivateKey(key.(ecdsa.PrivateKey))
+		return jwkKeyFromECDSAPrivateKey(k)
 	default:
 		return nil, fmt.Errorf("unsupported private key type: %T", key)
 	}
