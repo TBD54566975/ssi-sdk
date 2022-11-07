@@ -791,7 +791,7 @@ func getJWKSignerVerifier(t *testing.T) (*crypto.JWTSigner, *crypto.JWTVerifier)
 	require.NoError(t, err)
 
 	kid := "test-key"
-	signer, err := crypto.NewJWTSigner(kid, key)
+	signer, err := crypto.NewJWTSignerFromKey(kid, key)
 	require.NoError(t, err)
 
 	verifier, err := signer.ToVerifier()

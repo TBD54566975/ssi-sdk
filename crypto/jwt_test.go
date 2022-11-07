@@ -44,6 +44,62 @@ func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
+	testKID := "test-kid"
+	testData := map[string]interface{}{
+		"test": "data",
+	}
+
+	tests := []struct {
+		kt KeyType
+	}{
+		{
+			kt: Ed25519,
+		},
+		{
+			kt: SECP256k1,
+		},
+		{
+			kt: P256,
+		},
+		{
+			kt: P384,
+		},
+		{
+			kt: P521,
+		},
+		{
+			kt: RSA,
+		},
+	}
+	for _, test := range tests {
+		t.Run(string(test.kt), func(t *testing.T) {
+			// generate a new key based on the given key type
+			_, privKey, err := GenerateKeyByKeyType(test.kt)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, privKey)
+
+			// create key access with the key
+			signer, err := NewJWTSigner(testKID, privKey)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, signer)
+
+			// sign
+			token, err := signer.SignJWT(testData)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, token)
+
+			// verify
+			verifier, err := signer.ToVerifier()
+			assert.NoError(t, err)
+			assert.NotEmpty(t, verifier)
+
+			err = verifier.VerifyJWT(string(token))
+			assert.NoError(t, err)
+		})
+	}
+}
+
 func TestSignVerifyGenericJWT(t *testing.T) {
 	signer := getTestVectorKey0Signer(t)
 	verifier, err := signer.ToVerifier()
@@ -109,7 +165,7 @@ func getTestVectorKey0Signer(t *testing.T) JWTSigner {
 		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 	}
 
-	signer, err := NewJWTSigner(knownJWK.KID, knownJWK)
+	signer, err := NewJWTSignerFromJWK(knownJWK.KID, knownJWK)
 	assert.NoError(t, err)
 	return *signer
 }

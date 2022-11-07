@@ -22,7 +22,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/example"
-	"github.com/lestrrat-go/jwx/jwk"
 )
 
 type Entity struct {
@@ -42,9 +41,7 @@ var (
 func (t *Entity) GenerateWallet() {
 	walletDIDPrivateKey, walletDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
-	walletDIDWJWK, err := jwk.New(walletDIDPrivateKey)
-	example.HandleExampleError(err, "Failed to generate JWK")
-	walletSigner, err := crypto.NewJWTSigner(walletDIDKey.String(), walletDIDWJWK)
+	walletSigner, err := crypto.NewJWTSigner(walletDIDKey.String(), walletDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 	walletVerifier, err := walletSigner.ToVerifier()
 	example.HandleExampleError(err, "Failed to generate verifier")

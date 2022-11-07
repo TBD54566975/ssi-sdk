@@ -3,12 +3,9 @@ package exchange
 import (
 	"testing"
 
-	"github.com/goccy/go-json"
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/goccy/go-json"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBuildPresentationRequest(t *testing.T) {
@@ -16,10 +13,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		key, err := jwk.New(privKey)
-		require.NoError(t, err)
-
-		signer, err := crypto.NewJWTSigner("test-id", key)
+		signer, err := crypto.NewJWTSigner("test-id", privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
@@ -42,10 +36,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		key, err := jwk.New(privKey)
-		require.NoError(t, err)
-
-		signer, err := crypto.NewJWTSigner("test-id", key)
+		signer, err := crypto.NewJWTSigner("test-id", privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
@@ -68,10 +59,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		key, err := jwk.New(privKey)
-		require.NoError(t, err)
-
-		signer, err := crypto.NewJWTSigner("test-id", key)
+		signer, err := crypto.NewJWTSigner("test-id", privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()

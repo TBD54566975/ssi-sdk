@@ -152,10 +152,10 @@ func main() {
 	presentationRequest, _, err := emp.MakePresentationRequest(*jwk, presentationData, holderDID)
 	example.HandleExampleError(err, "failed to make presentation request")
 
-	verifier, err := crypto.NewJWTVerifier(jwk.ID, jwk.PublicKeyJWK)
+	verifier, err := crypto.NewJWTVerifierFromJWK(jwk.ID, jwk.PublicKeyJWK)
 	example.HandleExampleError(err, "failed to build json web key verifier")
 
-	signer, err := crypto.NewJWTSigner(jwk.ID, jwk.PrivateKeyJWK)
+	signer, err := crypto.NewJWTSignerFromJWK(jwk.ID, jwk.PrivateKeyJWK)
 	example.HandleExampleError(err, "failed to build json web key signer")
 
 	example.WriteNote("Student returns claims via a Presentation Submission")
