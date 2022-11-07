@@ -70,7 +70,7 @@ func JWKToPublicKeyJWK(key jwk.Key) (*PublicKeyJWK, error) {
 		return nil, err
 	}
 	var pubKeyJWK PublicKeyJWK
-	if err := json.Unmarshal(keyBytes, &pubKeyJWK); err != nil {
+	if err = json.Unmarshal(keyBytes, &pubKeyJWK); err != nil {
 		return nil, err
 	}
 	return &pubKeyJWK, nil
@@ -78,37 +78,37 @@ func JWKToPublicKeyJWK(key jwk.Key) (*PublicKeyJWK, error) {
 
 // PublicKeyToJWK converts a public key to a JWK
 func PublicKeyToJWK(key crypto.PublicKey) (jwk.Key, error) {
-	switch key.(type) {
+	switch k := key.(type) {
 	case rsa.PublicKey:
-		return jwkKeyFromRSAPublicKey(key.(rsa.PublicKey))
+		return jwkKeyFromRSAPublicKey(k)
 	case ed25519.PublicKey:
-		return jwkKeyFromEd25519PublicKey(key.(ed25519.PublicKey))
+		return jwkKeyFromEd25519PublicKey(k)
 	case x25519.PublicKey:
-		return jwkKeyFromX25519PublicKey(key.(x25519.PublicKey))
+		return jwkKeyFromX25519PublicKey(k)
 	case secp256k1.PublicKey:
-		return jwkKeyFromSECP256k1PublicKey(key.(secp256k1.PublicKey))
+		return jwkKeyFromSECP256k1PublicKey(k)
 	case ecdsa.PublicKey:
-		return jwkKeyFromECDSAPublicKey(key.(ecdsa.PublicKey))
+		return jwkKeyFromECDSAPublicKey(k)
 	default:
-		return nil, fmt.Errorf("unsupported public key type: %T", key)
+		return nil, fmt.Errorf("unsupported public key type: %T", k)
 	}
 }
 
 // PublicKeyToPublicKeyJWK converts a public key to a PublicKeyJWK
 func PublicKeyToPublicKeyJWK(key crypto.PublicKey) (*PublicKeyJWK, error) {
-	switch key.(type) {
+	switch k := key.(type) {
 	case rsa.PublicKey:
-		return jwkFromRSAPublicKey(key.(rsa.PublicKey))
+		return jwkFromRSAPublicKey(k)
 	case ed25519.PublicKey:
-		return jwkFromEd25519PublicKey(key.(ed25519.PublicKey))
+		return jwkFromEd25519PublicKey(k)
 	case x25519.PublicKey:
-		return jwkFromX25519PublicKey(key.(x25519.PublicKey))
+		return jwkFromX25519PublicKey(k)
 	case secp256k1.PublicKey:
-		return jwkFromSECP256k1PublicKey(key.(secp256k1.PublicKey))
+		return jwkFromSECP256k1PublicKey(k)
 	case ecdsa.PublicKey:
-		return jwkFromECDSAPublicKey(key.(ecdsa.PublicKey))
+		return jwkFromECDSAPublicKey(k)
 	default:
-		return nil, fmt.Errorf("unsupported public key type: %T", key)
+		return nil, fmt.Errorf("unsupported public key type: %T", k)
 	}
 }
 
@@ -126,25 +126,25 @@ func PrivateKeyToJWK(key crypto.PrivateKey) (jwk.Key, error) {
 	case ecdsa.PrivateKey:
 		return jwkKeyFromECDSAPrivateKey(k)
 	default:
-		return nil, fmt.Errorf("unsupported private key type: %T", key)
+		return nil, fmt.Errorf("unsupported private key type: %T", k)
 	}
 }
 
 // PrivateKeyToPrivateKeyJWK converts a private key to a PrivateKeyJWK
 func PrivateKeyToPrivateKeyJWK(key crypto.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
-	switch key.(type) {
+	switch k := key.(type) {
 	case rsa.PrivateKey:
-		return jwkFromRSAPrivateKey(key.(rsa.PrivateKey))
+		return jwkFromRSAPrivateKey(k)
 	case ed25519.PrivateKey:
-		return jwkFromEd25519PrivateKey(key.(ed25519.PrivateKey))
+		return jwkFromEd25519PrivateKey(k)
 	case x25519.PrivateKey:
-		return jwkFromX25519PrivateKey(key.(x25519.PrivateKey))
+		return jwkFromX25519PrivateKey(k)
 	case secp256k1.PrivateKey:
-		return jwkFromSECP256k1PrivateKey(key.(secp256k1.PrivateKey))
+		return jwkFromSECP256k1PrivateKey(k)
 	case ecdsa.PrivateKey:
-		return jwkFromECDSAPrivateKey(key.(ecdsa.PrivateKey))
+		return jwkFromECDSAPrivateKey(k)
 	default:
-		return nil, nil, fmt.Errorf("unsupported private key type: %T", key)
+		return nil, nil, fmt.Errorf("unsupported private key type: %T", k)
 	}
 }
 
