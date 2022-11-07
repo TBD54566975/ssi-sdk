@@ -66,6 +66,14 @@ type JWTVerifier struct {
 	jwk.Key
 }
 
+func NewJWTVerifier(kid string, key crypto.PublicKey) (*JWTVerifier, error) {
+	privateKeyJWK, err := PublicKeyToJWK(key)
+	if err != nil {
+		return nil, err
+	}
+	return NewJWTVerifierFromKey(kid, privateKeyJWK)
+}
+
 func NewJWTVerifierFromJWK(kid string, key PublicKeyJWK) (*JWTVerifier, error) {
 	gotJWK, alg, err := jwtVerifier(kid, key)
 	if err != nil {
