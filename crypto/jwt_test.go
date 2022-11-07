@@ -75,7 +75,7 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 	for _, test := range tests {
 		t.Run(string(test.kt), func(t *testing.T) {
 			// generate a new key based on the given key type
-			_, privKey, err := GenerateKeyByKeyType(test.kt)
+			pubKey, privKey, err := GenerateKeyByKeyType(test.kt)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, privKey)
 
@@ -93,6 +93,10 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 			verifier, err := signer.ToVerifier()
 			assert.NoError(t, err)
 			assert.NotEmpty(t, verifier)
+
+			sameVerifier, err := NewJWTVerifier(testKID, pubKey)
+			assert.NoError(t, err)
+			assert.Equal(t, verifier, sameVerifier)
 
 			err = verifier.VerifyJWT(string(token))
 			assert.NoError(t, err)
