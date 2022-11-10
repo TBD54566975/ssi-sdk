@@ -46,7 +46,7 @@ func IsValidJSON(maybeJSON string) bool {
 }
 
 // IsJSONValidAgainstSchema validates a piece of JSON against a schema, returning an error if it is not valid
-func IsJSONValidAgainstSchema(json string, schema string) error {
+func IsJSONValidAgainstSchema(json, schema string) error {
 	if !IsValidJSON(json) {
 		return errors.New("json input is not valid json")
 	}
