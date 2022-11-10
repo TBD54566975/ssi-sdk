@@ -5,6 +5,7 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
+	"github.com/santhosh-tekuri/jsonschema/v5"
 	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/TBD54566975/ssi-sdk/util"
@@ -20,12 +21,14 @@ func IsValidJSONSchema(maybeSchema string) error {
 	if !IsValidJSON(maybeSchema) {
 		return errors.New("input is not valid json")
 	}
-	stringLoader := gojsonschema.NewStringLoader(maybeSchema)
-	schemaLoader := gojsonschema.NewSchemaLoader()
-	schemaLoader.Validate = true
-	schemaLoader.Draft = gojsonschema.Draft7
-	_, err := schemaLoader.Compile(stringLoader)
-	return err
+	schema, err := jsonschema.CompileString("schema.json", maybeSchema)
+	if err != nil {
+		return err
+	}
+	if schema == nil {
+		return errors.New("schema could not be parsed")
+	}
+	return nil
 }
 
 // IsValidJSON checks if a string is valid json https://stackoverflow.com/a/36922225
