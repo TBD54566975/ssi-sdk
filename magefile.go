@@ -252,7 +252,7 @@ func IOS(pkgs ...string) error {
 	for _, pkg := range pkgs {
 		fmt.Printf("Building [%s] package...\n", pkg)
 		if err := bindIOS(pkg); err != nil {
-			logrus.WithError(err).Fatal("Error building iOS pkg: %s", pkg)
+			logrus.WithError(err).Fatalf("Error building iOS pkg: %s", pkg)
 			return err
 		}
 	}
@@ -275,7 +275,7 @@ func Android(pkgs ...string) error {
 	for _, pkg := range pkgs {
 		fmt.Printf("Building [%s] package...\n", pkg)
 		if err := bindAndroid(pkg); err != nil {
-			logrus.WithError(err).Fatal("Error building iOS pkg: %s", pkg)
+			logrus.WithError(err).Fatalf("Error building iOS pkg: %s", pkg)
 			return err
 		}
 	}

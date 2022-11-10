@@ -141,7 +141,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 
 		err = IsJSONValidAgainstSchema(addressDataJSON, addressJSONSchema)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "postal-code is required")
+		assert.Contains(tt, err.Error(), "missing properties: 'postal-code'")
 	})
 
 	t.Run("Test Valid Person JSON Schema", func(tt *testing.T) {
@@ -172,7 +172,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 			"firstName":  "Satoshi",
 			"middleName": "Coin",
 			"lastName":   "Nakamoto",
-			"age":        "42",
+			"age":        42,
 		}
 
 		personDataBytes, err := json.Marshal(personData)
@@ -183,7 +183,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 
 		err = IsJSONValidAgainstSchema(personDataJSON, personJSONSchema)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "Additional property middleName is not allowed")
+		assert.Contains(tt, err.Error(), "additionalProperties 'middleName' not allowed")
 	})
 }
 
