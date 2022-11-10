@@ -151,7 +151,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		assert.NoError(tt, err)
 
 		unfulfilledIDs, err = IsValidCredentialApplicationForManifest(cm, request)
-		assert.Contains(t, err.Error(), "format must be one of the following:")
+		assert.Contains(t, err.Error(), "value must be one of")
 		assert.Empty(tt, unfulfilledIDs)
 
 		// reset

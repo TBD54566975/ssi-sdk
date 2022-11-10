@@ -86,7 +86,7 @@ func TestVerifier(t *testing.T) {
 		knownSchema := getVCJSONSchema()
 		err = verifier.VerifyCredential(sampleCredential, WithSchema(knownSchema))
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "emailAddress is required")
+		assert.Contains(tt, err.Error(), "missing properties: 'emailAddress'")
 
 		// verify cred with schema, schema passed in, cred with good data
 		sampleCredential.CredentialSubject = map[string]interface{}{
