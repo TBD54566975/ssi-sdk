@@ -18,7 +18,7 @@ require (
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/piprate/json-gold v0.4.2
 	github.com/pkg/errors v0.9.1
-	github.com/santhosh-tekuri/jsonschema/v5 v5.0.2
+	github.com/santhosh-tekuri/jsonschema/v5 v5.1.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.0.0-20221005025214-4161e89ecf1b
