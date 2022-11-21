@@ -3,7 +3,7 @@ module github.com/TBD54566975/ssi-sdk
 go 1.19
 
 require (
-	github.com/bits-and-blooms/bitset v1.3.3
+	github.com/bits-and-blooms/bitset v1.4.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0
 	github.com/flowstack-com/jsonschema v0.1.2
 	github.com/go-playground/validator/v10 v10.11.1
