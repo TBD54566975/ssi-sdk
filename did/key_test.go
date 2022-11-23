@@ -142,22 +142,23 @@ func TestDecode(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, didKey)
 
-		pubKey, ldKeyType, err := didKey.Decode()
+		pubKey, ldKeyType, cryptoKeyType, err := didKey.Decode()
 		assert.NoError(t, err)
 		assert.NotEmpty(t, pubKey)
 		assert.Equal(t, ldKeyType, cryptosuite.Ed25519VerificationKey2018)
+		assert.Equal(t, cryptoKeyType, crypto.Ed25519)
 	})
 
 	t.Run("bad DID", func(t *testing.T) {
 		badDID := DIDKey("bad")
-		_, _, err := badDID.Decode()
+		_, _, _, err := badDID.Decode()
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "could not parse did:key")
 	})
 
 	t.Run("DID but not a valid did:key", func(t *testing.T) {
 		badDID := DIDKey("did:key:bad")
-		_, _, err := badDID.Decode()
+		_, _, _, err := badDID.Decode()
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "expected 122 encoding but found 98")
 	})
@@ -396,7 +397,7 @@ func TestKnownTestVectors(t *testing.T) {
 	})
 
 	t.Run("P-256", func(tt *testing.T) {
-		did1 := "did:key:zDnaerDaTF5BXEavCrfRZEk316dpbLsfPDZ3WJ5hRTPFU2169"
+		did1 := "did:key:z4oJ8eV3W6feTMtBxLwjVc4MUhaPD6EnjMB9C7ftTZiA9icBvJsyGm9d5XwAP16ebP7YMFLwUMQdeNL9ey2i5LUX5WDe6"
 		didKey1 := DIDKey(did1)
 		didDoc1, err := didKey1.Expand()
 		assert.NoError(tt, err)
@@ -404,7 +405,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
 		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc1.VerificationMethod[0].Type)
 
-		did2 := "did:key:zDnaerx9CtbPJ1q36T5Ln5wYt3MQYeGRG5ehnPAmxcf5mDZpv"
+		did2 := "did:key:z4oJ8a6VuBxRfoYaeTndoWQuKQo3Jj4hL7CCMuedsEv1LU95qaxyqURZ1vFbwDDrHzsvDEkjsts6qSPefWWbagxXAUUDz"
 		didKey2 := DIDKey(did2)
 		didDoc2, err := didKey2.Expand()
 		assert.NoError(tt, err)
@@ -414,7 +415,7 @@ func TestKnownTestVectors(t *testing.T) {
 	})
 
 	t.Run("P-384", func(tt *testing.T) {
-		did1 := "did:key:z82Lm1MpAkeJcix9K8TMiLd5NMAhnwkjjCBeWHXyu3U4oT2MVJJKXkcVBgjGhnLBn2Kaau9"
+		did1 := "did:key:z28xDrLr8uAFFfRFT3TTkecBGheQM9aqkKS9YTfZyiULuoYrFHRmjNcgmEn5822Ym7u5JJBnoNgcsDvFrCbN2YCPzxQd8om98rQnDRM6H19sViGYNxC6S4GYuJm7nxnomTzF6AR7D"
 		didKey1 := DIDKey(did1)
 		didDoc1, err := didKey1.Expand()
 		assert.NoError(tt, err)
@@ -422,7 +423,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
 		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc1.VerificationMethod[0].Type)
 
-		did2 := "did:key:z82LkvCwHNreneWpsgPEbV3gu1C6NFJEBg4srfJ5gdxEsMGRJUz2sG9FE42shbn2xkZJh54"
+		did2 := "did:key:z28xDqJhqCm5WSLLP9kcHXA6N5imNeap1akogv3iYkbXhh8szidc2hbd44QZs9R9wRyntHPSUbBSvJfL8Tgv87iqBqGPgTKQUr7EAjNA2FBbZVfHgoC5ySunwdWxffmuTikHrZ2zn"
 		didKey2 := DIDKey(did2)
 		didDoc2, err := didKey2.Expand()
 		assert.NoError(tt, err)
@@ -432,7 +433,7 @@ func TestKnownTestVectors(t *testing.T) {
 	})
 
 	t.Run("P-521", func(tt *testing.T) {
-		did1 := "did:key:z2J9gaYxrKVpdoG9A4gRnmpnRCcxU6agDtFVVBVdn1JedouoZN7SzcyREXXzWgt3gGiwpoHq7K68X4m32D8HgzG8wv3sY5j7"
+		did1 := "did:key:z3ECJtwjQyZEdCHCDuJbLCpmpCb13JCwoyZ9NfDB7TM8YCvd9e1dBUhgd3eMxAwLaxUKrLdyxRqoRbLnpR4p6Fb3GmFWwi437ZqwLjJRQvMWUoKm2A4zjykYQUXoU4VkY1USkhqzy1hRMEZ1CHi8cubrLBextEo7NJytgNdp5dR68bfewFUJ1CftMm"
 		didKey1 := DIDKey(did1)
 		didDoc1, err := didKey1.Expand()
 		assert.NoError(tt, err)
@@ -440,7 +441,7 @@ func TestKnownTestVectors(t *testing.T) {
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
 		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc1.VerificationMethod[0].Type)
 
-		did2 := "did:key:z2J9gcGdb2nEyMDmzQYv2QZQcM1vXktvy1Pw4MduSWxGabLZ9XESSWLQgbuPhwnXN7zP7HpTzWqrMTzaY5zWe6hpzJ2jnw4f"
+		did2 := "did:key:z3ECJtwZ8Cw4w4f9B1AFqZ6CYtbNtoVo5kJmYu6Pn2xAK4cFD1HFdhWLJMoJ3TWF5eyZVGoiChE5bvSJmUG6pHCoNJyYsvMpTALWufZLHUpi9fMRY7gdSxVm1GB5UPK87vakQw62gngJkx2KLTtsw74LQvjYjyvwB4UHGpGxPr1HdHyaDtnkXpyrK1"
 		didKey2 := DIDKey(did2)
 		didDoc2, err := didKey2.Expand()
 		assert.NoError(tt, err)

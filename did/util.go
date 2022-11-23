@@ -41,42 +41,40 @@ func encodePublicKeyWithKeyMultiCodecType(kt crypto.KeyType, pubKey gocrypto.Pub
 	return encoded, nil
 }
 
-func decodeEncodedKey(d string) ([]byte, cryptosuite.LDKeyType, error) {
+func decodeEncodedKey(d string) ([]byte, cryptosuite.LDKeyType, crypto.KeyType, error) {
 	encoding, decoded, err := multibase.Decode(d)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	if encoding != Base58BTCMultiBase {
 		err := fmt.Errorf("expected %d encoding but found %d", Base58BTCMultiBase, encoding)
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	// n = # bytes for the int, which we expect to be two from our multicodec
 	multiCodec, n, err := varint.FromUvarint(decoded)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 	if n != 2 {
 		errMsg := "Error parsing did:key varint"
-		return nil, "", errors.New(errMsg)
+		return nil, "", "", errors.New(errMsg)
 	}
 
 	pubKeyBytes := decoded[n:]
 	multiCodecValue := multicodec.Code(multiCodec)
-	switch multiCodecValue {
-	case Ed25519MultiCodec:
-		return pubKeyBytes, cryptosuite.Ed25519VerificationKey2018, nil
-	case X25519MultiCodec:
-		return pubKeyBytes, cryptosuite.X25519KeyAgreementKey2019, nil
-	case Secp256k1MultiCodec:
-		return pubKeyBytes, cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
-	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
-		return pubKeyBytes, cryptosuite.JSONWebKey2020Type, nil
-	default:
-		err := fmt.Errorf("unknown multicodec for did:key: %d", multiCodecValue)
-		return nil, "", err
+	ldKeyType, err := codecToLDKeyType(multiCodecValue)
+	if err != nil {
+		return nil, "", "", errors.Wrap(err, "codec to ld key type")
 	}
+
+	cryptoKeyType, err := codecToKeyType(multiCodecValue)
+	if err != nil {
+		return nil, "", "", errors.Wrap(err, "codec to key type")
+	}
+
+	return pubKeyBytes, ldKeyType, cryptoKeyType, nil
 }
 
 // decode public key with type

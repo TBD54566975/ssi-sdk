@@ -62,7 +62,7 @@ func (d DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*DIDDocument, er
 	didWebStr := string(d)
 	keyReference := didWebStr + "#owner"
 
-	verificationMethod, err := constructVerificationMethod(didWebStr, keyReference, publicKey, ldKeyType)
+	verificationMethod, err := constructVerificationMethod(didWebStr, keyReference, publicKey, ldKeyType, kt)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not construct verification method for DIDWeb %+v", d)
 		return nil, util.LoggingErrorMsg(err, errMsg)

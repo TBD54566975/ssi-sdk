@@ -203,7 +203,7 @@ func (PeerMethod0) resolve(did DID, _ ResolutionOptions) (*DIDResolutionResult, 
 		return nil, err
 	}
 
-	pubKey, keyType, err := decodeEncodedKey(v)
+	pubKey, keyType, cryptoKeyType, err := decodeEncodedKey(v)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +211,7 @@ func (PeerMethod0) resolve(did DID, _ ResolutionOptions) (*DIDResolutionResult, 
 	keyReference := Hash + v
 	id := string(d)
 
-	verificationMethod, err := constructVerificationMethod(id, keyReference, pubKey, keyType)
+	verificationMethod, err := constructVerificationMethod(id, keyReference, pubKey, keyType, cryptoKeyType)
 	if err != nil {
 		return nil, err
 	}

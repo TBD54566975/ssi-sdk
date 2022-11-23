@@ -118,54 +118,66 @@ func CreateDIDKey(kt crypto.KeyType, publicKey []byte) (*DIDKey, error) {
 }
 
 // Decode takes a did:key and returns the underlying public key value as bytes, the LD key type, and a possible error
-func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, error) {
+func (d DIDKey) Decode() ([]byte, cryptosuite.LDKeyType, crypto.KeyType, error) {
 	parsed, err := d.Suffix()
 	if err != nil {
-		return nil, "", errors.Wrap(err, "could not parse did:key")
+		return nil, "", "", errors.Wrap(err, "could not parse did:key")
 	}
 	if parsed == "" {
 		err := fmt.Errorf("could not decode did:key value: %s", string(d))
 		logrus.WithError(err).Error()
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	encoding, decoded, err := multibase.Decode(parsed)
 	if err != nil {
 		logrus.WithError(err).Error("could not decode did:key")
-		return nil, "", err
+		return nil, "", "", err
 	}
 	if encoding != Base58BTCMultiBase {
 		err := fmt.Errorf("expected %d encoding but found %d", Base58BTCMultiBase, encoding)
 		logrus.WithError(err).Error()
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	// n = # bytes for the int, which we expect to be two from our multicodec
 	multiCodec, n, err := varint.FromUvarint(decoded)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 	if n != 2 {
 		errMsg := "Error parsing did:key varint"
 		logrus.Error(errMsg)
-		return nil, "", errors.New(errMsg)
+		return nil, "", "", errors.New(errMsg)
 	}
 
 	pubKeyBytes := decoded[n:]
 	multiCodecValue := multicodec.Code(multiCodec)
-	switch multiCodecValue {
+	ldKeyType, err := codecToLDKeyType(multiCodecValue)
+	if err != nil {
+		return nil, "", "", errors.Wrap(err, "determining ld key type")
+	}
+	cryptoKeyType, err := codecToKeyType(multiCodecValue)
+	if err != nil {
+		return nil, "", "", errors.Wrap(err, "determining key type")
+	}
+	return pubKeyBytes, ldKeyType, cryptoKeyType, nil
+}
+
+func codecToLDKeyType(codec multicodec.Code) (cryptosuite.LDKeyType, error) {
+	switch codec {
 	case Ed25519MultiCodec:
-		return pubKeyBytes, cryptosuite.Ed25519VerificationKey2018, nil
+		return cryptosuite.Ed25519VerificationKey2018, nil
 	case X25519MultiCodec:
-		return pubKeyBytes, cryptosuite.X25519KeyAgreementKey2019, nil
+		return cryptosuite.X25519KeyAgreementKey2019, nil
 	case Secp256k1MultiCodec:
-		return pubKeyBytes, cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
+		return cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
 	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
-		return pubKeyBytes, cryptosuite.JSONWebKey2020Type, nil
+		return cryptosuite.JSONWebKey2020Type, nil
 	default:
-		err := fmt.Errorf("unknown multicodec for did:key: %d", multiCodecValue)
+		err := fmt.Errorf("unknown multicodec for did:key: %d", codec)
 		logrus.WithError(err).Error()
-		return nil, "", err
+		return "", err
 	}
 }
 
@@ -179,13 +191,13 @@ func (d DIDKey) Expand() (*DIDDocument, error) {
 	keyReference := "#" + parsed
 	id := string(d)
 
-	pubKey, keyType, err := d.Decode()
+	pubKey, keyType, cryptoKeyType, err := d.Decode()
 	if err != nil {
 		logrus.WithError(err).Error("could not decode did:key")
 		return nil, err
 	}
 
-	verificationMethod, err := constructVerificationMethod(id, keyReference, pubKey, keyType)
+	verificationMethod, err := constructVerificationMethod(id, keyReference, pubKey, keyType, cryptoKeyType)
 	if err != nil {
 		logrus.WithError(err).Error("could not construct verification method")
 		return nil, err
@@ -206,7 +218,30 @@ func (d DIDKey) Expand() (*DIDDocument, error) {
 	}, nil
 }
 
-func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType cryptosuite.LDKeyType) (*VerificationMethod, error) {
+func codecToKeyType(codec multicodec.Code) (crypto.KeyType, error) {
+	var kt crypto.KeyType
+	switch codec {
+	case Ed25519MultiCodec:
+		kt = crypto.Ed25519
+	case X25519MultiCodec:
+		kt = crypto.X25519
+	case Secp256k1MultiCodec:
+		kt = crypto.SECP256k1
+	case P256MultiCodec:
+		kt = crypto.P256
+	case P384MultiCodec:
+		kt = crypto.P384
+	case P521MultiCodec:
+		kt = crypto.P521
+	case RSAMultiCodec:
+		kt = crypto.RSA
+	default:
+		return kt, errors.Errorf("codec conversion not found for %d", codec)
+	}
+	return kt, nil
+}
+
+func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType cryptosuite.LDKeyType, cryptoKeyType crypto.KeyType) (*VerificationMethod, error) {
 	if keyType != cryptosuite.JSONWebKey2020Type {
 		return &VerificationMethod{
 			ID:              keyReference,
@@ -216,7 +251,12 @@ func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType
 		}, nil
 	}
 
-	standardJWK, err := jwk.New(pubKey)
+	cryptoPubKey, err := crypto.BytesToPubKey(pubKey, cryptoKeyType)
+	if err != nil {
+		return nil, errors.Wrap(err, "converting bytes to public key")
+	}
+
+	standardJWK, err := jwk.New(cryptoPubKey)
 	if err != nil {
 		errMsg := "could not expand key of type JsonWebKey2020"
 		logrus.WithError(err).Error(errMsg)
