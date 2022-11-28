@@ -39,3 +39,27 @@ func CredentialsFromInterface(genericCred interface{}) (*credential.VerifiableCr
 		return nil, fmt.Errorf("invalid credential type: %s", reflect.TypeOf(genericCred).Kind().String())
 	}
 }
+
+// ClaimAsJSON converts a claim with an unknown interface{} into the go-json representation of that credential.
+// claim can only be of type {string, map[string]interface, VerifiableCredential}.
+func ClaimAsJSON(claim interface{}) (map[string]interface{}, error) {
+	switch c := claim.(type) {
+	case map[string]interface{}:
+		return c, nil
+	default:
+	}
+
+	vc, err := CredentialsFromInterface(claim)
+	if err != nil {
+		return nil, errors.Wrap(err, "credential from interface")
+	}
+	vcData, err := json.Marshal(vc)
+	if err != nil {
+		return nil, errors.Wrap(err, "marshalling credential")
+	}
+	var submittedClaim map[string]interface{}
+	if err := json.Unmarshal(vcData, &submittedClaim); err != nil {
+		return nil, errors.Wrap(err, "unmarshalling credential")
+	}
+	return submittedClaim, nil
+}

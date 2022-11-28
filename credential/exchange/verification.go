@@ -123,7 +123,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 			logrus.WithError(err).Error()
 			return err
 		}
-		submittedClaim, err := getClaimAsJSON(claim)
+		submittedClaim, err := credutil.ClaimAsJSON(claim)
 		if err != nil {
 			err := errors.Wrapf(err, "getting claim as go-json: <%s>", claim)
 			logrus.WithError(err).Error()
@@ -148,28 +148,6 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		}
 	}
 	return nil
-}
-
-func getClaimAsJSON(claim interface{}) (map[string]interface{}, error) {
-	switch c := claim.(type) {
-	case map[string]interface{}:
-		return c, nil
-	default:
-	}
-
-	vc, err := credutil.CredentialsFromInterface(claim)
-	if err != nil {
-		return nil, errors.Wrap(err, "credential from interface")
-	}
-	vcData, err := json.Marshal(vc)
-	if err != nil {
-		return nil, errors.Wrap(err, "marshalling credential")
-	}
-	var submittedClaim map[string]interface{}
-	if err := json.Unmarshal(vcData, &submittedClaim); err != nil {
-		return nil, errors.Wrap(err, "unmarshalling credential")
-	}
-	return submittedClaim, nil
 }
 
 func toPresentationSubmission(maybePresentationSubmission interface{}) (*PresentationSubmission, error) {
