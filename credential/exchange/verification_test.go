@@ -249,4 +249,48 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "matching path for claim could not be found")
 	})
+
+	t.Run("Verification with JWT credential", func(t *testing.T) {
+		def := PresentationDefinition{
+			ID: "test-id",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-1",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								Path:    []string{"$.vc.credentialSubject.company", "$.credentialSubject.company"},
+								ID:      "works-for-block",
+								Purpose: "need to check the company of the subject",
+							},
+						},
+					},
+				},
+			},
+		}
+		signer, _ := getJWKSignerVerifier(t)
+		testVC := getTestVerifiableCredential()
+		vcData, err := signing.SignVerifiableCredentialJWT(*signer, testVC)
+		assert.NoError(t, err)
+		b := NewPresentationSubmissionBuilder(def.ID)
+		assert.NoError(t, b.SetDescriptorMap([]SubmissionDescriptor{
+			{
+				ID:         "id-1",
+				Format:     string(JWTVPTarget),
+				Path:       "$.verifiableCredential[0]",
+				PathNested: nil,
+			},
+		}))
+		ps, err := b.Build()
+		assert.NoError(t, err)
+
+		vpBuilder := credential.NewVerifiablePresentationBuilder()
+		assert.NoError(t, vpBuilder.SetPresentationSubmission(ps))
+		assert.NoError(t, vpBuilder.AddVerifiableCredentials([]interface{}{string(vcData)}...))
+		vp2, err := vpBuilder.Build()
+		assert.NoError(t, err)
+		vp := *vp2
+
+		assert.NoError(t, VerifyPresentationSubmissionVP(def, vp))
+	})
 }

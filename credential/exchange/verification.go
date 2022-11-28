@@ -2,6 +2,7 @@ package exchange
 
 import (
 	"fmt"
+	credutil "github.com/TBD54566975/ssi-sdk/credential/util"
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -115,10 +116,16 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		}
 
 		// resolve the claim from the JSON path expression in the submission descriptor
-		submittedClaim, err := jsonpath.JsonPathLookup(vpJSON, submissionDescriptor.Path)
+		claim, err := jsonpath.JsonPathLookup(vpJSON, submissionDescriptor.Path)
 		if err != nil {
 			err := errors.Wrapf(err, "could not resolve claim from submission descriptor<%s> with path: %s",
 				submissionDescriptor.ID, submissionDescriptor.Path)
+			logrus.WithError(err).Error()
+			return err
+		}
+		submittedClaim, err := credutil.ClaimAsJSON(claim)
+		if err != nil {
+			err := errors.Wrapf(err, "getting claim as go-json: <%s>", claim)
 			logrus.WithError(err).Error()
 			return err
 		}
