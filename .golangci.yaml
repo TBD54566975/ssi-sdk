@@ -34,7 +34,7 @@ linters-settings:
       - name: banned-characters
         severity: warning
         disabled: false
-        arguments: [ "Ω", "Σ", "σ"]
+        arguments: [ "Ω", "Σ", "σ" ]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#bare-return
       - name: bare-return
         severity: warning

@@ -132,7 +132,7 @@ func TestLDProcessor(t *testing.T) {
 		}
 
 		activeCtx, err := ldProcessor.GetContextFromMap(contextMap)
-		//expected activeCtx output is &{values:map[@base: processingMode:json-ld-1.1] options:0xc0001288f0 termDefinitions:map[dc:map[@id:http://purl.org/dc/elements/1.1/ @reverse:false _prefix:true] ex:map[@id:http://example.org/vocab# @reverse:false _prefix:true] ex:contains:map[@id:http://example.org/vocab#contains @reverse:false @type:@id]] inverse:map[] protected:map[] previousContext:<nil>}
+		// expected activeCtx output is &{values:map[@base: processingMode:json-ld-1.1] options:0xc0001288f0 termDefinitions:map[dc:map[@id:http://purl.org/dc/elements/1.1/ @reverse:false _prefix:true] ex:map[@id:http://example.org/vocab# @reverse:false _prefix:true] ex:contains:map[@id:http://example.org/vocab#contains @reverse:false @type:@id]] inverse:map[] protected:map[] previousContext:<nil>}
 		assert.NoError(tt, err)
 		assert.NotNil(tt, activeCtx)
 	})

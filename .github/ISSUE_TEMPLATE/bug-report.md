@@ -12,6 +12,7 @@ assignees: nitro-neal, decentralgabe
 
 **To Reproduce**
 *Steps to reproduce the behavior:*
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
@@ -24,8 +25,9 @@ assignees: nitro-neal, decentralgabe
 *If applicable, add screenshots and/or other documentation to help explain your problem.*
 
 **Environment (please complete the following information):**
- - OS: [e.g. iOS]
- - Version [e.g. 22]
+
+- OS: [e.g. iOS]
+- Version [e.g. 22]
 
 **Additional context**
 Add any other context about the problem here.
