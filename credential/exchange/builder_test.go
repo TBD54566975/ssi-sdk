@@ -1,9 +1,9 @@
 package exchange
 
 import (
+	"encoding/json"
 	"testing"
 
-	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 

@@ -1,1 +1,1331 @@
-{"$schema":"http://json-schema.org/draft-07/schema#","title":"Presentation Definition Envelope","type":"object","definitions":{"field":{"type":"object","oneOf":[{"properties":{"filter":{"$schema":"http://json-schema.org/draft-07/schema#","$id":"http://json-schema.org/draft-07/schema#","title":"Core schema meta-schema","type":["object","boolean"],"default":true,"definitions":{"nonNegativeInteger":{"type":"integer","minimum":0},"nonNegativeIntegerDefault0":{"allOf":[{"$ref":"#/definitions/nonNegativeInteger"},{"default":0}]},"schemaArray":{"type":"array","items":{"$ref":"#"},"minItems":1},"simpleTypes":{"enum":["array","boolean","integer","null","number","object","string"]},"stringArray":{"type":"array","default":[],"items":{"type":"string"},"uniqueItems":true}},"properties":{"$comment":{"type":"string"},"$id":{"type":"string","format":"uri-reference"},"$ref":{"type":"string","format":"uri-reference"},"$schema":{"type":"string","format":"uri"},"additionalItems":{"$ref":"#"},"additionalProperties":{"$ref":"#"},"allOf":{"$ref":"#/definitions/schemaArray"},"anyOf":{"$ref":"#/definitions/schemaArray"},"const":true,"contains":{"$ref":"#"},"contentEncoding":{"type":"string"},"contentMediaType":{"type":"string"},"default":true,"definitions":{"type":"object","default":{},"additionalProperties":{"$ref":"#"}},"dependencies":{"type":"object","additionalProperties":{"anyOf":[{"$ref":"#"},{"$ref":"#/definitions/stringArray"}]}},"description":{"type":"string"},"else":{"$ref":"#"},"enum":{"type":"array","items":true,"minItems":1,"uniqueItems":true},"examples":{"type":"array","items":true},"exclusiveMaximum":{"type":"number"},"exclusiveMinimum":{"type":"number"},"format":{"type":"string"},"if":{"$ref":"#"},"items":{"default":true,"anyOf":[{"$ref":"#"},{"$ref":"#/definitions/schemaArray"}]},"maxItems":{"$ref":"#/definitions/nonNegativeInteger"},"maxLength":{"$ref":"#/definitions/nonNegativeInteger"},"maxProperties":{"$ref":"#/definitions/nonNegativeInteger"},"maximum":{"type":"number"},"minItems":{"$ref":"#/definitions/nonNegativeIntegerDefault0"},"minLength":{"$ref":"#/definitions/nonNegativeIntegerDefault0"},"minProperties":{"$ref":"#/definitions/nonNegativeIntegerDefault0"},"minimum":{"type":"number"},"multipleOf":{"type":"number","exclusiveMinimum":0},"not":{"$ref":"#"},"oneOf":{"$ref":"#/definitions/schemaArray"},"pattern":{"type":"string","format":"regex"},"patternProperties":{"type":"object","default":{},"additionalProperties":{"$ref":"#"},"propertyNames":{"format":"regex"}},"properties":{"type":"object","default":{},"additionalProperties":{"$ref":"#"}},"propertyNames":{"$ref":"#"},"readOnly":{"type":"boolean","default":false},"required":{"$ref":"#/definitions/stringArray"},"then":{"$ref":"#"},"title":{"type":"string"},"type":{"anyOf":[{"$ref":"#/definitions/simpleTypes"},{"type":"array","items":{"$ref":"#/definitions/simpleTypes"},"minItems":1,"uniqueItems":true}]},"uniqueItems":{"type":"boolean","default":false},"writeOnly":{"type":"boolean","default":false}}},"id":{"type":"string"},"intent_to_retain":{"type":"boolean"},"optional":{"type":"boolean"},"path":{"type":"array","items":{"type":"string"}},"purpose":{"type":"string"}},"required":["path"],"additionalProperties":false},{"properties":{"filter":{"$schema":"http://json-schema.org/draft-07/schema#","$id":"http://json-schema.org/draft-07/schema#","title":"Core schema meta-schema","type":["object","boolean"],"default":true,"definitions":{"nonNegativeInteger":{"type":"integer","minimum":0},"nonNegativeIntegerDefault0":{"allOf":[{"$ref":"#/definitions/nonNegativeInteger"},{"default":0}]},"schemaArray":{"type":"array","items":{"$ref":"#"},"minItems":1},"simpleTypes":{"enum":["array","boolean","integer","null","number","object","string"]},"stringArray":{"type":"array","default":[],"items":{"type":"string"},"uniqueItems":true}},"properties":{"$comment":{"type":"string"},"$id":{"type":"string","format":"uri-reference"},"$ref":{"type":"string","format":"uri-reference"},"$schema":{"type":"string","format":"uri"},"additionalItems":{"$ref":"#"},"additionalProperties":{"$ref":"#"},"allOf":{"$ref":"#/definitions/schemaArray"},"anyOf":{"$ref":"#/definitions/schemaArray"},"const":true,"contains":{"$ref":"#"},"contentEncoding":{"type":"string"},"contentMediaType":{"type":"string"},"default":true,"definitions":{"type":"object","default":{},"additionalProperties":{"$ref":"#"}},"dependencies":{"type":"object","additionalProperties":{"anyOf":[{"$ref":"#"},{"$ref":"#/definitions/stringArray"}]}},"description":{"type":"string"},"else":{"$ref":"#"},"enum":{"type":"array","items":true,"minItems":1,"uniqueItems":true},"examples":{"type":"array","items":true},"exclusiveMaximum":{"type":"number"},"exclusiveMinimum":{"type":"number"},"format":{"type":"string"},"if":{"$ref":"#"},"items":{"default":true,"anyOf":[{"$ref":"#"},{"$ref":"#/definitions/schemaArray"}]},"maxItems":{"$ref":"#/definitions/nonNegativeInteger"},"maxLength":{"$ref":"#/definitions/nonNegativeInteger"},"maxProperties":{"$ref":"#/definitions/nonNegativeInteger"},"maximum":{"type":"number"},"minItems":{"$ref":"#/definitions/nonNegativeIntegerDefault0"},"minLength":{"$ref":"#/definitions/nonNegativeIntegerDefault0"},"minProperties":{"$ref":"#/definitions/nonNegativeIntegerDefault0"},"minimum":{"type":"number"},"multipleOf":{"type":"number","exclusiveMinimum":0},"not":{"$ref":"#"},"oneOf":{"$ref":"#/definitions/schemaArray"},"pattern":{"type":"string","format":"regex"},"patternProperties":{"type":"object","default":{},"additionalProperties":{"$ref":"#"},"propertyNames":{"format":"regex"}},"properties":{"type":"object","default":{},"additionalProperties":{"$ref":"#"}},"propertyNames":{"$ref":"#"},"readOnly":{"type":"boolean","default":false},"required":{"$ref":"#/definitions/stringArray"},"then":{"$ref":"#"},"title":{"type":"string"},"type":{"anyOf":[{"$ref":"#/definitions/simpleTypes"},{"type":"array","items":{"$ref":"#/definitions/simpleTypes"},"minItems":1,"uniqueItems":true}]},"uniqueItems":{"type":"boolean","default":false},"writeOnly":{"type":"boolean","default":false}}},"id":{"type":"string"},"intent_to_retain":{"type":"boolean"},"optional":{"type":"boolean"},"path":{"type":"array","items":{"type":"string"}},"predicate":{"type":"string","enum":["required","preferred"]},"purpose":{"type":"string"}},"required":["path","filter","predicate"],"additionalProperties":false}]},"input_descriptor":{"type":"object","properties":{"constraints":{"type":"object","properties":{"fields":{"type":"array","items":{"type":"object","oneOf":[{"properties":{"filter":{"$ref":"http://json-schema.org/draft-07/schema#"},"id":{"type":"string"},"intent_to_retain":{"type":"boolean"},"optional":{"type":"boolean"},"path":{"type":"array","items":{"type":"string"}},"purpose":{"type":"string"}},"required":["path"],"additionalProperties":false},{"properties":{"filter":{"$ref":"http://json-schema.org/draft-07/schema#"},"id":{"type":"string"},"intent_to_retain":{"type":"boolean"},"optional":{"type":"boolean"},"path":{"type":"array","items":{"type":"string"}},"predicate":{"type":"string","enum":["required","preferred"]},"purpose":{"type":"string"}},"required":["path","filter","predicate"],"additionalProperties":false}]}},"is_holder":{"type":"array","items":{"type":"object","properties":{"directive":{"type":"string","enum":["required","preferred"]},"field_id":{"type":"array","items":{"type":"string"}}},"required":["field_id","directive"],"additionalProperties":false}},"limit_disclosure":{"type":"string","enum":["required","preferred"]},"same_subject":{"type":"array","items":{"type":"object","properties":{"directive":{"type":"string","enum":["required","preferred"]},"field_id":{"type":"array","items":{"type":"string"}}},"required":["field_id","directive"],"additionalProperties":false}},"statuses":{"type":"object","properties":{"active":{"type":"object","properties":{"directive":{"type":"string","enum":["required","allowed","disallowed"]},"type":{"type":"array","items":{"type":"string"},"minItems":1}},"additionalProperties":false},"revoked":{"type":"object","properties":{"directive":{"type":"string","enum":["required","allowed","disallowed"]},"type":{"type":"array","items":{"type":"string"},"minItems":1}},"additionalProperties":false},"suspended":{"type":"object","properties":{"directive":{"type":"string","enum":["required","allowed","disallowed"]},"type":{"type":"array","items":{"type":"string"},"minItems":1}},"additionalProperties":false}},"additionalProperties":false},"subject_is_issuer":{"type":"string","enum":["required","preferred"]}},"additionalProperties":false},"format":{"$schema":"http://json-schema.org/draft-07/schema#","$id":"http://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json","title":"Presentation Definition Claim Format Designations","type":"object","patternProperties":{"^jwt$|^jwt_vc$|^jwt_vp$":{"type":"object","properties":{"alg":{"type":"array","items":{"type":"string"},"minItems":1}},"additionalProperties":false},"^ldp_vc$|^ldp_vp$|^ldp$":{"type":"object","properties":{"proof_type":{"type":"array","items":{"type":"string"},"minItems":1}},"additionalProperties":false}},"additionalProperties":false},"group":{"type":"array","items":{"type":"string"}},"id":{"type":"string"},"name":{"type":"string"},"purpose":{"type":"string"}},"required":["id","constraints"],"additionalProperties":false},"presentation_definition":{"type":"object","properties":{"format":{"$schema":"http://json-schema.org/draft-07/schema#","$id":"http://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json","title":"Presentation Definition Claim Format Designations","type":"object","patternProperties":{"^jwt$|^jwt_vc$|^jwt_vp$":{"type":"object","properties":{"alg":{"type":"array","items":{"type":"string"},"minItems":1}},"additionalProperties":false},"^ldp_vc$|^ldp_vp$|^ldp$":{"type":"object","properties":{"proof_type":{"type":"array","items":{"type":"string"},"minItems":1}},"additionalProperties":false}},"additionalProperties":false},"frame":{"type":"object","additionalProperties":true},"id":{"type":"string"},"input_descriptors":{"type":"array","items":{"type":"object","properties":{"constraints":{"type":"object","properties":{"fields":{"type":"array","items":{"$ref":"#/definitions/field"}},"is_holder":{"type":"array","items":{"type":"object","properties":{"directive":{"type":"string","enum":["required","preferred"]},"field_id":{"type":"array","items":{"type":"string"}}},"required":["field_id","directive"],"additionalProperties":false}},"limit_disclosure":{"type":"string","enum":["required","preferred"]},"same_subject":{"type":"array","items":{"type":"object","properties":{"directive":{"type":"string","enum":["required","preferred"]},"field_id":{"type":"array","items":{"type":"string"}}},"required":["field_id","directive"],"additionalProperties":false}},"statuses":{"type":"object","properties":{"active":{"$ref":"#/definitions/status_directive"},"revoked":{"$ref":"#/definitions/status_directive"},"suspended":{"$ref":"#/definitions/status_directive"}},"additionalProperties":false},"subject_is_issuer":{"type":"string","enum":["required","preferred"]}},"additionalProperties":false},"format":{"$ref":"http://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json"},"group":{"type":"array","items":{"type":"string"}},"id":{"type":"string"},"name":{"type":"string"},"purpose":{"type":"string"}},"required":["id","constraints"],"additionalProperties":false}},"name":{"type":"string"},"purpose":{"type":"string"},"submission_requirements":{"type":"array","items":{"type":"object","oneOf":[{"properties":{"count":{"type":"integer","minimum":1},"from":{"type":"string"},"max":{"type":"integer","minimum":0},"min":{"type":"integer","minimum":0},"name":{"type":"string"},"purpose":{"type":"string"},"rule":{"type":"string","enum":["all","pick"]}},"required":["rule","from"],"additionalProperties":false},{"properties":{"count":{"type":"integer","minimum":1},"from_nested":{"type":"array","items":{"$ref":"#/definitions/submission_requirement"},"minItems":1},"max":{"type":"integer","minimum":0},"min":{"type":"integer","minimum":0},"name":{"type":"string"},"purpose":{"type":"string"},"rule":{"type":"string","enum":["all","pick"]}},"required":["rule","from_nested"],"additionalProperties":false}]}}},"required":["id","input_descriptors"],"additionalProperties":false},"status_directive":{"type":"object","properties":{"directive":{"type":"string","enum":["required","allowed","disallowed"]},"type":{"type":"array","items":{"type":"string"},"minItems":1}},"additionalProperties":false},"submission_requirement":{"type":"object","oneOf":[{"properties":{"count":{"type":"integer","minimum":1},"from":{"type":"string"},"max":{"type":"integer","minimum":0},"min":{"type":"integer","minimum":0},"name":{"type":"string"},"purpose":{"type":"string"},"rule":{"type":"string","enum":["all","pick"]}},"required":["rule","from"],"additionalProperties":false},{"properties":{"count":{"type":"integer","minimum":1},"from_nested":{"type":"array","items":{"type":"object","oneOf":[{"properties":{"count":{"type":"integer","minimum":1},"from":{"type":"string"},"max":{"type":"integer","minimum":0},"min":{"type":"integer","minimum":0},"name":{"type":"string"},"purpose":{"type":"string"},"rule":{"type":"string","enum":["all","pick"]}},"required":["rule","from"],"additionalProperties":false},{"properties":{"count":{"type":"integer","minimum":1},"from_nested":{"type":"array","items":{"$ref":"#/definitions/submission_requirement"},"minItems":1},"max":{"type":"integer","minimum":0},"min":{"type":"integer","minimum":0},"name":{"type":"string"},"purpose":{"type":"string"},"rule":{"type":"string","enum":["all","pick"]}},"required":["rule","from_nested"],"additionalProperties":false}]},"minItems":1},"max":{"type":"integer","minimum":0},"min":{"type":"integer","minimum":0},"name":{"type":"string"},"purpose":{"type":"string"},"rule":{"type":"string","enum":["all","pick"]}},"required":["rule","from_nested"],"additionalProperties":false}]}},"properties":{"presentation_definition":{"type":"object","properties":{"format":{"$ref":"http://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json#"},"frame":{"type":"object","additionalProperties":true},"id":{"type":"string"},"input_descriptors":{"type":"array","items":{"$ref":"#/definitions/input_descriptor"}},"name":{"type":"string"},"purpose":{"type":"string"},"submission_requirements":{"type":"array","items":{"$ref":"#/definitions/submission_requirement"}}},"required":["id","input_descriptors"],"additionalProperties":false}}}
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Presentation Definition Envelope",
+  "type": "object",
+  "definitions": {
+    "field": {
+      "type": "object",
+      "oneOf": [
+        {
+          "properties": {
+            "filter": {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "$id": "http://json-schema.org/draft-07/schema#",
+              "title": "Core schema meta-schema",
+              "type": [
+                "object",
+                "boolean"
+              ],
+              "default": true,
+              "definitions": {
+                "nonNegativeInteger": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "nonNegativeIntegerDefault0": {
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/nonNegativeInteger"
+                    },
+                    {
+                      "default": 0
+                    }
+                  ]
+                },
+                "schemaArray": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#"
+                  },
+                  "minItems": 1
+                },
+                "simpleTypes": {
+                  "enum": [
+                    "array",
+                    "boolean",
+                    "integer",
+                    "null",
+                    "number",
+                    "object",
+                    "string"
+                  ]
+                },
+                "stringArray": {
+                  "type": "array",
+                  "default": [],
+                  "items": {
+                    "type": "string"
+                  },
+                  "uniqueItems": true
+                }
+              },
+              "properties": {
+                "$comment": {
+                  "type": "string"
+                },
+                "$id": {
+                  "type": "string",
+                  "format": "uri-reference"
+                },
+                "$ref": {
+                  "type": "string",
+                  "format": "uri-reference"
+                },
+                "$schema": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "additionalItems": {
+                  "$ref": "#"
+                },
+                "additionalProperties": {
+                  "$ref": "#"
+                },
+                "allOf": {
+                  "$ref": "#/definitions/schemaArray"
+                },
+                "anyOf": {
+                  "$ref": "#/definitions/schemaArray"
+                },
+                "const": true,
+                "contains": {
+                  "$ref": "#"
+                },
+                "contentEncoding": {
+                  "type": "string"
+                },
+                "contentMediaType": {
+                  "type": "string"
+                },
+                "default": true,
+                "definitions": {
+                  "type": "object",
+                  "default": {},
+                  "additionalProperties": {
+                    "$ref": "#"
+                  }
+                },
+                "dependencies": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "$ref": "#"
+                      },
+                      {
+                        "$ref": "#/definitions/stringArray"
+                      }
+                    ]
+                  }
+                },
+                "description": {
+                  "type": "string"
+                },
+                "else": {
+                  "$ref": "#"
+                },
+                "enum": {
+                  "type": "array",
+                  "items": true,
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
+                "examples": {
+                  "type": "array",
+                  "items": true
+                },
+                "exclusiveMaximum": {
+                  "type": "number"
+                },
+                "exclusiveMinimum": {
+                  "type": "number"
+                },
+                "format": {
+                  "type": "string"
+                },
+                "if": {
+                  "$ref": "#"
+                },
+                "items": {
+                  "default": true,
+                  "anyOf": [
+                    {
+                      "$ref": "#"
+                    },
+                    {
+                      "$ref": "#/definitions/schemaArray"
+                    }
+                  ]
+                },
+                "maxItems": {
+                  "$ref": "#/definitions/nonNegativeInteger"
+                },
+                "maxLength": {
+                  "$ref": "#/definitions/nonNegativeInteger"
+                },
+                "maxProperties": {
+                  "$ref": "#/definitions/nonNegativeInteger"
+                },
+                "maximum": {
+                  "type": "number"
+                },
+                "minItems": {
+                  "$ref": "#/definitions/nonNegativeIntegerDefault0"
+                },
+                "minLength": {
+                  "$ref": "#/definitions/nonNegativeIntegerDefault0"
+                },
+                "minProperties": {
+                  "$ref": "#/definitions/nonNegativeIntegerDefault0"
+                },
+                "minimum": {
+                  "type": "number"
+                },
+                "multipleOf": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "not": {
+                  "$ref": "#"
+                },
+                "oneOf": {
+                  "$ref": "#/definitions/schemaArray"
+                },
+                "pattern": {
+                  "type": "string",
+                  "format": "regex"
+                },
+                "patternProperties": {
+                  "type": "object",
+                  "default": {},
+                  "additionalProperties": {
+                    "$ref": "#"
+                  },
+                  "propertyNames": {
+                    "format": "regex"
+                  }
+                },
+                "properties": {
+                  "type": "object",
+                  "default": {},
+                  "additionalProperties": {
+                    "$ref": "#"
+                  }
+                },
+                "propertyNames": {
+                  "$ref": "#"
+                },
+                "readOnly": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "required": {
+                  "$ref": "#/definitions/stringArray"
+                },
+                "then": {
+                  "$ref": "#"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "type": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/simpleTypes"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/simpleTypes"
+                      },
+                      "minItems": 1,
+                      "uniqueItems": true
+                    }
+                  ]
+                },
+                "uniqueItems": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "writeOnly": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            },
+            "id": {
+              "type": "string"
+            },
+            "intent_to_retain": {
+              "type": "boolean"
+            },
+            "optional": {
+              "type": "boolean"
+            },
+            "path": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "purpose": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "filter": {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "$id": "http://json-schema.org/draft-07/schema#",
+              "title": "Core schema meta-schema",
+              "type": [
+                "object",
+                "boolean"
+              ],
+              "default": true,
+              "definitions": {
+                "nonNegativeInteger": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "nonNegativeIntegerDefault0": {
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/nonNegativeInteger"
+                    },
+                    {
+                      "default": 0
+                    }
+                  ]
+                },
+                "schemaArray": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#"
+                  },
+                  "minItems": 1
+                },
+                "simpleTypes": {
+                  "enum": [
+                    "array",
+                    "boolean",
+                    "integer",
+                    "null",
+                    "number",
+                    "object",
+                    "string"
+                  ]
+                },
+                "stringArray": {
+                  "type": "array",
+                  "default": [],
+                  "items": {
+                    "type": "string"
+                  },
+                  "uniqueItems": true
+                }
+              },
+              "properties": {
+                "$comment": {
+                  "type": "string"
+                },
+                "$id": {
+                  "type": "string",
+                  "format": "uri-reference"
+                },
+                "$ref": {
+                  "type": "string",
+                  "format": "uri-reference"
+                },
+                "$schema": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "additionalItems": {
+                  "$ref": "#"
+                },
+                "additionalProperties": {
+                  "$ref": "#"
+                },
+                "allOf": {
+                  "$ref": "#/definitions/schemaArray"
+                },
+                "anyOf": {
+                  "$ref": "#/definitions/schemaArray"
+                },
+                "const": true,
+                "contains": {
+                  "$ref": "#"
+                },
+                "contentEncoding": {
+                  "type": "string"
+                },
+                "contentMediaType": {
+                  "type": "string"
+                },
+                "default": true,
+                "definitions": {
+                  "type": "object",
+                  "default": {},
+                  "additionalProperties": {
+                    "$ref": "#"
+                  }
+                },
+                "dependencies": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "$ref": "#"
+                      },
+                      {
+                        "$ref": "#/definitions/stringArray"
+                      }
+                    ]
+                  }
+                },
+                "description": {
+                  "type": "string"
+                },
+                "else": {
+                  "$ref": "#"
+                },
+                "enum": {
+                  "type": "array",
+                  "items": true,
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
+                "examples": {
+                  "type": "array",
+                  "items": true
+                },
+                "exclusiveMaximum": {
+                  "type": "number"
+                },
+                "exclusiveMinimum": {
+                  "type": "number"
+                },
+                "format": {
+                  "type": "string"
+                },
+                "if": {
+                  "$ref": "#"
+                },
+                "items": {
+                  "default": true,
+                  "anyOf": [
+                    {
+                      "$ref": "#"
+                    },
+                    {
+                      "$ref": "#/definitions/schemaArray"
+                    }
+                  ]
+                },
+                "maxItems": {
+                  "$ref": "#/definitions/nonNegativeInteger"
+                },
+                "maxLength": {
+                  "$ref": "#/definitions/nonNegativeInteger"
+                },
+                "maxProperties": {
+                  "$ref": "#/definitions/nonNegativeInteger"
+                },
+                "maximum": {
+                  "type": "number"
+                },
+                "minItems": {
+                  "$ref": "#/definitions/nonNegativeIntegerDefault0"
+                },
+                "minLength": {
+                  "$ref": "#/definitions/nonNegativeIntegerDefault0"
+                },
+                "minProperties": {
+                  "$ref": "#/definitions/nonNegativeIntegerDefault0"
+                },
+                "minimum": {
+                  "type": "number"
+                },
+                "multipleOf": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "not": {
+                  "$ref": "#"
+                },
+                "oneOf": {
+                  "$ref": "#/definitions/schemaArray"
+                },
+                "pattern": {
+                  "type": "string",
+                  "format": "regex"
+                },
+                "patternProperties": {
+                  "type": "object",
+                  "default": {},
+                  "additionalProperties": {
+                    "$ref": "#"
+                  },
+                  "propertyNames": {
+                    "format": "regex"
+                  }
+                },
+                "properties": {
+                  "type": "object",
+                  "default": {},
+                  "additionalProperties": {
+                    "$ref": "#"
+                  }
+                },
+                "propertyNames": {
+                  "$ref": "#"
+                },
+                "readOnly": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "required": {
+                  "$ref": "#/definitions/stringArray"
+                },
+                "then": {
+                  "$ref": "#"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "type": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/simpleTypes"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/simpleTypes"
+                      },
+                      "minItems": 1,
+                      "uniqueItems": true
+                    }
+                  ]
+                },
+                "uniqueItems": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "writeOnly": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            },
+            "id": {
+              "type": "string"
+            },
+            "intent_to_retain": {
+              "type": "boolean"
+            },
+            "optional": {
+              "type": "boolean"
+            },
+            "path": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "predicate": {
+              "type": "string",
+              "enum": [
+                "required",
+                "preferred"
+              ]
+            },
+            "purpose": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "filter",
+            "predicate"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "input_descriptor": {
+      "type": "object",
+      "properties": {
+        "constraints": {
+          "type": "object",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "oneOf": [
+                  {
+                    "properties": {
+                      "filter": {
+                        "$ref": "http://json-schema.org/draft-07/schema#"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "intent_to_retain": {
+                        "type": "boolean"
+                      },
+                      "optional": {
+                        "type": "boolean"
+                      },
+                      "path": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "purpose": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "properties": {
+                      "filter": {
+                        "$ref": "http://json-schema.org/draft-07/schema#"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "intent_to_retain": {
+                        "type": "boolean"
+                      },
+                      "optional": {
+                        "type": "boolean"
+                      },
+                      "path": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "predicate": {
+                        "type": "string",
+                        "enum": [
+                          "required",
+                          "preferred"
+                        ]
+                      },
+                      "purpose": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "filter",
+                      "predicate"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "is_holder": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "directive": {
+                    "type": "string",
+                    "enum": [
+                      "required",
+                      "preferred"
+                    ]
+                  },
+                  "field_id": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "field_id",
+                  "directive"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "limit_disclosure": {
+              "type": "string",
+              "enum": [
+                "required",
+                "preferred"
+              ]
+            },
+            "same_subject": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "directive": {
+                    "type": "string",
+                    "enum": [
+                      "required",
+                      "preferred"
+                    ]
+                  },
+                  "field_id": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "field_id",
+                  "directive"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "statuses": {
+              "type": "object",
+              "properties": {
+                "active": {
+                  "type": "object",
+                  "properties": {
+                    "directive": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "allowed",
+                        "disallowed"
+                      ]
+                    },
+                    "type": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "minItems": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "revoked": {
+                  "type": "object",
+                  "properties": {
+                    "directive": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "allowed",
+                        "disallowed"
+                      ]
+                    },
+                    "type": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "minItems": 1
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "suspended": {
+                  "type": "object",
+                  "properties": {
+                    "directive": {
+                      "type": "string",
+                      "enum": [
+                        "required",
+                        "allowed",
+                        "disallowed"
+                      ]
+                    },
+                    "type": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "minItems": 1
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "subject_is_issuer": {
+              "type": "string",
+              "enum": [
+                "required",
+                "preferred"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "format": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "$id": "http://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json",
+          "title": "Presentation Definition Claim Format Designations",
+          "type": "object",
+          "patternProperties": {
+            "^jwt$|^jwt_vc$|^jwt_vp$": {
+              "type": "object",
+              "properties": {
+                "alg": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "^ldp_vc$|^ldp_vp$|^ldp$": {
+              "type": "object",
+              "properties": {
+                "proof_type": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "group": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "constraints"
+      ],
+      "additionalProperties": false
+    },
+    "presentation_definition": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "$id": "http://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json",
+          "title": "Presentation Definition Claim Format Designations",
+          "type": "object",
+          "patternProperties": {
+            "^jwt$|^jwt_vc$|^jwt_vp$": {
+              "type": "object",
+              "properties": {
+                "alg": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "^ldp_vc$|^ldp_vp$|^ldp$": {
+              "type": "object",
+              "properties": {
+                "proof_type": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "frame": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "id": {
+          "type": "string"
+        },
+        "input_descriptors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "constraints": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/field"
+                    }
+                  },
+                  "is_holder": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "directive": {
+                          "type": "string",
+                          "enum": [
+                            "required",
+                            "preferred"
+                          ]
+                        },
+                        "field_id": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "field_id",
+                        "directive"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "limit_disclosure": {
+                    "type": "string",
+                    "enum": [
+                      "required",
+                      "preferred"
+                    ]
+                  },
+                  "same_subject": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "directive": {
+                          "type": "string",
+                          "enum": [
+                            "required",
+                            "preferred"
+                          ]
+                        },
+                        "field_id": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "field_id",
+                        "directive"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "statuses": {
+                    "type": "object",
+                    "properties": {
+                      "active": {
+                        "$ref": "#/definitions/status_directive"
+                      },
+                      "revoked": {
+                        "$ref": "#/definitions/status_directive"
+                      },
+                      "suspended": {
+                        "$ref": "#/definitions/status_directive"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "subject_is_issuer": {
+                    "type": "string",
+                    "enum": [
+                      "required",
+                      "preferred"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "format": {
+                "$ref": "http://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json"
+              },
+              "group": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "purpose": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "constraints"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "submission_requirements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "oneOf": [
+              {
+                "properties": {
+                  "count": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "from": {
+                    "type": "string"
+                  },
+                  "max": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "min": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "purpose": {
+                    "type": "string"
+                  },
+                  "rule": {
+                    "type": "string",
+                    "enum": [
+                      "all",
+                      "pick"
+                    ]
+                  }
+                },
+                "required": [
+                  "rule",
+                  "from"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "properties": {
+                  "count": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "from_nested": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/submission_requirement"
+                    },
+                    "minItems": 1
+                  },
+                  "max": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "min": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "purpose": {
+                    "type": "string"
+                  },
+                  "rule": {
+                    "type": "string",
+                    "enum": [
+                      "all",
+                      "pick"
+                    ]
+                  }
+                },
+                "required": [
+                  "rule",
+                  "from_nested"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "id",
+        "input_descriptors"
+      ],
+      "additionalProperties": false
+    },
+    "status_directive": {
+      "type": "object",
+      "properties": {
+        "directive": {
+          "type": "string",
+          "enum": [
+            "required",
+            "allowed",
+            "disallowed"
+          ]
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "submission_requirement": {
+      "type": "object",
+      "oneOf": [
+        {
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "from": {
+              "type": "string"
+            },
+            "max": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "min": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "name": {
+              "type": "string"
+            },
+            "purpose": {
+              "type": "string"
+            },
+            "rule": {
+              "type": "string",
+              "enum": [
+                "all",
+                "pick"
+              ]
+            }
+          },
+          "required": [
+            "rule",
+            "from"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "from_nested": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "oneOf": [
+                  {
+                    "properties": {
+                      "count": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "from": {
+                        "type": "string"
+                      },
+                      "max": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "min": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purpose": {
+                        "type": "string"
+                      },
+                      "rule": {
+                        "type": "string",
+                        "enum": [
+                          "all",
+                          "pick"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "rule",
+                      "from"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "properties": {
+                      "count": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "from_nested": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/submission_requirement"
+                        },
+                        "minItems": 1
+                      },
+                      "max": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "min": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purpose": {
+                        "type": "string"
+                      },
+                      "rule": {
+                        "type": "string",
+                        "enum": [
+                          "all",
+                          "pick"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "rule",
+                      "from_nested"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "minItems": 1
+            },
+            "max": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "min": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "name": {
+              "type": "string"
+            },
+            "purpose": {
+              "type": "string"
+            },
+            "rule": {
+              "type": "string",
+              "enum": [
+                "all",
+                "pick"
+              ]
+            }
+          },
+          "required": [
+            "rule",
+            "from_nested"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "properties": {
+    "presentation_definition": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "$ref": "http://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json#"
+        },
+        "frame": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "id": {
+          "type": "string"
+        },
+        "input_descriptors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/input_descriptor"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "submission_requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/submission_requirement"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "input_descriptors"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

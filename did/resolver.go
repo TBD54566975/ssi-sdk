@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/pkg/errors"
 )
 
@@ -33,7 +32,7 @@ func NewResolver(resolvers ...Resolution) (*Resolver, error) {
 	for _, resolver := range resolvers {
 		method := resolver.Method()
 		if _, ok := r[method]; ok {
-			return nil, util.LoggingNewError(fmt.Sprintf("duplicate resolver for method: %s", method))
+			return nil, fmt.Errorf("duplicate resolver for method: %s", method)
 		}
 		r[method] = resolver
 		methods = append(methods, method)
@@ -50,7 +49,7 @@ func (dr Resolver) Resolve(did string, opts ...ResolutionOptions) (*DIDResolutio
 	if resolver, ok := dr.resolvers[method]; ok {
 		return resolver.Resolve(did, opts)
 	}
-	return nil, util.LoggingNewError(fmt.Sprintf("unsupported method: %s", method))
+	return nil, fmt.Errorf("unsupported method: %s", method)
 }
 
 func (dr Resolver) SupportedMethods() []Method {

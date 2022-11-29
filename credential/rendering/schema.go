@@ -1,11 +1,9 @@
 package rendering
 
 import (
+	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
-	"github.com/TBD54566975/ssi-sdk/schema"
 )
 
 const (
@@ -25,8 +23,7 @@ func IsValidEntityStyle(esd EntityStyleDescriptor) error {
 		return errors.Wrap(err, "could not get entity styles schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("entity style not valid against schema")
-		return err
+		return errors.Wrap(err, "entity style not valid against schema")
 	}
 	return nil
 }
@@ -42,8 +39,7 @@ func IsValidDisplayMappingObject(dmo DisplayMappingObject) error {
 		return errors.Wrap(err, "could not get display mapping object schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("display mapping object not valid against schema")
-		return err
+		return errors.Wrap(err, "display mapping object not valid against schema")
 	}
 	return nil
 }
@@ -59,8 +55,7 @@ func IsValidLabeledDisplayMappingObject(ldmo LabeledDisplayMappingObject) error 
 		return errors.Wrap(err, "could not get labeled display mapping object schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("labeled display mapping object not valid against schema")
-		return err
+		return errors.Wrap(err, "labeled display mapping object not valid against schema")
 	}
 	return nil
 }

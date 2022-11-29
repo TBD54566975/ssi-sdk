@@ -64,7 +64,7 @@ func CreateDIDPKH(namespace, reference, address string) (*DIDPKH, error) {
 	did := DIDPKH(fmt.Sprintf("%s:%s:%s:%s", DIDPKHPrefix, namespace, reference, address))
 
 	if !IsValidPKH(did) {
-		return nil, util.LoggingNewError(fmt.Sprintf("PKH DID is not valid: %s", string(did)))
+		return nil, fmt.Errorf("PKH DID is not valid: %s", string(did))
 	}
 
 	return &did, nil
@@ -150,17 +150,17 @@ func (d DIDPKH) Expand() (*DIDDocument, error) {
 	verificationMethod, err := constructPKHVerificationMethod(d)
 
 	if err != nil {
-		return nil, util.LoggingErrorMsg(err, "could not construct verification method")
+		return nil, errors.Wrap(err, "could not construct verification method")
 	}
 
 	knownDIDPKHContextJSON, err := GetDIDPKHContext()
 	if err != nil {
-		return nil, util.LoggingErrorMsg(err, "could not get known context json")
+		return nil, errors.Wrap(err, "could not get known context json")
 	}
 
 	contextJSON, err := util.ToJSONInterface(knownDIDPKHContextJSON)
 	if err != nil {
-		return nil, util.LoggingErrorMsg(err, "could not convert known context to json")
+		return nil, errors.Wrap(err, "could not convert known context to json")
 	}
 
 	verificationMethodSet := []VerificationMethodSet{
@@ -182,17 +182,17 @@ func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
 	if !IsValidPKH(did) {
 		parsed, err := did.Suffix()
 		if err != nil || parsed == "" {
-			return nil, util.LoggingNewError("PKH DID is not valid")
+			return nil, errors.Wrap(err, "PKH DID is not valid")
 		}
 	}
 
 	network, err := GetDIDPKHNetworkForDID(did.String())
 	if err != nil {
-		return nil, util.LoggingErrorMsg(err, "could not find network")
+		return nil, errors.Wrap(err, "could not find network")
 	}
 	verificationType, err := GetVerificationTypeForNetwork(network)
 	if err != nil {
-		return nil, util.LoggingErrorMsg(err, "could not find verification type")
+		return nil, errors.Wrap(err, "could not find verification type")
 	}
 
 	suffix, err := did.Suffix()

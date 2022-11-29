@@ -6,14 +6,24 @@
     "presentation_submission": {
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "definition_id": { "type": "string" },
+        "id": {
+          "type": "string"
+        },
+        "definition_id": {
+          "type": "string"
+        },
         "descriptor_map": {
           "type": "array",
-          "items": { "$ref": "#/definitions/descriptor" }
+          "items": {
+            "$ref": "#/definitions/descriptor"
+          }
         }
       },
-      "required": ["id", "definition_id", "descriptor_map"],
+      "required": [
+        "id",
+        "definition_id",
+        "descriptor_map"
+      ],
       "additionalProperties": false
     }
   },
@@ -21,8 +31,12 @@
     "descriptor": {
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "path": { "type": "string" },
+        "id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
         "path_nested": {
           "type": "object",
           "$ref": "#/definitions/descriptor"
@@ -31,10 +45,16 @@
           "$ref": "http://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json#/definitions/format"
         }
       },
-      "required": ["id", "path", "format"],
+      "required": [
+        "id",
+        "path",
+        "format"
+      ],
       "additionalProperties": false
     }
   },
-  "required": ["presentation_submission"],
+  "required": [
+    "presentation_submission"
+  ],
   "additionalProperties": false
 }

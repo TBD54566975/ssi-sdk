@@ -1,1 +1,117 @@
-{"$schema":"http://json-schema.org/draft-07/schema#","title":"Presentation Submission","type":"object","definitions":{"descriptor":{"type":"object","properties":{"format":{"$schema":"http://json-schema.org/draft-07/schema#","$id":"https://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json","title":"Presentation Submission Claim Format Designations","type":"object","definitions":{"format":{"type":"string","enum":["jwt","jwt_vc","jwt_vp","ldp","ldp_vc","ldp_vp"]}}},"id":{"type":"string"},"path":{"type":"string"},"path_nested":{"type":"object","properties":{"format":{"$ref":"https://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json#/definitions/format"},"id":{"type":"string"},"path":{"type":"string"},"path_nested":{"$ref":"#/definitions/descriptor","type":"object"}},"required":["id","path","format"],"additionalProperties":false}},"required":["id","path","format"],"additionalProperties":false}},"properties":{"presentation_submission":{"type":"object","properties":{"definition_id":{"type":"string"},"descriptor_map":{"type":"array","items":{"type":"object","properties":{"format":{"$ref":"https://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json#/definitions/format"},"id":{"type":"string"},"path":{"type":"string"},"path_nested":{"$ref":"#/definitions/descriptor","type":"object"}},"required":["id","path","format"],"additionalProperties":false}},"id":{"type":"string"}},"required":["id","definition_id","descriptor_map"],"additionalProperties":false}},"required":["presentation_submission"],"additionalProperties":false}
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Presentation Submission",
+  "type": "object",
+  "definitions": {
+    "descriptor": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "$id": "https://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json",
+          "title": "Presentation Submission Claim Format Designations",
+          "type": "object",
+          "definitions": {
+            "format": {
+              "type": "string",
+              "enum": [
+                "jwt",
+                "jwt_vc",
+                "jwt_vp",
+                "ldp",
+                "ldp_vc",
+                "ldp_vp"
+              ]
+            }
+          }
+        },
+        "id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "path_nested": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "$ref": "https://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json#/definitions/format"
+            },
+            "id": {
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            },
+            "path_nested": {
+              "$ref": "#/definitions/descriptor",
+              "type": "object"
+            }
+          },
+          "required": [
+            "id",
+            "path",
+            "format"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "path",
+        "format"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "presentation_submission": {
+      "type": "object",
+      "properties": {
+        "definition_id": {
+          "type": "string"
+        },
+        "descriptor_map": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "$ref": "https://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json#/definitions/format"
+              },
+              "id": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "path_nested": {
+                "$ref": "#/definitions/descriptor",
+                "type": "object"
+              }
+            },
+            "required": [
+              "id",
+              "path",
+              "format"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "definition_id",
+        "descriptor_map"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "presentation_submission"
+  ],
+  "additionalProperties": false
+}

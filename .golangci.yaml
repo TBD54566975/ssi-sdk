@@ -34,7 +34,7 @@ linters-settings:
       - name: banned-characters
         severity: warning
         disabled: false
-        arguments: [ "Ω", "Σ", "σ"]
+        arguments: [ "Ω", "Σ", "σ" ]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#bare-return
       - name: bare-return
         severity: warning
@@ -69,7 +69,8 @@ linters-settings:
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#context-as-argument
       - name: context-as-argument
         severity: warning
-        disabled: false
+        # # TODO re-enable linter when it isn't broken https://github.com/golangci/golangci-lint/issues/3280
+        disabled: true
         arguments:
           - allowTypesBefore: "*testing.T,*github.com/user/repo/testing.Harness"
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#context-keys-type

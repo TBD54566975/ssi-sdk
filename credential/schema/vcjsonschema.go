@@ -1,12 +1,10 @@
 package schema
 
 import (
-	"github.com/goccy/go-json"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/schema"
+	"github.com/goccy/go-json"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -25,10 +23,8 @@ func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSON
 		return nil, errors.Wrap(err, "could not marshal vc json schema's schema property")
 	}
 	maybeSchema := string(schemaBytes)
-	if err := schema.IsValidJSONSchema(maybeSchema); err != nil {
-		errMsg := "VC JSON Schema did not contain a valid JSON Schema"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+	if err = schema.IsValidJSONSchema(maybeSchema); err != nil {
+		return nil, errors.Wrap(err, "vc json schema did not contain a valid JSON Schema")
 	}
 	return &vcs, nil
 }
@@ -41,16 +37,12 @@ func IsValidCredentialSchema(maybeCredentialSchema string) error {
 		return errors.Wrap(err, "could not get known schema for VC JSON Schema")
 	}
 
-	if err := schema.IsJSONValidAgainstSchema(maybeCredentialSchema, vcJSONSchemaSchema); err != nil {
-		errMsg := "credential schema did not validate"
-		logrus.WithError(err).Error(errMsg)
-		return errors.Wrap(err, errMsg)
+	if err = schema.IsJSONValidAgainstSchema(maybeCredentialSchema, vcJSONSchemaSchema); err != nil {
+		return errors.Wrap(err, "credential schema did not validate")
 	}
 
-	if _, err := StringToVCJSONCredentialSchema(maybeCredentialSchema); err != nil {
-		errMsg := "credential schema not valid"
-		logrus.WithError(err).Error(errMsg)
-		return errors.Wrap(err, errMsg)
+	if _, err = StringToVCJSONCredentialSchema(maybeCredentialSchema); err != nil {
+		return errors.Wrap(err, "credential schema not valid")
 	}
 
 	return nil
@@ -82,9 +74,8 @@ func IsCredentialValidForSchema(cred credential.VerifiableCredential, s string) 
 		return err
 	}
 	subjectJSON := string(subjectBytes)
-	if err := schema.IsJSONValidAgainstSchema(subjectJSON, s); err != nil {
-		logrus.WithError(err).Error("credential not valid for schema")
-		return err
+	if err = schema.IsJSONValidAgainstSchema(subjectJSON, s); err != nil {
+		return errors.Wrap(err, "credential not valid for schema")
 	}
 	return nil
 }

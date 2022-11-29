@@ -114,10 +114,11 @@ contributions for additional examples.
 - [Decentralized Identifiers Example](example/did)
 - [Verifiable Credentials Example](example/vc)
 - Presentation Exchange Examples
-  - [Applying for an Apartment](example/usecase/apartment_application)
-  - [Employment Verification with a University Degree](example/usecase/employer_university_flow)
- 
+    - [Applying for an Apartment](example/usecase/apartment_application)
+    - [Employment Verification with a University Degree](example/usecase/employer_university_flow)
+
 To run the examples use the following command
+
 ```
  go run example/did/did.go 
  go run example/usecase/apartment_application/apartment_application.go

@@ -13,7 +13,6 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/x25519"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // PrivateKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
@@ -314,9 +313,7 @@ func jwkKeyFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (jwk.Key, error) {
 	ecdsaPrivKey := key.ToECDSA()
 	secp256k1JWK := jwk.NewECDSAPrivateKey()
 	if err := secp256k1JWK.FromRaw(ecdsaPrivKey); err != nil {
-		err = errors.Wrap(err, "failed to generate secp256k1 jwk")
-		logrus.WithError(err).Error("could not extract key from raw private key")
-		return nil, err
+		return nil, errors.Wrap(err, "failed to generate secp256k1 jwk")
 	}
 	return secp256k1JWK, nil
 }
@@ -326,9 +323,7 @@ func jwkFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (*PublicKeyJWK, *Priva
 	ecdsaPrivKey := key.ToECDSA()
 	secp256k1JWK := jwk.NewECDSAPrivateKey()
 	if err := secp256k1JWK.FromRaw(ecdsaPrivKey); err != nil {
-		err = errors.Wrap(err, "failed to generate secp256k1 jwk")
-		logrus.WithError(err).Error("could not extract key from raw private key")
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, "failed to generate secp256k1 jwk")
 	}
 	kty := secp256k1JWK.KeyType().String()
 	crv := secp256k1JWK.Crv().String()
@@ -356,9 +351,7 @@ func jwkKeyFromSECP256k1PublicKey(key secp256k1.PublicKey) (jwk.Key, error) {
 	ecdsaPubKey := key.ToECDSA()
 	secp256k1JWK := jwk.NewECDSAPublicKey()
 	if err := secp256k1JWK.FromRaw(ecdsaPubKey); err != nil {
-		err = errors.Wrap(err, "failed to generate secp256k1 jwk")
-		logrus.WithError(err).Error("could not extract key from raw public key")
-		return nil, err
+		return nil, errors.Wrap(err, "failed to generate secp256k1 jwk")
 	}
 	return secp256k1JWK, nil
 }
@@ -368,9 +361,7 @@ func jwkFromSECP256k1PublicKey(key secp256k1.PublicKey) (*PublicKeyJWK, error) {
 	ecdsaPubKey := key.ToECDSA()
 	secp256k1JWK := jwk.NewECDSAPublicKey()
 	if err := secp256k1JWK.FromRaw(ecdsaPubKey); err != nil {
-		err = errors.Wrap(err, "failed to generate secp256k1 jwk")
-		logrus.WithError(err).Error("could not extract key from raw public key")
-		return nil, err
+		return nil, errors.Wrap(err, "failed to generate secp256k1 jwk")
 	}
 	kty := secp256k1JWK.KeyType().String()
 	crv := secp256k1JWK.Crv().String()
@@ -388,9 +379,7 @@ func jwkFromSECP256k1PublicKey(key secp256k1.PublicKey) (*PublicKeyJWK, error) {
 func jwkKeyFromECDSAPrivateKey(key ecdsa.PrivateKey) (jwk.Key, error) {
 	ecdsaKey := jwk.NewECDSAPrivateKey()
 	if err := ecdsaKey.FromRaw(&key); err != nil {
-		err = errors.Wrap(err, "failed to generate ecdsa jwk")
-		logrus.WithError(err).Error("could not extract key from raw private key")
-		return nil, err
+		return nil, errors.Wrap(err, "failed to generate ecdsa jwk")
 	}
 	return ecdsaKey, nil
 }
@@ -399,9 +388,7 @@ func jwkKeyFromECDSAPrivateKey(key ecdsa.PrivateKey) (jwk.Key, error) {
 func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	ecdsaKey := jwk.NewECDSAPrivateKey()
 	if err := ecdsaKey.FromRaw(&key); err != nil {
-		err = errors.Wrap(err, "failed to generate ecdsa jwk")
-		logrus.WithError(err).Error("could not extract key from raw private key")
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, "failed to generate ecdsa jwk")
 	}
 	kty := ecdsaKey.KeyType().String()
 	crv := ecdsaKey.Crv().String()
@@ -428,9 +415,7 @@ func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK
 func jwkKeyFromECDSAPublicKey(key ecdsa.PublicKey) (jwk.Key, error) {
 	ecdsaKey := jwk.NewECDSAPublicKey()
 	if err := ecdsaKey.FromRaw(&key); err != nil {
-		err = errors.Wrap(err, "failed to generate ecdsa jwk")
-		logrus.WithError(err).Error("could not extract key from raw private key")
-		return nil, err
+		return nil, errors.Wrap(err, "failed to generate ecdsa jwk")
 	}
 	return ecdsaKey, nil
 }
@@ -439,9 +424,7 @@ func jwkKeyFromECDSAPublicKey(key ecdsa.PublicKey) (jwk.Key, error) {
 func jwkFromECDSAPublicKey(key ecdsa.PublicKey) (*PublicKeyJWK, error) {
 	ecdsaKey := jwk.NewECDSAPublicKey()
 	if err := ecdsaKey.FromRaw(&key); err != nil {
-		err = errors.Wrap(err, "failed to generate ecdsa jwk")
-		logrus.WithError(err).Error("could not extract key from raw private key")
-		return nil, err
+		return nil, errors.Wrap(err, "failed to generate ecdsa jwk")
 	}
 	kty := ecdsaKey.KeyType().String()
 	crv := ecdsaKey.Crv().String()

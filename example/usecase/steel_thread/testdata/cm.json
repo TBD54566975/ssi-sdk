@@ -97,30 +97,30 @@
               }
             },
             {
-              "id":"postalAddress",
-              "path":[
+              "id": "postalAddress",
+              "path": [
                 "$.credentialSubject.postalAddress"
               ],
-              "filter":{
-                "type":"object",
-                "properties":{
-                  "addressCountry":{
-                    "type":"string"
+              "filter": {
+                "type": "object",
+                "properties": {
+                  "addressCountry": {
+                    "type": "string"
                   },
-                  "addressLocality":{
-                    "type":"string"
+                  "addressLocality": {
+                    "type": "string"
                   },
-                  "addressRegion":{
-                    "type":"string"
+                  "addressRegion": {
+                    "type": "string"
                   },
-                  "postalCode":{
-                    "type":"string"
+                  "postalCode": {
+                    "type": "string"
                   },
-                  "streetAddress":{
-                    "type":"string"
+                  "streetAddress": {
+                    "type": "string"
                   }
                 },
-                "required":[
+                "required": [
                   "addressCountry",
                   "addressLocality",
                   "addressRegion",

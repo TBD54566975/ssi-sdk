@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  vulnerability-scan: 
+  vulnerability-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -29,7 +29,7 @@ jobs:
         run: go install github.com/magefile/mage
 
       - name: Check Vulnerabilities
-        run: mage -v vuln              
+        run: mage -v vuln
   build:
     runs-on: ubuntu-latest
     steps:
@@ -42,7 +42,7 @@ jobs:
 
       - name: Install Mage
         run: go install github.com/magefile/mage
-              
+
       - name: Build
         run: mage build
 

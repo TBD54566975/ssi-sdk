@@ -5,15 +5,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
-	"github.com/TBD54566975/ssi-sdk/credential"
 )
 
 const (
@@ -33,11 +31,11 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 	expirationVal := cred.ExpirationDate
 	if expirationVal != "" {
 		var expirationDate = expirationVal
-		if unixTime, err := rfc3339ToUnix(expirationVal); err == nil {
-			expirationDate = string(unixTime)
-		} else {
-			logrus.WithError(err).Error("could not convert expiration date to unix time")
+		unixTime, err := rfc3339ToUnix(expirationVal)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not convert expiration date to unix time")
 		}
+		expirationDate = string(unixTime)
 		if err := t.Set(jwt.ExpirationKey, expirationDate); err != nil {
 			return nil, errors.Wrap(err, "could not set exp value")
 		}
@@ -51,7 +49,7 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 	if unixTime, err := rfc3339ToUnix(cred.IssuanceDate); err == nil {
 		issuanceDate = string(unixTime)
 	} else {
-		logrus.WithError(err).Error("could not convert iat to unix time; setting to present moment")
+		// could not convert iat to unix time; setting to present moment
 		issuanceDate = strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	}
 
@@ -79,8 +77,7 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 
 	signed, err := jwt.Sign(t, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key)
 	if err != nil {
-		logrus.WithError(err).Error("could not sign JWT credential")
-		return nil, err
+		return nil, errors.Wrap(err, "could not sign JWT credential")
 	}
 	return signed, nil
 }
@@ -112,10 +109,8 @@ func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCrede
 		return nil, errors.Wrap(err, "could not marshal credential claim")
 	}
 	var cred credential.VerifiableCredential
-	if err := json.Unmarshal(vcBytes, &cred); err != nil {
-		errMsg := "could not reconstruct Verifiable Credential"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+	if err = json.Unmarshal(vcBytes, &cred); err != nil {
+		return nil, errors.Wrap(err, "could not reconstruct Verifiable Credential")
 	}
 
 	// parse remaining JWT properties and set in the credential
@@ -188,8 +183,7 @@ func SignVerifiablePresentationJWT(signer crypto.JWTSigner, pres credential.Veri
 
 	signed, err := jwt.Sign(t, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key)
 	if err != nil {
-		logrus.WithError(err).Error("could not sign JWT presentation")
-		return nil, err
+		return nil, errors.Wrap(err, "could not sign JWT presentation")
 	}
 	return signed, nil
 }
@@ -201,9 +195,7 @@ func SignVerifiablePresentationJWT(signer crypto.JWTSigner, pres credential.Veri
 // decoded VerifiablePresentation object is returned.
 func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) (*credential.VerifiablePresentation, error) {
 	if err := verifier.VerifyJWT(token); err != nil {
-		errMsg := "could not verify JWT and its signature"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+		return nil, errors.Wrap(err, "could not verify JWT and its signature")
 	}
 	return ParseVerifiablePresentationFromJWT(token)
 }
@@ -226,10 +218,8 @@ func ParseVerifiablePresentationFromJWT(token string) (*credential.VerifiablePre
 		return nil, errors.Wrap(err, "could not marshal vp claim")
 	}
 	var pres credential.VerifiablePresentation
-	if err := json.Unmarshal(vpBytes, &pres); err != nil {
-		errMsg := "could not reconstruct Verifiable Presentation"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+	if err = json.Unmarshal(vpBytes, &pres); err != nil {
+		return nil, errors.Wrap(err, "could not reconstruct Verifiable Presentation")
 	}
 
 	// parse remaining JWT properties and set in the presentation

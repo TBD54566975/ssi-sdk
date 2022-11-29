@@ -89,7 +89,8 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NoError(tt, err)
 		vp, err := BuildPresentationSubmissionVP(def, normalized)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, vp)
@@ -182,7 +183,8 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NoError(tt, err)
 		vp, err := BuildPresentationSubmissionVP(def, normalized)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, vp)
@@ -255,7 +257,8 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 		}
 
-		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim, presentationClaimJWT})
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim, presentationClaimJWT})
+		assert.NoError(tt, err)
 		vp, err := BuildPresentationSubmissionVP(def, normalized)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, vp)
@@ -315,7 +318,8 @@ func TestProcessInputDescriptor(t *testing.T) {
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NoError(tt, err)
 		processed, err := processInputDescriptor(id, normalized)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, processed)
@@ -345,7 +349,8 @@ func TestProcessInputDescriptor(t *testing.T) {
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NoError(tt, err)
 		processed, err := processInputDescriptor(id, normalized)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, processed)
@@ -375,8 +380,9 @@ func TestProcessInputDescriptor(t *testing.T) {
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
-		_, err := processInputDescriptor(id, normalized)
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NoError(tt, err)
+		_, err = processInputDescriptor(id, normalized)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "no claims could fulfill the input descriptor")
 	})
@@ -406,8 +412,9 @@ func TestProcessInputDescriptor(t *testing.T) {
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
-		_, err := processInputDescriptor(id, normalized)
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NoError(tt, err)
+		_, err = processInputDescriptor(id, normalized)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "no claims match the required format, and signing alg/proof type requirements")
 	})
@@ -437,7 +444,8 @@ func TestProcessInputDescriptor(t *testing.T) {
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NoError(tt, err)
 		processed, err := processInputDescriptor(id, normalized)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, processed)
@@ -479,7 +487,7 @@ func TestCanProcessDefinition(tt *testing.T) {
 		}
 		err := canProcessDefinition(def)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "predicate feature not supported")
+		assert.Contains(tt, err.Error(), "predicate and filter features not supported")
 	})
 
 	tt.Run("With Relational Constraint", func(tt *testing.T) {
@@ -685,7 +693,8 @@ func TestNormalizePresentationClaims(t *testing.T) {
 			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 		}
 
-		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NoError(tt, err)
 		assert.NotEmpty(tt, normalized)
 		assert.True(tt, len(normalized) == 1)
 		assert.NotEmpty(tt, normalized[0].Data)
@@ -703,7 +712,8 @@ func TestNormalizePresentationClaims(t *testing.T) {
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
 
-		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NoError(tt, err)
 		assert.NotEmpty(tt, normalized)
 		assert.True(tt, len(normalized) == 1)
 		assert.NotEmpty(tt, normalized[0].Data)
@@ -721,7 +731,8 @@ func TestNormalizePresentationClaims(t *testing.T) {
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
 
-		normalized := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NoError(tt, err)
 		assert.NotEmpty(tt, normalized)
 		assert.True(tt, len(normalized) == 1)
 		assert.NotEmpty(tt, normalized[0].Data)

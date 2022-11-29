@@ -23,7 +23,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -48,7 +47,6 @@ const (
 func isPeerDID(did string) bool {
 	r, err := regexp.Compile(PeerDIDRegex)
 	if err != nil {
-		logrus.WithError(err).Error() // this should never happen
 		return false
 	}
 	return r.MatchString(did)
