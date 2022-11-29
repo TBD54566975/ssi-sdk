@@ -69,7 +69,7 @@ linters-settings:
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#context-as-argument
       - name: context-as-argument
         severity: warning
-        disabled: false
+        disabled: true
         arguments:
           - allowTypesBefore: "*testing.T,*github.com/user/repo/testing.Harness"
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#context-keys-type

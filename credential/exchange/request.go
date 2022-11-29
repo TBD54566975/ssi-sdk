@@ -35,7 +35,6 @@ func BuildPresentationRequest(signer crypto.JWTSigner, pt PresentationRequestTyp
 		return BuildJWTPresentationRequest(signer, def, target)
 	default:
 		return nil, fmt.Errorf("presentation request type <%s> is not implemented", pt)
-
 	}
 }
 

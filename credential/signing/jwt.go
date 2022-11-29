@@ -31,11 +31,11 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 	expirationVal := cred.ExpirationDate
 	if expirationVal != "" {
 		var expirationDate = expirationVal
-		if unixTime, err := rfc3339ToUnix(expirationVal); err == nil {
-			expirationDate = string(unixTime)
-		} else {
+		unixTime, err := rfc3339ToUnix(expirationVal)
+		if err != nil {
 			return nil, errors.Wrap(err, "could not convert expiration date to unix time")
 		}
+		expirationDate = string(unixTime)
 		if err := t.Set(jwt.ExpirationKey, expirationDate); err != nil {
 			return nil, errors.Wrap(err, "could not set exp value")
 		}
