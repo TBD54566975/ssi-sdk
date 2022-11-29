@@ -69,6 +69,7 @@ linters-settings:
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#context-as-argument
       - name: context-as-argument
         severity: warning
+        # # TODO re-enable linter when it isn't broken https://github.com/golangci/golangci-lint/issues/3280
         disabled: true
         arguments:
           - allowTypesBefore: "*testing.T,*github.com/user/repo/testing.Harness"
