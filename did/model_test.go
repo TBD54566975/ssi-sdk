@@ -101,5 +101,5 @@ func TestKeyTypeToLDKeyType(t *testing.T) {
 
 	_, err = KeyTypeToLDKeyType(crypto.KeyType("bad"))
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unsupported keyType")
+	assert.Contains(t, err.Error(), "keyType bad failed to convert to LDKeyType")
 }

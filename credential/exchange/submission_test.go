@@ -487,7 +487,7 @@ func TestCanProcessDefinition(tt *testing.T) {
 		}
 		err := canProcessDefinition(def)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "predicate feature not supported")
+		assert.Contains(tt, err.Error(), "predicate and filter features not supported")
 	})
 
 	tt.Run("With Relational Constraint", func(tt *testing.T) {
