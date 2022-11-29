@@ -56,6 +56,11 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, "RSA", jwk.KTY)
+
+		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "RSA", jwk2.KTY)
 	})
 
 	t.Run("Ed25519", func(tt *testing.T) {
@@ -67,6 +72,12 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, "OKP", jwk.KTY)
 		assert.Equal(tt, "Ed25519", jwk.CRV)
+
+		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "OKP", jwk2.KTY)
+		assert.Equal(tt, "Ed25519", jwk2.CRV)
 	})
 
 	t.Run("X25519", func(tt *testing.T) {
@@ -78,6 +89,12 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, "OKP", jwk.KTY)
 		assert.Equal(tt, "Ed25519", jwk.CRV)
+
+		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "OKP", jwk2.KTY)
+		assert.Equal(tt, "Ed25519", jwk2.CRV)
 	})
 
 	t.Run("secp256k1", func(tt *testing.T) {
@@ -89,6 +106,12 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, "EC", jwk.KTY)
 		assert.Equal(tt, "secp256k1", jwk.CRV)
+
+		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "EC", jwk2.KTY)
+		assert.Equal(tt, "secp256k1", jwk2.CRV)
 	})
 
 	t.Run("ecdsa P-256", func(tt *testing.T) {
@@ -100,6 +123,12 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, "EC", jwk.KTY)
 		assert.Equal(tt, "P-256", jwk.CRV)
+
+		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "EC", jwk2.KTY)
+		assert.Equal(tt, "P-256", jwk2.CRV)
 	})
 
 	t.Run("ecdsa P-384", func(tt *testing.T) {
@@ -111,6 +140,12 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, "EC", jwk.KTY)
 		assert.Equal(tt, "P-384", jwk.CRV)
+
+		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "EC", jwk2.KTY)
+		assert.Equal(tt, "P-384", jwk2.CRV)
 	})
 
 	t.Run("unsupported", func(tt *testing.T) {
