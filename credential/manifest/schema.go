@@ -1,11 +1,9 @@
 package manifest
 
 import (
+	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
-	"github.com/TBD54566975/ssi-sdk/schema"
 )
 
 const (
@@ -26,8 +24,7 @@ func IsValidCredentialManifest(manifest CredentialManifest) error {
 		return errors.Wrap(err, "could not get credential manifest schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Errorf("credential manifest not valid against schema")
-		return err
+		return errors.Wrap(err, "credential manifest not valid against schema")
 	}
 	return nil
 }
@@ -43,8 +40,7 @@ func IsValidCredentialApplication(application CredentialApplication) error {
 		return errors.Wrap(err, "could not get credential application schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("credential application not valid against schema")
-		return err
+		return errors.Wrap(err, "credential application not valid against schema")
 	}
 	return nil
 }
@@ -60,8 +56,7 @@ func IsValidCredentialResponse(response CredentialResponse) error {
 		return errors.Wrap(err, "could not get credential response schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("credential response not valid against schema")
-		return err
+		return errors.Wrap(err, "credential response not valid against schema")
 	}
 	return nil
 }
@@ -82,8 +77,7 @@ func AreValidOutputDescriptors(descriptors []OutputDescriptor) error {
 		return errors.Wrap(err, "could not get output descriptors schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("output descriptors not valid against schema")
-		return err
+		return errors.Wrap(err, "output descriptors not valid against schema")
 	}
 	return nil
 }

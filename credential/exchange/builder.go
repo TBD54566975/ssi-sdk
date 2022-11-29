@@ -32,7 +32,7 @@ func (pdb *PresentationDefinitionBuilder) Build() (*PresentationDefinition, erro
 	}
 
 	if err := pdb.PresentationDefinition.IsValid(); err != nil {
-		return nil, util.LoggingErrorMsg(err, "presentation definition not ready to be built")
+		return nil, errors.Wrap(err, "presentation definition not ready to be built")
 	}
 
 	return pdb.PresentationDefinition, nil
@@ -165,7 +165,7 @@ func (idb *InputDescriptorBuilder) Build() (*InputDescriptor, error) {
 	}
 
 	if err := idb.InputDescriptor.IsValid(); err != nil {
-		return nil, util.LoggingErrorMsg(err, "input descriptor not ready to be built")
+		return nil, errors.Wrap(err, "input descriptor not ready to be built")
 	}
 
 	return idb.InputDescriptor, nil
@@ -266,7 +266,7 @@ func (psb *PresentationSubmissionBuilder) Build() (*PresentationSubmission, erro
 	}
 
 	if err := psb.PresentationSubmission.IsValid(); err != nil {
-		return nil, util.LoggingErrorMsg(err, "presentation submission not ready to be built")
+		return nil, errors.Wrap(err, "presentation submission not ready to be built")
 	}
 
 	return psb.PresentationSubmission, nil

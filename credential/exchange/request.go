@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // PresentationRequestType represents wrappers for Presentation Definitions submitted as requests
@@ -35,9 +34,8 @@ func BuildPresentationRequest(signer crypto.JWTSigner, pt PresentationRequestTyp
 	case JWTRequest:
 		return BuildJWTPresentationRequest(signer, def, target)
 	default:
-		err := fmt.Errorf("presentation request type <%s> is not implemented", pt)
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, fmt.Errorf("presentation request type <%s> is not implemented", pt)
+
 	}
 }
 
@@ -57,7 +55,6 @@ func BuildJWTPresentationRequest(signer crypto.JWTSigner, def PresentationDefini
 func VerifyPresentationRequest(verifier crypto.JWTVerifier, pt PresentationRequestType, request []byte) (*PresentationDefinition, error) {
 	err := fmt.Errorf("cannot verify unsupported presentation request type: %s", pt)
 	if !IsSupportedPresentationRequestType(pt) {
-		logrus.WithError(err).Error()
 		return nil, err
 	}
 	switch pt {
@@ -73,27 +70,19 @@ func VerifyPresentationRequest(verifier crypto.JWTVerifier, pt PresentationReque
 func VerifyJWTPresentationRequest(verifier crypto.JWTVerifier, request []byte) (*PresentationDefinition, error) {
 	parsed, err := verifier.VerifyAndParseJWT(string(request))
 	if err != nil {
-		err := errors.Wrap(err, "could not verify and parse jwt presentation request")
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, errors.Wrap(err, "could not verify and parse jwt presentation request")
 	}
 	presDefGeneric, ok := parsed.Get(PresentationDefinitionKey)
 	if !ok {
-		err := fmt.Errorf("presentation definition key<%s> not found in token", PresentationDefinitionKey)
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, fmt.Errorf("presentation definition key<%s> not found in token", PresentationDefinitionKey)
 	}
 	presDefBytes, err := json.Marshal(presDefGeneric)
 	if err != nil {
-		err := errors.Wrap(err, "could not marshal token into bytes for presentation definition")
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, errors.Wrap(err, "could not marshal token into bytes for presentation definition")
 	}
 	var def PresentationDefinition
 	if err := json.Unmarshal(presDefBytes, &def); err != nil {
-		err := errors.Wrap(err, "could not unmarshal token into presentation definition")
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, errors.Wrap(err, "could not unmarshal token into presentation definition")
 	}
 	return &def, nil
 }

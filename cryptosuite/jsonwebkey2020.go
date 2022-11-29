@@ -4,13 +4,11 @@ import (
 	gocrypto "crypto"
 	"fmt"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
-	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 type (
@@ -145,8 +143,7 @@ func GenerateX25519JSONWebKey2020() (*JSONWebKey2020, error) {
 func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateSECP256k1Key()
 	if err != nil {
-		logrus.WithError(err).Error("could not generate secp256k1 key")
-		return nil, err
+		return nil, errors.Wrap(err, "could not generate secp256k1 key")
 	}
 	return JSONWebKey2020FromPrivateKey(privKey)
 }
@@ -156,8 +153,7 @@ func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
 func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateP256Key()
 	if err != nil {
-		logrus.WithError(err).Error("could not generate p-256 key")
-		return nil, err
+		return nil, errors.Wrap(err, "could not generate p-256 key")
 	}
 	return JSONWebKey2020FromPrivateKey(privKey)
 }
@@ -167,8 +163,7 @@ func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
 func GenerateP384JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateP384Key()
 	if err != nil {
-		logrus.WithError(err).Error("could not generate p-384 key")
-		return nil, err
+		return nil, errors.Wrap(err, "could not generate p-384 key")
 	}
 	return JSONWebKey2020FromPrivateKey(privKey)
 }
@@ -250,9 +245,6 @@ type JSONWebKeyVerifier struct {
 // and an error should it fail.
 func (v *JSONWebKeyVerifier) Verify(message, signature []byte) error {
 	_, err := jws.Verify(signature, jwa.SignatureAlgorithm(v.Algorithm()), v.Key, jws.WithDetachedPayload(message))
-	if err != nil {
-		logrus.WithError(err).Error("could not verify JWK")
-	}
 	return err
 }
 

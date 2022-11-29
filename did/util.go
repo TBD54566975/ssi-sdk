@@ -11,7 +11,6 @@ import (
 	"github.com/multiformats/go-multicodec"
 	"github.com/multiformats/go-varint"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // Encodes the public key provided
@@ -131,7 +130,5 @@ func keyTypeToMultiCodec(kt crypto.KeyType) (multicodec.Code, error) {
 	case crypto.RSA:
 		return RSAMultiCodec, nil
 	}
-	err := fmt.Errorf("unknown multicodec for key type: %s", kt)
-	logrus.WithError(err).Error()
-	return 0, err
+	return 0, fmt.Errorf("unknown multicodec for key type: %s", kt)
 }

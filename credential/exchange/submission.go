@@ -6,16 +6,14 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
-	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
-	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 // EmbedTarget describes where a presentation_submission is located in an object model
@@ -128,29 +126,24 @@ func (pc *PresentationClaim) GetClaimJSON() (map[string]interface{}, error) {
 // may include an analog method for LD suites.
 func BuildPresentationSubmission(signer crypto.JWTSigner, def PresentationDefinition, claims []PresentationClaim, et EmbedTarget) ([]byte, error) {
 	if !IsSupportedEmbedTarget(et) {
-		err := fmt.Errorf("unsupported presentation submission embed target type: %s", et)
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, fmt.Errorf("unsupported presentation submission embed target type: %s", et)
 	}
-	normalizedClaims := normalizePresentationClaims(claims)
+	normalizedClaims, err := normalizePresentationClaims(claims)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to normalize some presentation claims")
+	}
 	if len(normalizedClaims) == 0 {
-		err := errors.New("no claims remain after normalization; cannot continue processing")
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, errors.New("no claims remain after normalization; cannot continue processing")
 	}
 	switch et {
 	case JWTVPTarget:
 		vpSubmission, err := BuildPresentationSubmissionVP(def, normalizedClaims)
 		if err != nil {
-			err := errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
-			logrus.WithError(err).Error()
-			return nil, err
+			return nil, errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
 		}
 		return signing.SignVerifiablePresentationJWT(signer, *vpSubmission)
 	default:
-		err := fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
 	}
 }
 
@@ -169,8 +162,9 @@ type NormalizedClaim struct {
 // normalizePresentationClaims takes a set of Presentation Claims and turns them into map[string]interface{} as
 // go-JSON representations. The claim format and signature algorithm type are noted as well.
 // This method is greedy, meaning it returns the set of claims it was able to normalize.
-func normalizePresentationClaims(claims []PresentationClaim) []NormalizedClaim {
+func normalizePresentationClaims(claims []PresentationClaim) ([]NormalizedClaim, error) {
 	var normalizedClaims []NormalizedClaim
+	errs := util.NewAppendError()
 	for _, claim := range claims {
 		ae := util.NewAppendError()
 		claimJSON, err := claim.GetClaimJSON()
@@ -182,7 +176,7 @@ func normalizePresentationClaims(claims []PresentationClaim) []NormalizedClaim {
 			ae.Append(err)
 		}
 		if ae.Error() != nil {
-			logrus.WithError(ae.Error()).Error("could not normalize claim")
+			errs.Append(fmt.Errorf("could not normalize claim: %s", ae.Error().Error()))
 			continue
 		}
 		var id string
@@ -196,7 +190,7 @@ func normalizePresentationClaims(claims []PresentationClaim) []NormalizedClaim {
 			AlgOrProofType: claim.SignatureAlgorithmOrProofType,
 		})
 	}
-	return normalizedClaims
+	return normalizedClaims, errs.Error()
 }
 
 // processedClaim represents a claim that has been processed for an input descriptor along with relevant
@@ -232,35 +226,31 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []Normaliz
 	// keep track of claims we've already added, to avoid duplicates
 	seenClaims := make(map[string]int)
 	for _, id := range def.InputDescriptors {
-		processedInputDescriptor, err := processInputDescriptor(id, claims)
+		processedID, err := processInputDescriptor(id, claims)
 		if err != nil {
-			err := errors.Wrapf(err, "error processing input descriptor: %s", id.ID)
-			logrus.WithError(err).Error()
-			return nil, err
+			return nil, errors.Wrapf(err, "error processing input descriptor: %s", id.ID)
 		}
-		if processedInputDescriptor == nil {
-			err := fmt.Errorf("input descrpitor<%s> could not be fulfilled; could not build a valid presentation submission", id.ID)
-			logrus.WithError(err).Error()
-			return nil, err
+		if processedID == nil {
+			return nil, fmt.Errorf("input descrpitor<%s> could not be fulfilled; could not build a valid presentation submission", id.ID)
 		}
 
 		// check if claim already exists. if it has, we won't duplicate the claim
 		var currIndex int
 		var claim map[string]interface{}
-		claimID := processedInputDescriptor.ClaimID
+		claimID := processedID.ClaimID
 		if seen, ok := seenClaims[claimID]; ok {
 			currIndex = seen
 		} else {
 			currIndex = claimIndex
 			claimIndex++
-			claim = processedInputDescriptor.Claim
+			claim = processedID.Claim
 			seenClaims[claimID] = currIndex
 		}
 		processedClaims = append(processedClaims, processedClaim{
 			claim: claim,
 			SubmissionDescriptor: SubmissionDescriptor{
-				ID:     processedInputDescriptor.ID,
-				Format: processedInputDescriptor.Format,
+				ID:     processedID.ID,
+				Format: processedID.Format,
 				Path:   fmt.Sprintf("$.verifiableCredential[%d]", currIndex),
 			},
 		})
@@ -273,9 +263,7 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []Normaliz
 		// on the case we've seen the claim, we need to check as to not add a nil claim value
 		if len(claim.claim) > 0 {
 			if err := builder.AddVerifiableCredentials(claim.claim); err != nil {
-				err := errors.Wrap(err, "could not add claim value to verifiable presentation")
-				logrus.WithError(err).Error()
-				return nil, err
+				return nil, errors.Wrap(err, "could not add claim value to verifiable presentation")
 			}
 		}
 	}
@@ -312,20 +300,12 @@ type limitedInputDescriptor struct {
 // https://identity.foundation/presentation-exchange/#input-evaluation
 func processInputDescriptor(id InputDescriptor, claims []NormalizedClaim) (*processedInputDescriptor, error) {
 	constraints := id.Constraints
-	// NOTE(gabe): the specification does not require input descriptors to have a constraint; however,
-	// without a constraint it is ambiguous what fulfilling an input descriptor means. As such, we fail processing
-	// until the specification provides more clarity.
-	// https://github.com/decentralized-identity/presentation-exchange/issues/361
 	if constraints == nil {
-		err := fmt.Errorf("unable to process input descriptor without constraints")
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, fmt.Errorf("unable to process input descriptor without constraints")
 	}
 	fields := constraints.Fields
 	if len(fields) == 0 {
-		err := fmt.Errorf("unable to process input descriptor without fields: %s", id.ID)
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, fmt.Errorf("unable to process input descriptor without fields: %s", id.ID)
 	}
 
 	// bookkeeping to check whether we've fulfilled all required fields, and whether we need to limit disclosure
@@ -339,10 +319,8 @@ func processInputDescriptor(id InputDescriptor, claims []NormalizedClaim) (*proc
 	// first, reduce the set of claims that conform with the format required by the input descriptor
 	filteredClaims := filterClaimsByFormat(claims, id.Format)
 	if len(filteredClaims) == 0 {
-		err := fmt.Errorf("no claims match the required format, and signing alg/proof type requirements "+
+		return nil, fmt.Errorf("no claims match the required format, and signing alg/proof type requirements "+
 			"for input descriptor: %s", id.ID)
-		logrus.WithError(err).Error()
-		return nil, err
 	}
 
 	// for the input descriptor to be successfully processed each field needs to yield a result for a given claim,
@@ -383,9 +361,7 @@ func processInputDescriptor(id InputDescriptor, claims []NormalizedClaim) (*proc
 			}, nil
 		}
 	}
-	err := fmt.Errorf("no claims could fulfill the input descriptor: %s", id.ID)
-	logrus.WithError(err).Error("could not fulfill input descriptor")
-	return nil, err
+	return nil, fmt.Errorf("no claims could fulfill the input descriptor: %s", id.ID)
 }
 
 // filterClaimsByFormat returns a set of claims that comply with a given ClaimFormat according to its
@@ -484,21 +460,17 @@ func processInputDescriptorField(field Field, claimData map[string]interface{}) 
 func canProcessDefinition(def PresentationDefinition) error {
 	submissionRequirementsErr := errors.New("submission requirements feature not supported")
 	if len(def.SubmissionRequirements) > 0 {
-		logrus.WithError(submissionRequirementsErr).Error("submission requirements present")
 		return submissionRequirementsErr
 	}
 	for _, id := range def.InputDescriptors {
 		if id.Constraints != nil {
 			if len(id.Group) > 0 {
-				logrus.WithError(submissionRequirementsErr).Error("input descriptor group present")
 				return submissionRequirementsErr
 			}
 			if len(id.Constraints.Fields) > 0 {
 				for _, field := range id.Constraints.Fields {
 					if field.Predicate != nil || field.Filter != nil {
-						err := errors.New("predicate feature not supported")
-						logrus.WithError(err).Error("predicate and/or filter present")
-						return err
+						return errors.New("predicate and filter features not supported")
 					}
 				}
 			}
@@ -506,22 +478,16 @@ func canProcessDefinition(def PresentationDefinition) error {
 	}
 	for _, id := range def.InputDescriptors {
 		if hasRelationalConstraint(id.Constraints) {
-			err := errors.New("relational constraint feature not supported")
-			logrus.WithError(err).Error()
-			return err
+			return errors.New("relational constraint feature not supported")
 		}
 	}
 	for _, id := range def.InputDescriptors {
 		if id.Constraints != nil && id.Constraints.Statuses != nil {
-			err := errors.New("credential status constraint feature not supported")
-			logrus.WithError(err).Error()
-			return err
+			return errors.New("credential status constraint feature not supported")
 		}
 	}
 	if def.Frame != nil {
-		err := errors.New("JSON-LD framing feature not supported")
-		logrus.WithError(err).Error()
-		return err
+		return errors.New("JSON-LD framing feature not supported")
 	}
 	return nil
 }

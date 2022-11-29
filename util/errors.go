@@ -1,8 +1,20 @@
 package util
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+)
+
+// Error messages
+var (
+	UnsupportedError    = errors.New("not supported")
+	NotImplementedError = errors.New("not implemented")
+	InvalidFormatError  = errors.New("invalid format")
+	UndefinedError      = errors.New("undefined")
+	CastingError        = errors.New("failed to convert")
 )
 
 // LoggingError is a utility to combine logging an error, and returning and error
@@ -18,17 +30,25 @@ func LoggingNewError(msg string) error {
 	return err
 }
 
+// LoggingNewErrorf is a utility to create an error from a formatted message, log it, and return it as an error
+func LoggingNewErrorf(msg string, args ...interface{}) error {
+	return LoggingNewError(fmt.Sprintf(msg, args...))
+}
+
 // LoggingErrorMsg is a utility to combine logging an error, and returning and error with a message
 func LoggingErrorMsg(err error, msg string) error {
-	logrus.WithError(err).Error(msg)
+	logrus.WithError(err).Error(SanitizeLog(msg))
 	return errors.Wrap(err, msg)
 }
 
-// Error messages
-var (
-	UnsupportedError    = errors.New("not supported")
-	NotImplementedError = errors.New("not implemented")
-	InvalidFormatError  = errors.New("invalid format")
-	UndefinedError      = errors.New("undefined")
-	CastingError        = errors.New("failed to convert")
-)
+// LoggingErrorMsgf is a utility to combine logging an error, and returning and error with a formatted message
+func LoggingErrorMsgf(err error, msg string, args ...interface{}) error {
+	return LoggingErrorMsg(err, fmt.Sprintf(msg, args...))
+}
+
+// SanitizeLog prevents certain classes of injection attacks before logging
+// https://codeql.github.com/codeql-query-help/go/go-log-injection/
+func SanitizeLog(log string) string {
+	escapedLog := strings.ReplaceAll(log, "\n", "")
+	return strings.ReplaceAll(escapedLog, "\r", "")
+}

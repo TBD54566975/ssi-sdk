@@ -34,7 +34,7 @@ func (cmb *CredentialManifestBuilder) Build() (*CredentialManifest, error) {
 	}
 
 	if err := cmb.CredentialManifest.IsValid(); err != nil {
-		return nil, util.LoggingErrorMsg(err, "credential manifest not ready to be built")
+		return nil, errors.Wrap(err, "credential manifest not ready to be built")
 	}
 
 	return cmb.CredentialManifest, nil
@@ -152,7 +152,7 @@ func (cab *CredentialApplicationBuilder) Build() (*CredentialApplication, error)
 	}
 
 	if err := cab.CredentialApplication.IsValid(); err != nil {
-		return nil, util.LoggingErrorMsg(err, "credential application not ready to be built")
+		return nil, errors.Wrap(err, "credential application not ready to be built")
 	}
 
 	return cab.CredentialApplication, nil
@@ -224,7 +224,7 @@ func (crb *CredentialResponseBuilder) Build() (*CredentialResponse, error) {
 	}
 
 	if err := crb.CredentialResponse.IsValid(); err != nil {
-		return nil, util.LoggingErrorMsg(err, "credential response not ready to be built")
+		return nil, errors.Wrap(err, "credential response not ready to be built")
 	}
 
 	return crb.CredentialResponse, nil

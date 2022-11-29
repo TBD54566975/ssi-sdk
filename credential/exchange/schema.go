@@ -1,11 +1,9 @@
 package exchange
 
 import (
+	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
-	"github.com/TBD54566975/ssi-sdk/schema"
 )
 
 const (
@@ -29,8 +27,7 @@ func IsValidPresentationDefinition(definition PresentationDefinition) error {
 		return errors.Wrap(err, "could not get presentation definition schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("presentation definition not valid against schema")
-		return err
+		return errors.New("presentation definition not valid against schema")
 	}
 	return nil
 }
@@ -46,8 +43,7 @@ func IsValidPresentationDefinitionEnvelope(definition PresentationDefinitionEnve
 		return errors.Wrap(err, "could not get presentation definition schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("presentation definition not valid against schema")
-		return err
+		return errors.Wrap(err, "presentation definition not valid against schema")
 	}
 	return nil
 }
@@ -68,8 +64,7 @@ func IsValidPresentationSubmission(submission PresentationSubmission) error {
 		return errors.Wrap(err, "could not get presentation submission schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("submission declaration not valid against schema")
-		return err
+		return errors.Wrap(err, "submission declaration not valid against schema")
 	}
 	return nil
 }
@@ -85,8 +80,7 @@ func IsValidDefinitionClaimFormatDesignation(format ClaimFormat) error {
 		return errors.Wrap(err, "could not get claim format schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("format declaration not valid against schema")
-		return err
+		return errors.Wrap(err, "format declaration not valid against schema")
 	}
 	return nil
 }
@@ -102,8 +96,7 @@ func IsValidSubmissionRequirement(requirement SubmissionRequirement) error {
 		return errors.Wrap(err, "could not get submission requirement schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("submission requirement not valid against schema")
-		return err
+		return errors.Wrap(err, "submission requirement not valid against schema")
 	}
 	return nil
 }
@@ -124,8 +117,7 @@ func AreValidSubmissionRequirements(requirements []SubmissionRequirement) error 
 		return errors.Wrap(err, "could not get submission requirements schema")
 	}
 	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		logrus.WithError(err).Error("submission requirements not valid against schema")
-		return err
+		return errors.Wrap(err, "submission requirements not valid against schema")
 	}
 	return nil
 }

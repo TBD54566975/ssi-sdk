@@ -10,12 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bits-and-blooms/bitset"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/util"
+	"github.com/bits-and-blooms/bitset"
+	"github.com/pkg/errors"
 )
 
 type StatusPurpose string
@@ -59,12 +57,12 @@ type StatusList2021Credential struct {
 func GenerateStatusList2021Credential(id string, issuer string, purpose StatusPurpose, issuedCredentials []credential.VerifiableCredential) (*credential.VerifiableCredential, error) {
 	statusListIndices, err := prepareCredentialsForStatusList(purpose, issuedCredentials)
 	if err != nil {
-		return nil, util.LoggingErrorMsg(err, "could not generate status list credential")
+		return nil, errors.Wrap(err, "could not generate status list credential")
 	}
 
 	bitString, err := bitstringGeneration(statusListIndices)
 	if err != nil {
-		return nil, util.LoggingErrorMsg(err, "could not generate bitstring for status list credential")
+		return nil, errors.Wrap(err, "could not generate bitstring for status list credential")
 	}
 
 	rlc := StatusList2021Credential{
@@ -76,29 +74,29 @@ func GenerateStatusList2021Credential(id string, issuer string, purpose StatusPu
 
 	builder := credential.NewVerifiableCredentialBuilder()
 	errMsgFragment := "could not generate status list credential: error setting "
-	if err := builder.SetID(id); err != nil {
-		return nil, util.LoggingErrorMsg(err, errMsgFragment+"id")
+	if err = builder.SetID(id); err != nil {
+		return nil, errors.Wrap(err, errMsgFragment+"id")
 	}
-	if err := builder.SetIssuer(issuer); err != nil {
-		return nil, util.LoggingErrorMsg(err, errMsgFragment+"issuer")
+	if err = builder.SetIssuer(issuer); err != nil {
+		return nil, errors.Wrap(err, errMsgFragment+"issuer")
 	}
-	if err := builder.AddContext(StatusList2021Context); err != nil {
-		return nil, util.LoggingErrorMsg(err, errMsgFragment+"context")
+	if err = builder.AddContext(StatusList2021Context); err != nil {
+		return nil, errors.Wrap(err, errMsgFragment+"context")
 	}
-	if err := builder.AddType(StatusList2021CreddentialType); err != nil {
-		return nil, util.LoggingErrorMsg(err, errMsgFragment+"type")
+	if err = builder.AddType(StatusList2021CreddentialType); err != nil {
+		return nil, errors.Wrap(err, errMsgFragment+"type")
 	}
 	rlcJSON, err := util.ToJSONMap(rlc)
 	if err != nil {
-		return nil, util.LoggingErrorMsg(err, "could not turn RLC to JSON")
+		return nil, errors.Wrap(err, "could not turn RLC to JSON")
 	}
-	if err := builder.SetCredentialSubject(rlcJSON); err != nil {
-		return nil, util.LoggingErrorMsg(err, errMsgFragment+"subject")
+	if err = builder.SetCredentialSubject(rlcJSON); err != nil {
+		return nil, errors.Wrap(err, errMsgFragment+"subject")
 	}
 
 	statusListCredential, err := builder.Build()
 	if err != nil {
-		return nil, util.LoggingErrorMsg(err, "could not build status list credential")
+		return nil, errors.Wrap(err, "could not build status list credential")
 	}
 	return statusListCredential, nil
 }
@@ -152,11 +150,11 @@ func prepareCredentialsForStatusList(purpose StatusPurpose, credentials []creden
 func getStatusEntry(maybeCredentialStatus interface{}) (*StatusList2021Entry, error) {
 	statusBytes, err := json.Marshal(maybeCredentialStatus)
 	if err != nil {
-		return nil, util.LoggingErrorMsg(err, "could not marshal credential status property")
+		return nil, errors.Wrap(err, "could not marshal credential status property")
 	}
 	var statusEntry StatusList2021Entry
-	if err := json.Unmarshal(statusBytes, &statusEntry); err != nil {
-		return nil, util.LoggingErrorMsg(err, "could not unmarshal credential status property")
+	if err = json.Unmarshal(statusBytes, &statusEntry); err != nil {
+		return nil, errors.Wrap(err, "could not unmarshal credential status property")
 	}
 	return &statusEntry, util.IsValidStruct(statusEntry)
 }
@@ -169,23 +167,19 @@ func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
 	// 1. Let bitstring be a list of bits with a minimum size of 16KB, where each bit is initialized to 0 (zero).
 	b := bitset.New(16 * KB)
 
-	if len(statusListCredentialIndices) == 0 {
-		logrus.Info("creating a status list with no revoked credentials")
-	} else {
-		// 2. For each bit in bitstring, if there is a corresponding statusListIndex value in a revoked credential in
-		// issuedCredentials, set the bit to 1 (one), otherwise set the bit to 0 (zero).
-		for _, index := range statusListCredentialIndices {
-			indexInt, err := strconv.Atoi(index)
-			if indexInt < 0 || err != nil {
-				return "", fmt.Errorf("invalid status list index value, not a valid positive integer: %s", index)
-			}
-			indexValue := uint(indexInt)
-			if _, ok := duplicateCheck[indexValue]; ok {
-				return "", fmt.Errorf("duplicate status list index value found: %d", indexValue)
-			}
-			duplicateCheck[indexValue] = true
-			b.Set(indexValue)
+	// 2. For each bit in bitstring, if there is a corresponding statusListIndex value in a revoked credential in
+	// issuedCredentials, set the bit to 1 (one), otherwise set the bit to 0 (zero).
+	for _, index := range statusListCredentialIndices {
+		indexInt, err := strconv.Atoi(index)
+		if indexInt < 0 || err != nil {
+			return "", fmt.Errorf("invalid status list index value, not a valid positive integer: %s", index)
 		}
+		indexValue := uint(indexInt)
+		if _, ok := duplicateCheck[indexValue]; ok {
+			return "", fmt.Errorf("duplicate status list index value found: %d", indexValue)
+		}
+		duplicateCheck[indexValue] = true
+		b.Set(indexValue)
 	}
 
 	bitstringBinary, err := b.MarshalBinary()
@@ -197,11 +191,11 @@ func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
 	// base64-encoding [RFC4648] the result.
 	var buf bytes.Buffer
 	zw := gzip.NewWriter(&buf)
-	if _, err := zw.Write(bitstringBinary); err != nil {
+	if _, err = zw.Write(bitstringBinary); err != nil {
 		return "", errors.Wrap(err, "could not compress status list bitstring using GZIP")
 	}
 
-	if err := zw.Close(); err != nil {
+	if err = zw.Close(); err != nil {
 		return "", errors.Wrap(err, "could not close gzip writer")
 	}
 
@@ -276,11 +270,11 @@ func ValidateCredentialInStatusList(credentialToValidate credential.VerifiableCr
 	if err != nil {
 		return false, errors.Wrapf(err, "could not marshal status credential<%s> subject value", statusCredential.ID)
 	}
-	if err := json.Unmarshal(subjectBytes, &statusCredentialValue); err != nil {
+	if err = json.Unmarshal(subjectBytes, &statusCredentialValue); err != nil {
 		return false, errors.Wrapf(err, "could not unmarshal status credential<%s> subject value into "+
 			"StatusList2021Credential", statusCredential.ID)
 	}
-	if err := util.IsValidStruct(statusCredentialValue); err != nil {
+	if err = util.IsValidStruct(statusCredentialValue); err != nil {
 		return false, errors.Wrapf(err, "credential<%s> is not a valid status credential", statusCredential.ID)
 	}
 	if statusPurpose != statusCredentialValue.StatusPurpose {
