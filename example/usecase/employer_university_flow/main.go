@@ -54,8 +54,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/example"
-	util "github.com/TBD54566975/ssi-sdk/example"
 	emp "github.com/TBD54566975/ssi-sdk/example/usecase/employer_university_flow/pkg"
 
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
@@ -85,7 +85,6 @@ func init() {
 // 2. The student will store it in a "wallet"
 // 3. An employer sends a request to verify that the student graduated from the university.
 func main() {
-
 	step := 0
 
 	example.WriteStep("Starting University Flow", step)
@@ -96,24 +95,24 @@ func main() {
 	step += 1
 
 	student, err := emp.NewEntity("Student", "key")
-	util.HandleExampleError(err, "failed to create student")
+	example.HandleExampleError(err, "failed to create student")
 
 	example.WriteStep("Initializing Employer", step)
 	step += 1
 
 	employer, err := emp.NewEntity("Employer", "peer")
-	util.HandleExampleError(err, "failed to make employer identity")
+	example.HandleExampleError(err, "failed to make employer identity")
 	verifierDID, err := employer.GetWallet().GetDID("main")
-	util.HandleExampleError(err, "failed to create employer")
+	example.HandleExampleError(err, "failed to create employer")
 
 	example.WriteStep("Initializing University", step)
 	step += 1
 
 	university, err := emp.NewEntity("University", "peer")
-	util.HandleExampleError(err, "failed to create university")
+	example.HandleExampleError(err, "failed to create university")
 	vcDID, err := university.GetWallet().GetDID("main")
 
-	util.HandleExampleError(err, "failed to initialize verifier")
+	example.HandleExampleError(err, "failed to initialize verifier")
 	example.WriteNote(fmt.Sprintf("Initialized Verifier DID: %s and registered it", vcDID))
 	emp.TrustedEntities.Issuers[vcDID] = true
 
@@ -122,16 +121,16 @@ func main() {
 
 	example.WriteNote("DID is shared from holder")
 	holderDID, err := student.GetWallet().GetDID("main")
-	util.HandleExampleError(err, "failed to store did from university")
+	example.HandleExampleError(err, "failed to store did from university")
 
 	vc, err := emp.BuildExampleUniversityVC(vcDID, holderDID)
-	util.HandleExampleError(err, "failed to build vc")
+	example.HandleExampleError(err, "failed to build vc")
 
 	example.WriteStep("Example University Sends VC to Holder", step)
 	step += 1
 
 	err = student.GetWallet().AddCredentials(*vc)
-	util.HandleExampleError(err, "failed to add credentials to wallet")
+	example.HandleExampleError(err, "failed to add credentials to wallet")
 
 	msg := fmt.Sprintf("VC puts into wallet. Wallet size is now: %d", student.GetWallet().Size())
 	example.WriteNote(msg)
@@ -141,32 +140,32 @@ func main() {
 	step += 1
 
 	presentationData, err := emp.MakePresentationData("test-id", "id-1")
-	util.HandleExampleError(err, "failed to create pd")
+	example.HandleExampleError(err, "failed to create pd")
 
 	dat, err := json.Marshal(presentationData)
-	util.HandleExampleError(err, "failed to marshal presentation data")
+	example.HandleExampleError(err, "failed to marshal presentation data")
 	logrus.Debugf("Presentation Data:\n%v", string(dat))
 
 	jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
-	util.HandleExampleError(err, "failed to generate json web key")
+	example.HandleExampleError(err, "failed to generate json web key")
 
 	presentationRequest, _, err := emp.MakePresentationRequest(*jwk, presentationData, holderDID)
-	util.HandleExampleError(err, "failed to make presentation request")
+	example.HandleExampleError(err, "failed to make presentation request")
 
-	verifier, err := cryptosuite.NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
-	util.HandleExampleError(err, "failed to build json web key verifier")
+	verifier, err := crypto.NewJWTVerifierFromJWK(jwk.ID, jwk.PublicKeyJWK)
+	example.HandleExampleError(err, "failed to build json web key verifier")
 
-	signer, err := cryptosuite.NewJSONWebKeySigner(jwk.ID, jwk.PrivateKeyJWK, cryptosuite.AssertionMethod)
-	util.HandleExampleError(err, "failed to build json web key signer")
+	signer, err := crypto.NewJWTSignerFromJWK(jwk.ID, jwk.PrivateKeyJWK)
+	example.HandleExampleError(err, "failed to build json web key signer")
 
 	example.WriteNote("Student returns claims via a Presentation Submission")
-	submission, err := emp.BuildPresentationSubmission(presentationRequest, signer, *verifier, *vc)
-	util.HandleExampleError(err, "failed to build presentation submission")
+	submission, err := emp.BuildPresentationSubmission(presentationRequest, *signer, *verifier, *vc)
+	example.HandleExampleError(err, "failed to build presentation submission")
 	vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submission))
-	util.HandleExampleError(err, "failed to verify jwt")
+	example.HandleExampleError(err, "failed to verify jwt")
 
 	dat, err = json.Marshal(vp)
-	util.HandleExampleError(err, "failed to marshal submission")
+	example.HandleExampleError(err, "failed to marshal submission")
 	logrus.Debugf("Submission:\n%v", string(dat))
 
 	example.WriteStep(fmt.Sprintf("Employer Attempting to Grant Access"), step)

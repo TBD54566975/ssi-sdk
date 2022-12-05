@@ -7,13 +7,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	. "github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
-	"github.com/TBD54566975/ssi-sdk/crypto"
-	. "github.com/TBD54566975/ssi-sdk/util"
 )
 
 // https://w3c-ccg.github.io/ld-cryptosuite-registry/#jsonwebsignature2020
@@ -22,7 +20,7 @@ const (
 	JSONWebSignature2020Context                string        = "https://w3id.org/security/suites/jws-2020/v1"
 	JSONWebSignature2020                       SignatureType = "JsonWebSignature2020"
 	JWSSignatureSuiteID                        string        = "https://w3c-ccg.github.io/security-vocab/#JsonWebSignature2020"
-	JWSSignatureSuiteType                      LDKeyType     = JsonWebKey2020
+	JWSSignatureSuiteType                      LDKeyType     = JSONWebKey2020Type
 	JWSSignatureSuiteCanonicalizationAlgorithm string        = "https://w3id.org/security#URDNA2015"
 	// JWSSignatureSuiteDigestAlgorithm uses https://www.rfc-editor.org/rfc/rfc4634
 	JWSSignatureSuiteDigestAlgorithm gocrypto.Hash = gocrypto.SHA256
@@ -40,27 +38,27 @@ func GetJSONWebSignature2020Suite() CryptoSuite {
 
 // CryptoSuiteInfo interface
 
-func (j JWSSignatureSuite) ID() string {
+func (JWSSignatureSuite) ID() string {
 	return JWSSignatureSuiteID
 }
 
-func (j JWSSignatureSuite) Type() LDKeyType {
+func (JWSSignatureSuite) Type() LDKeyType {
 	return JWSSignatureSuiteType
 }
 
-func (j JWSSignatureSuite) CanonicalizationAlgorithm() string {
+func (JWSSignatureSuite) CanonicalizationAlgorithm() string {
 	return JWSSignatureSuiteCanonicalizationAlgorithm
 }
 
-func (j JWSSignatureSuite) MessageDigestAlgorithm() gocrypto.Hash {
+func (JWSSignatureSuite) MessageDigestAlgorithm() gocrypto.Hash {
 	return JWSSignatureSuiteDigestAlgorithm
 }
 
-func (j JWSSignatureSuite) SignatureAlgorithm() SignatureType {
+func (JWSSignatureSuite) SignatureAlgorithm() SignatureType {
 	return JWSSignatureSuiteProofAlgorithm
 }
 
-func (j JWSSignatureSuite) RequiredContexts() []string {
+func (JWSSignatureSuite) RequiredContexts() []string {
 	return []string{JSONWebSignature2020Context}
 }
 
@@ -71,9 +69,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	// prepare proof options
 	contexts, err := GetContextsFromProvable(p)
 	if err != nil {
-		err := errors.Wrap(err, "could not get contexts from provable")
-		logrus.WithError(err).Error()
-		return err
+		return errors.Wrap(err, "could not get contexts from provable")
 	}
 
 	// make sure the suite's context(s) are included
@@ -83,15 +79,13 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	// 3. tbs value as a result of cvh
 	tbs, err := j.CreateVerifyHash(p, proof, opts)
 	if err != nil {
-		logrus.WithError(err).Error("create verify hash algorithm failed")
-		return err
+		return errors.Wrap(err, "create verify hash algorithm failed")
 	}
 
 	// 4 & 5. create the signature over the provable data as a JWS
 	signature, err := s.Sign(tbs)
 	if err != nil {
-		logrus.WithError(err).Error("could not sign provable value")
-		return err
+		return errors.Wrap(err, "could not sign provable value")
 	}
 
 	// set the signature on the proof object and return
@@ -105,9 +99,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	proof := p.GetProof()
 	gotProof, err := FromGenericProof(*proof)
 	if err != nil {
-		err := errors.Wrap(err, "could not coerce proof into JsonWebSignature2020 proof")
-		logrus.WithError(err).Error("could not prepare proof for verification")
-		return err
+		return errors.Wrap(err, "could not prepare proof for verification; error coercing proof into JsonWebSignature2020 proof")
 	}
 
 	// remove proof before verifying
@@ -123,9 +115,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	// prepare proof options
 	contexts, err := GetContextsFromProvable(p)
 	if err != nil {
-		err := errors.Wrap(err, "could not get contexts from provable")
-		logrus.WithError(err).Error()
-		return err
+		return errors.Wrap(err, "could not get contexts from provable")
 	}
 
 	// make sure the suite's context(s) are included
@@ -135,20 +125,18 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	// run CVH on both provable and the proof
 	tbv, err := j.CreateVerifyHash(p, gotProof, opts)
 	if err != nil {
-		logrus.WithError(err).Error("create verify hash algorithm failed")
-		return err
+		return errors.Wrap(err, "create verify hash algorithm failed")
 	}
 
 	if err = v.Verify(tbv, jwsCopy); err != nil {
-		logrus.WithError(err).Error("could not verify JWS")
-		return err
+		return errors.Wrap(err, "could not verify JWS")
 	}
 	return nil
 }
 
 // CryptoSuiteProofType interface
 
-func (j JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
+func (JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 	// JSONify the provable object
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
@@ -157,7 +145,7 @@ func (j JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 	return jsonBytes, nil
 }
 
-func (j JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
+func (JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	// the LD library anticipates a generic golang json object to normalize
 	var generic map[string]interface{}
 	if err := json.Unmarshal(marshaled, &generic); err != nil {
@@ -165,9 +153,7 @@ func (j JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	}
 	normalized, err := LDNormalize(generic)
 	if err != nil {
-		err := errors.Wrap(err, "could not canonicalize provable document")
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, errors.Wrap(err, "could not canonicalize provable document")
 	}
 	canonicalString := normalized.(string)
 	return &canonicalString, nil
@@ -177,59 +163,45 @@ func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof crypto.Proo
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := j.prepareProof(proof, opts)
 	if err != nil {
-		errMsg := "could not prepare proof for the create verify hash algorithm"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+		return nil, errors.Wrap(err, "could not prepare proof for the create verify hash algorithm")
 	}
 
 	// marshal provable to prepare for canonicalizaiton
 	marshaledProvable, err := j.Marshal(provable)
 	if err != nil {
-		errMsg := "could not marshal provable"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+		return nil, errors.Wrap(err, "could not marshal provable")
 	}
 
 	// canonicalize provable using the suite's method
 	canonicalProvable, err := j.Canonicalize(marshaledProvable)
 	if err != nil {
-		errMsg := "could not canonicalize provable"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+		return nil, errors.Wrap(err, "could not canonicalize provable")
 	}
 
 	// marshal proof to prepare for canonicalizaiton
 	marshaledOptions, err := j.Marshal(preparedProof)
 	if err != nil {
-		errMsg := "could not marshal proof"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+		return nil, errors.Wrap(err, "could not marshal proof")
 	}
 
 	// 4.1 canonicalize  proof using the suite's method
 	canonicalizedOptions, err := j.Canonicalize(marshaledOptions)
 	if err != nil {
-		errMsg := "could not canonicalize proof"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+		return nil, errors.Wrap(err, "could not canonicalize proof")
 	}
 
 	// 4.2 set output to the result of the hash of the canonicalized options document
 	canonicalizedOptionsBytes := []byte(*canonicalizedOptions)
 	optionsDigest, err := j.Digest(canonicalizedOptionsBytes)
 	if err != nil {
-		errMsg := "could not take digest of proof"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+		return nil, errors.Wrap(err, "could not take digest of proof")
 	}
 
 	// 4.3 hash the canonicalized doc and append it to the output
 	canonicalDoc := []byte(*canonicalProvable)
 	documentDigest, err := j.Digest(canonicalDoc)
 	if err != nil {
-		errMsg := "could not take digest of provable"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+		return nil, errors.Wrap(err, "could not take digest of provable")
 	}
 
 	// 5. return the output
@@ -239,9 +211,7 @@ func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof crypto.Proo
 
 func (j JWSSignatureSuite) Digest(tbd []byte) ([]byte, error) {
 	if j.MessageDigestAlgorithm() != gocrypto.SHA256 {
-		err := fmt.Errorf("unexpected digest algorithm: %s", j.MessageDigestAlgorithm().String())
-		logrus.WithError(err).Error("could not get digest")
-		return nil, err
+		return nil, fmt.Errorf("unexpected digest algorithm: %s", j.MessageDigestAlgorithm().String())
 	}
 	hash := sha256.Sum256(tbd)
 	return hash[:], nil
@@ -254,7 +224,7 @@ func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) 
 	}
 
 	var genericProof map[string]interface{}
-	if err := json.Unmarshal(proofBytes, &genericProof); err != nil {
+	if err = json.Unmarshal(proofBytes, &genericProof); err != nil {
 		return nil, err
 	}
 
@@ -279,7 +249,7 @@ func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) 
 	return &p, nil
 }
 
-type JsonWebSignature2020Proof struct {
+type JSONWebSignature2020Proof struct {
 	Type               SignatureType `json:"type,omitempty"`
 	Created            string        `json:"created,omitempty"`
 	JWS                string        `json:"jws,omitempty"`
@@ -288,13 +258,13 @@ type JsonWebSignature2020Proof struct {
 	VerificationMethod string        `json:"verificationMethod,omitempty"`
 }
 
-func FromGenericProof(p crypto.Proof) (*JsonWebSignature2020Proof, error) {
+func FromGenericProof(p crypto.Proof) (*JSONWebSignature2020Proof, error) {
 	proofBytes, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
 	}
 	var generic map[string]interface{}
-	if err := json.Unmarshal(proofBytes, &generic); err != nil {
+	if err = json.Unmarshal(proofBytes, &generic); err != nil {
 		return nil, err
 	}
 	typeValue, ok := generic["type"].(string)
@@ -321,7 +291,7 @@ func FromGenericProof(p crypto.Proof) (*JsonWebSignature2020Proof, error) {
 	if !ok {
 		methodValue = ""
 	}
-	return &JsonWebSignature2020Proof{
+	return &JSONWebSignature2020Proof{
 		Type:               SignatureType(typeValue),
 		Created:            createdValue,
 		JWS:                jwsValue,
@@ -331,24 +301,24 @@ func FromGenericProof(p crypto.Proof) (*JsonWebSignature2020Proof, error) {
 	}, nil
 }
 
-func (j *JsonWebSignature2020Proof) ToGenericProof() crypto.Proof {
+func (j *JSONWebSignature2020Proof) ToGenericProof() crypto.Proof {
 	return j
 }
 
-func (j *JsonWebSignature2020Proof) SetDetachedJWS(jws string) {
+func (j *JSONWebSignature2020Proof) SetDetachedJWS(jws string) {
 	if j != nil {
 		j.JWS = jws
 	}
 }
 
-func (j *JsonWebSignature2020Proof) GetDetachedJWS() string {
+func (j *JSONWebSignature2020Proof) GetDetachedJWS() string {
 	if j != nil {
 		return ""
 	}
 	return j.JWS
 }
 
-func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
+func (j *JSONWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 	if j == nil {
 		return nil, errors.New("cannot decode jws on empty proof")
 	}
@@ -359,12 +329,12 @@ func (j *JsonWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(jwsParts[2])
 }
 
-func (j JWSSignatureSuite) createProof(verificationMethod string, purpose ProofPurpose) JsonWebSignature2020Proof {
+func (j JWSSignatureSuite) createProof(verificationMethod string, purpose ProofPurpose) JSONWebSignature2020Proof {
 	var challenge string
 	if purpose == Authentication {
 		challenge = uuid.NewString()
 	}
-	return JsonWebSignature2020Proof{
+	return JSONWebSignature2020Proof{
 		Type:               j.SignatureAlgorithm(),
 		Created:            GetRFC3339Timestamp(),
 		ProofPurpose:       purpose,

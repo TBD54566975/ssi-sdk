@@ -1,15 +1,16 @@
-package cryptosuite
+package crypto
 
 import (
 	"testing"
 
+	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
-	_, key := getTestVectorKey0Signer(t, AssertionMethod)
-	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
+	signer := getTestVectorKey0Signer(t)
+	verifier, err := signer.ToVerifier()
 	assert.NoError(t, err)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/implementations/spruce/credential-0--key-0-ed25519.vc-jwt.json
@@ -43,9 +44,69 @@ func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
+	testKID := "test-kid"
+	testData := map[string]interface{}{
+		"test": "data",
+	}
+
+	tests := []struct {
+		kt KeyType
+	}{
+		{
+			kt: Ed25519,
+		},
+		{
+			kt: SECP256k1,
+		},
+		{
+			kt: P256,
+		},
+		{
+			kt: P384,
+		},
+		{
+			kt: P521,
+		},
+		{
+			kt: RSA,
+		},
+	}
+	for _, test := range tests {
+		t.Run(string(test.kt), func(t *testing.T) {
+			// generate a new key based on the given key type
+			pubKey, privKey, err := GenerateKeyByKeyType(test.kt)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, privKey)
+
+			// create key access with the key
+			signer, err := NewJWTSigner(testKID, privKey)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, signer)
+
+			// sign
+			token, err := signer.SignJWT(testData)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, token)
+
+			// verify
+			verifier, err := signer.ToVerifier()
+			assert.NoError(t, err)
+			assert.NotEmpty(t, verifier)
+
+			sameVerifier, err := NewJWTVerifier(testKID, pubKey)
+			assert.NoError(t, err)
+			assert.Equal(t, verifier, sameVerifier)
+
+			err = verifier.VerifyJWT(string(token))
+			assert.NoError(t, err)
+		})
+	}
+}
+
 func TestSignVerifyGenericJWT(t *testing.T) {
-	signer, key := getTestVectorKey0Signer(t, AssertionMethod)
-	verifier, err := NewJSONWebKeyVerifier(key.ID, key.PublicKeyJWK)
+	signer := getTestVectorKey0Signer(t)
+	verifier, err := signer.ToVerifier()
 	assert.NoError(t, err)
 
 	jwtData := map[string]interface{}{
@@ -58,9 +119,16 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 			"c": 3,
 		},
 	}
-	token, err := signer.SignGenericJWT(jwtData)
+	token, err := signer.SignJWT(jwtData)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
+
+	signerParsed, err := signer.ParseJWT(string(token))
+	assert.NoError(t, err)
+
+	gotSignerID, ok := signerParsed.Get("id")
+	assert.True(t, ok)
+	assert.EqualValues(t, "abcd", gotSignerID)
 
 	err = verifier.VerifyJWT(string(token))
 	assert.NoError(t, err)
@@ -72,7 +140,7 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 	assert.True(t, ok)
 	assert.EqualValues(t, "abcd", gotID)
 
-	gotJTI, ok := parsed.Get("jti")
+	gotJTI, ok := parsed.Get(jwt.JwtIDKey)
 	assert.True(t, ok)
 	assert.EqualValues(t, "1234", gotJTI)
 
@@ -82,4 +150,26 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 
 	_, err = verifier.VerifyAndParseJWT(string(token))
 	assert.NoError(t, err)
+
+	// parse out the headers
+	jws, err := verifier.ParseJWS(string(token))
+	assert.NoError(t, err)
+	assert.NotEmpty(t, jws)
+	assert.EqualValues(t, "EdDSA", jws.ProtectedHeaders().Algorithm())
+	assert.EqualValues(t, "did:example:123#key-0", jws.ProtectedHeaders().KeyID())
+}
+
+func getTestVectorKey0Signer(t *testing.T) JWTSigner {
+	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
+	knownJWK := PrivateKeyJWK{
+		KID: "did:example:123#key-0",
+		KTY: "OKP",
+		CRV: "Ed25519",
+		X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
+		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
+	}
+
+	signer, err := NewJWTSignerFromJWK(knownJWK.KID, knownJWK)
+	assert.NoError(t, err)
+	return *signer
 }

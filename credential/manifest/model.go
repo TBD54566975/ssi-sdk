@@ -3,17 +3,24 @@ package manifest
 import (
 	"reflect"
 
-	"github.com/pkg/errors"
-
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/rendering"
 	"github.com/TBD54566975/ssi-sdk/util"
+	"github.com/pkg/errors"
+)
+
+const (
+	CredentialManifestJSONProperty    = "credential_manifest"
+	CredentialApplicationJSONProperty = "credential_application"
+	CredentialResponseJSONProperty    = "credential_response"
 )
 
 // CredentialManifest https://identity.foundation/credential-manifest/#general-composition
 type CredentialManifest struct {
 	ID                     string                           `json:"id" validate:"required"`
 	SpecVersion            string                           `json:"spec_version" validate:"required"`
+	Name                   string                           `json:"name,omitempty"`
+	Description            string                           `json:"description,omitempty"`
 	Issuer                 Issuer                           `json:"issuer" validate:"required,dive"`
 	OutputDescriptors      []OutputDescriptor               `json:"output_descriptors" validate:"required,dive"`
 	Format                 *exchange.ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`
@@ -77,6 +84,11 @@ func (od *OutputDescriptor) IsValid() error {
 	return util.NewValidator().Struct(od)
 }
 
+type CredentialApplicationWrapper struct {
+	CredentialApplication CredentialApplication `json:"credential_application"`
+	Credentials           []interface{}         `json:"verifiableCredentials,omitempty"`
+}
+
 // CredentialApplication https://identity.foundation/credential-manifest/#credential-application
 type CredentialApplication struct {
 	ID          string                `json:"id" validate:"required"`
@@ -109,6 +121,11 @@ func (ca *CredentialApplication) IsValid() error {
 	return util.NewValidator().Struct(ca)
 }
 
+type CredentialResponseWrapper struct {
+	CredentialResponse CredentialResponse `json:"credential_response"`
+	Credentials        []interface{}      `json:"verifiableCredentials,omitempty"`
+}
+
 // CredentialResponse https://identity.foundation/credential-manifest/#credential-response
 type CredentialResponse struct {
 	ID            string `json:"id" validate:"required"`
@@ -120,7 +137,7 @@ type CredentialResponse struct {
 	} `json:"fulfillment,omitempty" validate:"omitempty,dive"`
 	Denial *struct {
 		Reason           string   `json:"reason" validate:"required"`
-		InputDescriptors []string `json:"input_descriptors"`
+		InputDescriptors []string `json:"input_descriptors,omitempty"`
 	} `json:"denial,omitempty" validate:"omitempty,dive"`
 }
 
@@ -140,5 +157,3 @@ func (cf *CredentialResponse) IsValid() error {
 	}
 	return util.NewValidator().Struct(cf)
 }
-
-// TODO(gabe) support multiple embed targets https://github.com/TBD54566975/ssi-sdk/issues/57

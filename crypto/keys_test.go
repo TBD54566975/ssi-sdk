@@ -32,6 +32,10 @@ func TestKeyToBytes(t *testing.T) {
 			assert.NoError(tt, err)
 			assert.NotEmpty(tt, reconstructedPriv)
 			assert.EqualValues(tt, priv, reconstructedPriv)
+
+			kt, err := GetKeyTypeFromPrivateKey(priv)
+			assert.NoError(tt, err)
+			assert.Equal(tt, keyType, kt)
 		})
 	}
 }

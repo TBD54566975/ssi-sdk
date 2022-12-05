@@ -48,6 +48,12 @@ func TestIsCredentialValidForSchema(t *testing.T) {
 	// Validate credential against vcJSONSchema
 	err = IsCredentialValidForVCJSONSchema(cred, *vcJSONSchema)
 	assert.NoError(t, err)
+
+	// make sure the cred was not modified
+	var credCopy vc.VerifiableCredential
+	err = json.Unmarshal([]byte(credential), &credCopy)
+	assert.NoError(t, err)
+	assert.Equal(t, credCopy, cred)
 }
 
 func getTestVector(fileName string) (string, error) {

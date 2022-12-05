@@ -31,6 +31,9 @@
             "id": {
               "type": "string"
             },
+            "optional": {
+              "type": "boolean"
+            },
             "path": {
               "type": "array",
               "items": {
@@ -38,6 +41,12 @@
               }
             },
             "purpose": {
+              "type": "string"
+            },
+            "intent_to_retain": {
+              "type": "boolean"
+            },
+            "name": {
               "type": "string"
             },
             "filter": {
@@ -54,6 +63,9 @@
             "id": {
               "type": "string"
             },
+            "optional": {
+              "type": "boolean"
+            },
             "path": {
               "type": "array",
               "items": {
@@ -63,8 +75,14 @@
             "purpose": {
               "type": "string"
             },
+            "intent_to_retain": {
+              "type": "boolean"
+            },
             "filter": {
               "$ref": "http://json-schema.org/draft-07/schema#"
+            },
+            "name": {
+              "type": "string"
             },
             "predicate": {
               "type": "string",

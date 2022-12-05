@@ -10,23 +10,6 @@ import (
 	. "github.com/TBD54566975/ssi-sdk/util"
 )
 
-type (
-	SignatureType string
-	ProofPurpose  string
-	PayloadFormat string
-)
-
-const (
-	W3CSecurityContext       string = "https://w3id.org/security/v1"
-	JWS2020LinkedDataContext string = "https://w3id.org/security/suites/jws-2020/v1"
-
-	AssertionMethod ProofPurpose = "assertionMethod"
-	Authentication  ProofPurpose = "authentication"
-
-	JWTFormat PayloadFormat = "jwt"
-	LDPFormat PayloadFormat = "ldp"
-)
-
 var (
 	//go:embed context
 	knownContexts embed.FS

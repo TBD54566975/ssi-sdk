@@ -28,21 +28,21 @@ const (
 	P384MultiCodec      = multicodec.P384Pub
 	P521MultiCodec      = multicodec.P521Pub
 	RSAMultiCodec       = multicodec.RsaPub
-
-	// DID Key Types
-
-	X25519KeyAgreementKey2020         cryptosuite.LDKeyType = "X25519KeyAgreementKey2020"
-	Ed25519VerificationKey2020        cryptosuite.LDKeyType = "Ed25519VerificationKey2020"
-	X25519KeyAgreementKey2019         cryptosuite.LDKeyType = "X25519KeyAgreementKey2019"
-	Ed25519VerificationKey2018        cryptosuite.LDKeyType = "Ed25519VerificationKey2018"
-	EcdsaSecp256k1VerificationKey2019 cryptosuite.LDKeyType = "EcdsaSecp256k1VerificationKey2019"
+	SHA256MultiCodec    = multicodec.Sha2_256
 )
 
-// https://www.w3.org/TR/did-core/#did-document-metadata
+// DIDResolutionResult encapsulates the tuple of a DID resolution https://www.w3.org/TR/did-core/#did-resolution
+type DIDResolutionResult struct {
+	DIDResolutionMetadata
+	DIDDocument
+	DIDDocumentMetadata
+}
+
+// DIDDocumentMetadata https://www.w3.org/TR/did-core/#did-document-metadata
 type DIDDocumentMetadata struct {
 	Created       string `json:"created,omitempty" validate:"datetime"`
 	Updated       string `json:"updated,omitempty" validate:"datetime"`
-	Deactivated   bool   `json:"deactivated"`
+	Deactivated   bool   `json:"deactivated,omitempty"`
 	NextUpdate    string `json:"nextUpdate,omitempty"`
 	VersionID     string `json:"versionId,omitempty"`
 	NextVersionID string `json:"nextVersionId,omitempty"`
@@ -54,7 +54,7 @@ func (s *DIDDocumentMetadata) IsValid() bool {
 	return util.NewValidator().Struct(s) == nil
 }
 
-// https://www.w3.org/TR/did-core/#did-resolution-metadata
+// ResolutionError https://www.w3.org/TR/did-core/#did-resolution-metadata
 type ResolutionError struct {
 	Code                       string `json:"code"`
 	InvalidDID                 bool   `json:"invalidDid"`
@@ -62,10 +62,10 @@ type ResolutionError struct {
 	RepresentationNotSupported bool   `json:"representationNotSupported"`
 }
 
-// https://www.w3.org/TR/did-core/#did-resolution-metadata
+// DIDResolutionMetadata https://www.w3.org/TR/did-core/#did-resolution-metadata
 type DIDResolutionMetadata struct {
-	contentType string
-	error       *ResolutionError
+	ContentType string
+	Error       *ResolutionError
 }
 
 // DIDDocument is a representation of the did core specification https://www.w3.org/TR/did-core
@@ -92,7 +92,7 @@ type VerificationMethod struct {
 	Controller      string                `json:"controller" validate:"required"`
 	PublicKeyBase58 string                `json:"publicKeyBase58,omitempty"`
 	// must conform to https://datatracker.ietf.org/doc/html/rfc7517
-	PublicKeyJWK *cryptosuite.PublicKeyJWK `json:"publicKeyJwk,omitempty" validate:"omitempty,dive"`
+	PublicKeyJWK *crypto.PublicKeyJWK `json:"publicKeyJwk,omitempty" validate:"omitempty,dive"`
 	// https://datatracker.ietf.org/doc/html/draft-multiformats-multibase-03
 	PublicKeyMultibase string `json:"publicKeyMultibase,omitempty"`
 	// for PKH DIDs - https://github.com/w3c-ccg/did-pkh/blob/90b28ad3c18d63822a8aab3c752302aa64fc9382/did-pkh-method-draft.md
@@ -135,29 +135,14 @@ func (d *DIDDocument) IsValid() error {
 func KeyTypeToLDKeyType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
 	switch kt {
 	case crypto.Ed25519:
-		return Ed25519VerificationKey2018, nil
+		return cryptosuite.Ed25519VerificationKey2018, nil
 	case crypto.X25519:
-		return X25519KeyAgreementKey2019, nil
-	case crypto.Secp256k1:
-		return EcdsaSecp256k1VerificationKey2019, nil
+		return cryptosuite.X25519KeyAgreementKey2019, nil
+	case crypto.SECP256k1:
+		return cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
 	case crypto.P256, crypto.P384, crypto.P521, crypto.RSA:
-		return cryptosuite.JsonWebKey2020, nil
+		return cryptosuite.JSONWebKey2020Type, nil
 	default:
-		err := fmt.Errorf("unsupported keyType: %+v", kt)
-		errMsg := fmt.Sprintf("keyType %+v failed to convert to LDKeyType", kt)
-		return "", util.LoggingErrorMsg(err, errMsg)
+		return "", fmt.Errorf("keyType %+v failed to convert to LDKeyType", kt)
 	}
 }
-
-func NewDIDDocument() *DIDDocument {
-	return &DIDDocument{
-		Authentication:       make([]VerificationMethodSet, 0),
-		AssertionMethod:      make([]VerificationMethodSet, 0),
-		KeyAgreement:         make([]VerificationMethodSet, 0),
-		CapabilityDelegation: make([]VerificationMethodSet, 0),
-		CapabilityInvocation: make([]VerificationMethodSet, 0),
-		Services:             make([]Service, 0),
-	}
-}
-
-// TODO(gabe) DID Resolution Metadata

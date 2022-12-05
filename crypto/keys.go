@@ -24,8 +24,8 @@ func GenerateKeyByKeyType(kt KeyType) (crypto.PublicKey, crypto.PrivateKey, erro
 		return GenerateEd25519Key()
 	case X25519:
 		return GenerateX25519Key()
-	case Secp256k1:
-		return GenerateSecp256k1Key()
+	case SECP256k1:
+		return GenerateSECP256k1Key()
 	case P224:
 		return GenerateP224Key()
 	case P256:
@@ -75,8 +75,8 @@ func PubKeyToBytes(key crypto.PublicKey) ([]byte, error) {
 func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 	switch kt {
 	case Ed25519, X25519:
-		return keyBytes, nil
-	case Secp256k1:
+		return ed25519.PublicKey(keyBytes), nil
+	case SECP256k1:
 		pubKey, err := secp.ParsePubKey(keyBytes)
 		if err != nil {
 			return nil, err
@@ -121,6 +121,37 @@ func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 	}
 }
 
+// GetKeyTypeFromPrivateKey returns the key type of a private key for known key types
+func GetKeyTypeFromPrivateKey(key crypto.PrivateKey) (KeyType, error) {
+	if _, ok := key.(ed25519.PrivateKey); ok {
+		return Ed25519, nil
+	}
+	if _, ok := key.(x25519.PrivateKey); ok {
+		return X25519, nil
+	}
+	if _, ok := key.(secp.PrivateKey); ok {
+		return SECP256k1, nil
+	}
+	if ecdsaKey, ok := key.(ecdsa.PrivateKey); ok {
+		switch ecdsaKey.Curve {
+		case elliptic.P224():
+			return P224, nil
+		case elliptic.P256():
+			return P256, nil
+		case elliptic.P384():
+			return P384, nil
+		case elliptic.P521():
+			return P521, nil
+		default:
+			return "", fmt.Errorf("unsupported curve: %s", ecdsaKey.Curve)
+		}
+	}
+	if _, ok := key.(rsa.PrivateKey); ok {
+		return RSA, nil
+	}
+	return "", errors.New("unknown private key type")
+}
+
 // PrivKeyToBytes constructs a byte representation of a private key, for a set number of supported key types
 func PrivKeyToBytes(key crypto.PrivateKey) ([]byte, error) {
 	ed25519Key, ok := key.(ed25519.PrivateKey)
@@ -155,9 +186,11 @@ func PrivKeyToBytes(key crypto.PrivateKey) ([]byte, error) {
 // It is assumed the key was turned into byte form using the sibling method `PrivKeyToBytes`
 func BytesToPrivKey(keyBytes []byte, kt KeyType) (crypto.PrivateKey, error) {
 	switch kt {
-	case Ed25519, X25519:
-		return keyBytes, nil
-	case Secp256k1:
+	case Ed25519:
+		return ed25519.PrivateKey(keyBytes), nil
+	case X25519:
+		return x25519.PrivateKey(keyBytes), nil
+	case SECP256k1:
 		return *secp.PrivKeyFromBytes(keyBytes), nil
 	case P224, P256, P384, P521:
 		privKey, err := x509.ParseECPrivateKey(keyBytes)
@@ -184,7 +217,7 @@ func GenerateX25519Key() (x25519.PublicKey, x25519.PrivateKey, error) {
 	return x25519.GenerateKey(rand.Reader)
 }
 
-func GenerateSecp256k1Key() (secp.PublicKey, secp.PrivateKey, error) {
+func GenerateSECP256k1Key() (secp.PublicKey, secp.PrivateKey, error) {
 	privKey, err := secp.GeneratePrivateKey()
 	if err != nil {
 		return secp.PublicKey{}, secp.PrivateKey{}, err

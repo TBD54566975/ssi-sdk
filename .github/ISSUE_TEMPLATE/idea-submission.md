@@ -16,7 +16,6 @@ assignees: decentralgabe, nitro-neal
 **Describe alternatives you've considered**
 *A clear and concise description of any alternative solutions or features you've considered.*
 
-
 **Getting it done**
 *Are you building this yourself? Do you need help? What is the urgency of the feature? What are the next steps?*
 

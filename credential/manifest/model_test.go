@@ -12,8 +12,13 @@ const (
 	ManifestVector1    string = "cm-manifest-example-1.json"
 	ManifestVector2    string = "cm-manifest-example-2.json"
 	ApplicationVector1 string = "cm-application-example-1.json"
+	CredentialVector1  string = "cm-credential-example-1.json"
 	ResponseVector1    string = "cm-response-example-1.json"
 	ResponseVector2    string = "cm-response-example-2.json"
+
+	FullApplicationVector string = "full-application.json"
+	FullCredentialVector  string = "full-credential.json"
+	FullManifestVector    string = "full-manifest.json"
 )
 
 var (
@@ -104,7 +109,7 @@ func TestCredentialResponse(t *testing.T) {
 		assert.JSONEq(tt, vector, string(roundTripBytes))
 	})
 
-	t.Run("Credential Response - Denial Vector 1", func(tt *testing.T) {
+	t.Run("Credential Error - Denial Vector 1", func(tt *testing.T) {
 		vector, err := getTestVector(ResponseVector2)
 		assert.NoError(tt, err)
 

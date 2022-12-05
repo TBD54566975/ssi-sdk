@@ -1,13 +1,8 @@
 package example
 
 import (
-	"errors"
 	"fmt"
 	"os"
-)
-
-var (
-	UnsupportedDIDError = errors.New("unsupported Method for DID")
 )
 
 // Color coding to make it easier to read terminal
@@ -24,7 +19,7 @@ const (
 func HandleExampleError(err error, msg string) {
 	if err != nil {
 		_, _ = os.Stderr.WriteString(fmt.Sprintf("%s: %v", msg, err))
-		os.Exit(1)
+		os.Exit(1) //revive:disable-line:deep-exit
 	}
 }
 

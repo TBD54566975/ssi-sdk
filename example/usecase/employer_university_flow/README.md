@@ -36,7 +36,8 @@ sequenceDiagram
 ## Steps
 
 1. Holder, Issuer, and Verifier all are granted wallets and they are initialized.
-2. Issuer sends a VC to the holder saying they graduated from the University. It has additionally information such as the degree they graduated with.
+2. Issuer sends a VC to the holder saying they graduated from the University. It has additionally information such as
+   the degree they graduated with.
 3. Holder will store the VC in their wallet, "owning" the VC.
 4. The Verifier will request to validate the Holder graduated from a university using a Presentation Request.
 5. The Holder will respond with a Verified Submission, asserting the claim that they graduated from the university.

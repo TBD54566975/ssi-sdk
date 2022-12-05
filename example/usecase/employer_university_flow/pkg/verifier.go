@@ -2,35 +2,35 @@ package pkg
 
 import (
 	"encoding/json"
-	"errors"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
-	"github.com/TBD54566975/ssi-sdk/util"
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/pkg/errors"
 )
 
-// ValidateAccess is a very simple validation process against a Presentation Submission  It checks:
+// ValidateAccess is a very simple validation process against a Presentation Submission
+// It checks:
 // 1. That the VC is valid
 // 2. That the VC was issued by a trusted entity
-func ValidateAccess(verifier cryptosuite.JSONWebKeyVerifier, data []byte) error {
-	vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(data))
+func ValidateAccess(verifier crypto.JWTVerifier, credBytes []byte) error {
+	vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(credBytes))
 	if err != nil {
-		return util.LoggingErrorMsg(err, "failed to validate VP signature")
+		return errors.Wrap(err, "failed to validate VP signature")
 	}
 
-	if err := vp.IsValid(); err != nil {
-		return util.LoggingErrorMsg(err, "failed to validate VP")
+	if err = vp.IsValid(); err != nil {
+		return errors.Wrap(err, "failed to validate VP")
 	}
 
 	for _, untypedCredential := range vp.VerifiableCredential {
-		data, err := json.Marshal(untypedCredential)
+		credBytes, err = json.Marshal(untypedCredential)
 		if err != nil {
-			return util.LoggingErrorMsg(err, "could not marshal credential in VP")
+			return errors.Wrap(err, "could not marshal credential in VP")
 		}
 		var vc credential.VerifiableCredential
-		if err := json.Unmarshal(data, &vc); err != nil {
-			return util.LoggingErrorMsg(err, "could not unmarshal credential in VP")
+		if err = json.Unmarshal(credBytes, &vc); err != nil {
+			return errors.Wrap(err, "could not unmarshal credential in VP")
 		}
 		// validity check
 		if issuer, ok := vc.CredentialSubject["id"]; !ok || !TrustedEntities.isTrusted(issuer.(string)) {

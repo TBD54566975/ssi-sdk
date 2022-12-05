@@ -34,7 +34,7 @@ func (cmb *CredentialManifestBuilder) Build() (*CredentialManifest, error) {
 	}
 
 	if err := cmb.CredentialManifest.IsValid(); err != nil {
-		return nil, util.LoggingErrorMsg(err, "credential manifest not ready to be built")
+		return nil, errors.Wrap(err, "credential manifest not ready to be built")
 	}
 
 	return cmb.CredentialManifest, nil
@@ -45,6 +45,24 @@ func (cmb *CredentialManifestBuilder) IsEmpty() bool {
 		return true
 	}
 	return reflect.DeepEqual(cmb, &CredentialManifestBuilder{})
+}
+
+func (cmb *CredentialManifestBuilder) SetName(name string) error {
+	if cmb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+
+	cmb.Name = name
+	return nil
+}
+
+func (cmb *CredentialManifestBuilder) SetDescription(description string) error {
+	if cmb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+
+	cmb.Description = description
+	return nil
 }
 
 func (cmb *CredentialManifestBuilder) SetIssuer(i Issuer) error {
@@ -134,7 +152,7 @@ func (cab *CredentialApplicationBuilder) Build() (*CredentialApplication, error)
 	}
 
 	if err := cab.CredentialApplication.IsValid(); err != nil {
-		return nil, util.LoggingErrorMsg(err, "credential application not ready to be built")
+		return nil, errors.Wrap(err, "credential application not ready to be built")
 	}
 
 	return cab.CredentialApplication, nil
@@ -206,7 +224,7 @@ func (crb *CredentialResponseBuilder) Build() (*CredentialResponse, error) {
 	}
 
 	if err := crb.CredentialResponse.IsValid(); err != nil {
-		return nil, util.LoggingErrorMsg(err, "credential response not ready to be built")
+		return nil, errors.Wrap(err, "credential response not ready to be built")
 	}
 
 	return crb.CredentialResponse, nil
@@ -261,7 +279,7 @@ func (crb *CredentialResponseBuilder) SetFulfillment(descriptors []exchange.Subm
 	return nil
 }
 
-func (crb *CredentialResponseBuilder) SetDenial(reason string, inputDescriptors []string) error {
+func (crb *CredentialResponseBuilder) SetDenial(reason string, inputDescriptors ...string) error {
 	if crb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -272,7 +290,7 @@ func (crb *CredentialResponseBuilder) SetDenial(reason string, inputDescriptors 
 
 	crb.Denial = &struct {
 		Reason           string   `json:"reason" validate:"required"`
-		InputDescriptors []string `json:"input_descriptors"`
+		InputDescriptors []string `json:"input_descriptors,omitempty"`
 	}{
 		Reason:           reason,
 		InputDescriptors: inputDescriptors,

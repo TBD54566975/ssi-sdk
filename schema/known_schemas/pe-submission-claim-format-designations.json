@@ -5,7 +5,14 @@
   "additionalProperties": false,
   "properties": {
     "format": {
-      "enum": ["jwt", "jwt_vc", "jwt_vp", "ldp", "ldp_vc", "ldp_vp"]
+      "enum": [
+        "jwt",
+        "jwt_vc",
+        "jwt_vp",
+        "ldp",
+        "ldp_vc",
+        "ldp_vp"
+      ]
     }
   }
 }

@@ -8,12 +8,18 @@
       "properties": {
         "directive": {
           "type": "string",
-          "enum": ["required", "allowed", "disallowed"]
+          "enum": [
+            "required",
+            "allowed",
+            "disallowed"
+          ]
         },
         "type": {
           "type": "array",
           "minItems": 1,
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -22,34 +28,75 @@
       "oneOf": [
         {
           "properties": {
-            "id": { "type": "string" },
+            "id": {
+              "type": "string"
+            },
+            "optional": {
+              "type": "boolean"
+            },
             "path": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string"
+              }
             },
-            "purpose": { "type": "string" },
-            "intent_to_retain": { "type": "boolean" },
-            "filter": { "$ref": "http://json-schema.org/draft-07/schema#" }
+            "purpose": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "intent_to_retain": {
+              "type": "boolean"
+            },
+            "filter": {
+              "$ref": "http://json-schema.org/draft-07/schema#"
+            }
           },
-          "required": ["path"],
+          "required": [
+            "path"
+          ],
           "additionalProperties": false
         },
         {
           "properties": {
-            "id": { "type": "string" },
+            "id": {
+              "type": "string"
+            },
+            "optional": {
+              "type": "boolean"
+            },
             "path": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string"
+              }
             },
-            "purpose": { "type": "string" },
-            "intent_to_retain": { "type": "boolean" },
-            "filter": { "$ref": "http://json-schema.org/draft-07/schema#" },
+            "purpose": {
+              "type": "string"
+            },
+            "intent_to_retain": {
+              "type": "boolean"
+            },
+            "filter": {
+              "$ref": "http://json-schema.org/draft-07/schema#"
+            },
+            "name": {
+              "type": "string"
+            },
             "predicate": {
               "type": "string",
-              "enum": ["required", "preferred"]
+              "enum": [
+                "required",
+                "preferred"
+              ]
             }
           },
-          "required": ["path", "filter", "predicate"],
+          "required": [
+            "path",
+            "filter",
+            "predicate"
+          ],
           "additionalProperties": false
         }
       ]
@@ -58,32 +105,63 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "purpose": { "type": "string" },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
         "format": {
           "$ref": "http://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json"
         },
-        "group": { "type": "array", "items": { "type": "string" } },
+        "group": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "constraints": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "limit_disclosure": { "type": "string", "enum": ["required", "preferred"] },
+            "limit_disclosure": {
+              "type": "string",
+              "enum": [
+                "required",
+                "preferred"
+              ]
+            },
             "statuses": {
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "active": { "$ref": "#/definitions/status_directive" },
-                "suspended": { "$ref": "#/definitions/status_directive" },
-                "revoked": { "$ref": "#/definitions/status_directive" }
+                "active": {
+                  "$ref": "#/definitions/status_directive"
+                },
+                "suspended": {
+                  "$ref": "#/definitions/status_directive"
+                },
+                "revoked": {
+                  "$ref": "#/definitions/status_directive"
+                }
               }
             },
             "fields": {
               "type": "array",
-              "items": { "$ref": "#/definitions/field" }
+              "items": {
+                "$ref": "#/definitions/field"
+              }
             },
-            "subject_is_issuer": { "type": "string", "enum": ["required", "preferred"] },
+            "subject_is_issuer": {
+              "type": "string",
+              "enum": [
+                "required",
+                "preferred"
+              ]
+            },
             "is_holder": {
               "type": "array",
               "items": {
@@ -92,14 +170,22 @@
                 "properties": {
                   "field_id": {
                     "type": "array",
-                    "items": { "type": "string" }
+                    "items": {
+                      "type": "string"
+                    }
                   },
                   "directive": {
                     "type": "string",
-                    "enum": ["required", "preferred"]
+                    "enum": [
+                      "required",
+                      "preferred"
+                    ]
                   }
                 },
-                "required": ["field_id", "directive"]
+                "required": [
+                  "field_id",
+                  "directive"
+                ]
               }
             },
             "same_subject": {
@@ -110,51 +196,99 @@
                 "properties": {
                   "field_id": {
                     "type": "array",
-                    "items": { "type": "string" }
+                    "items": {
+                      "type": "string"
+                    }
                   },
                   "directive": {
                     "type": "string",
-                    "enum": ["required", "preferred"]
+                    "enum": [
+                      "required",
+                      "preferred"
+                    ]
                   }
                 },
-                "required": ["field_id", "directive"]
+                "required": [
+                  "field_id",
+                  "directive"
+                ]
               }
             }
           }
         }
       },
-      "required": ["id", "constraints"]
+      "required": [
+        "id",
+        "constraints"
+      ]
     },
     "submission_requirement": {
       "type": "object",
       "oneOf": [
         {
           "properties": {
-            "name": { "type": "string" },
-            "purpose": { "type": "string" },
+            "name": {
+              "type": "string"
+            },
+            "purpose": {
+              "type": "string"
+            },
             "rule": {
               "type": "string",
-              "enum": ["all", "pick"]
+              "enum": [
+                "all",
+                "pick"
+              ]
             },
-            "count": { "type": "integer", "minimum": 1 },
-            "min": { "type": "integer", "minimum": 0 },
-            "max": { "type": "integer", "minimum": 0 },
-            "from": { "type": "string" }
+            "count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "from": {
+              "type": "string"
+            }
           },
-          "required": ["rule", "from"],
+          "required": [
+            "rule",
+            "from"
+          ],
           "additionalProperties": false
         },
         {
           "properties": {
-            "name": { "type": "string" },
-            "purpose": { "type": "string" },
+            "name": {
+              "type": "string"
+            },
+            "purpose": {
+              "type": "string"
+            },
             "rule": {
               "type": "string",
-              "enum": ["all", "pick"]
+              "enum": [
+                "all",
+                "pick"
+              ]
             },
-            "count": { "type": "integer", "minimum": 1 },
-            "min": { "type": "integer", "minimum": 0 },
-            "max": { "type": "integer", "minimum": 0 },
+            "count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max": {
+              "type": "integer",
+              "minimum": 0
+            },
             "from_nested": {
               "type": "array",
               "minItems": 1,
@@ -163,7 +297,10 @@
               }
             }
           },
-          "required": ["rule", "from_nested"],
+          "required": [
+            "rule",
+            "from_nested"
+          ],
           "additionalProperties": false
         }
       ]
@@ -171,9 +308,15 @@
   },
   "type": "object",
   "properties": {
-    "id": { "type": "string" },
-    "name": { "type": "string" },
-    "purpose": { "type": "string" },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string"
+    },
     "format": {
       "$ref": "http://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json"
     },
@@ -189,9 +332,14 @@
     },
     "input_descriptors": {
       "type": "array",
-      "items": { "$ref": "#/definitions/input_descriptor" }
+      "items": {
+        "$ref": "#/definitions/input_descriptor"
+      }
     }
   },
-  "required": ["id", "input_descriptors"],
+  "required": [
+    "id",
+    "input_descriptors"
+  ],
   "additionalProperties": false
 }
