@@ -14,7 +14,7 @@ require (
 	github.com/mr-tron/base58 v1.1.3
 	github.com/multiformats/go-multibase v0.1.1
 	github.com/multiformats/go-multicodec v0.7.0
-	github.com/multiformats/go-varint v0.0.6
+	github.com/multiformats/go-varint v0.0.7
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/piprate/json-gold v0.5.0
 	github.com/pkg/errors v0.9.1
