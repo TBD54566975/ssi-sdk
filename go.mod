@@ -7,7 +7,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0
 	github.com/flowstack-com/jsonschema v0.1.2
 	github.com/go-playground/validator/v10 v10.11.1
-	github.com/goccy/go-json v0.9.11
+	github.com/goccy/go-json v0.10.0
 	github.com/google/uuid v1.3.0
 	github.com/lestrrat-go/jwx v1.2.25
 	github.com/magefile/mage v1.14.0
