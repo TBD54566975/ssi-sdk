@@ -28,7 +28,7 @@ func main() {
 
 // 1. Simplest function - note we wrap things with js.ValueOf (if a primitive you don't technically need to)
 func sayHello(_ js.Value, args []js.Value) interface{} {
-	return js.ValueOf("Hello, Wasm World!")
+	return js.ValueOf("Hello from golang via wasm!")
 }
 
 // 2. Calling a ssi-sdk function directly - but returning a plain old string
