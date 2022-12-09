@@ -29,31 +29,6 @@ func TestIsValidCredentialSchema(t *testing.T) {
 	}
 }
 
-func TestCrap(t *testing.T) {
-	s := `{
-  "type": "https://w3c-ccg.github.io/vc-json-schemas/schema/2.0/schema.json",
-  "version": "1.0",
-  "id": "5b39bd5e-ed61-4ff5-bb02-471d89a3a3b6",
-  "name": "license schema",
-  "author": "did:key:z6MkhQnAnj6gVJDBSi8XJwSGufT7xR3WRL1PE7Zprvhjr3TL",
-  "authored": "2022-12-09T10:44:28-08:00",
-  "schema": {
-    "$id": "5b39bd5e-ed61-4ff5-bb02-471d89a3a3b6",
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "additionalProperties": true,
-    "description": "schema for license schema",
-    "properties": {
-      "licenseType": {
-        "type": "string"
-      }
-    },
-    "type": "object"
-  }
-}`
-	err := IsValidCredentialSchema(s)
-	assert.NoError(t, err)
-}
-
 func TestIsCredentialValidForSchema(t *testing.T) {
 	// Load VC
 	credential, err := getTestVector(vcJSONCredentialTestVector1)
