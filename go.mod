@@ -7,18 +7,18 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0
 	github.com/flowstack-com/jsonschema v0.1.2
 	github.com/go-playground/validator/v10 v10.11.1
-	github.com/goccy/go-json v0.9.11
+	github.com/goccy/go-json v0.10.0
 	github.com/google/uuid v1.3.0
 	github.com/lestrrat-go/jwx v1.2.25
 	github.com/magefile/mage v1.14.0
 	github.com/mr-tron/base58 v1.1.3
 	github.com/multiformats/go-multibase v0.1.1
 	github.com/multiformats/go-multicodec v0.7.0
-	github.com/multiformats/go-varint v0.0.6
+	github.com/multiformats/go-varint v0.0.7
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/piprate/json-gold v0.5.0
 	github.com/pkg/errors v0.9.1
-	github.com/santhosh-tekuri/jsonschema/v5 v5.1.0
+	github.com/santhosh-tekuri/jsonschema/v5 v5.1.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.0.0-20221005025214-4161e89ecf1b
