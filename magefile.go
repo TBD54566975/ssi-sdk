@@ -31,7 +31,23 @@ const (
 // Build builds the library.
 func Build() error {
 	fmt.Println("Building...")
-	return sh.Run(Go, "build", "-tags", "jwx_es256k", "./...")
+	err := sh.Run(Go, "build", "-tags", "jwx_es256k", "./...")
+	if err != nil {
+		return err
+	}
+
+	return BuildWasm()
+
+}
+
+func BuildWasm() error {
+
+	fmt.Println("Building wasm...")
+	env := map[string]string{
+		"GOOS":   "js",
+		"GOARCH": "wasm",
+	}
+	return sh.RunWith(env, Go, "build", "-tags", "jwx_es256k", "-o", "./wasm/static/main.wasm", "./wasm")
 }
 
 // Clean deletes any build artifacts.
