@@ -11,6 +11,7 @@ linters:
   disable-all: true
   enable:
     - revive
+    - goimports
     - gosec
     - govet
     - staticcheck
