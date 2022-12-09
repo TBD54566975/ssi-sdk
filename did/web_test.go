@@ -1,11 +1,11 @@
 package did
 
 import (
-	"gopkg.in/h2non/gock.v1"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/h2non/gock.v1"
 )
 
 const (

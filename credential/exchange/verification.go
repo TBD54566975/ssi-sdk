@@ -2,18 +2,17 @@ package exchange
 
 import (
 	"fmt"
-	credutil "github.com/TBD54566975/ssi-sdk/credential/util"
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/credential/signing"
+	credutil "github.com/TBD54566975/ssi-sdk/credential/util"
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
-	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
-	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 // VerifyPresentationSubmission verifies a presentation submission for both signature validity and correctness

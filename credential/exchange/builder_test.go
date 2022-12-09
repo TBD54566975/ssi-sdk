@@ -1,14 +1,13 @@
 package exchange
 
 import (
-	"testing"
-
 	"encoding/json"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
+	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/util"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPresentationDefinitionBuilder(t *testing.T) {

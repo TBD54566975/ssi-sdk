@@ -10,6 +10,7 @@ output:
 linters:
   disable-all: true
   enable:
+    - goimports
     - revive
     - gosec
     - govet
