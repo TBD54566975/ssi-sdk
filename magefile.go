@@ -4,7 +4,11 @@ package main
 
 import (
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"io"
+	"io/fs"
 	"log"
 	"os"
 	"os/exec"
@@ -43,6 +47,10 @@ func Test() error {
 	return runTests()
 }
 
+func Fuzz() error {
+	return runFuzzTests()
+}
+
 func runTests(extraTestArgs ...string) error {
 	args := []string{"test"}
 	if mg.Verbose() {
@@ -59,6 +67,72 @@ func runTests(extraTestArgs ...string) error {
 	_, _ = fmt.Printf("%+v", args)
 	_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
 	return err
+}
+
+func runFuzzTests(extraTestArgs ...string) error {
+	dirs := []string{"./did"}
+
+	for _, dir := range dirs {
+		functionNames, _ := getFuzzTests(dir)
+
+		for _, testName := range functionNames {
+			args := []string{"test"}
+			if mg.Verbose() {
+				args = append(args, "-v")
+			}
+			args = append(args, dir)
+			args = append(args, fmt.Sprintf("-run=%s", testName))
+			args = append(args, fmt.Sprintf("-fuzz=%s", testName))
+			args = append(args, "-fuzztime=10s")
+			testEnv := map[string]string{
+				"CGO_ENABLED": "1",
+				"GO111MODULE": "on",
+			}
+			writer := ColorizeTestStdout()
+			fmt.Printf("%+v\n", args)
+			_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+	return nil
+}
+
+func getFuzzTests(src string) ([]string, error) {
+	// src is the input for which we want to inspect the AST.
+	var testFilePaths []string
+	filepath.WalkDir(src, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(path, "test.go") {
+			return nil
+		}
+		testFilePaths = append(testFilePaths, path)
+		return nil
+	})
+
+	// Create the AST by parsing src.
+	fset := token.NewFileSet() // positions are relative to fset
+	var testNames []string
+	for _, filename := range testFilePaths {
+		// Pass in nil to automatically parse the file
+		f, err := parser.ParseFile(fset, filename, nil, 0)
+		if err != nil {
+			panic(err)
+		}
+		ast.FileExports(f)
+		ast.FilterFile(f, func(s string) bool {
+			p := strings.HasPrefix(s, "Fuzz")
+			if p {
+				testNames = append(testNames, s)
+			}
+			return p
+		})
+	}
+	return testNames, nil
 }
 
 func Deps() error {
