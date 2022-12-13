@@ -47,7 +47,7 @@ func (msg *DWNMessage) IsValid() error {
 	}
 
 	// TODO: validate the message against a json schema
-	
+
 	// validate against struct tags
 	return util.NewValidator().Struct(msg)
 }
