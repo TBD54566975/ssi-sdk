@@ -8,14 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema/v5"
+	"github.com/santhosh-tekuri/jsonschema/v5/httploader"
 )
-
-func init() {
-	// load all local schemas
-	if err := LoadAllLocal(); err != nil {
-		panic(err)
-	}
-}
 
 var (
 	//go:embed known_schemas
@@ -59,45 +53,64 @@ func (s SchemaFile) String() string {
 	return string(s)
 }
 
-// LocalLoader is a struct that holds local schemas
-type LocalLoader struct {
-	localSchemas map[string]string
+// CachingLoader is a struct that holds local schemas
+type CachingLoader struct {
+	schemas map[string]string
 }
 
-// NewLocalLoader returns a new LocalLoader without any schemas to be loaded locally
-// Calling this method disables the ability to load schemas remotely over http and https
-func NewLocalLoader() LocalLoader {
+// NewCachingLoader returns a new CachingLoader that enables the ability to cache http and https schemas
+func NewCachingLoader() CachingLoader {
 	localSchemas := make(map[string]string)
 	jsonschema.Loaders["https"] = func(url string) (io.ReadCloser, error) {
 		schema, ok := localSchemas[strings.TrimPrefix(url, "https://")]
 		if !ok {
-			return nil, fmt.Errorf("%q not found", url)
+			return httploader.Load(url)
 		}
 		return io.NopCloser(strings.NewReader(schema)), nil
 	}
 	jsonschema.Loaders["http"] = func(url string) (io.ReadCloser, error) {
 		schema, ok := localSchemas[strings.TrimPrefix(url, "http://")]
 		if !ok {
-			return nil, fmt.Errorf("%q not found", url)
+			return httploader.Load(url)
 		}
 		return io.NopCloser(strings.NewReader(schema)), nil
 	}
-	return LocalLoader{localSchemas: localSchemas}
+	return CachingLoader{schemas: localSchemas}
 }
 
-// AddLocalLoad adds a set of schemas from an implementer of `LoadLocal` to the local loader
-func (l *LocalLoader) AddLocalLoad(localSchemas map[string]string) error {
-	if l.localSchemas == nil {
+// AddCachedSchema adds a schema to be cached
+func (cl *CachingLoader) AddCachedSchema(schemaURI, schema string) error {
+	if cl.schemas == nil {
 		return errors.New("local loading is not instantiated")
 	}
-	for schemaName, schemaValue := range localSchemas {
-		l.localSchemas[schemaName] = schemaValue
+	if _, ok := cl.schemas[schemaURI]; ok {
+		return fmt.Errorf("schema %q already exists", schemaURI)
+	}
+	cl.schemas[schemaURI] = schema
+	return nil
+}
+
+// AddCachedSchemas adds a set of schemas to be cached
+func (cl *CachingLoader) AddCachedSchemas(schemas map[string]string) error {
+	if cl.schemas == nil {
+		return errors.New("local loading is not instantiated")
+	}
+	for schemaURI, schema := range schemas {
+		if err := cl.AddCachedSchema(schemaURI, schema); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-// LoadAllLocal loads all local schemas from a known of LoadLocal implementers
-func LoadAllLocal() error {
+// LoadSchema loads a schema from the embedded filesystem
+func LoadSchema(schemaFile SchemaFile) (string, error) {
+	b, err := knownSchemas.ReadFile(schemaDirectory + schemaFile.String())
+	return string(b), err
+}
+
+// GetAllLocalSchemas returns all locally cached schemas to be added to a CachingLoader
+func GetAllLocalSchemas() (map[string]string, error) {
 	localFiles := map[string]SchemaFile{
 		"identity.foundation/presentation-exchange/schemas/presentation-definition.json":                           PresentationDefinitionSchema,
 		"identity.foundation/presentation-exchange/schemas/presentation-definition-envelope.json":                  PresentationDefinitionEnvelopeSchema,
@@ -116,29 +129,14 @@ func LoadAllLocal() error {
 		"w3c-ccg.github.io/vc-json-schemas/credential-schema-2.0":                                                  VerifiableCredentialJSONSchemaSchema,
 	}
 
-	localSchemas := make(map[string]string)
+	localSchemas := make(map[string]string, len(localFiles))
 	for k, v := range localFiles {
 		gotSchema, err := LoadSchema(v)
 		if err != nil {
-			return errors.Wrapf(err, "failed to load schema %s", k)
+			return nil, err
 		}
 		localSchemas[k] = gotSchema
 	}
 
-	localLoader := NewLocalLoader()
-	if err := localLoader.AddLocalLoad(localSchemas); err != nil {
-		return errors.Wrap(err, "could not load local schemas")
-	}
-	return nil
-}
-
-// DisableLocalLoad disables the ability to load schemas locally, clearing current locally loaded schemas
-func DisableLocalLoad() {
-	jsonschema.Loaders["https"] = nil
-	jsonschema.Loaders["http"] = nil
-}
-
-func LoadSchema(schemaFile SchemaFile) (string, error) {
-	b, err := knownSchemas.ReadFile(schemaDirectory + schemaFile.String())
-	return string(b), err
+	return localSchemas, nil
 }
