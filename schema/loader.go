@@ -83,7 +83,7 @@ func (cl *CachingLoader) GetCachedSchemas() ([]string, error) {
 	if cl.schemas == nil {
 		return nil, errors.New("caching loader is not instantiated")
 	}
-	var schemas []string
+	schemas := make([]string, len(cl.schemas))
 	for schemaURI := range cl.schemas {
 		schemas = append(schemas, schemaURI)
 	}
@@ -115,7 +115,7 @@ func (cl *CachingLoader) AddCachedSchemas(schemas map[string]string) error {
 	return nil
 }
 
-// LoadSchema loads a schema from the embedded filesystem
+// LoadSchema loads a schema from the embedded filesystem and returns its contents as  a json string
 func LoadSchema(schemaFile SchemaFile) (string, error) {
 	b, err := knownSchemas.ReadFile(schemaDirectory + schemaFile.String())
 	return string(b), err

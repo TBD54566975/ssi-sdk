@@ -13,16 +13,16 @@ import (
 	"github.com/santhosh-tekuri/jsonschema/v5/httploader"
 )
 
+const (
+	// defaultSchemaURL is a placeholder that's needed to load any schema
+	defaultSchemaURL = "schema.json"
+)
+
 func init() {
 	httploader.Client = &http.Client{
 		Timeout: time.Second * 10,
 	}
 }
-
-const (
-	// defaultSchemaURL is a placeholder that's needed to load any schema
-	defaultSchemaURL = "schema.json"
-)
 
 // IsValidJSONSchema returns an error if the schema is not a valid JSON Schema, nil otherwise
 func IsValidJSONSchema(maybeSchema string) error {
