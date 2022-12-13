@@ -6,8 +6,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const ()
-
 // IsValidPresentationDefinition validates a given presentation definition object against its known JSON schema
 func IsValidPresentationDefinition(definition PresentationDefinition) error {
 	jsonBytes, err := json.Marshal(definition)
