@@ -38,6 +38,8 @@ const (
 	SubmissionRequirementSchema               SchemaFile = "pe-submission-requirement.json"
 	SubmissionRequirementsSchema              SchemaFile = "pe-submission-requirements.json"
 
+	PresentationClaimFormatDesignationFormatDefinition SchemaFile = "pe-submission-claim-format-designations.json"
+
 	// Credential Manifest Schemas
 	CredentialManifestSchema    SchemaFile = "cm-credential-manifest.json"
 	CredentialApplicationSchema SchemaFile = "cm-credential-application.json"
