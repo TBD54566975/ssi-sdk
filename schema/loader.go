@@ -61,17 +61,25 @@ type CachingLoader struct {
 // NewCachingLoader returns a new CachingLoader that enables the ability to cache http and https schemas
 func NewCachingLoader() CachingLoader {
 	localSchemas := make(map[string]string)
-	jsonschema.Loaders["https"] = func(url string) (io.ReadCloser, error) {
-		schema, ok := localSchemas[strings.TrimPrefix(url, "https://")]
+	var schema string
+	var ok bool
+	jsonschema.Loaders["http"] = func(url string) (io.ReadCloser, error) {
+		schema, ok = localSchemas[strings.TrimPrefix(url, "http://")]
 		if !ok {
-			return httploader.Load(url)
+			schema, ok = localSchemas[url]
+			if !ok {
+				return httploader.Load(url)
+			}
 		}
 		return io.NopCloser(strings.NewReader(schema)), nil
 	}
-	jsonschema.Loaders["http"] = func(url string) (io.ReadCloser, error) {
-		schema, ok := localSchemas[strings.TrimPrefix(url, "http://")]
+	jsonschema.Loaders["https"] = func(url string) (io.ReadCloser, error) {
+		schema, ok = localSchemas[strings.TrimPrefix(url, "https://")]
 		if !ok {
-			return httploader.Load(url)
+			schema, ok = localSchemas[url]
+			if !ok {
+				return httploader.Load(url)
+			}
 		}
 		return io.NopCloser(strings.NewReader(schema)), nil
 	}
