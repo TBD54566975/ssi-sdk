@@ -6,16 +6,14 @@ import (
 	"io"
 	"strings"
 
-	"github.com/TBD54566975/ssi-sdk/credential/schema"
-	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
 func init() {
-	err := LoadAllLocal()
-	if err != nil {
-		return
+	// load all local schemas
+	if err := LoadAllLocal(); err != nil {
+		panic(err)
 	}
 }
 
@@ -86,14 +84,11 @@ func NewLocalLoader() LocalLoader {
 }
 
 // AddLocalLoad adds a set of schemas from an implementer of `LoadLocal` to the local loader
-func (l *LocalLoader) AddLocalLoad(localSchemas map[string]schema.JSONSchema) error {
+func (l *LocalLoader) AddLocalLoad(localSchemas map[string]string) error {
 	if l.localSchemas == nil {
 		return errors.New("local loading is not instantiated")
 	}
 	for schemaName, schemaValue := range localSchemas {
-		if err := IsValidJSONSchema(schemaValue); err != nil {
-			return errors.Wrapf(err, "schema %s is not valid", schemaName)
-		}
 		l.localSchemas[schemaName] = schemaValue
 	}
 	return nil
@@ -102,39 +97,24 @@ func (l *LocalLoader) AddLocalLoad(localSchemas map[string]schema.JSONSchema) er
 // LoadAllLocal loads all local schemas from a known of LoadLocal implementers
 func LoadAllLocal() error {
 	localFiles := map[string]SchemaFile{
-		"http://identity.foundation/presentation-exchange/schemas/presentation-definition.json":                            PresentationDefinitionSchema,
-		"https://identity.foundation/presentation-exchange/schemas/presentation-definition.json":                           PresentationDefinitionSchema,
-		"http://identity.foundation/presentation-exchange/schemas/presentation-definition-envelope.json":                   PresentationDefinitionEnvelopeSchema,
-		"https://identity.foundation/presentation-exchange/schemas/presentation-definition-envelope.json":                  PresentationDefinitionEnvelopeSchema,
-		"http://identity.foundation/presentation-exchange/schemas/presentation-submission.json":                            PresentationSubmissionSchema,
-		"https://identity.foundation/presentation-exchange/schemas/presentation-submission.json":                           PresentationSubmissionSchema,
-		"http://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json":  PresentationClaimFormatDesignationsSchema,
-		"https://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json": PresentationClaimFormatDesignationsSchema,
-		"http://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json":  SubmissionClaimFormatDesignationsSchema,
-		"https://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json": SubmissionClaimFormatDesignationsSchema,
-		"http://identity.foundation/presentation-exchange/schemas/submission-requirement.json":                             SubmissionRequirementSchema,
-		"https://identity.foundation/presentation-exchange/schemas/submission-requirement.json":                            SubmissionRequirementSchema,
-		"http://identity.foundation/presentation-exchange/schemas/submission-requirements.json":                            SubmissionRequirementsSchema,
-		"https://identity.foundation/presentation-exchange/schemas/submission-requirements.json":                           SubmissionRequirementsSchema,
-		"http://identity.foundation/credential-manifest/schemas/credential-manifest.json":                                  CredentialManifestSchema,
-		"https://identity.foundation/credential-manifest/schemas/credential-manifest.json":                                 CredentialManifestSchema,
-		"http://identity.foundation/credential-manifest/schemas/credential-application.json":                               CredentialApplicationSchema,
-		"https://identity.foundation/credential-manifest/schemas/credential-application.json":                              CredentialApplicationSchema,
-		"http://identity.foundation/credential-manifest/schemas/credential-response.json":                                  CredentialResponseSchema,
-		"https://identity.foundation/credential-manifest/schemas/credential-response.json":                                 CredentialResponseSchema,
-		"http://identity.foundation/credential-manifest/schemas/output-descriptors.json":                                   OutputDescriptorsSchema,
-		"https://identity.foundation/credential-manifest/schemas/output-descriptors.json":                                  OutputDescriptorsSchema,
-		"http://identity.foundation/wallet-rendering/schemas/display-mapping-object.json":                                  DisplayMappingObjectSchema,
-		"https://identity.foundation/wallet-rendering/schemas/display-mapping-object.json":                                 DisplayMappingObjectSchema,
-		"http://identity.foundation/wallet-rendering/schemas/entity-styles.json":                                           EntityStylesSchema,
-		"https://identity.foundation/wallet-rendering/schemas/entity-styles.json":                                          EntityStylesSchema,
-		"http://identity.foundation/wallet-rendering/schemas/labeled-display-mapping-object.json":                          LabeledDisplayMappingObjectSchema,
-		"https://identity.foundation/wallet-rendering/schemas/labeled-display-mapping-object.json":                         LabeledDisplayMappingObjectSchema,
-		"http://w3c-ccg.github.io/vc-json-schemas/credential-schema-2.0":                                                   VerifiableCredentialJSONSchemaSchema,
-		"https://w3c-ccg.github.io/vc-json-schemas/credential-schema-2.0":                                                  VerifiableCredentialJSONSchemaSchema,
+		"identity.foundation/presentation-exchange/schemas/presentation-definition.json":                           PresentationDefinitionSchema,
+		"identity.foundation/presentation-exchange/schemas/presentation-definition-envelope.json":                  PresentationDefinitionEnvelopeSchema,
+		"identity.foundation/presentation-exchange/schemas/presentation-submission.json":                           PresentationSubmissionSchema,
+		"identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json": PresentationClaimFormatDesignationsSchema,
+		"identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json": SubmissionClaimFormatDesignationsSchema,
+		"identity.foundation/presentation-exchange/schemas/submission-requirement.json":                            SubmissionRequirementSchema,
+		"identity.foundation/presentation-exchange/schemas/submission-requirements.json":                           SubmissionRequirementsSchema,
+		"identity.foundation/credential-manifest/schemas/credential-manifest.json":                                 CredentialManifestSchema,
+		"identity.foundation/credential-manifest/schemas/credential-application.json":                              CredentialApplicationSchema,
+		"identity.foundation/credential-manifest/schemas/credential-response.json":                                 CredentialResponseSchema,
+		"identity.foundation/credential-manifest/schemas/output-descriptors.json":                                  OutputDescriptorsSchema,
+		"identity.foundation/wallet-rendering/schemas/display-mapping-object.json":                                 DisplayMappingObjectSchema,
+		"identity.foundation/wallet-rendering/schemas/entity-styles.json":                                          EntityStylesSchema,
+		"identity.foundation/wallet-rendering/schemas/labeled-display-mapping-object.json":                         LabeledDisplayMappingObjectSchema,
+		"w3c-ccg.github.io/vc-json-schemas/credential-schema-2.0":                                                  VerifiableCredentialJSONSchemaSchema,
 	}
 
-	localSchemas := make(map[string]schema.JSONSchema)
+	localSchemas := make(map[string]string)
 	for k, v := range localFiles {
 		gotSchema, err := LoadSchema(v)
 		if err != nil {
@@ -156,11 +136,7 @@ func DisableLocalLoad() {
 	jsonschema.Loaders["http"] = nil
 }
 
-func LoadSchema(schemaFile SchemaFile) (schema.JSONSchema, error) {
+func LoadSchema(schemaFile SchemaFile) (string, error) {
 	b, err := knownSchemas.ReadFile(schemaDirectory + schemaFile.String())
-	var js schema.JSONSchema
-	if err = json.Unmarshal(b, &js); err != nil {
-		return js, errors.Wrap(err, "failed to unmarshal schema")
-	}
-	return js, nil
+	return string(b), err
 }
