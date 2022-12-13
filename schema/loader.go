@@ -78,10 +78,22 @@ func NewCachingLoader() CachingLoader {
 	return CachingLoader{schemas: localSchemas}
 }
 
+// GetCachedSchemas returns an array of cached schema URIs
+func (cl *CachingLoader) GetCachedSchemas() ([]string, error) {
+	if cl.schemas == nil {
+		return nil, errors.New("caching loader is not instantiated")
+	}
+	var schemas []string
+	for schemaURI := range cl.schemas {
+		schemas = append(schemas, schemaURI)
+	}
+	return schemas, nil
+}
+
 // AddCachedSchema adds a schema to be cached
 func (cl *CachingLoader) AddCachedSchema(schemaURI, schema string) error {
 	if cl.schemas == nil {
-		return errors.New("local loading is not instantiated")
+		return errors.New("caching loader is not instantiated")
 	}
 	if _, ok := cl.schemas[schemaURI]; ok {
 		return fmt.Errorf("schema %q already exists", schemaURI)
@@ -93,7 +105,7 @@ func (cl *CachingLoader) AddCachedSchema(schemaURI, schema string) error {
 // AddCachedSchemas adds a set of schemas to be cached
 func (cl *CachingLoader) AddCachedSchemas(schemas map[string]string) error {
 	if cl.schemas == nil {
-		return errors.New("local loading is not instantiated")
+		return errors.New("caching loader is not instantiated")
 	}
 	for schemaURI, schema := range schemas {
 		if err := cl.AddCachedSchema(schemaURI, schema); err != nil {

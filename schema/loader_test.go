@@ -35,10 +35,11 @@ func TestCachingLoader(t *testing.T) {
 	assert.Equal(t, 2, len(httpmock.GetCallCountInfo()))
 
 	// now cache the schemas
-	cachingLoader := NewCachingLoader()
-	err = cachingLoader.AddCachedSchema(nameSchemaURI, getNameSchema())
+	cl := NewCachingLoader()
+	assert.NotEmpty(t, cl)
+	err = cl.AddCachedSchema(nameSchemaURI, getNameSchema())
 	assert.NoError(t, err)
-	err = cachingLoader.AddCachedSchema(emailSchemaURI, getEmailSchema())
+	err = cl.AddCachedSchema(emailSchemaURI, getEmailSchema())
 	assert.NoError(t, err)
 
 	// load the schema, which should use the cache
@@ -62,6 +63,22 @@ func TestCachingLoader(t *testing.T) {
 
 	// assert no new network calls have been made
 	assert.Equal(t, 2, len(httpmock.GetCallCountInfo()))
+}
+
+func TestCachingLoaderAllLocal(t *testing.T) {
+	cl := NewCachingLoader()
+	assert.NotEmpty(t, cl)
+
+	localSchemas, err := GetAllLocalSchemas()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, localSchemas)
+
+	err = cl.AddCachedSchemas(localSchemas)
+	assert.NoError(t, err)
+
+	names, err := cl.GetCachedSchemas()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, names)
 }
 
 func getNameSchema() string {
