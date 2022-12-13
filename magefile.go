@@ -5,7 +5,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -19,7 +18,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 const (
@@ -30,13 +29,13 @@ const (
 
 // Build builds the library.
 func Build() error {
-	fmt.Println("Building...")
+	println("Building...")
 	return sh.Run(Go, "build", "-tags", "jwx_es256k", "./...")
 }
 
 // Clean deletes any build artifacts.
 func Clean() {
-	fmt.Println("Cleaning...")
+	println("Cleaning...")
 	_ = os.RemoveAll("bin")
 }
 
@@ -59,7 +58,7 @@ func runTests(extraTestArgs ...string) error {
 		"GO111MODULE": "on",
 	}
 	writer := ColorizeTestStdout()
-	fmt.Printf("%+v", args)
+	_, _ = fmt.Printf("%+v", args)
 	_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
 	return err
 }
@@ -82,7 +81,7 @@ func ColorizeTestOutput(w io.Writer) io.Writer {
 }
 
 func ColorizeTestStdout() io.Writer {
-	if terminal.IsTerminal(syscall.Stdout) {
+	if term.IsTerminal(syscall.Stdout) {
 		return ColorizeTestOutput(os.Stdout)
 	}
 	return os.Stdout
@@ -269,7 +268,7 @@ func Android(pkgs ...string) error {
 	}
 
 	apiLevel := "23"
-	fmt.Println("Building Android - API Level: " + apiLevel + "...")
+	println("Building Android - API Level: " + apiLevel + "...")
 	bindAndroid := sh.RunCmd("gomobile", "bind", "-target", "android", "-androidapi", "23")
 
 	for _, pkg := range pkgs {
@@ -285,9 +284,9 @@ func Android(pkgs ...string) error {
 
 // Vuln downloads and runs govulncheck https://go.dev/blog/vuln
 func Vuln() error {
-	fmt.Println("Vulnerability checks...")
+	println("Vulnerability checks...")
 	if err := installGoVulnIfNotPresent(); err != nil {
-		fmt.Printf("Error installing go-vuln: %s", err.Error())
+		logrus.WithError(err).Error("error installing go-vuln")
 		return err
 	}
 	return sh.Run("govulncheck", "./...")
@@ -303,13 +302,15 @@ func installGoVulnIfNotPresent() error {
 // Currently these dereferenced schemas are missing some information and fail validation with our known json objects
 // I believe some more work in the investigation library needs to be done and we need to handle circular dependencies
 func DerefSchemas() error {
-	files, err := ioutil.ReadDir(schemaDirectory)
+	files, err := os.ReadDir(schemaDirectory)
 	if err != nil {
 		logrus.WithError(err).Fatal("problem reading directory at: " + schemaDirectory)
 		return err
 	}
 
-	os.Chmod(schemaDirectory, 0777)
+	if err = os.Chmod(schemaDirectory, 0777); err != nil {
+		return err
+	}
 
 	for _, file := range files {
 
@@ -333,8 +334,7 @@ func DerefSchemas() error {
 		}
 
 		// dereference schema
-		err = sch.DeRef()
-		if err != nil {
+		if err = sch.DeRef(); err != nil {
 			logrus.WithError(err).Fatal("problem dereferenceing schema")
 			continue
 		}

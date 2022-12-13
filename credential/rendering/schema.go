@@ -1,9 +1,16 @@
 package rendering
 
 import (
+	"embed"
+
 	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
+)
+
+var (
+	//go:embed known_schemas
+	knownSchemas embed.FS
 )
 
 const (
@@ -18,7 +25,7 @@ func IsValidEntityStyle(esd EntityStyleDescriptor) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal entity style descriptor")
 	}
-	s, err := schema.GetKnownSchema(entityStylesSchema)
+	s, err := getKnownSchema(entityStylesSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get entity styles schema")
 	}
@@ -34,7 +41,7 @@ func IsValidDisplayMappingObject(dmo DisplayMappingObject) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal display mapping object")
 	}
-	s, err := schema.GetKnownSchema(displayMappingObjectSchema)
+	s, err := getKnownSchema(displayMappingObjectSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get display mapping object schema")
 	}
@@ -50,7 +57,7 @@ func IsValidLabeledDisplayMappingObject(ldmo LabeledDisplayMappingObject) error 
 	if err != nil {
 		return errors.Wrap(err, "could not marshal labeled display mapping object")
 	}
-	s, err := schema.GetKnownSchema(labeledDisplayMappingObjectSchema)
+	s, err := getKnownSchema(labeledDisplayMappingObjectSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get labeled display mapping object schema")
 	}
@@ -58,4 +65,9 @@ func IsValidLabeledDisplayMappingObject(ldmo LabeledDisplayMappingObject) error 
 		return errors.Wrap(err, "labeled display mapping object not valid against schema")
 	}
 	return nil
+}
+
+func getKnownSchema(fileName string) (string, error) {
+	b, err := knownSchemas.ReadFile("known_schemas/" + fileName)
+	return string(b), err
 }

@@ -1,9 +1,16 @@
 package manifest
 
 import (
+	"embed"
+
 	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
+)
+
+var (
+	//go:embed known_schemas
+	knownSchemas embed.FS
 )
 
 const (
@@ -19,7 +26,7 @@ func IsValidCredentialManifest(manifest CredentialManifest) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal manifest to JSON")
 	}
-	s, err := schema.GetKnownSchema(credentialManifestSchema)
+	s, err := getKnownSchema(credentialManifestSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential manifest schema")
 	}
@@ -35,7 +42,7 @@ func IsValidCredentialApplication(application CredentialApplication) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal application to JSON")
 	}
-	s, err := schema.GetKnownSchema(credentialApplicationSchema)
+	s, err := getKnownSchema(credentialApplicationSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential application schema")
 	}
@@ -51,7 +58,7 @@ func IsValidCredentialResponse(response CredentialResponse) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal response to JSON")
 	}
-	s, err := schema.GetKnownSchema(credentialResponseSchema)
+	s, err := getKnownSchema(credentialResponseSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential response schema")
 	}
@@ -72,7 +79,7 @@ func AreValidOutputDescriptors(descriptors []OutputDescriptor) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal output descriptors to JSON")
 	}
-	s, err := schema.GetKnownSchema(outputDescriptorsSchema)
+	s, err := getKnownSchema(outputDescriptorsSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get output descriptors schema")
 	}
@@ -80,4 +87,9 @@ func AreValidOutputDescriptors(descriptors []OutputDescriptor) error {
 		return errors.Wrap(err, "output descriptors not valid against schema")
 	}
 	return nil
+}
+
+func getKnownSchema(fileName string) (string, error) {
+	b, err := knownSchemas.ReadFile("known_schemas/" + fileName)
+	return string(b), err
 }

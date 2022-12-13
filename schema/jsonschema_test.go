@@ -20,19 +20,6 @@ var (
 	jsonSchemaTestVectors = []string{JSONSchemaTestVector1, JSONSchemaTestVector2}
 )
 
-func TestGetKnownSchema(t *testing.T) {
-	t.Run("Test Get Unknown Schema", func(tt *testing.T) {
-		_, err := GetKnownSchema("bad")
-		assert.Error(tt, err)
-	})
-
-	t.Run("Test Get Known Schema", func(tt *testing.T) {
-		schema, err := GetKnownSchema("cm-credential-application.json")
-		assert.NoError(tt, err)
-		assert.NotEmpty(tt, schema)
-	})
-}
-
 func TestJSONSchemaVectors(t *testing.T) {
 	for _, tv := range jsonSchemaTestVectors {
 		gotTestVector, err := getTestVector(tv)

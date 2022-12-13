@@ -10,19 +10,19 @@ import (
 
 // Get all schemas, make sure they're valid
 func TestWalletRenderingSchemas(t *testing.T) {
-	dmoSchema, err := schema.GetKnownSchema(displayMappingObjectSchema)
+	dmoSchema, err := getKnownSchema(displayMappingObjectSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, dmoSchema)
 	err = schema.IsValidJSONSchema(dmoSchema)
 	assert.NoError(t, err)
 
-	esSchema, err := schema.GetKnownSchema(entityStylesSchema)
+	esSchema, err := getKnownSchema(entityStylesSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, esSchema)
 	err = schema.IsValidJSONSchema(esSchema)
 	assert.NoError(t, err)
 
-	ldmoSchema, err := schema.GetKnownSchema(labeledDisplayMappingObjectSchema)
+	ldmoSchema, err := getKnownSchema(labeledDisplayMappingObjectSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, ldmoSchema)
 	err = schema.IsValidJSONSchema(ldmoSchema)

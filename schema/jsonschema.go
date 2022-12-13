@@ -1,7 +1,6 @@
 package schema
 
 import (
-	"embed"
 	"net/http"
 	"time"
 
@@ -15,12 +14,8 @@ import (
 )
 
 const (
+	// defaultSchemaURL is a placeholder that's needed to load any schema
 	defaultSchemaURL = "schema.json"
-)
-
-var (
-	//go:embed known_schemas
-	knownSchemas embed.FS
 )
 
 func init() {
@@ -86,9 +81,4 @@ func IsJSONValidAgainstSchemaGeneric(json interface{}, schema string) error {
 		return err
 	}
 	return jsonSchema.Validate(json)
-}
-
-func GetKnownSchema(fileName string) (string, error) {
-	b, err := knownSchemas.ReadFile("known_schemas/" + fileName)
-	return string(b), err
 }

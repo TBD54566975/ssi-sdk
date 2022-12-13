@@ -1,10 +1,17 @@
 package schema
 
 import (
+	"embed"
+
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
+)
+
+var (
+	//go:embed known_schemas
+	knownSchemas embed.FS
 )
 
 const (
@@ -32,7 +39,7 @@ func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSON
 // IsValidCredentialSchema determines if a given credential schema is compliant with the specification's
 // JSON Schema https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
 func IsValidCredentialSchema(maybeCredentialSchema string) error {
-	vcJSONSchemaSchema, err := schema.GetKnownSchema(verifiableCredentialJSONSchemaSchema)
+	vcJSONSchemaSchema, err := getKnownSchema(verifiableCredentialJSONSchemaSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get known schema for VC JSON Schema")
 	}
@@ -78,4 +85,9 @@ func IsCredentialValidForSchema(cred credential.VerifiableCredential, s string) 
 		return errors.Wrap(err, "credential not valid for schema")
 	}
 	return nil
+}
+
+func getKnownSchema(fileName string) (string, error) {
+	b, err := knownSchemas.ReadFile("known_schemas/" + fileName)
+	return string(b), err
 }

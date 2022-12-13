@@ -46,29 +46,8 @@ func (msg *DWNMessage) IsValid() error {
 		return errors.New("manifest is empty")
 	}
 
-	// validate against json schema
-	if err := IsValidDWNMessage(*msg); err != nil {
-		return errors.Wrap(err, "dwn message failed json schema validation")
-	}
-
+	// TODO: validate the message against a json schema
+	
 	// validate against struct tags
-	return util.NewValidator().Struct(msg)
-}
-
-// IsValidDWNMessage validates a given dwn message object against its known JSON schema
-func IsValidDWNMessage(msg DWNMessage) error {
-	// TODO(neal): add support for schemas https://github.com/TBD54566975/ssi-sdk/issues/62
-	// jsonBytes, err := json.Marshal(msg)
-	// if err != nil {
-	// 	return errors.Wrap(err, "could not marshal dwn message to JSON")
-	// }
-	// s, err := schema.GetKnownSchema(dwnMessageSchema)
-	// if err != nil {
-	// 	return errors.Wrap(err, "could not get dwn message schema")
-	// }
-	// if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-	// 	logrus.WithError(err).Errorf("dwn message not valid against schema")
-	// 	return err
-	// }
 	return util.NewValidator().Struct(msg)
 }
