@@ -1,55 +1,12 @@
 package exchange
 
 import (
-	"embed"
-	"strings"
-
 	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 )
 
-var (
-	//go:embed known_schemas
-	knownSchemas embed.FS
-)
-
-type PresentationExchangeSchema string
-
-func (pe PresentationExchangeSchema) String() string {
-	return string(pe)
-}
-
-const (
-	PresentationDefinitionSchema              PresentationExchangeSchema = "pe-presentation-definition.json"
-	PresentationDefinitionEnvelopeSchema      PresentationExchangeSchema = "pe-presentation-definition-envelope.json"
-	PresentationSubmissionSchema              PresentationExchangeSchema = "pe-presentation-submission.json"
-	PresentationClaimFormatDesignationsSchema PresentationExchangeSchema = "pe-definition-claim-format-designations.json"
-	SubmissionClaimFormatDesignationsSchema   PresentationExchangeSchema = "pe-submission-claim-format-designations.json"
-	SubmissionRequirementSchema               PresentationExchangeSchema = "pe-submission-requirement.json"
-	SubmissionRequirementsSchema              PresentationExchangeSchema = "pe-submission-requirements.json"
-)
-
-func (PresentationExchangeSchema) LocalLoad() (map[string]string, error) {
-	schemaDirectory := "known_schemas"
-	local := map[string]string{
-		"https://identity.foundation/presentation-exchange/schemas/presentation-definition.json":                           strings.Join([]string{schemaDirectory, PresentationDefinitionSchema.String()}, "/"),
-		"https://identity.foundation/presentation-exchange/schemas/presentation-definition-envelope.json":                  strings.Join([]string{schemaDirectory, PresentationDefinitionEnvelopeSchema.String()}, "/"),
-		"https://identity.foundation/presentation-exchange/schemas/presentation-submission.json":                           strings.Join([]string{schemaDirectory, PresentationSubmissionSchema.String()}, "/"),
-		"https://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json": strings.Join([]string{schemaDirectory, PresentationClaimFormatDesignationsSchema.String()}, "/"),
-		"https://identity.foundation/claim-format-registry/schemas/presentation-submission-claim-format-designations.json": strings.Join([]string{schemaDirectory, SubmissionClaimFormatDesignationsSchema.String()}, "/"),
-		"https://identity.foundation/presentation-exchange/schemas/submission-requirement.json":                            strings.Join([]string{schemaDirectory, SubmissionRequirementSchema.String()}, "/"),
-		"https://identity.foundation/presentation-exchange/schemas/submission-requirements.json":                           strings.Join([]string{schemaDirectory, SubmissionRequirementsSchema.String()}, "/"),
-	}
-	for k, v := range local {
-		schemaBytes, err := knownSchemas.ReadFile(v)
-		if err != nil {
-			return nil, err
-		}
-		local[k] = string(schemaBytes)
-	}
-	return local, nil
-}
+const ()
 
 // IsValidPresentationDefinition validates a given presentation definition object against its known JSON schema
 func IsValidPresentationDefinition(definition PresentationDefinition) error {
@@ -57,7 +14,7 @@ func IsValidPresentationDefinition(definition PresentationDefinition) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal presentation definition to JSON")
 	}
-	s, err := GetPresentationExchangeSchema(PresentationDefinitionSchema)
+	s, err := schema.LoadSchema(schema.PresentationDefinitionSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation definition schema")
 	}
@@ -73,7 +30,7 @@ func IsValidPresentationDefinitionEnvelope(definition PresentationDefinitionEnve
 	if err != nil {
 		return errors.Wrap(err, "could not marshal presentation definition to JSON")
 	}
-	s, err := GetPresentationExchangeSchema(PresentationDefinitionEnvelopeSchema)
+	s, err := schema.LoadSchema(schema.PresentationDefinitionEnvelopeSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation definition schema")
 	}
@@ -94,7 +51,7 @@ func IsValidPresentationSubmission(submission PresentationSubmission) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal presentation submission to JSON")
 	}
-	s, err := GetPresentationExchangeSchema(PresentationSubmissionSchema)
+	s, err := schema.LoadSchema(schema.PresentationSubmissionSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation submission schema")
 	}
@@ -110,7 +67,7 @@ func IsValidDefinitionClaimFormatDesignation(format ClaimFormat) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal claim format to JSON")
 	}
-	s, err := GetPresentationExchangeSchema(PresentationClaimFormatDesignationsSchema)
+	s, err := schema.LoadSchema(schema.PresentationClaimFormatDesignationsSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get claim format schema")
 	}
@@ -126,7 +83,7 @@ func IsValidSubmissionRequirement(requirement SubmissionRequirement) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal submission requirement to JSON")
 	}
-	s, err := GetPresentationExchangeSchema(SubmissionRequirementSchema)
+	s, err := schema.LoadSchema(schema.SubmissionRequirementSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get submission requirement schema")
 	}
@@ -147,7 +104,7 @@ func AreValidSubmissionRequirements(requirements []SubmissionRequirement) error 
 	if err != nil {
 		return errors.Wrap(err, "could not marshal submission requirements to JSON")
 	}
-	s, err := GetPresentationExchangeSchema(SubmissionRequirementsSchema)
+	s, err := schema.LoadSchema(schema.SubmissionRequirementsSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get submission requirements schema")
 	}
@@ -155,9 +112,4 @@ func AreValidSubmissionRequirements(requirements []SubmissionRequirement) error 
 		return errors.Wrap(err, "submission requirements not valid against schema")
 	}
 	return nil
-}
-
-func GetPresentationExchangeSchema(schemaFile PresentationExchangeSchema) (string, error) {
-	b, err := knownSchemas.ReadFile("known_schemas/" + schemaFile.String())
-	return string(b), err
 }
