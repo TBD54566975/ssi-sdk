@@ -13,14 +13,16 @@ func TestCachingLoader(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterResponder("GET", "https://tbd.test/name-schema.json",
+	nameSchemaURI := "https://tbd.test/name-schema.json"
+	httpmock.RegisterResponder("GET", nameSchemaURI,
 		httpmock.NewStringResponder(200, getNameSchema()))
 
-	httpmock.RegisterResponder("GET", "https://tbd.test/email-schema.json",
+	emailSchemaURI := "https://tbd.test/email-schema.json"
+	httpmock.RegisterResponder("GET", emailSchemaURI,
 		httpmock.NewStringResponder(200, getEmailSchema()))
 
 	// first load a schema that's not cached
-	schema, err := jsonschema.Compile("https://tbd.test/name-schema.json")
+	schema, err := jsonschema.Compile(nameSchemaURI)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, schema)
 
@@ -30,6 +32,35 @@ func TestCachingLoader(t *testing.T) {
 	assert.NoError(t, err)
 
 	// validate that there were network calls
+	assert.Equal(t, 2, len(httpmock.GetCallCountInfo()))
+
+	// now cache the schemas
+	cachingLoader := NewCachingLoader()
+	err = cachingLoader.AddCachedSchema(nameSchemaURI, getNameSchema())
+	assert.NoError(t, err)
+	err = cachingLoader.AddCachedSchema(emailSchemaURI, getEmailSchema())
+	assert.NoError(t, err)
+
+	// load the schema, which should use the cache
+	schema, err = jsonschema.Compile(nameSchemaURI)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, schema)
+
+	jsonInterface, err = util.ToJSONInterface(`{"firstName": "Sat", "lastName": "Toshi", "email": {"emailAddress": "st@tbd.com"}}`)
+	assert.NoError(t, err)
+	err = schema.Validate(jsonInterface)
+	assert.NoError(t, err)
+
+	schema, err = jsonschema.Compile(emailSchemaURI)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, schema)
+
+	jsonInterface, err = util.ToJSONInterface(`{"emailAddress": "st@tbd.com"}`)
+	assert.NoError(t, err)
+	err = schema.Validate(jsonInterface)
+	assert.NoError(t, err)
+
+	// assert no new network calls have been made
 	assert.Equal(t, 2, len(httpmock.GetCallCountInfo()))
 }
 
