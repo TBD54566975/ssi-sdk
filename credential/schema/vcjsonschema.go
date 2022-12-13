@@ -14,8 +14,14 @@ var (
 	knownSchemas embed.FS
 )
 
+type VCJSONSchemaSchema string
+
+func (vcj VCJSONSchemaSchema) String() string {
+	return string(vcj)
+}
+
 const (
-	verifiableCredentialJSONSchemaSchema string = "vc-json-schema.json"
+	VerifiableCredentialJSONSchemaSchema VCJSONSchemaSchema = "vc-json-schema.json"
 )
 
 // StringToVCJSONCredentialSchema marshals a string into a credential json credential schema
@@ -39,7 +45,7 @@ func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSON
 // IsValidCredentialSchema determines if a given credential schema is compliant with the specification's
 // JSON Schema https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
 func IsValidCredentialSchema(maybeCredentialSchema string) error {
-	vcJSONSchemaSchema, err := getKnownSchema(verifiableCredentialJSONSchemaSchema)
+	vcJSONSchemaSchema, err := GetVCJSONSchema(VerifiableCredentialJSONSchemaSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get known schema for VC JSON Schema")
 	}
@@ -87,7 +93,7 @@ func IsCredentialValidForSchema(cred credential.VerifiableCredential, s string) 
 	return nil
 }
 
-func getKnownSchema(fileName string) (string, error) {
-	b, err := knownSchemas.ReadFile("known_schemas/" + fileName)
+func GetVCJSONSchema(schemaFile VCJSONSchemaSchema) (string, error) {
+	b, err := knownSchemas.ReadFile("known_schemas/" + schemaFile.String())
 	return string(b), err
 }

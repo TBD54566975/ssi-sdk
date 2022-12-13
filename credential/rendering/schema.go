@@ -13,10 +13,16 @@ var (
 	knownSchemas embed.FS
 )
 
+type WalletRenderingSchema string
+
+func (w WalletRenderingSchema) String() string {
+	return string(w)
+}
+
 const (
-	displayMappingObjectSchema        string = "wr-display-mapping-object.json"
-	entityStylesSchema                string = "wr-entity-styles.json"
-	labeledDisplayMappingObjectSchema string = "wr-labeled-display-mapping-object.json"
+	DisplayMappingObjectSchema        WalletRenderingSchema = "wr-display-mapping-object.json"
+	EntityStylesSchema                WalletRenderingSchema = "wr-entity-styles.json"
+	LabeledDisplayMappingObjectSchema WalletRenderingSchema = "wr-labeled-display-mapping-object.json"
 )
 
 // IsValidEntityStyle validates an entity style descriptor against its known schema
@@ -25,7 +31,7 @@ func IsValidEntityStyle(esd EntityStyleDescriptor) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal entity style descriptor")
 	}
-	s, err := getKnownSchema(entityStylesSchema)
+	s, err := GetWalletRenderingSchema(EntityStylesSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get entity styles schema")
 	}
@@ -41,7 +47,7 @@ func IsValidDisplayMappingObject(dmo DisplayMappingObject) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal display mapping object")
 	}
-	s, err := getKnownSchema(displayMappingObjectSchema)
+	s, err := GetWalletRenderingSchema(DisplayMappingObjectSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get display mapping object schema")
 	}
@@ -57,7 +63,7 @@ func IsValidLabeledDisplayMappingObject(ldmo LabeledDisplayMappingObject) error 
 	if err != nil {
 		return errors.Wrap(err, "could not marshal labeled display mapping object")
 	}
-	s, err := getKnownSchema(labeledDisplayMappingObjectSchema)
+	s, err := GetWalletRenderingSchema(LabeledDisplayMappingObjectSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get labeled display mapping object schema")
 	}
@@ -67,7 +73,7 @@ func IsValidLabeledDisplayMappingObject(ldmo LabeledDisplayMappingObject) error 
 	return nil
 }
 
-func getKnownSchema(fileName string) (string, error) {
-	b, err := knownSchemas.ReadFile("known_schemas/" + fileName)
+func GetWalletRenderingSchema(schemaFile WalletRenderingSchema) (string, error) {
+	b, err := knownSchemas.ReadFile("known_schemas/" + schemaFile.String())
 	return string(b), err
 }

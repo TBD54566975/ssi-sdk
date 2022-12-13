@@ -10,19 +10,19 @@ import (
 
 // Get all schemas, make sure they're valid
 func TestPresentationExchangeSchemas(t *testing.T) {
-	pdSchema, err := getKnownSchema(presentationDefinitionSchema)
+	pdSchema, err := GetPresentationExchangeSchema(PresentationDefinitionSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, pdSchema)
 	err = schema.IsValidJSONSchema(pdSchema)
 	assert.NoError(t, err)
 
-	fdSchema, err := getKnownSchema(presentationClaimFormatDesignationsSchema)
+	fdSchema, err := GetPresentationExchangeSchema(PresentationClaimFormatDesignationsSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, fdSchema)
 	err = schema.IsValidJSONSchema(fdSchema)
 	assert.NoError(t, err)
 
-	srSchema, err := getKnownSchema(submissionRequirementsSchema)
+	srSchema, err := GetPresentationExchangeSchema(SubmissionRequirementsSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, srSchema)
 	err = schema.IsValidJSONSchema(srSchema)

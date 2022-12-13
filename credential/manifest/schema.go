@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"embed"
+	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
@@ -13,12 +14,36 @@ var (
 	knownSchemas embed.FS
 )
 
+type CredentialManifestSchema string
+
+func (cm CredentialManifestSchema) String() string {
+	return string(cm)
+}
+
 const (
-	credentialManifestSchema    string = "cm-credential-manifest.json"
-	credentialApplicationSchema string = "cm-credential-application.json"
-	credentialResponseSchema    string = "cm-credential-response.json"
-	outputDescriptorsSchema     string = "cm-output-descriptors.json"
+	CredentialManifestManifestSchema CredentialManifestSchema = "cm-credential-manifest.json"
+	CredentialApplicationSchema      CredentialManifestSchema = "cm-credential-application.json"
+	CredentialResponseSchema         CredentialManifestSchema = "cm-credential-response.json"
+	OutputDescriptorsSchema          CredentialManifestSchema = "cm-output-descriptors.json"
 )
+
+func (CredentialManifestSchema) LocalLoad() (map[string]string, error) {
+	schemaDirectory := "known_schemas"
+	local := map[string]string{
+		"https://identity.foundation/credential-manifest/schemas/credential-manifest.json":    strings.Join([]string{schemaDirectory, CredentialManifestManifestSchema.String()}, "/"),
+		"https://identity.foundation/credential-manifest/schemas/credential-application.json": strings.Join([]string{schemaDirectory, CredentialApplicationSchema.String()}, "/"),
+		"https://identity.foundation/credential-manifest/schemas/credential-response.json":    strings.Join([]string{schemaDirectory, CredentialResponseSchema.String()}, "/"),
+		"https://identity.foundation/credential-manifest/schemas/output-descriptors.json":     strings.Join([]string{schemaDirectory, OutputDescriptorsSchema.String()}, "/"),
+	}
+	for k, v := range local {
+		schemaBytes, err := knownSchemas.ReadFile(v)
+		if err != nil {
+			return nil, err
+		}
+		local[k] = string(schemaBytes)
+	}
+	return local, nil
+}
 
 // IsValidCredentialManifest validates a given credential manifest object against its known JSON schema
 func IsValidCredentialManifest(manifest CredentialManifest) error {
@@ -26,7 +51,7 @@ func IsValidCredentialManifest(manifest CredentialManifest) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal manifest to JSON")
 	}
-	s, err := getKnownSchema(credentialManifestSchema)
+	s, err := GetCredentialManifestSchema(CredentialManifestManifestSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential manifest schema")
 	}
@@ -42,7 +67,7 @@ func IsValidCredentialApplication(application CredentialApplication) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal application to JSON")
 	}
-	s, err := getKnownSchema(credentialApplicationSchema)
+	s, err := GetCredentialManifestSchema(CredentialApplicationSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential application schema")
 	}
@@ -58,7 +83,7 @@ func IsValidCredentialResponse(response CredentialResponse) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal response to JSON")
 	}
-	s, err := getKnownSchema(credentialResponseSchema)
+	s, err := GetCredentialManifestSchema(CredentialResponseSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential response schema")
 	}
@@ -79,7 +104,7 @@ func AreValidOutputDescriptors(descriptors []OutputDescriptor) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal output descriptors to JSON")
 	}
-	s, err := getKnownSchema(outputDescriptorsSchema)
+	s, err := GetCredentialManifestSchema(OutputDescriptorsSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get output descriptors schema")
 	}
@@ -89,7 +114,7 @@ func AreValidOutputDescriptors(descriptors []OutputDescriptor) error {
 	return nil
 }
 
-func getKnownSchema(fileName string) (string, error) {
-	b, err := knownSchemas.ReadFile("known_schemas/" + fileName)
+func GetCredentialManifestSchema(schemaFile CredentialManifestSchema) (string, error) {
+	b, err := knownSchemas.ReadFile("known_schemas/" + schemaFile.String())
 	return string(b), err
 }

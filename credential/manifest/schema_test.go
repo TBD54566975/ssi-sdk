@@ -10,25 +10,25 @@ import (
 
 // Get all schemas, make sure they're valid
 func TestCredentialManifestSchemas(t *testing.T) {
-	cmSchema, err := getKnownSchema(credentialManifestSchema)
+	cmSchema, err := GetCredentialManifestSchema(CredentialManifestManifestSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cmSchema)
 	err = schema.IsValidJSONSchema(cmSchema)
 	assert.NoError(t, err)
 
-	caSchema, err := getKnownSchema(credentialApplicationSchema)
+	caSchema, err := GetCredentialManifestSchema(CredentialApplicationSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, caSchema)
 	err = schema.IsValidJSONSchema(caSchema)
 	assert.NoError(t, err)
 
-	cfSchema, err := getKnownSchema(credentialResponseSchema)
+	cfSchema, err := GetCredentialManifestSchema(CredentialResponseSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cfSchema)
 	err = schema.IsValidJSONSchema(cfSchema)
 	assert.NoError(t, err)
 
-	odSchema, err := getKnownSchema(outputDescriptorsSchema)
+	odSchema, err := GetCredentialManifestSchema(OutputDescriptorsSchema)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, odSchema)
 	err = schema.IsValidJSONSchema(odSchema)
