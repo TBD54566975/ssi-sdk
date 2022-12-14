@@ -102,7 +102,7 @@ func (cl *CachingLoader) cachingLoaderForProtocol(protocol string) func(url stri
 		// read the contents and cache and prevent future lookups
 		contents, err := io.ReadAll(loaded)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to read schema from %s", protocol)
+			return nil, errors.Wrapf(err, "reading all %s", protocol)
 		}
 		cl.schemas.Store(url, string(contents))
 
