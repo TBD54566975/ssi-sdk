@@ -13,8 +13,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		os.Exit(1)
 	}
-	cl := schema.NewCachingLoader()
-	if err = cl.AddCachedSchemas(localSchemas); err != nil {
+	if _, err = schema.NewCachingLoader(localSchemas); err != nil {
 		os.Exit(1)
 	}
 	os.Exit(m.Run())

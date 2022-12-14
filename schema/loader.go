@@ -1,10 +1,12 @@
 package schema
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema/v5"
@@ -59,31 +61,57 @@ type CachingLoader struct {
 }
 
 // NewCachingLoader returns a new CachingLoader that enables the ability to cache http and https schemas
-func NewCachingLoader() CachingLoader {
-	localSchemas := make(map[string]string)
-	var schema string
-	var ok bool
-	jsonschema.Loaders["http"] = func(url string) (io.ReadCloser, error) {
-		schema, ok = localSchemas[strings.TrimPrefix(url, "http://")]
-		if !ok {
-			schema, ok = localSchemas[url]
-			if !ok {
-				return httploader.Load(url)
-			}
+func NewCachingLoader(schemas map[string]string) (*CachingLoader, error) {
+	cl := CachingLoader{schemas: make(map[string]string)}
+	for schemaURI, schema := range schemas {
+		if _, ok := cl.schemas[schemaURI]; ok {
+			return nil, fmt.Errorf("schema %q already exists", schemaURI)
 		}
-		return io.NopCloser(strings.NewReader(schema)), nil
+		cl.schemas[schemaURI] = schema
 	}
-	jsonschema.Loaders["https"] = func(url string) (io.ReadCloser, error) {
-		schema, ok = localSchemas[strings.TrimPrefix(url, "https://")]
-		if !ok {
-			schema, ok = localSchemas[url]
-			if !ok {
-				return httploader.Load(url)
-			}
+	return &cl, nil
+}
+
+// EnableHTTPCache enables caching of http and https schemas
+func (cl *CachingLoader) EnableHTTPCache() {
+	jsonschema.Loaders["http"] = cl.cachingLoaderForProtocol("http")
+	jsonschema.Loaders["https"] = cl.cachingLoaderForProtocol("https")
+}
+
+func (cl *CachingLoader) cachingLoaderForProtocol(protocol string) func(url string) (io.ReadCloser, error) {
+	var m sync.Mutex
+	return func(url string) (io.ReadCloser, error) {
+		// make sure only one process can write to the map at a time
+		m.Lock()
+		defer m.Unlock()
+
+		// see if the schema is in the cache already
+		schema, ok := cl.schemas[strings.TrimPrefix(url, protocol+"://")]
+		if ok {
+			return io.NopCloser(strings.NewReader(schema)), nil
 		}
-		return io.NopCloser(strings.NewReader(schema)), nil
+
+		// fallback lookup if it's stored with the fully qualified url
+		schema, ok = cl.schemas[url]
+		if ok {
+			return io.NopCloser(strings.NewReader(schema)), nil
+		}
+
+		// load from the internet
+		loaded, err := httploader.Load(url)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to load schema from %s", protocol)
+		}
+
+		// read the contents and cache and prevent future lookups
+		contents, err := io.ReadAll(loaded)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to read schema from %s", protocol)
+		}
+		cl.schemas[url] = string(contents)
+
+		return io.NopCloser(bytes.NewReader(contents)), nil
 	}
-	return CachingLoader{schemas: localSchemas}
 }
 
 // GetCachedSchemas returns an array of cached schema URIs
@@ -96,31 +124,6 @@ func (cl *CachingLoader) GetCachedSchemas() ([]string, error) {
 		schemas = append(schemas, schemaURI)
 	}
 	return schemas, nil
-}
-
-// AddCachedSchema adds a schema to be cached
-func (cl *CachingLoader) AddCachedSchema(schemaURI, schema string) error {
-	if cl.schemas == nil {
-		return errors.New("caching loader is not instantiated")
-	}
-	if _, ok := cl.schemas[schemaURI]; ok {
-		return fmt.Errorf("schema %q already exists", schemaURI)
-	}
-	cl.schemas[schemaURI] = schema
-	return nil
-}
-
-// AddCachedSchemas adds a set of schemas to be cached
-func (cl *CachingLoader) AddCachedSchemas(schemas map[string]string) error {
-	if cl.schemas == nil {
-		return errors.New("caching loader is not instantiated")
-	}
-	for schemaURI, schema := range schemas {
-		if err := cl.AddCachedSchema(schemaURI, schema); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // LoadSchema loads a schema from the embedded filesystem and returns its contents as  a json string

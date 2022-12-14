@@ -40,44 +40,46 @@ func TestCachingLoader(t *testing.T) {
 		nameSchemaURI := "https://tbd.test/name-schema.json"
 		emailSchemaURI := "https://tbd.test/email-schema.json"
 
-		cl := NewCachingLoader()
-		assert.NotEmpty(t, cl)
-		err := cl.AddCachedSchema(nameSchemaURI, getNameSchema())
-		assert.NoError(t, err)
-		err = cl.AddCachedSchema(emailSchemaURI, getEmailSchema())
-		assert.NoError(t, err)
+		schemaCache := map[string]string{
+			nameSchemaURI:  getNameSchema(),
+			emailSchemaURI: getEmailSchema(),
+		}
+		cl, err := NewCachingLoader(schemaCache)
+		assert.NotEmpty(tt, cl)
+		assert.NoError(tt, err)
+		cl.EnableHTTPCache()
 
 		// load the schema, which should use the cache
 		schema, err := jsonschema.Compile(nameSchemaURI)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, schema)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, schema)
 
 		jsonInterface, err := util.ToJSONInterface(`{"firstName": "Sat", "lastName": "Toshi", "email": {"emailAddress": "st@tbd.com"}}`)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 		err = schema.Validate(jsonInterface)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		schema, err = jsonschema.Compile(emailSchemaURI)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, schema)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, schema)
 
 		jsonInterface, err = util.ToJSONInterface(`{"emailAddress": "st@tbd.com"}`)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 		err = schema.Validate(jsonInterface)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 	})
 }
 
 func TestCachingLoaderAllLocal(t *testing.T) {
-	cl := NewCachingLoader()
-	assert.NotEmpty(t, cl)
 
 	localSchemas, err := GetAllLocalSchemas()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, localSchemas)
-
-	err = cl.AddCachedSchemas(localSchemas)
+	cl, err := NewCachingLoader(localSchemas)
+	assert.NotEmpty(t, cl)
 	assert.NoError(t, err)
+
+	cl.EnableHTTPCache()
 
 	names, err := cl.GetCachedSchemas()
 	assert.NoError(t, err)
