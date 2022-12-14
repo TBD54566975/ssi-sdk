@@ -57,17 +57,18 @@ func (s SchemaFile) String() string {
 
 // CachingLoader is a struct that holds local schemas
 type CachingLoader struct {
-	schemas map[string]string
+	schemas sync.Map
 }
 
 // NewCachingLoader returns a new CachingLoader that enables the ability to cache http and https schemas
 func NewCachingLoader(schemas map[string]string) (*CachingLoader, error) {
-	cl := CachingLoader{schemas: make(map[string]string, len(schemas))}
+	// make sure only one process can write to the map at a time
+	cl := CachingLoader{schemas: sync.Map{}}
 	for schemaURI, schema := range schemas {
-		if _, ok := cl.schemas[schemaURI]; ok {
+		if _, ok := cl.schemas.Load(schemaURI); ok {
 			return nil, fmt.Errorf("schema %q already exists", schemaURI)
 		}
-		cl.schemas[schemaURI] = schema
+		cl.schemas.Store(schemaURI, schema)
 	}
 	return &cl, nil
 }
@@ -79,22 +80,17 @@ func (cl *CachingLoader) EnableHTTPCache() {
 }
 
 func (cl *CachingLoader) cachingLoaderForProtocol(protocol string) func(url string) (io.ReadCloser, error) {
-	var m sync.Mutex
 	return func(url string) (io.ReadCloser, error) {
-		// make sure only one process can write to the map at a time
-		m.Lock()
-		defer m.Unlock()
-
 		// see if the schema is in the cache already
-		schema, ok := cl.schemas[strings.TrimPrefix(url, protocol+"://")]
+		schema, ok := cl.schemas.Load(strings.TrimPrefix(url, protocol+"://"))
 		if ok {
-			return io.NopCloser(strings.NewReader(schema)), nil
+			return io.NopCloser(strings.NewReader(schema.(string))), nil
 		}
 
 		// fallback lookup if it's stored with the fully qualified url
-		schema, ok = cl.schemas[url]
+		schema, ok = cl.schemas.Load(url)
 		if ok {
-			return io.NopCloser(strings.NewReader(schema)), nil
+			return io.NopCloser(strings.NewReader(schema.(string))), nil
 		}
 
 		// load from the internet
@@ -108,7 +104,7 @@ func (cl *CachingLoader) cachingLoaderForProtocol(protocol string) func(url stri
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to read schema from %s", protocol)
 		}
-		cl.schemas[url] = string(contents)
+		cl.schemas.Store(url, string(contents))
 
 		return io.NopCloser(bytes.NewReader(contents)), nil
 	}
@@ -116,13 +112,11 @@ func (cl *CachingLoader) cachingLoaderForProtocol(protocol string) func(url stri
 
 // GetCachedSchemas returns an array of cached schema URIs
 func (cl *CachingLoader) GetCachedSchemas() ([]string, error) {
-	if cl.schemas == nil {
-		return nil, errors.New("caching loader is not instantiated")
-	}
-	schemas := make([]string, len(cl.schemas))
-	for schemaURI := range cl.schemas {
-		schemas = append(schemas, schemaURI)
-	}
+	var schemas []string
+	cl.schemas.Range(func(_, value interface{}) bool {
+		schemas = append(schemas, value.(string))
+		return true
+	})
 	return schemas, nil
 }
 
