@@ -62,8 +62,7 @@ type CachingLoader struct {
 
 // NewCachingLoader returns a new CachingLoader that enables the ability to cache http and https schemas
 func NewCachingLoader(schemas map[string]string) (*CachingLoader, error) {
-	// make sure only one process can write to the map at a time
-	cl := CachingLoader{}
+	var cl CachingLoader
 	for schemaURI, schema := range schemas {
 		if _, ok := cl.schemas.Load(schemaURI); ok {
 			return nil, fmt.Errorf("schema %q already exists", schemaURI)
@@ -81,7 +80,7 @@ func (cl *CachingLoader) EnableHTTPCache() {
 
 func (cl *CachingLoader) cachingLoaderForProtocol(protocol string) func(url string) (io.ReadCloser, error) {
 	return func(url string) (io.ReadCloser, error) {
-		// see if the schema is in the cache already
+		// a sync map is used to make sure only one process can write to the map at a time
 		schema, ok := cl.schemas.Load(strings.TrimPrefix(url, protocol+"://"))
 		if ok {
 			return io.NopCloser(strings.NewReader(schema.(string))), nil
