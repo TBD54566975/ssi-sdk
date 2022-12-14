@@ -71,7 +71,6 @@ func TestCachingLoader(t *testing.T) {
 }
 
 func TestCachingLoaderAllLocal(t *testing.T) {
-
 	localSchemas, err := GetAllLocalSchemas()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, localSchemas)
