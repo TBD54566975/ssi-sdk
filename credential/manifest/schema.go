@@ -6,20 +6,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	credentialManifestSchema    string = "cm-credential-manifest.json"
-	credentialApplicationSchema string = "cm-credential-application.json"
-	credentialResponseSchema    string = "cm-credential-response.json"
-	outputDescriptorsSchema     string = "cm-output-descriptors.json"
-)
-
 // IsValidCredentialManifest validates a given credential manifest object against its known JSON schema
 func IsValidCredentialManifest(manifest CredentialManifest) error {
 	jsonBytes, err := json.Marshal(manifest)
 	if err != nil {
 		return errors.Wrap(err, "could not marshal manifest to JSON")
 	}
-	s, err := schema.GetKnownSchema(credentialManifestSchema)
+	s, err := schema.LoadSchema(schema.CredentialManifestSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential manifest schema")
 	}
@@ -35,7 +28,7 @@ func IsValidCredentialApplication(application CredentialApplication) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal application to JSON")
 	}
-	s, err := schema.GetKnownSchema(credentialApplicationSchema)
+	s, err := schema.LoadSchema(schema.CredentialApplicationSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential application schema")
 	}
@@ -51,7 +44,7 @@ func IsValidCredentialResponse(response CredentialResponse) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal response to JSON")
 	}
-	s, err := schema.GetKnownSchema(credentialResponseSchema)
+	s, err := schema.LoadSchema(schema.CredentialResponseSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get credential response schema")
 	}
@@ -72,7 +65,7 @@ func AreValidOutputDescriptors(descriptors []OutputDescriptor) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal output descriptors to JSON")
 	}
-	s, err := schema.GetKnownSchema(outputDescriptorsSchema)
+	s, err := schema.LoadSchema(schema.OutputDescriptorsSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get output descriptors schema")
 	}

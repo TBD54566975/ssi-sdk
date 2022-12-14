@@ -7,10 +7,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	verifiableCredentialJSONSchemaSchema string = "vc-json-schema.json"
-)
-
 // StringToVCJSONCredentialSchema marshals a string into a credential json credential schema
 func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSONSchema, error) {
 	var vcs VCJSONSchema
@@ -32,7 +28,7 @@ func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSON
 // IsValidCredentialSchema determines if a given credential schema is compliant with the specification's
 // JSON Schema https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
 func IsValidCredentialSchema(maybeCredentialSchema string) error {
-	vcJSONSchemaSchema, err := schema.GetKnownSchema(verifiableCredentialJSONSchemaSchema)
+	vcJSONSchemaSchema, err := schema.LoadSchema(schema.VerifiableCredentialJSONSchemaSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get known schema for VC JSON Schema")
 	}
