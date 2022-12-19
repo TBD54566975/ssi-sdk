@@ -196,6 +196,37 @@ func TestExpand(t *testing.T) {
 	})
 }
 
+func TestGenerateAndDecode(t *testing.T) {
+	for _, kt := range GetSupportedDIDKeyTypes() {
+		privKey, didKey, err := GenerateDIDKey(kt)
+		assert.NotEmpty(t, privKey)
+		assert.NoError(t, err)
+
+		expectedLLKeyType, _ := KeyTypeToLDKeyType(kt)
+
+		pubKey, ldKeyType, cryptoKeyType, err := didKey.Decode()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, pubKey)
+		assert.Equal(t, ldKeyType, expectedLLKeyType)
+		assert.Equal(t, cryptoKeyType, kt)
+	}
+}
+
+func TestGenerateAndResolve(t *testing.T) {
+	resolvers := []Resolution{KeyResolver{}, WebResolver{}, PKHResolver{}, PeerResolver{}}
+	resolver, _ := NewResolver(resolvers...)
+
+	for _, kt := range GetSupportedDIDKeyTypes() {
+		_, didKey, err := GenerateDIDKey(kt)
+		assert.NoError(t, err)
+
+		doc, err := resolver.Resolve(didKey.String())
+		assert.NoError(t, err)
+		assert.NotEmpty(t, doc)
+		assert.Equal(t, didKey.String(), doc.DIDDocument.ID)
+	}
+}
+
 func TestDIDKeySignVerify(t *testing.T) {
 	t.Run("Test Ed25519 did:key", func(t *testing.T) {
 		privKey, didKey, err := GenerateDIDKey(crypto.Ed25519)

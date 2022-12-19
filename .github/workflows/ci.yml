@@ -48,6 +48,9 @@ jobs:
 
       - name: Test
         run: mage citest
+      
+      - name: Fuzz tests
+        run: mage fuzz
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
