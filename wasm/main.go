@@ -5,8 +5,9 @@ package main
 import (
 	"crypto/ed25519"
 	"encoding/base64"
-	"encoding/json"
 	"syscall/js"
+
+	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
