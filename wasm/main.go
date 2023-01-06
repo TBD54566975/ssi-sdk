@@ -25,6 +25,7 @@ func main() {
 	js.Global().Set("sayHello", js.FuncOf(sayHello))
 	js.Global().Set("generateKey", js.FuncOf(generateKey))
 	js.Global().Set("makeDid", js.FuncOf(makeDid))
+	js.Global().Set("resolveDid", js.FuncOf(resolveDid))
 
 	for {
 		func() {
@@ -72,4 +73,31 @@ func makeDid(_ js.Value, args []js.Value) interface{} {
 	json.Unmarshal(resultBytes, &resultObj)
 	return js.ValueOf(resultObj)
 
+}
+
+func resolveDid(_ js.Value, args []js.Value) interface{} {
+
+	didString := args[0].String()
+	resolvers := []did.Resolution{did.KeyResolver{}, did.WebResolver{}, did.PKHResolver{}, did.PeerResolver{}}
+	resolver, err := did.NewResolver(resolvers...)
+	if err != nil {
+		return err
+	}
+
+	doc, err := resolver.Resolve(didString)
+	if err != nil {
+		return err
+	}
+
+	resultBytes, err := json.Marshal(doc)
+	if err != nil {
+		return err
+	}
+	var resultObj map[string]interface{}
+	err = json.Unmarshal(resultBytes, &resultObj)
+	if err != nil {
+		return err
+	}
+
+	return js.ValueOf(resultObj)
 }
