@@ -1,27 +1,27 @@
 package schema
 
 import (
-	"embed"
+	"net/http"
+	"time"
 
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema/v5"
+
+	// imported for http loaders https://github.com/santhosh-tekuri/jsonschema/issues/92#issuecomment-1309794888
 	"github.com/santhosh-tekuri/jsonschema/v5/httploader"
 )
 
 const (
+	// defaultSchemaURL is a placeholder that's needed to load any schema
 	defaultSchemaURL = "schema.json"
 )
 
-var (
-	//go:embed known_schemas
-	knownSchemas embed.FS
-)
-
 func init() {
-	jsonschema.Loaders["http"] = httploader.Load
-	jsonschema.Loaders["https"] = httploader.Load
+	httploader.Client = &http.Client{
+		Timeout: time.Second * 10,
+	}
 }
 
 // IsValidJSONSchema returns an error if the schema is not a valid JSON Schema, nil otherwise
@@ -81,9 +81,4 @@ func IsJSONValidAgainstSchemaGeneric(json interface{}, schema string) error {
 		return err
 	}
 	return jsonSchema.Validate(json)
-}
-
-func GetKnownSchema(fileName string) (string, error) {
-	b, err := knownSchemas.ReadFile("known_schemas/" + fileName)
-	return string(b), err
 }

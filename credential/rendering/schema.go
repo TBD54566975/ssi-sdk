@@ -6,19 +6,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	displayMappingObjectSchema        string = "wr-display-mapping-object.json"
-	entityStylesSchema                string = "wr-entity-styles.json"
-	labeledDisplayMappingObjectSchema string = "wr-labeled-display-mapping-object.json"
-)
-
 // IsValidEntityStyle validates an entity style descriptor against its known schema
 func IsValidEntityStyle(esd EntityStyleDescriptor) error {
 	jsonBytes, err := json.Marshal(esd)
 	if err != nil {
 		return errors.Wrap(err, "could not marshal entity style descriptor")
 	}
-	s, err := schema.GetKnownSchema(entityStylesSchema)
+	s, err := schema.LoadSchema(schema.EntityStylesSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get entity styles schema")
 	}
@@ -34,7 +28,7 @@ func IsValidDisplayMappingObject(dmo DisplayMappingObject) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal display mapping object")
 	}
-	s, err := schema.GetKnownSchema(displayMappingObjectSchema)
+	s, err := schema.LoadSchema(schema.DisplayMappingObjectSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get display mapping object schema")
 	}
@@ -50,7 +44,7 @@ func IsValidLabeledDisplayMappingObject(ldmo LabeledDisplayMappingObject) error 
 	if err != nil {
 		return errors.Wrap(err, "could not marshal labeled display mapping object")
 	}
-	s, err := schema.GetKnownSchema(labeledDisplayMappingObjectSchema)
+	s, err := schema.LoadSchema(schema.LabeledDisplayMappingObjectSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get labeled display mapping object schema")
 	}

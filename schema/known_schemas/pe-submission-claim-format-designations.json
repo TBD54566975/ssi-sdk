@@ -2,17 +2,10 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Presentation Submission Claim Format Designations",
   "type": "object",
-  "additionalProperties": false,
-  "properties": {
+  "definitions": {
     "format": {
-      "enum": [
-        "jwt",
-        "jwt_vc",
-        "jwt_vp",
-        "ldp",
-        "ldp_vc",
-        "ldp_vp"
-      ]
+      "type": "string",
+      "enum": ["jwt", "jwt_vc", "jwt_vp", "ldp", "ldp_vc", "ldp_vp"]
     }
   }
 }

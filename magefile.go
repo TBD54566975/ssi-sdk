@@ -4,8 +4,11 @@ package main
 
 import (
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"io"
-	"io/ioutil"
+	"io/fs"
 	"log"
 	"os"
 	"os/exec"
@@ -15,29 +18,26 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/flowstack-com/jsonschema"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 const (
-	Go              = "go"
-	gomobile        = "gomobile"
-	schemaDirectory = "./schema/known_schemas/"
+	Go       = "go"
+	gomobile = "gomobile"
 )
 
 // Build builds the library.
 func Build() error {
+
 	fmt.Println("Building...")
 	err := sh.Run(Go, "build", "-tags", "jwx_es256k", "./...")
 	if err != nil {
 		return err
 	}
-
 	return BuildWasm()
-
 }
 
 func BuildWasm() error {
@@ -52,7 +52,7 @@ func BuildWasm() error {
 
 // Clean deletes any build artifacts.
 func Clean() {
-	fmt.Println("Cleaning...")
+	println("Cleaning...")
 	_ = os.RemoveAll("bin")
 }
 
@@ -60,6 +60,10 @@ func Clean() {
 // The mage `-v` option will trigger a verbose output of the test
 func Test() error {
 	return runTests()
+}
+
+func Fuzz() error {
+	return runFuzzTests()
 }
 
 func runTests(extraTestArgs ...string) error {
@@ -75,9 +79,75 @@ func runTests(extraTestArgs ...string) error {
 		"GO111MODULE": "on",
 	}
 	writer := ColorizeTestStdout()
-	fmt.Printf("%+v", args)
+	_, _ = fmt.Printf("%+v", args)
 	_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
 	return err
+}
+
+func runFuzzTests(extraTestArgs ...string) error {
+	dirs := []string{"./did"}
+
+	for _, dir := range dirs {
+		functionNames, _ := getFuzzTests(dir)
+
+		for _, testName := range functionNames {
+			args := []string{"test"}
+			if mg.Verbose() {
+				args = append(args, "-v")
+			}
+			args = append(args, dir)
+			args = append(args, fmt.Sprintf("-run=%s", testName))
+			args = append(args, fmt.Sprintf("-fuzz=%s", testName))
+			args = append(args, "-fuzztime=10s")
+			testEnv := map[string]string{
+				"CGO_ENABLED": "1",
+				"GO111MODULE": "on",
+			}
+			writer := ColorizeTestStdout()
+			fmt.Printf("%+v\n", args)
+			_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+	return nil
+}
+
+func getFuzzTests(src string) ([]string, error) {
+	// src is the input for which we want to inspect the AST.
+	var testFilePaths []string
+	filepath.WalkDir(src, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(path, "test.go") {
+			return nil
+		}
+		testFilePaths = append(testFilePaths, path)
+		return nil
+	})
+
+	// Create the AST by parsing src.
+	fset := token.NewFileSet() // positions are relative to fset
+	var testNames []string
+	for _, filename := range testFilePaths {
+		// Pass in nil to automatically parse the file
+		f, err := parser.ParseFile(fset, filename, nil, 0)
+		if err != nil {
+			panic(err)
+		}
+		ast.FileExports(f)
+		ast.FilterFile(f, func(s string) bool {
+			p := strings.HasPrefix(s, "Fuzz")
+			if p {
+				testNames = append(testNames, s)
+			}
+			return p
+		})
+	}
+	return testNames, nil
 }
 
 func Deps() error {
@@ -98,7 +168,7 @@ func ColorizeTestOutput(w io.Writer) io.Writer {
 }
 
 func ColorizeTestStdout() io.Writer {
-	if terminal.IsTerminal(syscall.Stdout) {
+	if term.IsTerminal(syscall.Stdout) {
 		return ColorizeTestOutput(os.Stdout)
 	}
 	return os.Stdout
@@ -285,7 +355,7 @@ func Android(pkgs ...string) error {
 	}
 
 	apiLevel := "23"
-	fmt.Println("Building Android - API Level: " + apiLevel + "...")
+	println("Building Android - API Level: " + apiLevel + "...")
 	bindAndroid := sh.RunCmd("gomobile", "bind", "-target", "android", "-androidapi", "23")
 
 	for _, pkg := range pkgs {
@@ -301,9 +371,9 @@ func Android(pkgs ...string) error {
 
 // Vuln downloads and runs govulncheck https://go.dev/blog/vuln
 func Vuln() error {
-	fmt.Println("Vulnerability checks...")
+	println("Vulnerability checks...")
 	if err := installGoVulnIfNotPresent(); err != nil {
-		fmt.Printf("Error installing go-vuln: %s", err.Error())
+		logrus.WithError(err).Error("error installing go-vuln")
 		return err
 	}
 	return sh.Run("govulncheck", "./...")
@@ -311,63 +381,4 @@ func Vuln() error {
 
 func installGoVulnIfNotPresent() error {
 	return installIfNotPresent("govulncheck", "golang.org/x/vuln/cmd/govulncheck@latest")
-}
-
-// DerefSchemas takes our known schemas and dereferences the schema's $ref http links to be a part of the json schema object.
-// This makes our code faster when doing validation checks and allows us to not ping outside sources for schemas refs which may go down or change.
-// TODO: (Neal) Currently we do not use these dereferenced schemas in code because there is more work to be done here.
-// Currently these dereferenced schemas are missing some information and fail validation with our known json objects
-// I believe some more work in the investigation library needs to be done and we need to handle circular dependencies
-func DerefSchemas() error {
-	files, err := ioutil.ReadDir(schemaDirectory)
-	if err != nil {
-		logrus.WithError(err).Fatal("problem reading directory at: " + schemaDirectory)
-		return err
-	}
-
-	os.Chmod(schemaDirectory, 0777)
-
-	for _, file := range files {
-
-		// dont deref already deref'd json schemas
-		if strings.Contains(file.Name(), "-deref") {
-			continue
-		}
-
-		logrus.Println("dereferenceing file at: " + file.Name())
-
-		fileBytes, err := os.ReadFile(schemaDirectory + file.Name())
-		if err != nil {
-			logrus.WithError(err).Fatal("problem reading file at: " + schemaDirectory + file.Name())
-			continue
-		}
-
-		sch, err := jsonschema.New(fileBytes)
-		if err != nil {
-			logrus.WithError(err).Fatal("problem creating schema")
-			continue
-		}
-
-		// dereference schema
-		err = sch.DeRef()
-		if err != nil {
-			logrus.WithError(err).Fatal("problem dereferenceing schema")
-			continue
-		}
-
-		schemaBytes, err := sch.MarshalJSON()
-		if err != nil {
-			logrus.WithError(err).Fatal("problem marshalling schema json")
-			continue
-		}
-
-		err = os.WriteFile("./schema/known_schemas/"+strings.ReplaceAll(file.Name(), ".json", "")+"-deref.json", schemaBytes, 0644)
-		if err != nil {
-			logrus.WithError(err).Fatal("problem writing deref json to file")
-			continue
-		}
-
-	}
-	logrus.Println("\n\nFinished dereferenceing schemas")
-	return nil
 }

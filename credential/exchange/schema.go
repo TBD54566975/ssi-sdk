@@ -6,23 +6,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	presentationDefinitionSchema              string = "pe-presentation-definition.json"
-	presentationDefinitionEnvelopeSchema      string = "pe-presentation-definition-envelope.json"
-	presentationSubmissionSchema              string = "pe-presentation-submission.json"
-	presentationClaimFormatDesignationsSchema string = "pe-definition-claim-format-designations.json"
-	submissionClaimFormatDesignationsSchema   string = "pe-submission-claim-format-designations.json"
-	submissionRequirementSchema               string = "pe-submission-requirement.json"
-	submissionRequirementsSchema              string = "pe-submission-requirements.json"
-)
-
 // IsValidPresentationDefinition validates a given presentation definition object against its known JSON schema
 func IsValidPresentationDefinition(definition PresentationDefinition) error {
 	jsonBytes, err := json.Marshal(definition)
 	if err != nil {
 		return errors.Wrap(err, "could not marshal presentation definition to JSON")
 	}
-	s, err := schema.GetKnownSchema(presentationDefinitionSchema)
+	s, err := schema.LoadSchema(schema.PresentationDefinitionSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation definition schema")
 	}
@@ -38,7 +28,7 @@ func IsValidPresentationDefinitionEnvelope(definition PresentationDefinitionEnve
 	if err != nil {
 		return errors.Wrap(err, "could not marshal presentation definition to JSON")
 	}
-	s, err := schema.GetKnownSchema(presentationDefinitionEnvelopeSchema)
+	s, err := schema.LoadSchema(schema.PresentationDefinitionEnvelopeSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation definition schema")
 	}
@@ -59,7 +49,7 @@ func IsValidPresentationSubmission(submission PresentationSubmission) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal presentation submission to JSON")
 	}
-	s, err := schema.GetKnownSchema(presentationSubmissionSchema)
+	s, err := schema.LoadSchema(schema.PresentationSubmissionSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation submission schema")
 	}
@@ -75,7 +65,7 @@ func IsValidDefinitionClaimFormatDesignation(format ClaimFormat) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal claim format to JSON")
 	}
-	s, err := schema.GetKnownSchema(presentationClaimFormatDesignationsSchema)
+	s, err := schema.LoadSchema(schema.PresentationClaimFormatDesignationsSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get claim format schema")
 	}
@@ -91,7 +81,7 @@ func IsValidSubmissionRequirement(requirement SubmissionRequirement) error {
 	if err != nil {
 		return errors.Wrap(err, "could not marshal submission requirement to JSON")
 	}
-	s, err := schema.GetKnownSchema(submissionRequirementSchema)
+	s, err := schema.LoadSchema(schema.SubmissionRequirementSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get submission requirement schema")
 	}
@@ -112,7 +102,7 @@ func AreValidSubmissionRequirements(requirements []SubmissionRequirement) error 
 	if err != nil {
 		return errors.Wrap(err, "could not marshal submission requirements to JSON")
 	}
-	s, err := schema.GetKnownSchema(submissionRequirementsSchema)
+	s, err := schema.LoadSchema(schema.SubmissionRequirementsSchema)
 	if err != nil {
 		return errors.Wrap(err, "could not get submission requirements schema")
 	}
