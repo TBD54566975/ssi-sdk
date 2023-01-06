@@ -33,12 +33,13 @@ func sayHello(_ js.Value, args []js.Value) interface{} {
 }
 
 // 2. Calling a ssi-sdk function directly - but returning a plain old string
+// TODO: check arg lentgh and return an error if not correct
 func generateKey(_ js.Value, args []js.Value) interface{} {
 
 	keyType := args[0].String()
-        kt := crypto.KeyType(keyType)
+	kt := crypto.KeyType(keyType)
 	if !crypto.IsSupportedKeyType(kt) {
-	  return js.ValueOf("Unknown key type")
+		return js.ValueOf("Unknown key type")
 	}
 	publicKey, _, _ := crypto.GenerateKeyByKeyType(kt)
 	pubKeyBytes, _ := crypto.PubKeyToBytes(publicKey)
