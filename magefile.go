@@ -33,8 +33,7 @@ const (
 func Build() error {
 
 	fmt.Println("Building...")
-	err := sh.Run(Go, "build", "-tags", "jwx_es256k", "./...")
-	if err != nil {
+	if err := sh.Run(Go, "build", "-tags", "jwx_es256k", "./..."); err != nil {
 		return err
 	}
 	return BuildWasm()
