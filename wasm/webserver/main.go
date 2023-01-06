@@ -17,8 +17,7 @@ func main() {
 		ReadHeaderTimeout: 20 * time.Second,
 	}
 
-	err := server.ListenAndServe()
-	if err != nil {
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }
