@@ -10,15 +10,10 @@ This just has some example usage of apis to start with.
 
 # building (from top level)
 
-`cd ssi-sdk`
-`GOOS=js GOARCH=wasm go build -tags jwx_es256k -o ./wasm/static/main.wasm ./wasm`
-
-or 
-
 `mage buildwasm`
 
 # running web server to test out
 
-`go run webserver/main.go` - then go to localhost:3000 to try it out!
+`cd wasm && go run webserver/main.go` - then go to localhost:3000 to try it out!
 
 

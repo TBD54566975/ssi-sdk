@@ -5,7 +5,9 @@ package main
 import (
 	"crypto/ed25519"
 	"encoding/base64"
+	"log"
 	"syscall/js"
+	"time"
 
 	"github.com/goccy/go-json"
 
@@ -24,7 +26,18 @@ func main() {
 	js.Global().Set("generateKey", js.FuncOf(generateKey))
 	js.Global().Set("makeDid", js.FuncOf(makeDid))
 
-	<-done
+	for {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println("Recovered from panic:", r)
+					time.Sleep(time.Second)
+				}
+			}()
+
+			<-done
+		}()
+	}
 }
 
 // 1. Simplest function - note we wrap things with js.ValueOf (if a primitive you don't technically need to)
