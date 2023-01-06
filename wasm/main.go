@@ -36,15 +36,13 @@ func sayHello(_ js.Value, args []js.Value) interface{} {
 func generateKey(_ js.Value, args []js.Value) interface{} {
 
 	keyType := args[0].String()
-	for _, k := range crypto.GetSupportedKeyTypes() {
-		if string(k) == keyType {
-			publicKey, _, _ := crypto.GenerateKeyByKeyType(k)
-			pubKeyBytes, _ := crypto.PubKeyToBytes(publicKey)
-			return js.ValueOf(base64.StdEncoding.EncodeToString(pubKeyBytes))
-		}
+        kt := crypto.KeyType(keyType)
+	if !crypto.IsSupportedKeyType(kt) {
+	  return js.ValueOf("Unknown key type")
 	}
-
-	return js.ValueOf("Unknown key type")
+	publicKey, _, _ := crypto.GenerateKeyByKeyType(kt)
+	pubKeyBytes, _ := crypto.PubKeyToBytes(publicKey)
+	return js.ValueOf(base64.StdEncoding.EncodeToString(pubKeyBytes))
 }
 
 // 3. Returning a richer object, converting to json and then unmarshalling to make it a js object
