@@ -21,7 +21,7 @@ func TestVCJSONSchema(t *testing.T) {
 	assert.NoError(t, err)
 
 	roundTripString := string(roundTripBytes)
-	assert.JSONEqf(t, schema, roundTripString, "error message %s")
+	assert.JSONEqf(t, schema, roundTripString, "error message")
 }
 
 func TestGetPropertyFromSchema(t *testing.T) {
