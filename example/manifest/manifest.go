@@ -1,4 +1,10 @@
-package manifest
+// A simple example of making a credential manifest and issuing a credential from it, using a credential application.
+// For simplicity the objects are not signed or verified cryptographically.
+// |----------|     |--------------|      |--------|      |--------------|     |---------|      |-------_------|
+// | Verifier  | --> |  Credential  | -->  | Holder | -->  |  Credential  | --> | Verifier | -->  |  Credential  |
+// |          |     |   Manifest   |      |        |      |  Application |     |         |      |   Response   |
+// |----------|     |--------------|      |--------|      |--------------|     |---------|      |--------------|
+package main
 
 import (
 	gocrypto "crypto"
@@ -81,7 +87,6 @@ func prepareCredentialManifest(issuerDID did.DIDKey, licenseSchemaID string) (*m
 	if err := builder.SetIssuer(manifest.Issuer{
 		ID:   issuerDID.String(),
 		Name: "CA DMV",
-		// TODO: For Devin to fill out
 		Styles: &rendering.EntityStyleDescriptor{
 			Background: &rendering.ColorResource{Color: "#FFFFFF"},
 			Text:       &rendering.ColorResource{Color: "#000000"},
@@ -97,35 +102,6 @@ func prepareCredentialManifest(issuerDID did.DIDKey, licenseSchemaID string) (*m
 			Schema:      licenseSchemaID,
 			Name:        "Drivers License",
 			Description: "A CA Drivers License",
-			// TODO: For Devin to fill out
-			// Display: &rendering.DataDisplay{
-			// 	Title: &rendering.DisplayMappingObject{
-			// 		Path:     nil,
-			// 		Schema:   nil,
-			// 		Fallback: "",
-			// 		Text:     nil,
-			// 	},
-			// 	Subtitle: &rendering.DisplayMappingObject{
-			// 		Path:     nil,
-			// 		Schema:   nil,
-			// 		Fallback: "",
-			// 		Text:     nil,
-			// 	},
-			// 	Description: &rendering.DisplayMappingObject{
-			// 		Path: nil,
-			// 	},
-			// 	Properties: []rendering.LabeledDisplayMappingObject{
-			// 		{
-			// 			Label: "",
-			// 			DisplayMappingObject: &rendering.DisplayMappingObject{
-			// 				Path:     nil,
-			// 				Schema:   nil,
-			// 				Fallback: "",
-			// 				Text:     nil,
-			// 			},
-			// 		},
-			// 	},
-			// },
 			Styles: &rendering.EntityStyleDescriptor{
 				Background: &rendering.ColorResource{Color: "#FFFFFF"},
 				Text:       &rendering.ColorResource{Color: "#000000"},
@@ -206,10 +182,10 @@ func prepareCredentialManifest(issuerDID did.DIDKey, licenseSchemaID string) (*m
 }
 
 // Prepare a credential which is required to fill out the credential manifest's application
-func issueApplicationCredential(did did.DIDKey, s schema.VCJSONSchema) (*credential.VerifiableCredential, error) {
+func issueApplicationCredential(id did.DIDKey, s schema.VCJSONSchema) (*credential.VerifiableCredential, error) {
 	builder := credential.NewVerifiableCredentialBuilder()
 
-	if err := builder.SetIssuer(did.String()); err != nil {
+	if err := builder.SetIssuer(id.String()); err != nil {
 		return nil, err
 	}
 
@@ -229,7 +205,7 @@ func issueApplicationCredential(did did.DIDKey, s schema.VCJSONSchema) (*credent
 	}
 
 	if err := builder.SetCredentialSubject(map[string]interface{}{
-		"id":          did.String(),
+		"id":          id.String(),
 		"firstName":   "Satoshi",
 		"lastName":    "Nakamoto",
 		"dateOfBirth": "1970-01-01",
@@ -287,7 +263,13 @@ func prepareCredentialApplication(cm manifest.CredentialManifest, vc credential.
 }
 
 // Prepare a credential which is required to fill out the credential manifest's application
-func issueDriversLicenseCredential(issuerDID did.DIDKey, subjectDID string, s schema.VCJSONSchema, firstName, lastName, dateOfBirth string) (*credential.VerifiableCredential, error) {
+type driversLicenseFields struct {
+	FirstName   string `json:"firstName"`
+	LastName    string `json:"lastName"`
+	DateOfBirth string `json:"dateOfBirth"`
+}
+
+func issueDriversLicenseCredential(issuerDID did.DIDKey, subjectDID string, s schema.VCJSONSchema, data driversLicenseFields) (*credential.VerifiableCredential, error) {
 	builder := credential.NewVerifiableCredentialBuilder()
 
 	if err := builder.SetIssuer(issuerDID.String()); err != nil {
@@ -311,9 +293,9 @@ func issueDriversLicenseCredential(issuerDID did.DIDKey, subjectDID string, s sc
 
 	if err := builder.SetCredentialSubject(map[string]interface{}{
 		"id":            subjectDID,
-		"firstName":     firstName,
-		"lastName":      lastName,
-		"dateOfBirth":   dateOfBirth,
+		"firstName":     data.FirstName,
+		"lastName":      data.LastName,
+		"dateOfBirth":   data.DateOfBirth,
 		"licenseNumber": "YXZ123",
 		"licenseType":   "Class D",
 	}); err != nil {
@@ -342,7 +324,12 @@ func processCredentialApplication(cm manifest.CredentialManifest, ca manifest.Cr
 
 	// if it is, we can issue a credential
 	applicantCredential := ca.Credentials[0].(credential.VerifiableCredential)
-	licenseCredential, err := issueDriversLicenseCredential(issuerDID, applicantCredential.CredentialSubject.GetID(), s, applicantCredential.CredentialSubject["firstName"].(string), applicantCredential.CredentialSubject["lastName"].(string), applicantCredential.CredentialSubject["dateOfBirth"].(string))
+	data := driversLicenseFields{
+		FirstName:   applicantCredential.CredentialSubject["firstName"].(string),
+		LastName:    applicantCredential.CredentialSubject["lastName"].(string),
+		DateOfBirth: applicantCredential.CredentialSubject["dateOfBirth"].(string),
+	}
+	licenseCredential, err := issueDriversLicenseCredential(issuerDID, applicantCredential.CredentialSubject.GetID(), s, data)
 	if err != nil {
 		return nil, err
 	}
