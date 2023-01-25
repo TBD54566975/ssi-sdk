@@ -19,8 +19,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
-// Makes a dummy presentation definition. These are
-// eventually transported via Presentation Request.
+// Makes a dummy presentation definition. These are eventually transported via Presentation Request.
 // For more information on presentation definitions go
 // https://identity.foundation/presentation-exchange/#term:presentation-definition
 func makePresentationData() exchange.PresentationDefinition {
