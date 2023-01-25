@@ -14,6 +14,7 @@ const (
 )
 
 // SignVerifiableCredentialJWS is prepared according to https://transmute-industries.github.io/vc-jws/.
+// This is currently an experimental. It's unstable and subject to change. Use at your own peril.
 func SignVerifiableCredentialJWS(signer crypto.JWTSigner, cred credential.VerifiableCredential) ([]byte, error) {
 	payload, err := json.Marshal(cred)
 	if err != nil {
@@ -35,6 +36,7 @@ func SignVerifiableCredentialJWS(signer crypto.JWTSigner, cred credential.Verifi
 
 // ParseVerifiableCredentialFromJWS parses a JWS. Depending on the `cty` header value, it parses as a JWT or simply
 // decodes the payload.
+// This is currently an experimental. It's unstable and subject to change. Use at your own peril.
 func ParseVerifiableCredentialFromJWS(token string) (*credential.VerifiableCredential, error) {
 	parsed, err := jws.Parse([]byte(token))
 	if err != nil {
@@ -61,6 +63,7 @@ func ParseVerifiableCredentialFromJWS(token string) (*credential.VerifiableCrede
 
 // VerifyVerifiableCredentialJWS verifies the signature validity on the token and parses
 // the token in a verifiable credential.
+// This is currently an experimental. It's unstable and subject to change. Use at your own peril.
 func VerifyVerifiableCredentialJWS(verifier crypto.JWTVerifier, token string) (*credential.VerifiableCredential, error) {
 	if err := verifier.VerifyJWS(token); err != nil {
 		return nil, errors.Wrap(err, "could not verify JWT and its signature")
