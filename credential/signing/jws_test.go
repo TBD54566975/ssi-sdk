@@ -20,9 +20,9 @@ func TestVerifiableCredentialJWS(t *testing.T) {
 
 	t.Run("JWT as JWS is parsed correctly", func(t *testing.T) {
 		signedJWT, err := SignVerifiableCredentialJWT(signer, testCredential)
+		assert.NoError(t, err)
 
 		token := string(signedJWT)
-
 		parsedCred, err := ParseVerifiableCredentialFromJWS(token)
 		assert.NoError(t, err)
 		assert.Equal(t, &testCredential, parsedCred)
@@ -65,9 +65,9 @@ func TestVerifiableCredentialJWS(t *testing.T) {
 
 	t.Run("Parsing JWS returns original credential", func(t *testing.T) {
 		signedJWT, err := SignVerifiableCredentialJWS(signer, testCredential)
+		assert.NoError(t, err)
 
 		token := string(signedJWT)
-
 		parsedCred, err := ParseVerifiableCredentialFromJWS(token)
 		assert.NoError(t, err)
 		assert.Equal(t, &testCredential, parsedCred)
