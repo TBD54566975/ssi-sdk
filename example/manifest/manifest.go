@@ -29,7 +29,7 @@ func getDIDKey() (gocrypto.PrivateKey, *did.DIDKey, error) {
 	return did.GenerateDIDKey(crypto.Ed25519)
 }
 
-// Prepare a credential schema that will be issued to issue a credential from a successful Credential Manifest
+// Prepare a credential schema that will be used to issue a credential from a successful Credential Manifest
 func prepareResultingCredentialSchema(issuerDID string) schema.VCJSONSchema {
 	return schema.VCJSONSchema{
 		Type:     schema.VCJSONSchemaType,
@@ -181,7 +181,8 @@ func prepareCredentialManifest(issuerDID did.DIDKey, licenseSchemaID string) (*m
 	return builder.Build()
 }
 
-// Prepare a credential which is required to fill out the credential manifest's application
+// Prepare a credential which is required to fill out the credential manifest's application's
+// input descriptor's requirements
 func issueApplicationCredential(id did.DIDKey, s schema.VCJSONSchema) (*credential.VerifiableCredential, error) {
 	builder := credential.NewVerifiableCredentialBuilder()
 

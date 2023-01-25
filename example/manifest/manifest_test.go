@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestManifest(t *testing.T) {
+func TestManifest(_ *testing.T) {
 	// If there is an error in main this test will fail
 	main()
 }
