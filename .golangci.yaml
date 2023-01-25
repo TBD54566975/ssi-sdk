@@ -1,6 +1,8 @@
 # See https://golangci-lint.run/usage/configuration/ for reference.
 run:
   concurrency: 16
+  build-tags:
+    - jwx_es256k
   skip-dirs:
     - bin
 

@@ -177,6 +177,14 @@ func (*JWTSigner) ParseJWT(token string) (jwt.Token, error) {
 	return parsed, nil
 }
 
+// VerifyJWS parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success.
+func (v *JWTVerifier) VerifyJWS(token string) error {
+	if _, err := jws.Verify([]byte(token), jwa.SignatureAlgorithm(v.Algorithm()), v.Key); err != nil {
+		return errors.Wrap(err, "verifying JWT")
+	}
+	return nil
+}
+
 // VerifyJWT parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success
 func (v *JWTVerifier) VerifyJWT(token string) error {
 	if _, err := jwt.Parse([]byte(token), jwt.WithVerify(jwa.SignatureAlgorithm(v.Algorithm()), v.Key)); err != nil {

@@ -70,7 +70,7 @@ func runTests(extraTestArgs ...string) error {
 	if mg.Verbose() {
 		args = append(args, "-v")
 	}
-	args = append(args, "-race", "-tags=jwx_es256k")
+	args = append(args, "-tags=jwx_es256k")
 	args = append(args, extraTestArgs...)
 	args = append(args, "./...")
 	testEnv := map[string]string{
@@ -294,6 +294,7 @@ func runCITests(extraTestArgs ...string) error {
 	args = append(args, "-tags=jwx_es256k")
 	args = append(args, "-covermode=atomic")
 	args = append(args, "-coverprofile=coverage.out")
+	args = append(args, "-race")
 	args = append(args, extraTestArgs...)
 	args = append(args, "./...")
 	testEnv := map[string]string{
