@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/TBD54566975/ssi-sdk/schema"
@@ -13,12 +14,12 @@ import (
 func TestMain(m *testing.M) {
 	localSchemas, err := schema.GetAllLocalSchemas()
 	if err != nil {
-		println(err)
+		logrus.WithError(err).Fatal()
 		os.Exit(1)
 	}
 	loader, err := schema.NewCachingLoader(localSchemas)
 	if err != nil {
-		println(err)
+		logrus.WithError(err).Fatal()
 		os.Exit(1)
 	}
 	loader.EnableHTTPCache()
