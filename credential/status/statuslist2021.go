@@ -249,10 +249,10 @@ func bitstringExpansion(compressedBitstring string) ([]string, error) {
 
 // ValidateCredentialInStatusList determines whether a credential is contained in a status list 2021 credential
 // https://w3c-ccg.github.io/vc-status-list-2021/#validate-algorithm
-// NOTE: this method does perform credential signature/proof block verification
+// NOTE: this method does not perform credential signature/proof block verification
 func ValidateCredentialInStatusList(credentialToValidate credential.VerifiableCredential, statusCredential credential.VerifiableCredential) (bool, error) {
 	// 1. Let credentialToValidate be a verifiable credentials containing a credentialStatus entry that is a StatusList2021Entry.
-	statusListEntryValue, ok := credentialToValidate.CredentialStatus.(StatusList2021Entry)
+	statusListEntryValue, ok := toStatusList2021Entry(credentialToValidate.CredentialStatus)
 	if !ok {
 		return false, fmt.Errorf("credential to validate<%s> not using the StatusList2021 credentialStatus "+
 			"property", credentialToValidate.ID)
@@ -302,4 +302,26 @@ func ValidateCredentialInStatusList(credentialToValidate credential.VerifiableCr
 		}
 	}
 	return false, nil
+}
+
+func toStatusList2021Entry(credStatus interface{}) (*StatusList2021Entry, bool) {
+	statusListEntryValue, ok := credStatus.(StatusList2021Entry)
+	if ok {
+		return &statusListEntryValue, true
+	}
+
+	credStatusMap, ok := credStatus.(map[string]interface{})
+	if !ok {
+		return nil, false
+	}
+
+	statusListEntry := StatusList2021Entry{
+		ID:                   credStatusMap["id"].(string),
+		Type:                 credStatusMap["type"].(string),
+		StatusPurpose:        StatusPurpose(credStatusMap["statusPurpose"].(string)),
+		StatusListIndex:      credStatusMap["statusListIndex"].(string),
+		StatusListCredential: credStatusMap["statusListCredential"].(string),
+	}
+
+	return &statusListEntry, true
 }
