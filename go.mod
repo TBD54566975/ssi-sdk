@@ -8,7 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/goccy/go-json v0.10.0
 	github.com/google/uuid v1.3.0
-	github.com/jarcoal/httpmock v1.2.0
+	github.com/jarcoal/httpmock v1.3.0
 	github.com/lestrrat-go/jwx v1.2.25
 	github.com/magefile/mage v1.14.0
 	github.com/mr-tron/base58 v1.1.3
