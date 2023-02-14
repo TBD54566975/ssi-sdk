@@ -21,7 +21,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v5 v5.2.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
-	golang.org/x/term v0.4.0
+	golang.org/x/term v0.5.0
 	gopkg.in/h2non/gock.v1 v1.1.2
 )
 
@@ -42,7 +42,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
