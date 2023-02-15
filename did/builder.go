@@ -85,6 +85,14 @@ func (builder *DIDDocumentBuilder) SetAlsoKnownAs(name string) error {
 	return nil
 }
 
+func (builder *DIDDocumentBuilder) SetController(controller string) error {
+	if builder.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	builder.Controller = controller
+	return nil
+}
+
 // Note: Not thread safe
 func (builder *DIDDocumentBuilder) AddVerificationMethod(m VerificationMethod) error {
 	if builder.IsEmpty() {
