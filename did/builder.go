@@ -76,3 +76,74 @@ func (builder *DIDDocumentBuilder) SetID(id string) error {
 	builder.ID = id
 	return nil
 }
+
+func (builder *DIDDocumentBuilder) SetAlsoKnownAs(name string) error {
+	if builder.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	builder.AlsoKnownAs = name
+	return nil
+}
+
+// Note: Not thread safe
+func (builder *DIDDocumentBuilder) AddVerificationMethod(m VerificationMethod) error {
+	if builder.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	builder.VerificationMethod = append(builder.VerificationMethod, m)
+	return nil
+}
+
+// Note: Not thread safe
+func (builder *DIDDocumentBuilder) AddAuthentication(m VerificationMethodSet) error {
+	if builder.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	builder.Authentication = append(builder.Authentication, m)
+	return nil
+}
+
+// Note: Not thread safe
+func (builder *DIDDocumentBuilder) AddAssertionMethod(m VerificationMethodSet) error {
+	if builder.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	builder.AssertionMethod = append(builder.AssertionMethod, m)
+	return nil
+}
+
+// Note: Not thread safe
+func (builder *DIDDocumentBuilder) AddKeyAgreement(m VerificationMethodSet) error {
+	if builder.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	builder.KeyAgreement = append(builder.KeyAgreement, m)
+	return nil
+}
+
+// Note: Not thread safe
+func (builder *DIDDocumentBuilder) AddCapabilityInvocation(m VerificationMethodSet) error {
+	if builder.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	builder.CapabilityInvocation = append(builder.CapabilityInvocation, m)
+	return nil
+}
+
+// Note: Not thread safe
+func (builder *DIDDocumentBuilder) AddCapabilityDelgation(m VerificationMethodSet) error {
+	if builder.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	builder.CapabilityDelegation = append(builder.CapabilityDelegation, m)
+	return nil
+}
+
+// Note: Not thread safe
+func (builder *DIDDocumentBuilder) AddService(s Service) error {
+	if builder.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+	builder.Services = append(builder.Services, s)
+	return nil
+}
