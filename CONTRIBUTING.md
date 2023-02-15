@@ -14,8 +14,8 @@ This guide is for you.
 
 | Requirement | Tested Version | Installation Instructions                             |
 |-------------|----------------|-------------------------------------------------------|
-| Go          | 1.17.6         | [go.dev](https://go.dev/doc/tutorial/compile-install) |
-| Mage        | 1.12.1         | [magefile.org](https://magefile.org/)                 |
+| Go          | 1.19.6         | [go.dev](https://go.dev/doc/tutorial/compile-install) |
+| Mage        | 1.13.0-6       | [magefile.org](https://magefile.org/)                 |
 
 ### Go
 
@@ -25,7 +25,7 @@ You may verify your `go` installation via the terminal:
 
 ```
 $> go version
-go version go1.17.6 darwin/amd64
+go version go1.19.6 darwin/amd64
 ```
 
 If you do not have go, we recommend installing it by:
@@ -46,9 +46,9 @@ You may verify your `mage` installation via the terminal:
 
 ```
 $> mage --version
-Mage Build Tool 1.12.1
-Build Date: 2021-12-15T21:00:02Z
-Commit: 2f1ec40
+Mage Build Tool v1.13.0-6-g051a55c
+Build Date: 2022-05-02T19:53:34-07:00
+Commit: 051a55c
 built with: go1.17.6
 ```
 
