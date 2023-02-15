@@ -1,31 +1,42 @@
 package schema
 
 import (
-	"embed"
-
-	"github.com/goccy/go-json"
-	"github.com/pkg/errors"
-	"github.com/xeipuuv/gojsonschema"
+	"net/http"
+	"time"
 
 	"github.com/TBD54566975/ssi-sdk/util"
+	"github.com/goccy/go-json"
+	"github.com/pkg/errors"
+	"github.com/santhosh-tekuri/jsonschema/v5"
+
+	// imported for http loaders https://github.com/santhosh-tekuri/jsonschema/issues/92#issuecomment-1309794888
+	"github.com/santhosh-tekuri/jsonschema/v5/httploader"
 )
 
-var (
-	//go:embed known_schemas
-	knownSchemas embed.FS
+const (
+	// defaultSchemaURL is a placeholder that's needed to load any schema
+	defaultSchemaURL = "schema.json"
 )
+
+func init() {
+	httploader.Client = &http.Client{
+		Timeout: time.Second * 10,
+	}
+}
 
 // IsValidJSONSchema returns an error if the schema is not a valid JSON Schema, nil otherwise
 func IsValidJSONSchema(maybeSchema string) error {
 	if !IsValidJSON(maybeSchema) {
 		return errors.New("input is not valid json")
 	}
-	stringLoader := gojsonschema.NewStringLoader(maybeSchema)
-	schemaLoader := gojsonschema.NewSchemaLoader()
-	schemaLoader.Validate = true
-	schemaLoader.Draft = gojsonschema.Draft7
-	_, err := schemaLoader.Compile(stringLoader)
-	return err
+	schema, err := jsonschema.CompileString(defaultSchemaURL, maybeSchema)
+	if err != nil {
+		return err
+	}
+	if schema == nil {
+		return errors.New("schema could not be parsed")
+	}
+	return nil
 }
 
 // IsValidJSON checks if a string is valid json https://stackoverflow.com/a/36922225
@@ -42,23 +53,32 @@ func IsJSONValidAgainstSchema(json, schema string) error {
 	if !IsValidJSON(schema) {
 		return errors.New("schema input is not valid json")
 	}
-	jsonLoader := gojsonschema.NewStringLoader(json)
-	schemaLoader := gojsonschema.NewStringLoader(schema)
-	result, err := gojsonschema.Validate(schemaLoader, jsonLoader)
+	if err := IsValidJSONSchema(schema); err != nil {
+		return errors.Wrap(err, "schema is not valid")
+	}
+	jsonSchema, err := jsonschema.CompileString(defaultSchemaURL, schema)
 	if err != nil {
 		return err
 	}
-	ae := util.NewAppendError()
-	if !result.Valid() {
-		for _, e := range result.Errors() {
-			ae.AppendString(e.String())
-		}
-		err = ae.Error()
+	jsonInterface, err := util.ToJSONInterface(json)
+	if err != nil {
+		return errors.Wrap(err, "could not convert json to interface")
 	}
-	return err
+	return jsonSchema.Validate(jsonInterface)
 }
 
-func GetKnownSchema(fileName string) (string, error) {
-	b, err := knownSchemas.ReadFile("known_schemas/" + fileName)
-	return string(b), err
+// IsJSONValidAgainstSchemaGeneric validates a piece of JSON as an interface{} against a schema,
+// returning an error if it is not valid
+func IsJSONValidAgainstSchemaGeneric(json interface{}, schema string) error {
+	if !IsValidJSON(schema) {
+		return errors.New("schema input is not valid json")
+	}
+	if err := IsValidJSONSchema(schema); err != nil {
+		return errors.Wrap(err, "schema is not valid")
+	}
+	jsonSchema, err := jsonschema.CompileString(defaultSchemaURL, schema)
+	if err != nil {
+		return err
+	}
+	return jsonSchema.Validate(json)
 }

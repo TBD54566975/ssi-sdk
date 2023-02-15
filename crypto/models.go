@@ -3,13 +3,14 @@ package crypto
 type (
 	Proof              interface{}
 	KeyType            string
+	HashType           string
 	SignatureAlgorithm string
 )
 
 const (
 	Ed25519   KeyType = "Ed25519"
 	X25519    KeyType = "X25519"
-	Secp256k1 KeyType = "secp256k1"
+	SECP256k1 KeyType = "secp256k1"
 	P224      KeyType = "P-224"
 	P256      KeyType = "P-256"
 	P384      KeyType = "P-384"
@@ -17,6 +18,10 @@ const (
 	RSA       KeyType = "RSA"
 
 	RSAKeySize int = 2048
+)
+
+const (
+	SHA256 HashType = "SHA256"
 )
 
 const (
@@ -32,6 +37,10 @@ const (
 	PS256 SignatureAlgorithm = "PS256"
 )
 
+func (kt KeyType) String() string {
+	return string(kt)
+}
+
 func IsSupportedKeyType(kt KeyType) bool {
 	supported := GetSupportedKeyTypes()
 	for _, t := range supported {
@@ -43,7 +52,7 @@ func IsSupportedKeyType(kt KeyType) bool {
 }
 
 func GetSupportedKeyTypes() []KeyType {
-	return []KeyType{Ed25519, X25519, Secp256k1, P224, P256, P384, P521, RSA}
+	return []KeyType{Ed25519, X25519, SECP256k1, P224, P256, P384, P521, RSA}
 }
 
 func IsSupportedSignatureAlg(sa SignatureAlgorithm) bool {

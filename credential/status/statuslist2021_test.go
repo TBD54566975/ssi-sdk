@@ -275,6 +275,40 @@ func TestValidateCredentialInStatusList(t *testing.T) {
 		assert.True(tt, valid)
 	})
 
+	t.Run("happy path validation with credential status interface", func(tt *testing.T) {
+		revocationID := "revocation-id"
+		testIssuer := "test-issuer"
+		testCred1 := credential.VerifiableCredential{
+			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"},
+			ID:           "test-verifiable-credential-2",
+			Type:         []string{"VerifiableCredential"},
+			Issuer:       testIssuer,
+			IssuanceDate: "2021-01-01T19:23:24Z",
+			CredentialSubject: map[string]interface{}{
+				"id":      "test-vc-id-1",
+				"company": "Block",
+				"website": "https://block.xyz",
+			},
+			CredentialStatus: map[string]interface{}{
+				"id":                   revocationID,
+				"type":                 "Block",
+				"statusPurpose":        "revocation",
+				"statusListIndex":      "123",
+				"statusListCredential": "test-cred",
+			},
+		}
+
+		statusListCredential, err := GenerateStatusList2021Credential(revocationID, testIssuer, StatusRevocation, []credential.VerifiableCredential{testCred1})
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, statusListCredential)
+
+		// valid = revoked
+		valid, err := ValidateCredentialInStatusList(testCred1, *statusListCredential)
+		assert.NoError(tt, err)
+		assert.True(tt, valid)
+	})
+
 	t.Run("check for missing cred", func(tt *testing.T) {
 		revocationID := "revocation-id"
 		testIssuer := "test-issuer"

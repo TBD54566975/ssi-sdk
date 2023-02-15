@@ -1,0 +1,38 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    {
+      "blockchainAccountId": "https://w3id.org/security#blockchainAccountId",
+      "publicKeyJwk": {
+        "@id": "https://w3id.org/security#publicKeyJwk",
+        "@type": "@json"
+      },
+      "Ed25519VerificationKey2018": "https://w3id.org/security#Ed25519VerificationKey2018",
+      "Ed25519PublicKeyBLAKE2BDigestSize20Base58CheckEncoded2021": "https://w3id.org/security#Ed25519PublicKeyBLAKE2BDigestSize20Base58CheckEncoded2021",
+      "P256PublicKeyBLAKE2BDigestSize20Base58CheckEncoded2021": "https://w3id.org/security#P256PublicKeyBLAKE2BDigestSize20Base58CheckEncoded2021",
+      "TezosMethod2021": "https://w3id.org/security#TezosMethod2021",
+      "EcdsaSecp256k1RecoveryMethod2020": "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020#EcdsaSecp256k1RecoveryMethod2020"
+    }
+  ],
+  "id": "did:pkh:eip155:137:0x4e90e8a8191c1c23a24a598c3ab4fb47ce926ff5",
+  "verificationMethod": [
+    {
+      "id": "did:pkh:eip155:137:0x4e90e8a8191c1c23a24a598c3ab4fb47ce926ff5#blockchainAccountId",
+      "type": "EcdsaSecp256k1RecoveryMethod2020",
+      "controller": "did:pkh:eip155:137:0x4e90e8a8191c1c23a24a598c3ab4fb47ce926ff5",
+      "blockchainAccountId": "eip155:137:0x4e90e8a8191c1c23a24a598c3ab4fb47ce926ff5"
+    }
+  ],
+  "authentication": [
+    "did:pkh:eip155:137:0x4e90e8a8191c1c23a24a598c3ab4fb47ce926ff5#blockchainAccountId"
+  ],
+  "assertionMethod": [
+    "did:pkh:eip155:137:0x4e90e8a8191c1c23a24a598c3ab4fb47ce926ff5#blockchainAccountId"
+  ],
+  "capabilityDelegation": [
+    "did:pkh:eip155:137:0x4e90e8a8191c1c23a24a598c3ab4fb47ce926ff5#blockchainAccountId"
+  ],
+  "capabilityInvocation": [
+    "did:pkh:eip155:137:0x4e90e8a8191c1c23a24a598c3ab4fb47ce926ff5#blockchainAccountId"
+  ]
+}

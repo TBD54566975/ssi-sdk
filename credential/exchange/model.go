@@ -42,8 +42,24 @@ func (f LinkedDataFormat) Ptr() *LinkedDataFormat {
 	return &f
 }
 
+func (f LinkedDataFormat) String() string {
+	return string(f)
+}
+
+func (f LinkedDataFormat) CredentialFormat() CredentialFormat {
+	return CredentialFormat(f)
+}
+
 func (f JWTFormat) Ptr() *JWTFormat {
 	return &f
+}
+
+func (f JWTFormat) String() string {
+	return string(f)
+}
+
+func (f JWTFormat) CredentialFormat() CredentialFormat {
+	return CredentialFormat(f)
 }
 
 type PresentationDefinitionEnvelope struct {
@@ -53,10 +69,10 @@ type PresentationDefinitionEnvelope struct {
 // PresentationDefinition https://identity.foundation/presentation-exchange/#presentation-definition
 type PresentationDefinition struct {
 	ID                     string                  `json:"id,omitempty" validate:"required"`
-	InputDescriptors       []InputDescriptor       `json:"input_descriptors,omitempty" validate:"required,dive"`
 	Name                   string                  `json:"name,omitempty"`
 	Purpose                string                  `json:"purpose,omitempty"`
 	Format                 *ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`
+	InputDescriptors       []InputDescriptor       `json:"input_descriptors" validate:"required,dive"`
 	SubmissionRequirements []SubmissionRequirement `json:"submission_requirements,omitempty" validate:"omitempty,dive"`
 
 	// https://identity.foundation/presentation-exchange/#json-ld-framing-feature
@@ -77,11 +93,24 @@ func (pd *PresentationDefinition) IsValid() error {
 	if err := IsValidPresentationDefinition(*pd); err != nil {
 		return errors.Wrap(err, "presentation definition failed json schema validation")
 	}
-	if len(pd.InputDescriptors) > 0 {
-		for _, id := range pd.InputDescriptors {
-			if err := id.IsValid(); err != nil {
-				return errors.Wrap(err, "presentation definition's input descriptor failed json schema validation")
-			}
+	if len(pd.InputDescriptors) == 0 {
+		return errors.New("presentation definition must have at least one input descriptor")
+	}
+
+	// each input descriptor must have at least one constraint
+	for _, id := range pd.InputDescriptors {
+		// first, static validation
+		if err := id.IsValid(); err != nil {
+			return errors.Wrap(err, "presentation definition's input descriptor failed json schema validation")
+		}
+		// next, check constraints
+		constraints := id.Constraints
+		if constraints == nil {
+			return errors.New("presentation definition's input descriptor must have at least one constraint")
+		}
+		if constraints.Fields == nil && constraints.SubjectIsIssuer == nil &&
+			constraints.IsHolder == nil && constraints.SameSubject == nil && constraints.Statuses == nil {
+			return errors.New("presentation definition's input descriptor must have at least one constraint")
 		}
 	}
 	if pd.Format != nil {
@@ -109,6 +138,10 @@ type ClaimFormat struct {
 	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty,dive"`
 }
 
+func SupportedClaimFormats() []CredentialFormat {
+	return []CredentialFormat{JWT.CredentialFormat(), JWTVC.CredentialFormat(), JWTVP.CredentialFormat(), LDP.CredentialFormat(), LDPVC.CredentialFormat(), JWTVC.CredentialFormat()}
+}
+
 func (cf *ClaimFormat) IsEmpty() bool {
 	if cf == nil {
 		return true
@@ -131,29 +164,29 @@ func (cf *ClaimFormat) IsValid() error {
 func (cf *ClaimFormat) FormatValues() []string {
 	var res []string
 	if cf.JWT != nil {
-		res = append(res, string(JWT))
+		res = append(res, JWT.String())
 	}
 	if cf.JWTVC != nil {
-		res = append(res, string(JWTVC))
+		res = append(res, JWTVC.String())
 	}
 	if cf.JWTVP != nil {
-		res = append(res, string(JWTVP))
+		res = append(res, JWTVP.String())
 	}
 	if cf.LDP != nil {
-		res = append(res, string(LDP))
+		res = append(res, LDP.String())
 	}
 	if cf.LDPVC != nil {
-		res = append(res, string(LDPVC))
+		res = append(res, LDPVC.String())
 	}
 	if cf.LDPVP != nil {
-		res = append(res, string(LDPVP))
+		res = append(res, LDPVP.String())
 	}
 	return res
 }
 
 // AlgOrProofTypePerFormat for a given format, return the supported alg or proof types. A nil response indicates
 // that the format is not supported.
-func (cf *ClaimFormat) AlgOrProofTypePerFormat(format string) []string {
+func (cf *ClaimFormat) AlgOrProofTypePerFormat() []string {
 	var res []string
 	if cf.JWT != nil {
 		for _, a := range cf.JWT.Alg {
@@ -193,12 +226,12 @@ type LDPType struct {
 
 type InputDescriptor struct {
 	// Must be unique within the Presentation Definition
-	ID   string `json:"id,omitempty" validate:"required,omitempty"`
+	ID   string `json:"id" validate:"required"`
 	Name string `json:"name,omitempty"`
 	// Purpose for which claim's data is being requested
 	Purpose     string       `json:"purpose,omitempty"`
 	Format      *ClaimFormat `json:"format,omitempty" validate:"omitempty,dive"`
-	Constraints *Constraints `json:"constraints,omitempty"`
+	Constraints *Constraints `json:"constraints" validate:"required"`
 	// Must match a grouping strings listed in the `from` values of a submission requirement rule
 	Group []string `json:"group,omitempty"`
 }
@@ -236,9 +269,12 @@ type Constraints struct {
 }
 
 type Field struct {
-	Path    []string `json:"path,omitempty" validate:"required"`
-	ID      string   `json:"id,omitempty"`
-	Purpose string   `json:"purpose,omitempty"`
+	ID             string   `json:"id,omitempty"`
+	Name           string   `json:"name,omitempty"`
+	Path           []string `json:"path,omitempty" validate:"required"`
+	Purpose        string   `json:"purpose,omitempty"`
+	Optional       bool     `json:"optional,omitempty"`
+	IntentToRetain bool     `json:"intent_to_retain,omitempty"`
 	// If a predicate property is present, filter must be too
 	// https://identity.foundation/presentation-exchange/#predicate-feature
 	Predicate *Preference `json:"predicate,omitempty"`
@@ -251,23 +287,23 @@ type RelationalConstraint struct {
 }
 
 type Filter struct {
-	Type             string      `json:"type,omitempty"`
-	Format           string      `json:"format,omitempty"`
-	Pattern          string      `json:"pattern,omitempty"`
-	Minimum          interface{} `json:"minimum,omitempty"`
-	Maximum          interface{} `json:"maximum,omitempty"`
-	MinLength        int         `json:"minLength,omitempty"`
-	MaxLength        int         `json:"maxLength,omitempty"`
-	ExclusiveMinimum interface{} `json:"exclusiveMinimum,omitempty"`
-	ExclusiveMaximum interface{} `json:"exclusiveMaximum,omitempty"`
-	// TODO(gabe) these may not be valid https://github.com/decentralized-identity/presentation-exchange/issues/312
-	FormatMinimum interface{}   `json:"formatMinimum,omitempty"`
-	FormatMaximum interface{}   `json:"formatMaximum,omitempty"`
-	Const         interface{}   `json:"const,omitempty"`
-	Enum          []interface{} `json:"enum,omitempty"`
-	Not           interface{}   `json:"not,omitempty"`
-	AllOf         interface{}   `json:"allOf,omitempty"`
-	OneOf         interface{}   `json:"oneOf,omitempty"`
+	Type                 string        `json:"type,omitempty"`
+	Format               string        `json:"format,omitempty"`
+	Properties           interface{}   `json:"properties,omitempty"`
+	Required             []string      `json:"required,omitempty"`
+	AdditionalProperties bool          `json:"additionalProperties,omitempty"`
+	Pattern              string        `json:"pattern,omitempty"`
+	Minimum              interface{}   `json:"minimum,omitempty"`
+	Maximum              interface{}   `json:"maximum,omitempty"`
+	MinLength            int           `json:"minLength,omitempty"`
+	MaxLength            int           `json:"maxLength,omitempty"`
+	ExclusiveMinimum     interface{}   `json:"exclusiveMinimum,omitempty"`
+	ExclusiveMaximum     interface{}   `json:"exclusiveMaximum,omitempty"`
+	Const                interface{}   `json:"const,omitempty"`
+	Enum                 []interface{} `json:"enum,omitempty"`
+	Not                  interface{}   `json:"not,omitempty"`
+	AllOf                interface{}   `json:"allOf,omitempty"`
+	OneOf                interface{}   `json:"oneOf,omitempty"`
 }
 
 // CredentialStatus https://identity.foundation/presentation-exchange/#credential-status-constraint-feature

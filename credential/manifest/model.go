@@ -3,16 +3,24 @@ package manifest
 import (
 	"reflect"
 
-	"github.com/pkg/errors"
-
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/rendering"
 	"github.com/TBD54566975/ssi-sdk/util"
+	"github.com/pkg/errors"
+)
+
+const (
+	CredentialManifestJSONProperty    = "credential_manifest"
+	CredentialApplicationJSONProperty = "credential_application"
+	CredentialResponseJSONProperty    = "credential_response"
 )
 
 // CredentialManifest https://identity.foundation/credential-manifest/#general-composition
 type CredentialManifest struct {
 	ID                     string                           `json:"id" validate:"required"`
+	SpecVersion            string                           `json:"spec_version" validate:"required"`
+	Name                   string                           `json:"name,omitempty"`
+	Description            string                           `json:"description,omitempty"`
 	Issuer                 Issuer                           `json:"issuer" validate:"required,dive"`
 	OutputDescriptors      []OutputDescriptor               `json:"output_descriptors" validate:"required,dive"`
 	Format                 *exchange.ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`
@@ -76,9 +84,17 @@ func (od *OutputDescriptor) IsValid() error {
 	return util.NewValidator().Struct(od)
 }
 
+type CredentialApplicationWrapper struct {
+	CredentialApplication CredentialApplication `json:"credential_application"`
+	Credentials           []interface{}         `json:"verifiableCredentials,omitempty"`
+}
+
 // CredentialApplication https://identity.foundation/credential-manifest/#credential-application
 type CredentialApplication struct {
-	Application Application `json:"credential_application" validate:"required"`
+	ID          string                `json:"id" validate:"required"`
+	SpecVersion string                `json:"spec_version" validate:"required"`
+	ManifestID  string                `json:"manifest_id" validate:"required"`
+	Format      *exchange.ClaimFormat `json:"format" validate:"required,dive"`
 	// Must be present if the corresponding manifest contains a presentation_definition
 	PresentationSubmission *exchange.PresentationSubmission `json:"presentation_submission,omitempty" validate:"omitempty,dive"`
 }
@@ -97,43 +113,47 @@ func (ca *CredentialApplication) IsValid() error {
 	if err := IsValidCredentialApplication(*ca); err != nil {
 		return errors.Wrap(err, "application failed json schema validation")
 	}
-	if ca.Application.Format != nil {
-		if err := exchange.IsValidDefinitionClaimFormatDesignation(*ca.Application.Format); err != nil {
+	if ca.Format != nil {
+		if err := exchange.IsValidDefinitionClaimFormatDesignation(*ca.Format); err != nil {
 			return errors.Wrap(err, "application's claim format failed json schema validation")
 		}
 	}
 	return util.NewValidator().Struct(ca)
 }
 
-type Application struct {
-	ID         string                `json:"id" validate:"required"`
-	ManifestID string                `json:"manifest_id" validate:"required"`
-	Format     *exchange.ClaimFormat `json:"format" validate:"required,dive"`
+type CredentialResponseWrapper struct {
+	CredentialResponse CredentialResponse `json:"credential_response"`
+	Credentials        []interface{}      `json:"verifiableCredentials,omitempty"`
 }
 
-// CredentialFulfillment https://identity.foundation/credential-manifest/#credential-fulfillment
-type CredentialFulfillment struct {
-	ID            string                          `json:"id" validate:"required"`
-	ManifestID    string                          `json:"manifest_id" validate:"required"`
-	ApplicationID string                          `json:"application_id"`
-	DescriptorMap []exchange.SubmissionDescriptor `json:"descriptor_map" validate:"required"`
+// CredentialResponse https://identity.foundation/credential-manifest/#credential-response
+type CredentialResponse struct {
+	ID            string `json:"id" validate:"required"`
+	SpecVersion   string `json:"spec_version" validate:"required"`
+	ManifestID    string `json:"manifest_id" validate:"required"`
+	ApplicationID string `json:"application_id"`
+	Fulfillment   *struct {
+		DescriptorMap []exchange.SubmissionDescriptor `json:"descriptor_map" validate:"required"`
+	} `json:"fulfillment,omitempty" validate:"omitempty,dive"`
+	Denial *struct {
+		Reason           string   `json:"reason" validate:"required"`
+		InputDescriptors []string `json:"input_descriptors,omitempty"`
+	} `json:"denial,omitempty" validate:"omitempty,dive"`
 }
 
-func (cf *CredentialFulfillment) IsEmpty() bool {
+func (cf *CredentialResponse) IsEmpty() bool {
 	if cf == nil {
 		return true
 	}
-	return reflect.DeepEqual(cf, &CredentialFulfillment{})
+	return reflect.DeepEqual(cf, &CredentialResponse{})
 }
 
-func (cf *CredentialFulfillment) IsValid() error {
+func (cf *CredentialResponse) IsValid() error {
 	if cf.IsEmpty() {
-		return errors.New("fulfillment is empty")
+		return errors.New("response is empty")
 	}
-	if err := IsValidCredentialFulfillment(*cf); err != nil {
-		return errors.Wrap(err, "fulfillment failed json schema validation")
+	if err := IsValidCredentialResponse(*cf); err != nil {
+		return errors.Wrap(err, "response failed json schema validation")
 	}
 	return util.NewValidator().Struct(cf)
 }
-
-// TODO(gabe) support multiple embed targets https://github.com/TBD54566975/ssi-sdk/issues/57

@@ -5,25 +5,24 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
-	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 )
 
 const (
-	VCJWTProperty string = "credential"
+	VCJWTProperty string = "vc"
 	VPJWTProperty string = "vp"
 	NonceProperty string = "nonce"
 )
 
 // SignVerifiableCredentialJWT is prepared according to https://www.w3.org/TR/vc-data-model/#jwt-encoding
-func SignVerifiableCredentialJWT(signer cryptosuite.JSONWebKeySigner, cred credential.VerifiableCredential) ([]byte, error) {
+// which will soon be deprecated by https://w3c.github.io/vc-jwt/ see: https://github.com/TBD54566975/ssi-sdk/issues/191
+func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.VerifiableCredential) ([]byte, error) {
 	if cred.IsEmpty() {
 		return nil, errors.New("credential cannot be empty")
 	}
@@ -32,9 +31,11 @@ func SignVerifiableCredentialJWT(signer cryptosuite.JSONWebKeySigner, cred crede
 	expirationVal := cred.ExpirationDate
 	if expirationVal != "" {
 		var expirationDate = expirationVal
-		if unixTime, err := rfc3339ToUnix(expirationVal); err == nil {
-			expirationDate = string(unixTime)
+		unixTime, err := rfc3339ToUnix(expirationVal)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not convert expiration date to unix time")
 		}
+		expirationDate = string(unixTime)
 		if err := t.Set(jwt.ExpirationKey, expirationDate); err != nil {
 			return nil, errors.Wrap(err, "could not set exp value")
 		}
@@ -47,6 +48,9 @@ func SignVerifiableCredentialJWT(signer cryptosuite.JSONWebKeySigner, cred crede
 	var issuanceDate = cred.IssuanceDate
 	if unixTime, err := rfc3339ToUnix(cred.IssuanceDate); err == nil {
 		issuanceDate = string(unixTime)
+	} else {
+		// could not convert iat to unix time; setting to present moment
+		issuanceDate = strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	}
 
 	if err := t.Set(jwt.NotBeforeKey, issuanceDate); err != nil {
@@ -73,15 +77,14 @@ func SignVerifiableCredentialJWT(signer cryptosuite.JSONWebKeySigner, cred crede
 
 	signed, err := jwt.Sign(t, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key)
 	if err != nil {
-		logrus.WithError(err).Error("could not sign JWT credential")
-		return nil, err
+		return nil, errors.Wrap(err, "could not sign JWT credential")
 	}
 	return signed, nil
 }
 
 // VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
 // the token in a verifiable credential.
-func VerifyVerifiableCredentialJWT(verifier cryptosuite.JSONWebKeyVerifier, token string) (*credential.VerifiableCredential, error) {
+func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (*credential.VerifiableCredential, error) {
 	if err := verifier.VerifyJWT(token); err != nil {
 		return nil, errors.Wrap(err, "could not verify JWT and its signature")
 	}
@@ -106,10 +109,8 @@ func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCrede
 		return nil, errors.Wrap(err, "could not marshal credential claim")
 	}
 	var cred credential.VerifiableCredential
-	if err := json.Unmarshal(vcBytes, &cred); err != nil {
-		errMsg := "could not reconstruct Verifiable Credential"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+	if err = json.Unmarshal(vcBytes, &cred); err != nil {
+		return nil, errors.Wrap(err, "could not reconstruct Verifiable Credential")
 	}
 
 	// parse remaining JWT properties and set in the credential
@@ -152,7 +153,7 @@ func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCrede
 }
 
 // SignVerifiablePresentationJWT is prepared according to https://www.w3.org/TR/vc-data-model/#jwt-encoding
-func SignVerifiablePresentationJWT(signer cryptosuite.JSONWebKeySigner, pres credential.VerifiablePresentation) ([]byte, error) {
+func SignVerifiablePresentationJWT(signer crypto.JWTSigner, pres credential.VerifiablePresentation) ([]byte, error) {
 	if pres.IsEmpty() {
 		return nil, errors.New("presentation cannot be empty")
 	}
@@ -182,8 +183,7 @@ func SignVerifiablePresentationJWT(signer cryptosuite.JSONWebKeySigner, pres cre
 
 	signed, err := jwt.Sign(t, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key)
 	if err != nil {
-		logrus.WithError(err).Error("could not sign JWT presentation")
-		return nil, err
+		return nil, errors.Wrap(err, "could not sign JWT presentation")
 	}
 	return signed, nil
 }
@@ -193,11 +193,9 @@ func SignVerifiablePresentationJWT(signer cryptosuite.JSONWebKeySigner, pres cre
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
-func VerifyVerifiablePresentationJWT(verifier cryptosuite.JSONWebKeyVerifier, token string) (*credential.VerifiablePresentation, error) {
+func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) (*credential.VerifiablePresentation, error) {
 	if err := verifier.VerifyJWT(token); err != nil {
-		errMsg := "could not verify JWT and its signature"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+		return nil, errors.Wrap(err, "could not verify JWT and its signature")
 	}
 	return ParseVerifiablePresentationFromJWT(token)
 }
@@ -220,17 +218,15 @@ func ParseVerifiablePresentationFromJWT(token string) (*credential.VerifiablePre
 		return nil, errors.Wrap(err, "could not marshal vp claim")
 	}
 	var pres credential.VerifiablePresentation
-	if err := json.Unmarshal(vpBytes, &pres); err != nil {
-		errMsg := "could not reconstruct Verifiable Presentation"
-		logrus.WithError(err).Error(errMsg)
-		return nil, errors.Wrap(err, errMsg)
+	if err = json.Unmarshal(vpBytes, &pres); err != nil {
+		return nil, errors.Wrap(err, "could not reconstruct Verifiable Presentation")
 	}
 
 	// parse remaining JWT properties and set in the presentation
 
-	jti, hasJti := parsed.Get(jwt.NotBeforeKey)
+	jti, hasJTI := parsed.Get(jwt.NotBeforeKey)
 	jtiStr, ok := jti.(string)
-	if hasJti && ok && jtiStr != "" {
+	if hasJTI && ok && jtiStr != "" {
 		pres.ID = jtiStr
 	}
 

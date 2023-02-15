@@ -91,7 +91,8 @@ We advocate an asynchronous, written debate model - so write up your thoughts an
 
 ### Continuous Integration
 
-Build and Test cycles are run on every commit to every branch using [GitHub Actions](https://github.com/TBD54566975/ssi-sdk/actions).
+Build and Test cycles are run on every commit to every branch
+using [GitHub Actions](https://github.com/TBD54566975/ssi-sdk/actions).
 
 ## Contribution
 

@@ -7,10 +7,6 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": [
-          "id",
-          "schema"
-        ],
         "properties": {
           "id": {
             "type": "string"
@@ -22,8 +18,7 @@
             "type": "string"
           },
           "schema": {
-            "type": "string",
-            "format": "uri"
+            "type": "string"
           },
           "display": {
             "type": "object",
@@ -50,6 +45,10 @@
             "$ref": "https://identity.foundation/wallet-rendering/schemas/entity-styles.json"
           }
         },
+        "required": [
+          "id",
+          "schema"
+        ],
         "additionalProperties": false
       }
     }

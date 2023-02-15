@@ -13,13 +13,12 @@ import (
 )
 
 func main() {
-
 	// Create a did:key. This is a specific did using the "key" method
 	// GenerateDIDKey takes in a key type value that this library supports and constructs a conformant did:key identifier.
 	// To use the private key, it is recommended to re-cast to the associated type.
 	// The function returns the associated private key value cast to the generic golang crypto.PrivateKey interface.
 	// See more here: https://github.com/TBD54566975/ssi-sdk/blob/main/did/key.go#L51
-	_, didKey, err := did.GenerateDIDKey(crypto.Secp256k1)
+	_, didKey, err := did.GenerateDIDKey(crypto.SECP256k1)
 	if err != nil {
 		example.HandleExampleError(err, "failed to generate key")
 	}
@@ -39,5 +38,4 @@ func main() {
 		// Some basic DID information printed out here.
 		fmt.Printf("Generated DID document for did:key method:\n%s\n", string(dat))
 	}
-
 }
