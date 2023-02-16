@@ -10,28 +10,28 @@ import (
 // Exercise all builder methods
 func TestDIDDocumentBuilder(t *testing.T) {
 	// https://www.w3.org/TR/did-core/#example-did-document-with-1-verification-method-type
-	var exampleAuthenticationEntry = map[string]string{
+	exampleAuthenticationEntry := map[string]string{
 		"id":                 "did:example:123#z6MkecaLyHuYWkayBDLw5ihndj3T1m6zKTGqau3A51G7RBf3",
 		"type":               "Ed25519VerificationKey2020",
 		"controller":         "did:example:123",
 		"publicKeyMultibase": "zAKJP3f7BD6W4iWEQ9jwndVTCBq8ua2Utt8EEjJ6Vxsf",
 	}
 
-	var exampleCapabilityInvocationEntry = map[string]string{
+	exampleCapabilityInvocationEntry := map[string]string{
 		"id":                 "did:example:123#z6MkhdmzFu659ZJ4XKj31vtEDmjvsi5yDZG5L7Caz63oP39k",
 		"type":               "Ed25519VerificationKey2020",
 		"controller":         "did:example:123",
 		"publicKeyMultibase": "z4BWwfeqdp1obQptLLMvPNgBw48p7og1ie6Hf9p5nTpNN",
 	}
 
-	var exampleAssertionEntry = map[string]string{
+	exampleAssertionEntry := map[string]string{
 		"id":                 "did:example:123#z6MkiukuAuQAE8ozxvmahnQGzApvtW7KT5XXKfojjwbdEomY",
 		"type":               "Ed25519VerificationKey2020",
 		"controller":         "did:example:123",
 		"publicKeyMultibase": "z5TVraf9itbKXrRvt2DSS95Gw4vqU3CHAdetoufdcKazA",
 	}
 
-	var exampleCapabilityDelegationEntry = map[string]string{
+	exampleCapabilityDelegationEntry := map[string]string{
 		"id":                 "did:example:123#z6Mkw94ByR26zMSkNdCUi6FNRsWnc2DFEeDXyBGJ5KTzSWyi",
 		"type":               "Ed25519VerificationKey2020",
 		"controller":         "did:example:123",
@@ -39,7 +39,7 @@ func TestDIDDocumentBuilder(t *testing.T) {
 	}
 
 	// https://www.w3.org/TR/did-core/#example-did-document-with-many-different-key-types
-	var exampleVerificationMethod = VerificationMethod{
+	exampleVerificationMethod := VerificationMethod{
 		ID:         "did:example:123#key-0",
 		Type:       "JsonWebKey2020",
 		Controller: "did:example:123",
@@ -51,7 +51,7 @@ func TestDIDDocumentBuilder(t *testing.T) {
 	}
 
 	// https://www.w3.org/TR/did-core/#example-key-agreement-property-containing-two-verification-methods
-	var exampleKeyAgreementEntry = map[string]string{
+	exampleKeyAgreementEntry := map[string]string{
 		"id":                 "did:example:123#zC9ByQ8aJs8vrNXyDhPHHNNMSHPcaSgNpjjsBYpMMjsTdS",
 		"type":               "X25519KeyAgreementKey2019",
 		"controller":         "did:example:123",

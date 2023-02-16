@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// contexts and types are kept to avoid having cast to/from interface{} values
 type DIDDocumentBuilder struct {
 	contexts []string
 	types    []string
