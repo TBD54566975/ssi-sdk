@@ -58,8 +58,16 @@ func TestDIDDocumentBuilder(t *testing.T) {
 		"publicKeyMultibase": "z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE",
 	}
 
+	builderBad := DIDDocumentBuilder{}
+	_, err := builderBad.Build()
+	assert.Error(t, err)
+	notReadyErr := "builder cannot be empty"
+	assert.Contains(t, err.Error(), notReadyErr)
+	err = builderBad.AddContext("https://w3id.org/did/v1")
+	assert.Error(t, err)
+
 	builder := NewDIDDocumentBuilder()
-	_, err := builder.Build()
+	_, err = builder.Build()
 	assert.NoError(t, err)
 	assert.False(t, builder.IsEmpty())
 
