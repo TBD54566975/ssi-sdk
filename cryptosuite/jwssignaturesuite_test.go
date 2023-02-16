@@ -92,13 +92,13 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 		{
 			name:      "secp256k1",
 			kty:       EC,
-			crv:       Secp256k1,
+			crv:       SECP256k1,
 			expectErr: false,
 		},
 		{
 			name:      "secp256k1 as OKP",
 			kty:       OKP,
-			crv:       Secp256k1,
+			crv:       SECP256k1,
 			expectErr: true,
 		},
 		{
@@ -175,8 +175,8 @@ func TestCredentialLDProof(t *testing.T) {
 	}
 
 	// create a copy for value verification later
-	var preSigned TestCredential
-	err := util.Copy(&knownCred, &preSigned)
+	var presigned TestCredential
+	err := util.Copy(&knownCred, &presigned)
 	assert.NoError(t, err)
 
 	jwk, err := GenerateJSONWebKey2020(OKP, Ed25519)
@@ -200,18 +200,18 @@ func TestCredentialLDProof(t *testing.T) {
 	assert.NoError(t, err)
 
 	// make sure all values are maintained after signing
-	assert.Equal(t, preSigned.Context, knownCred.Context)
-	assert.Equal(t, preSigned.ID, knownCred.ID)
-	assert.Equal(t, preSigned.Type, knownCred.Type)
-	assert.Equal(t, preSigned.Issuer, knownCred.Issuer)
-	assert.Equal(t, preSigned.IssuanceDate, knownCred.IssuanceDate)
-	assert.Equal(t, preSigned.CredentialSubject, knownCred.CredentialSubject)
+	assert.Equal(t, presigned.Context, knownCred.Context)
+	assert.Equal(t, presigned.ID, knownCred.ID)
+	assert.Equal(t, presigned.Type, knownCred.Type)
+	assert.Equal(t, presigned.Issuer, knownCred.Issuer)
+	assert.Equal(t, presigned.IssuanceDate, knownCred.IssuanceDate)
+	assert.Equal(t, presigned.CredentialSubject, knownCred.CredentialSubject)
 
 	// make sure the proof has valid values
 	assert.NotEmpty(t, knownCred.Proof)
 
 	// cast to known proof type
-	p, ok := (*knownCred.Proof).(JsonWebSignature2020Proof)
+	p, ok := (*knownCred.Proof).(JSONWebSignature2020Proof)
 	assert.True(t, ok)
 	assert.Equal(t, JSONWebSignature2020, p.Type)
 	assert.NotEmpty(t, p.JWS)
@@ -245,7 +245,7 @@ func TestJsonWebSignature2020TestVectorCredential0(t *testing.T) {
 	assert.NoError(t, err)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/implementations/transmute/credential-0--key-0-ed25519.vc.json
-	knownProof := JsonWebSignature2020Proof{
+	knownProof := JSONWebSignature2020Proof{
 		Type:               "JsonWebSignature2020",
 		Created:            "2022-01-24T23:26:38Z",
 		JWS:                "eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..377mL0aIk_YL_scEZh1BIzje17vD4F7U8WPo2ufgkkGLwDNXHDhN99zpnsvsozD5Si82gRbDHqFu3Rp6dLH7Ag",
@@ -438,12 +438,12 @@ func getTestVectorKey0Signer(t *testing.T, purpose ProofPurpose) (JSONWebKeySign
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	knownJWK := JSONWebKey2020{
 		ID: "did:example:123#key-0",
-		PublicKeyJWK: PublicKeyJWK{
+		PublicKeyJWK: crypto.PublicKeyJWK{
 			KTY: "OKP",
 			CRV: "Ed25519",
 			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
 		},
-		PrivateKeyJWK: PrivateKeyJWK{
+		PrivateKeyJWK: crypto.PrivateKeyJWK{
 			KTY: "OKP",
 			CRV: "Ed25519",
 			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",

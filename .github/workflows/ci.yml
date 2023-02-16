@@ -8,10 +8,28 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  schedule:
+    # Runs "at  2pm every day"
+    - cron: '0 14 * * *'
   # used to run action manually via the UI
   workflow_dispatch:
 
 jobs:
+  vulnerability-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19.4
+
+      - name: Install Mage
+        run: go install github.com/magefile/mage
+
+      - name: Check Vulnerabilities
+        run: mage -v vuln
   build:
     runs-on: ubuntu-latest
     steps:
@@ -20,7 +38,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: 1.19.4
 
       - name: Install Mage
         run: go install github.com/magefile/mage
@@ -30,6 +48,9 @@ jobs:
 
       - name: Test
         run: mage citest
+      
+      - name: Fuzz tests
+        run: mage fuzz
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3

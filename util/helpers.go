@@ -105,6 +105,12 @@ func ToJSON(i interface{}) (string, error) {
 	return string(b), err
 }
 
+func ToJSONInterface(data string) (interface{}, error) {
+	var result interface{}
+	err := json.Unmarshal([]byte(data), &result)
+	return result, err
+}
+
 func validateCopy(src interface{}, dst interface{}) error {
 	if src == nil {
 		return errors.New("src is nil")
@@ -154,6 +160,17 @@ func (a *AppendError) Append(err error) {
 
 func (a *AppendError) AppendString(err string) {
 	*a = append(*a, err)
+}
+
+func (a *AppendError) IsEmpty() bool {
+	return a == nil || len(*a) == 0
+}
+
+func (a *AppendError) NumErrors() int {
+	if a == nil {
+		return 0
+	}
+	return len(*a)
 }
 
 func (a *AppendError) Error() error {

@@ -11,7 +11,6 @@ import (
 )
 
 func main() {
-
 	// Make a Verifiable Credential using the VC data type directly. Alternatively, use the builder
 	// A VC is set of tamper-evident claims and metadata that cryptographically prove who issued it
 	// Building a VC means using the CredentialBuilder as part of the credentials package in the ssk-sdk.

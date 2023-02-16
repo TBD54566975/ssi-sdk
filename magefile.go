@@ -4,7 +4,11 @@ package main
 
 import (
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"io"
+	"io/fs"
 	"log"
 	"os"
 	"os/exec"
@@ -16,23 +20,39 @@ import (
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
-	"golang.org/x/crypto/ssh/terminal"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/term"
 )
 
 const (
-	Go = "go"
+	Go       = "go"
+	gomobile = "gomobile"
 )
 
 // Build builds the library.
 func Build() error {
+
 	fmt.Println("Building...")
-	return sh.Run(Go, "build", "-tags", "jwx_es256k", "./...")
+	if err := sh.Run(Go, "build", "-tags", "jwx_es256k", "./..."); err != nil {
+		return err
+	}
+	return BuildWasm()
+}
+
+func BuildWasm() error {
+
+	fmt.Println("Building wasm...")
+	env := map[string]string{
+		"GOOS":   "js",
+		"GOARCH": "wasm",
+	}
+	return sh.RunWith(env, Go, "build", "-tags", "jwx_es256k", "-o", "./wasm/static/main.wasm", "./wasm")
 }
 
 // Clean deletes any build artifacts.
 func Clean() {
-	fmt.Println("Cleaning...")
-	os.RemoveAll("bin")
+	println("Cleaning...")
+	_ = os.RemoveAll("bin")
 }
 
 // Test runs unit tests without coverage.
@@ -41,12 +61,16 @@ func Test() error {
 	return runTests()
 }
 
+func Fuzz() error {
+	return runFuzzTests()
+}
+
 func runTests(extraTestArgs ...string) error {
 	args := []string{"test"}
 	if mg.Verbose() {
 		args = append(args, "-v")
 	}
-	args = append(args, "-race", "-tags=jwx_es256k")
+	args = append(args, "-tags=jwx_es256k")
 	args = append(args, extraTestArgs...)
 	args = append(args, "./...")
 	testEnv := map[string]string{
@@ -54,9 +78,87 @@ func runTests(extraTestArgs ...string) error {
 		"GO111MODULE": "on",
 	}
 	writer := ColorizeTestStdout()
-	fmt.Printf("%+v", args)
+	_, _ = fmt.Printf("%+v", args)
 	_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
 	return err
+}
+
+func runFuzzTests(extraTestArgs ...string) error {
+	dirs := []string{"./did"}
+
+	for _, dir := range dirs {
+		functionNames, _ := getFuzzTests(dir)
+
+		for _, testName := range functionNames {
+			args := []string{"test"}
+			if mg.Verbose() {
+				args = append(args, "-v")
+			}
+			args = append(args, dir)
+			args = append(args, fmt.Sprintf("-run=%s", testName))
+			args = append(args, fmt.Sprintf("-fuzz=%s", testName))
+			args = append(args, "-fuzztime=10s")
+			testEnv := map[string]string{
+				"CGO_ENABLED": "1",
+				"GO111MODULE": "on",
+			}
+			writer := ColorizeTestStdout()
+			fmt.Printf("%+v\n", args)
+			_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+	return nil
+}
+
+func getFuzzTests(src string) ([]string, error) {
+	// src is the input for which we want to inspect the AST.
+	var testFilePaths []string
+	filepath.WalkDir(src, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(path, "test.go") {
+			return nil
+		}
+		testFilePaths = append(testFilePaths, path)
+		return nil
+	})
+
+	// Create the AST by parsing src.
+	fset := token.NewFileSet() // positions are relative to fset
+	var testNames []string
+	for _, filename := range testFilePaths {
+		// Pass in nil to automatically parse the file
+		f, err := parser.ParseFile(fset, filename, nil, 0)
+		if err != nil {
+			panic(err)
+		}
+		ast.FileExports(f)
+		ast.FilterFile(f, func(s string) bool {
+			p := strings.HasPrefix(s, "Fuzz")
+			if p {
+				testNames = append(testNames, s)
+			}
+			return p
+		})
+	}
+	return testNames, nil
+}
+
+func Deps() error {
+	return brewInstall("golangci-lint")
+}
+
+func brewInstall(formula string) error {
+	return sh.Run("brew", "install", formula)
+}
+
+func Lint() error {
+	return sh.Run("golangci-lint", "run")
 }
 
 func ColorizeTestOutput(w io.Writer) io.Writer {
@@ -65,7 +167,7 @@ func ColorizeTestOutput(w io.Writer) io.Writer {
 }
 
 func ColorizeTestStdout() io.Writer {
-	if terminal.IsTerminal(syscall.Stdout) {
+	if term.IsTerminal(syscall.Stdout) {
 		return ColorizeTestOutput(os.Stdout)
 	}
 	return os.Stdout
@@ -91,26 +193,39 @@ func (w *regexpWriter) Write(p []byte) (int, error) {
 }
 
 func runGo(cmd string, args ...string) error {
-	return sh.Run(findOnPathOrGoPath("go"), append([]string{"run", cmd}, args...)...)
+	return sh.Run(findOnPathOrGoPath(Go), append([]string{"run", cmd}, args...)...)
 }
 
 // InstallIfNotPresent installs a go based tool (if not already installed)
 func installIfNotPresent(execName, goPackage string) error {
 	usr, err := user.Current()
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithError(err).Fatal()
 		return err
 	}
 	pathOfExec := findOnPathOrGoPath(execName)
 	if len(pathOfExec) == 0 {
 		cmd := exec.Command(Go, "get", "-u", goPackage)
-		cmd.Dir = usr.HomeDir
-		if err := cmd.Start(); err != nil {
-			return err
+		if err := runGoCommand(usr, *cmd); err != nil {
+			logrus.WithError(err).Warnf("Error running command: %s", cmd.String())
+			cmd = exec.Command(Go, "install", goPackage)
+			if err := runGoCommand(usr, *cmd); err != nil {
+				logrus.WithError(err).Fatalf("Error running command: %s", cmd.String())
+				return err
+			}
 		}
-		return cmd.Wait()
+		logrus.Infof("Successfully installed %s", goPackage)
 	}
 	return nil
+}
+
+func runGoCommand(usr *user.User, cmd exec.Cmd) error {
+	cmd.Dir = usr.HomeDir
+	if err := cmd.Start(); err != nil {
+		logrus.WithError(err).Fatalf("Error running command: %s", cmd.String())
+		return err
+	}
+	return cmd.Wait()
 }
 
 func findOnPathOrGoPath(execName string) string {
@@ -165,7 +280,6 @@ func CBT() error {
 	return nil
 }
 
-
 // CITest runs unit tests with coverage as a part of CI.
 // The mage `-v` option will trigger a verbose output of the test
 func CITest() error {
@@ -180,6 +294,7 @@ func runCITests(extraTestArgs ...string) error {
 	args = append(args, "-tags=jwx_es256k")
 	args = append(args, "-covermode=atomic")
 	args = append(args, "-coverprofile=coverage.out")
+	args = append(args, "-race")
 	args = append(args, extraTestArgs...)
 	args = append(args, "./...")
 	testEnv := map[string]string{
@@ -190,4 +305,80 @@ func runCITests(extraTestArgs ...string) error {
 	fmt.Printf("%+v", args)
 	_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
 	return err
+}
+
+func installGoMobileIfNotPresent() error {
+	return installIfNotPresent(gomobile, "golang.org/x/mobile/cmd/gomobile@latest")
+}
+
+// Mobile runs gomobile commands on specified packages for both Android and iOS
+func Mobile() {
+	pkgs := []string{"crypto", "did", "cryptosuite"}
+	if err := IOS(pkgs...); err != nil {
+		logrus.WithError(err).Error("Error building iOS")
+		return
+	}
+	if err := Android(pkgs...); err != nil {
+		logrus.WithError(err).Error("Error building Android")
+		return
+	}
+}
+
+// IOS Generates the iOS packages
+// Note: this command also installs "gomobile" if not present
+func IOS(pkgs ...string) error {
+	if err := installGoMobileIfNotPresent(); err != nil {
+		logrus.WithError(err).Fatal("Error installing gomobile")
+		return err
+	}
+
+	fmt.Println("Building iOS...")
+	bindIOS := sh.RunCmd(gomobile, "bind", "-target", "ios")
+
+	for _, pkg := range pkgs {
+		fmt.Printf("Building [%s] package...\n", pkg)
+		if err := bindIOS(pkg); err != nil {
+			logrus.WithError(err).Fatalf("Error building iOS pkg: %s", pkg)
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Android Generates the Android packages
+// Note: this command also installs "gomobile" if not present
+func Android(pkgs ...string) error {
+	if err := installGoMobileIfNotPresent(); err != nil {
+		logrus.WithError(err).Fatal("Error installing gomobile")
+		return err
+	}
+
+	apiLevel := "23"
+	println("Building Android - API Level: " + apiLevel + "...")
+	bindAndroid := sh.RunCmd("gomobile", "bind", "-target", "android", "-androidapi", "23")
+
+	for _, pkg := range pkgs {
+		fmt.Printf("Building [%s] package...\n", pkg)
+		if err := bindAndroid(pkg); err != nil {
+			logrus.WithError(err).Fatalf("Error building iOS pkg: %s", pkg)
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Vuln downloads and runs govulncheck https://go.dev/blog/vuln
+func Vuln() error {
+	println("Vulnerability checks...")
+	if err := installGoVulnIfNotPresent(); err != nil {
+		logrus.WithError(err).Error("error installing go-vuln")
+		return err
+	}
+	return sh.Run("govulncheck", "./...")
+}
+
+func installGoVulnIfNotPresent() error {
+	return installIfNotPresent("govulncheck", "golang.org/x/vuln/cmd/govulncheck@latest")
 }

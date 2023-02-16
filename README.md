@@ -1,9 +1,10 @@
 [![godoc ssi-sdk](https://img.shields.io/badge/godoc-ssi--sdk-blue)](https://pkg.go.dev/github.com/TBD54566975/ssi-sdk)
-[![go version 1.17.6](https://img.shields.io/badge/go_version-1.17.6-brightgreen)](https://golang.org/)
+[![go version 1.19.2](https://img.shields.io/badge/go_version-1.19.2-brightgreen)](https://golang.org/)
 [![Go Report Card A+](https://goreportcard.com/badge/github.com/TBD54566975/ssi-sdk)](https://goreportcard.com/report/github.com/TBD54566975/ssi-sdk)
 [![license Apache 2](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/ssi-sdk/blob/main/LICENSE)
 [![issues](https://img.shields.io/github/issues/TBD54566975/ssi-sdk)](https://github.com/TBD54566975/ssi-sdk/issues)
 ![ssi-sdk-ci status](https://github.com/TBD54566975/ssi-sdk/workflows/ssi-sdk-ci/badge.svg?branch=main&event=push)
+[![codecov](https://codecov.io/gh/TBD54566975/ssi-sdk/branch/main/graph/badge.svg?token=8SD0TO9Z9E)](https://codecov.io/gh/TBD54566975/ssi-sdk)
 
 # ssi-sdk
 
@@ -14,13 +15,15 @@ to [Self Sovereign Identity](http://www.lifewithalacrity.com/2016/04/the-path-to
 The `ssi-sdk` intends to provide flexible functionality based on a set of standards-based primitives for building
 decentralized identity applications in a modular manner: with limited dependencies between components.
 
-![ssi-sdk](docs/ssi-sdk.png)
+![ssi-sdk](doc/ssi-sdk.png)
 
 The image above outlines the SDK's vision. Standards may be added and/or removed. The standards themselves are under
 active development, and as such, are subject to change. When possible we aim to call out which versions or revisions of
 standards we are building implementations against.
 
 The SDK has not undergone any formal security review or audit, so please use with caution.
+
+For more information, see the [vision document](doc/VISION.md).
 
 # Contributing
 
@@ -64,6 +67,7 @@ change as the library evolves.
 - [The did:key Method v0.7](https://w3c-ccg.github.io/did-method-key/) _Unofficial Draft 14 February 2022_
 - [The did:web Method](https://w3c-ccg.github.io/did-method-web/) _20 December 2021_
 - [The did:peer Method](https://identity.foundation/peer-did-method-spec/) _W3C Document 12 October 2021_
+- [The did:pkh Method](https://github.com/w3c-ccg/did-pkh/blob/main/did-pkh-method-draft.md) _Draft, 22 August 2022_
 
 # Building
 
@@ -83,6 +87,25 @@ A utility is provided to run _clean, build, and test_ in sequence with:
 mage cbt
 ```
 
+Mobile targets can be built with:
+
+```bash
+// Creates both Android and iOS packages
+mage mobile 
+
+// Outputs an .xcframework for the crypto, cryptosuite, did packages
+mage ios 
+
+// Outputs a .jar and .aar for the crypto, cryptosuite, did packages 
+mage android 
+```
+
+# Versioning
+
+For information on versioning refer to our [versioning guide](doc/VERSIONING.md).
+
+The latest version is...nothing! No releases have been made.
+
 # Examples
 
 A set of code examples can be found in the [examples directory](example). We welcome
@@ -90,12 +113,23 @@ contributions for additional examples.
 
 - [Decentralized Identifiers Example](example/did)
 - [Verifiable Credentials Example](example/vc)
+- Presentation Exchange Examples
+    - [Applying for an Apartment](example/usecase/apartment_application)
+    - [Employment Verification with a University Degree](example/usecase/employer_university_flow)
+
+To run the examples use the following command
+
+```
+ go run example/did/did.go 
+ go run example/usecase/apartment_application/apartment_application.go
+```
 
 # Project Resources
 
 | Resource                                                                               | Description                                                                   |
 |----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| [CODEOWNERS](https://github.com/TBD54566975/ssi-sdk/blob/main/CODEOWNERS)              | Outlines the project lead(s)                                                  |
+| [VISION](https://github.com/TBD54566975/ssi-sdk/blob/main/doc/VISION.md)               | Outlines the project vision                                                   |
+| [VERSIONING](https://github.com/TBD54566975/ssi-sdk/blob/main/doc/VERSIONING.md)       | Project versioning strategy                                                   |
 | [CODE_OF_CONDUCT](https://github.com/TBD54566975/ssi-sdk/blob/main/CODE_OF_CONDUCT.md) | Expected behavior for project contributors, promoting a welcoming environment |
 | [CONTRIBUTING](https://github.com/TBD54566975/ssi-sdk/blob/main/CONTRIBUTING.md)       | Developer guide to build, test, run, access CI, chat, discuss, file issues    |
 | [GOVERNANCE](https://github.com/TBD54566975/ssi-sdk/blob/main/GOVERNANCE.md)           | Project governance                                                            |

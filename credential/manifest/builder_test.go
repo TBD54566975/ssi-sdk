@@ -18,6 +18,12 @@ func TestCredentialManifestBuilder(t *testing.T) {
 
 	assert.False(t, builder.IsEmpty())
 
+	err = builder.SetName("name")
+	assert.NoError(t, err)
+
+	err = builder.SetDescription("description")
+	assert.NoError(t, err)
+
 	// set a bad issuer
 	err = builder.SetIssuer(Issuer{
 		Name: "Satoshi",
@@ -93,6 +99,13 @@ func TestCredentialManifestBuilder(t *testing.T) {
 		InputDescriptors: []exchange.InputDescriptor{
 			{
 				ID: "test-id",
+				Constraints: &exchange.Constraints{
+					Fields: []exchange.Field{
+						{
+							Path: []string{".vc.id"},
+						},
+					},
+				},
 			},
 		},
 	})
@@ -101,6 +114,8 @@ func TestCredentialManifestBuilder(t *testing.T) {
 	manifest, err := builder.Build()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, manifest)
+	assert.Equal(t, "name", manifest.Name)
+	assert.Equal(t, "description", manifest.Description)
 }
 
 func TestCredentialApplicationBuilder(t *testing.T) {
@@ -150,47 +165,92 @@ func TestCredentialApplicationBuilder(t *testing.T) {
 	assert.NotEmpty(t, application)
 }
 
-func TestCredentialFulfillmentBuilder(t *testing.T) {
-	builder := NewCredentialFulfillmentBuilder("manifest-id")
-	_, err := builder.Build()
-	assert.Error(t, err)
-	notReadyErr := "credential fulfillment not ready to be built"
-	assert.Contains(t, err.Error(), notReadyErr)
+func TestCredentialResponseBuilder(t *testing.T) {
+	t.Run("test credential fulfillment builder", func(tt *testing.T) {
+		builder := NewCredentialResponseBuilder("manifest-id")
+		_, err := builder.Build()
+		assert.Error(tt, err)
+		notReadyErr := "credential response not ready to be built"
+		assert.Contains(tt, err.Error(), notReadyErr)
 
-	assert.False(t, builder.IsEmpty())
+		assert.False(tt, builder.IsEmpty())
 
-	err = builder.SetManifestID("manifest-id")
-	assert.NoError(t, err)
+		err = builder.SetManifestID("manifest-id")
+		assert.NoError(t, err)
 
-	err = builder.SetApplicationID("application-id")
-	assert.NoError(t, err)
+		err = builder.SetApplicationID("application-id")
+		assert.NoError(tt, err)
 
-	// bad map
-	err = builder.SetDescriptorMap(nil)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "cannot set no submission descriptors")
+		// bad map
+		err = builder.SetFulfillment(nil)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "cannot set no submission descriptors")
 
-	// another bad map
-	err = builder.SetDescriptorMap([]exchange.SubmissionDescriptor{
-		{
-			ID:   "bad",
-			Path: "bad",
-		},
+		// another bad map
+		err = builder.SetFulfillment([]exchange.SubmissionDescriptor{
+			{
+				ID:   "bad",
+				Path: "bad",
+			},
+		})
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "cannot set descriptor map; invalid descriptor")
+
+		// good map
+		err = builder.SetFulfillment([]exchange.SubmissionDescriptor{
+			{
+				ID:     "descriptor-id",
+				Format: "jwt",
+				Path:   "path",
+			},
+		})
+		assert.NoError(tt, err)
+
+		fulfillment, err := builder.Build()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, fulfillment)
 	})
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "cannot set descriptor map; invalid descriptor")
 
-	// good map
-	err = builder.SetDescriptorMap([]exchange.SubmissionDescriptor{
-		{
-			ID:     "descriptor-id",
-			Format: "jwt",
-			Path:   "path",
-		},
+	t.Run("test credential denial builder - no input descriptors", func(tt *testing.T) {
+		builder := NewCredentialResponseBuilder("manifest-id")
+		_, err := builder.Build()
+		assert.Error(tt, err)
+		notReadyErr := "credential response not ready to be built"
+		assert.Contains(tt, err.Error(), notReadyErr)
+
+		assert.False(tt, builder.IsEmpty())
+
+		err = builder.SetApplicationID("application-id")
+		assert.NoError(tt, err)
+
+		// no input descriptors
+		err = builder.SetDenial("bad")
+		assert.NoError(tt, err)
+
+		denial, err := builder.Build()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, denial)
 	})
-	assert.NoError(t, err)
 
-	fulfillment, err := builder.Build()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, fulfillment)
+	t.Run("test credential denial builder - input descriptors", func(tt *testing.T) {
+		builder := NewCredentialResponseBuilder("manifest-id")
+		_, err := builder.Build()
+		assert.Error(tt, err)
+		notReadyErr := "credential response not ready to be built"
+		assert.Contains(tt, err.Error(), notReadyErr)
+
+		assert.False(tt, builder.IsEmpty())
+
+		err = builder.SetApplicationID("application-id")
+		assert.NoError(tt, err)
+
+		// no input descriptors
+		badInputDescriptors := []string{"id1", "id2"}
+		err = builder.SetDenial("bad", badInputDescriptors...)
+		assert.NoError(tt, err)
+
+		denial, err := builder.Build()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, denial)
+	})
 }
