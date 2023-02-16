@@ -3,7 +3,7 @@ package did
 import (
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -44,7 +44,7 @@ func TestDIDDocumentBuilder(t *testing.T) {
 		ID:         "did:example:123#key-0",
 		Type:       "JsonWebKey2020",
 		Controller: "did:example:123",
-		PublicKeyJWK: &cryptosuite.PublicKeyJWK{
+		PublicKeyJWK: &crypto.PublicKeyJWK{
 			KTY: "OKP",
 			CRV: "Ed25519",
 			X:   "VCpo2LMLhn6iWku8MKvSLg2ZAoC-nlOyPVQaO3FxVeQ",
