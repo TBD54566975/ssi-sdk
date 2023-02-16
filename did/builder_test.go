@@ -9,7 +9,6 @@ import (
 
 // Exercise all builder methods
 func TestDIDDocumentBuilder(t *testing.T) {
-
 	// https://www.w3.org/TR/did-core/#example-did-document-with-1-verification-method-type
 	var exampleAuthenticationEntry = map[string]string{
 		"id":                 "did:example:123#z6MkecaLyHuYWkayBDLw5ihndj3T1m6zKTGqau3A51G7RBf3",
