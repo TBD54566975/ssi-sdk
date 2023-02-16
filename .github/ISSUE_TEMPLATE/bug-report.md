@@ -3,7 +3,7 @@ name: Bug Report
 about: Create a report to help us improve
 title: "[Bug] <Bug Title Here>"
 labels: bug
-assignees: nitro-neal, decentralgabe
+assignees: nitro-neal, decentralgabe, andresuribe87
 
 ---
 
