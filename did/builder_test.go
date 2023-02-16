@@ -122,10 +122,10 @@ func TestDIDDocumentBuilder(t *testing.T) {
 		})
 
 	assert.NoError(t, err)
+
 	// build it and verify some values
 	cred, err := builder.Build()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cred)
-
 	assert.Equal(t, id, cred.ID)
 }
