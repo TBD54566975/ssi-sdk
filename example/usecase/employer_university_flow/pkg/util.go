@@ -104,7 +104,7 @@ func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData ex
 	return requestJWTBytes, signer, err
 }
 
-// normalizePresentationClaims takes a set of Presentation Claims and turns them into map[string]interface{} as
+// normalizePresentationClaims takes a set of Presentation Claims and turns them into map[string]any as
 // go-JSON representations. The claim format and signature algorithm type are noted as well.
 // This method is greedy, meaning it returns the set of claims it was able to normalize.
 func normalizePresentationClaims(claims []exchange.PresentationClaim) []exchange.NormalizedClaim {

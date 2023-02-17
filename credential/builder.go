@@ -22,7 +22,7 @@ const (
 
 // VerifiableCredentialBuilder uses the builder pattern to construct a verifiable credential
 type VerifiableCredentialBuilder struct {
-	// contexts and types are kept to avoid having cast to/from interface{} values
+	// contexts and types are kept to avoid having cast to/from any values
 	contexts []string
 	types    []string
 	*VerifiableCredential
@@ -65,7 +65,7 @@ func (vcb *VerifiableCredentialBuilder) IsEmpty() bool {
 	return reflect.DeepEqual(vcb, &VerifiableCredentialBuilder{})
 }
 
-func (vcb *VerifiableCredentialBuilder) AddContext(context interface{}) error {
+func (vcb *VerifiableCredentialBuilder) AddContext(context any) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -88,7 +88,7 @@ func (vcb *VerifiableCredentialBuilder) SetID(id string) error {
 	return nil
 }
 
-func (vcb *VerifiableCredentialBuilder) AddType(t interface{}) error {
+func (vcb *VerifiableCredentialBuilder) AddType(t any) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -102,7 +102,7 @@ func (vcb *VerifiableCredentialBuilder) AddType(t interface{}) error {
 	return nil
 }
 
-func (vcb *VerifiableCredentialBuilder) SetIssuer(issuer interface{}) error {
+func (vcb *VerifiableCredentialBuilder) SetIssuer(issuer any) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -160,14 +160,14 @@ func (vcb *VerifiableCredentialBuilder) SetExpirationDate(dateTime string) error
 	return nil
 }
 
-func (vcb *VerifiableCredentialBuilder) SetCredentialStatus(status interface{}) error {
+func (vcb *VerifiableCredentialBuilder) SetCredentialStatus(status any) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
 
 	statusMap, err := util.ToJSONMap(status)
 	if err != nil {
-		return errors.Wrap(err, "status value not of required type map[string]interface{}")
+		return errors.Wrap(err, "status value not of required type map[string]any")
 	}
 
 	// check required properties
@@ -233,7 +233,7 @@ func (vcb *VerifiableCredentialBuilder) SetTermsOfUse(terms []TermsOfUse) error 
 	return nil
 }
 
-func (vcb *VerifiableCredentialBuilder) SetEvidence(evidence []interface{}) error {
+func (vcb *VerifiableCredentialBuilder) SetEvidence(evidence []any) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -247,7 +247,7 @@ func (vcb *VerifiableCredentialBuilder) SetEvidence(evidence []interface{}) erro
 
 // VerifiablePresentationBuilder uses the builder pattern to construct a verifiable presentation
 type VerifiablePresentationBuilder struct {
-	// contexts and types are kept to avoid having cast to/from interface{} values
+	// contexts and types are kept to avoid having cast to/from any values
 	contexts []string
 	types    []string
 	*VerifiablePresentation
@@ -289,7 +289,7 @@ func (vpb *VerifiablePresentationBuilder) IsEmpty() bool {
 	return reflect.DeepEqual(vpb, &VerifiablePresentationBuilder{})
 }
 
-func (vpb *VerifiablePresentationBuilder) AddContext(context interface{}) error {
+func (vpb *VerifiablePresentationBuilder) AddContext(context any) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -321,7 +321,7 @@ func (vpb *VerifiablePresentationBuilder) SetHolder(holder string) error {
 	return nil
 }
 
-func (vpb *VerifiablePresentationBuilder) AddType(t interface{}) error {
+func (vpb *VerifiablePresentationBuilder) AddType(t any) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -335,7 +335,7 @@ func (vpb *VerifiablePresentationBuilder) AddType(t interface{}) error {
 	return nil
 }
 
-func (vpb *VerifiablePresentationBuilder) SetPresentationSubmission(ps interface{}) error {
+func (vpb *VerifiablePresentationBuilder) SetPresentationSubmission(ps any) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -346,7 +346,7 @@ func (vpb *VerifiablePresentationBuilder) SetPresentationSubmission(ps interface
 
 // AddVerifiableCredentials appends the given credentials to the verifiable presentation.
 // It does not check for duplicates.
-func (vpb *VerifiablePresentationBuilder) AddVerifiableCredentials(creds ...interface{}) error {
+func (vpb *VerifiablePresentationBuilder) AddVerifiableCredentials(creds ...any) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}

@@ -240,7 +240,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 					},
 				},
 			},
-			VerifiableCredential: []interface{}{
+			VerifiableCredential: []any{
 				getTestVerifiableCredential(),
 			},
 		}
@@ -286,7 +286,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 
 		vpBuilder := credential.NewVerifiablePresentationBuilder()
 		assert.NoError(t, vpBuilder.SetPresentationSubmission(ps))
-		assert.NoError(t, vpBuilder.AddVerifiableCredentials([]interface{}{string(vcData)}...))
+		assert.NoError(t, vpBuilder.AddVerifiableCredentials([]any{string(vcData)}...))
 		vp2, err := vpBuilder.Build()
 		assert.NoError(t, err)
 		vp := *vp2

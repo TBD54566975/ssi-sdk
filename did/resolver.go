@@ -8,7 +8,7 @@ import (
 )
 
 // ResolutionOptions https://www.w3.org/TR/did-spec-registries/#did-resolution-options
-type ResolutionOptions interface{}
+type ResolutionOptions any
 
 // Resolution provides an interface for resolving DIDs as per the spec https://www.w3.org/TR/did-core/#did-resolution
 type Resolution interface {

@@ -40,7 +40,7 @@ type CryptoSuiteInfo interface {
 // It encapsulates the functionality defined by the data integrity proof type specification
 // https://w3c-ccg.github.io/data-integrity-spec/#creating-new-proof-types
 type CryptoSuiteProofType interface {
-	Marshal(data interface{}) ([]byte, error)
+	Marshal(data any) ([]byte, error)
 	Canonicalize(marshaled []byte) (*string, error)
 	// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
 	CreateVerifyHash(provable Provable, proof crypto.Proof, proofOptions *ProofOptions) ([]byte, error)
@@ -73,7 +73,7 @@ type Verifier interface {
 
 type ProofOptions struct {
 	// JSON-LD contexts to add to the proof
-	Contexts []interface{}
+	Contexts []any
 
 	// Indexes of the credential subject to require be revealed in BBS+ signatures
 	RevealIndexes []int
@@ -81,12 +81,12 @@ type ProofOptions struct {
 
 // GetContextsFromProvable searches from a Linked Data `@context` property in the document and returns the value
 // associated with the context, if it exists.
-func GetContextsFromProvable(p Provable) ([]interface{}, error) {
+func GetContextsFromProvable(p Provable) ([]any, error) {
 	provableBytes, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
 	}
-	var genericProvable map[string]interface{}
+	var genericProvable map[string]any
 	if err = json.Unmarshal(provableBytes, &genericProvable); err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func GetContextsFromProvable(p Provable) ([]interface{}, error) {
 }
 
 // attempt to verify that string context(s) exist in the context interface
-func ensureRequiredContexts(context []interface{}, requiredContexts []string) []interface{} {
+func ensureRequiredContexts(context []any, requiredContexts []string) []any {
 	required := make(map[string]bool)
 	for _, v := range requiredContexts {
 		required[v] = true

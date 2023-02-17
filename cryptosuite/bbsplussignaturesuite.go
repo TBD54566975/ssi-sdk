@@ -97,7 +97,7 @@ func (b BBSPlusSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptio
 		return nil, err
 	}
 
-	var genericProof map[string]interface{}
+	var genericProof map[string]any
 	if err = json.Unmarshal(proofBytes, &genericProof); err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (b BBSPlusSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptio
 		genericProof["created"] = GetRFC3339Timestamp()
 	}
 
-	var contexts []interface{}
+	var contexts []any
 	if opts != nil {
 		contexts = opts.Contexts
 	} else {
@@ -167,7 +167,7 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 
 // CryptoSuiteProofType interface
 
-func (BBSPlusSignatureSuite) Marshal(data interface{}) ([]byte, error) {
+func (BBSPlusSignatureSuite) Marshal(data any) ([]byte, error) {
 	// JSONify the provable object
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
@@ -178,7 +178,7 @@ func (BBSPlusSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 
 func (BBSPlusSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	// the LD library anticipates a generic golang json object to normalize
-	var generic map[string]interface{}
+	var generic map[string]any
 	if err := json.Unmarshal(marshaled, &generic); err != nil {
 		return nil, err
 	}
@@ -277,7 +277,7 @@ func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, e
 	if err != nil {
 		return nil, err
 	}
-	var generic map[string]interface{}
+	var generic map[string]any
 	if err = json.Unmarshal(proofBytes, &generic); err != nil {
 		return nil, err
 	}

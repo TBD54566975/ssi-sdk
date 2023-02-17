@@ -111,7 +111,7 @@ func jwkVerifierFromKey(kid string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgorit
 	return jwtSignerVerifier(kid, key)
 }
 
-func jwtSignerVerifier(kid string, key interface{}) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+func jwtSignerVerifier(kid string, key any) (jwk.Key, *jwa.SignatureAlgorithm, error) {
 	jwkBytes, err := json.Marshal(key)
 	if err != nil {
 		return nil, nil, err
@@ -147,7 +147,7 @@ func (s *JWTSigner) GetSigningAlgorithm() string {
 }
 
 // SignJWT takes a set of JWT keys and values to add to a JWT before singing them with the key defined in the signer
-func (s *JWTSigner) SignJWT(kvs map[string]interface{}) ([]byte, error) {
+func (s *JWTSigner) SignJWT(kvs map[string]any) ([]byte, error) {
 	t := jwt.New()
 
 	// set known default values, which can be overridden by the kvs

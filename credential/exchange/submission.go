@@ -57,7 +57,7 @@ func (pc *PresentationClaim) IsEmpty() bool {
 
 // GetClaimValue returns the value of the claim, since PresentationClaim is a union type. An error is returned if
 // no value is present in any of the possible embedded types.
-func (pc *PresentationClaim) GetClaimValue() (interface{}, error) {
+func (pc *PresentationClaim) GetClaimValue() (any, error) {
 	if pc.Credential != nil {
 		return *pc.Credential, nil
 	}
@@ -95,13 +95,13 @@ func (pc *PresentationClaim) GetClaimFormat() (string, error) {
 	return "", errors.New("claim is empty")
 }
 
-// GetClaimJSON gets the claim value and attempts to turn it into a generic go-JSON object represented by an interface{}
-func (pc *PresentationClaim) GetClaimJSON() (map[string]interface{}, error) {
+// GetClaimJSON gets the claim value and attempts to turn it into a generic go-JSON object represented by an any
+func (pc *PresentationClaim) GetClaimJSON() (map[string]any, error) {
 	claimValue, err := pc.GetClaimValue()
 	if err != nil {
 		return nil, err
 	}
-	jsonClaim := make(map[string]interface{})
+	jsonClaim := make(map[string]any)
 
 	// need to handle the case where we already have a string, since we won't need to marshal it
 	var claimBytes []byte
@@ -151,7 +151,7 @@ type NormalizedClaim struct {
 	// id for the claim
 	ID string
 	// go-json representation of the claim
-	Data map[string]interface{}
+	Data map[string]any
 	// JWT_VC, JWT_VP, LDP_VC, LDP_VP, etc.
 	Format string
 	// Signing algorithm used for the claim (e.g. EdDSA, ES256, PS256, etc.).
@@ -159,7 +159,7 @@ type NormalizedClaim struct {
 	AlgOrProofType string
 }
 
-// normalizePresentationClaims takes a set of Presentation Claims and turns them into map[string]interface{} as
+// normalizePresentationClaims takes a set of Presentation Claims and turns them into map[string]any as
 // go-JSON representations. The claim format and signature algorithm type are noted as well.
 // This method is greedy, meaning it returns the set of claims it was able to normalize.
 func normalizePresentationClaims(claims []PresentationClaim) ([]NormalizedClaim, error) {
@@ -196,7 +196,7 @@ func normalizePresentationClaims(claims []PresentationClaim) ([]NormalizedClaim,
 // processedClaim represents a claim that has been processed for an input descriptor along with relevant
 // information for building a valid descriptor_map in the resulting presentation submission
 type processedClaim struct {
-	claim map[string]interface{}
+	claim map[string]any
 	SubmissionDescriptor
 }
 
@@ -236,7 +236,7 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []Normaliz
 
 		// check if claim already exists. if it has, we won't duplicate the claim
 		var currIndex int
-		var claim map[string]interface{}
+		var claim map[string]any
 		claimID := processedID.ClaimID
 		if seen, ok := seenClaims[claimID]; ok {
 			currIndex = seen
@@ -285,7 +285,7 @@ type processedInputDescriptor struct {
 	// ID of the claim
 	ClaimID string
 	// generic claim
-	Claim map[string]interface{}
+	Claim map[string]any
 	// claim format
 	Format string
 }
@@ -293,7 +293,7 @@ type processedInputDescriptor struct {
 // limitedInputDescriptor is the claim data after being filtered/limited via JSON path
 type limitedInputDescriptor struct {
 	Path string
-	Data interface{}
+	Data any
 }
 
 // processInputDescriptor runs the input evaluation algorithm described in the spec for a specific input descriptor
@@ -387,8 +387,8 @@ func filterClaimsByFormat(claims []NormalizedClaim, format *ClaimFormat) []Norma
 }
 
 // constructLimitedClaim builds a limited disclosure/filtered claim from a set of filtered input descriptors
-func constructLimitedClaim(limitedDescriptors []limitedInputDescriptor) map[string]interface{} {
-	result := make(map[string]interface{})
+func constructLimitedClaim(limitedDescriptors []limitedInputDescriptor) map[string]any {
+	result := make(map[string]any)
 	for _, ld := range limitedDescriptors {
 		curr := result
 
@@ -407,12 +407,12 @@ func constructLimitedClaim(limitedDescriptors []limitedInputDescriptor) map[stri
 
 			// if the path is not contained in the resulting JSON, create it
 			if _, ok := curr[normalizedPart]; !ok {
-				curr[normalizedPart] = make(map[string]interface{})
+				curr[normalizedPart] = make(map[string]any)
 			}
 
 			// make sure the value is represented in curr
 			currVal, _ := curr[normalizedPart]
-			curr = currVal.(map[string]interface{})
+			curr = currVal.(map[string]any)
 		}
 
 		// since we've gone to one short of the end, we need to repeat the process for the last element in the path
@@ -437,7 +437,7 @@ func normalizeJSONPath(path string) string {
 // processInputDescriptorField applies all possible path values to a claim, and checks to see if any match.
 // if a path matches fulfilled will be set to true and no processed value will be returned. if limitDisclosure is
 // set to true, the processed value will be returned as well.
-func processInputDescriptorField(field Field, claimData map[string]interface{}) (*limitedInputDescriptor, bool) {
+func processInputDescriptorField(field Field, claimData map[string]any) (*limitedInputDescriptor, bool) {
 	for _, path := range field.Path {
 		pathedData, err := jsonpath.JsonPathLookup(claimData, path)
 		if err == nil {
