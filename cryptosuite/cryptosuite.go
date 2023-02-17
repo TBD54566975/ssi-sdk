@@ -56,7 +56,6 @@ type Signer interface {
 	Sign(tbs []byte) ([]byte, error)
 
 	GetKeyID() string
-	GetKeyType() string
 	GetSignatureType() SignatureType
 	GetSigningAlgorithm() string
 
@@ -69,9 +68,7 @@ type Signer interface {
 
 type Verifier interface {
 	Verify(message, signature []byte) error
-
 	GetKeyID() string
-	GetKeyType() string
 }
 
 type ProofOptions struct {
@@ -90,7 +87,7 @@ func GetContextsFromProvable(p Provable) ([]interface{}, error) {
 		return nil, err
 	}
 	var genericProvable map[string]interface{}
-	if err := json.Unmarshal(provableBytes, &genericProvable); err != nil {
+	if err = json.Unmarshal(provableBytes, &genericProvable); err != nil {
 		return nil, err
 	}
 	contexts, ok := genericProvable["@context"]

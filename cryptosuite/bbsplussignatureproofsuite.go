@@ -16,7 +16,7 @@ type BBSPlusSignatureProofSuite struct {
 }
 
 func GetBBSPlusSignatureProofSuite() CryptoSuite {
-	return &BBSPlusSignatureProofSuite{}
+	return new(BBSPlusSignatureProofSuite)
 }
 
 // CryptoSuiteInfo interface
@@ -42,7 +42,7 @@ func (BBSPlusSignatureProofSuite) SignatureAlgorithm() SignatureType {
 }
 
 func (BBSPlusSignatureProofSuite) RequiredContexts() []string {
-	return []string{BBSPlusSignature2020Context}
+	return []string{BBSSecurityContext}
 }
 
 func (b BBSPlusSignatureProofSuite) Sign(s Signer, p Provable) error {

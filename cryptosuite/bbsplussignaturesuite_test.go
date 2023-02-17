@@ -3,11 +3,10 @@ package cryptosuite
 import (
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCVH(t *testing.T) {
+func TestBBSPlusSignatureSuite(t *testing.T) {
 	suite := GetBBSPlusSignatureSuite()
 	testCred := TestCredential{
 		Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
@@ -20,13 +19,24 @@ func TestCVH(t *testing.T) {
 		},
 	}
 
-	_, priv, err := crypto.GenerateBBSKeyPair()
+	key, err := GenerateBLSKey2020()
 	assert.NoError(t, err)
+	assert.NotEmpty(t, key)
 
-	signer, err := NewBBSPlusSigner("test-key-1", priv, Authentication)
+	privKey, err := key.GetPrivateKey()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, privKey)
+
+	signer, err := NewBBSPlusSigner("test-key-1", privKey, Authentication)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, signer)
 
 	err = suite.Sign(signer, &testCred)
+	assert.NoError(t, err)
+
+	verifier, err := signer.ToVerifier()
+	assert.NoError(t, err)
+
+	err = suite.Verify(verifier, &testCred)
 	assert.NoError(t, err)
 }

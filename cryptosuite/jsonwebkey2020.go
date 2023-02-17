@@ -195,10 +195,6 @@ func (s *JSONWebKeySigner) GetKeyID() string {
 	return s.Key.KeyID()
 }
 
-func (s *JSONWebKeySigner) GetKeyType() string {
-	return string(s.Key.KeyType())
-}
-
 func (*JSONWebKeySigner) GetSignatureType() SignatureType {
 	return JSONWebSignature2020
 }
@@ -252,10 +248,6 @@ func (v JSONWebKeyVerifier) GetKeyID() string {
 	return v.Key.KeyID()
 }
 
-func (v JSONWebKeyVerifier) GetKeyType() string {
-	return string(v.Key.KeyType())
-}
-
 func NewJSONWebKeyVerifier(kid string, key crypto.PublicKeyJWK) (*JSONWebKeyVerifier, error) {
 	verifier, err := crypto.NewJWTVerifierFromJWK(kid, key)
 	if err != nil {
@@ -278,7 +270,7 @@ func PubKeyBytesToTypedKey(keyBytes []byte, kt LDKeyType) (gocrypto.PublicKey, e
 		convertedKeyType = crypto.Ed25519
 	case crypto.X25519.String(), X25519KeyAgreementKey2019.String(), X25519KeyAgreementKey2020.String():
 		convertedKeyType = crypto.X25519
-	case crypto.SECP256k1.String(), EcdsaSecp256k1VerificationKey2019.String():
+	case crypto.SECP256k1.String(), ECDSASECP256k1VerificationKey2019.String():
 		convertedKeyType = crypto.SECP256k1
 	default:
 		return nil, fmt.Errorf("unsupported key type: %s", kt)

@@ -2,6 +2,7 @@ package cryptosuite
 
 import (
 	gocrypto "crypto"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -11,10 +12,10 @@ import (
 )
 
 const (
-	BBSPlusSignature2020Context                    string        = "https://w3id.org/security/v2"
+	BBSSecurityContext                             string        = "https://w3id.org/security/bbs/v1"
 	BBSPlusSignature2020                           SignatureType = "BbsBlsSignature2020"
 	BBSPlusSignatureSuiteID                        string        = "https://w3c-ccg.github.io/ldp-bbs2020/#the-bbs-signature-suite-2020"
-	BBSPlusSignatureSuiteType                      LDKeyType     = BLS12381G1Key2020
+	BBSPlusSignatureSuiteType                      LDKeyType     = BLS12381G2Key2020
 	BBSPlusSignatureSuiteCanonicalizationAlgorithm string        = "https://w3id.org/security#URDNA2015"
 	// BBSPlusSignatureSuiteDigestAlgorithm uses https://www.rfc-editor.org/rfc/rfc4634
 	BBSPlusSignatureSuiteDigestAlgorithm gocrypto.Hash = gocrypto.BLAKE2b_384
@@ -27,7 +28,7 @@ type BBSPlusSignatureSuite struct {
 }
 
 func GetBBSPlusSignatureSuite() CryptoSuite {
-	return &BBSPlusSignatureSuite{}
+	return new(BBSPlusSignatureSuite)
 }
 
 // CryptoSuiteInfo interface
@@ -53,7 +54,7 @@ func (BBSPlusSignatureSuite) SignatureAlgorithm() SignatureType {
 }
 
 func (BBSPlusSignatureSuite) RequiredContexts() []string {
-	return []string{BBSPlusSignature2020Context}
+	return []string{BBSSecurityContext}
 }
 
 func (b BBSPlusSignatureSuite) Sign(s Signer, p Provable) error {
@@ -84,7 +85,7 @@ func (b BBSPlusSignatureSuite) Sign(s Signer, p Provable) error {
 	}
 
 	// set the signature on the proof object and return
-	proof.SetProofValue(string(proofValue))
+	proof.SetProofValue(base64.RawStdEncoding.EncodeToString(proofValue))
 	genericProof := crypto.Proof(proof)
 	p.SetProof(&genericProof)
 	return nil
@@ -136,7 +137,10 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 	defer p.SetProof(proof)
 
 	// remove the proof value in the proof before verification
-	jwsCopy := []byte(gotProof.ProofValue)
+	proofCopy, err := base64.RawStdEncoding.DecodeString(gotProof.ProofValue)
+	if err != nil {
+		return errors.Wrap(err, "could not decode proof value")
+	}
 	gotProof.SetProofValue("")
 
 	// prepare proof options
@@ -155,7 +159,7 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 		return errors.Wrap(err, "create verify hash algorithm failed")
 	}
 
-	if err = v.Verify(tbv, jwsCopy); err != nil {
+	if err = v.Verify(tbv, proofCopy); err != nil {
 		return errors.Wrap(err, "could not verify BBS+ signature")
 	}
 	return nil

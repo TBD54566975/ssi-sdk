@@ -89,7 +89,7 @@ func TestKeyTypeToLDKeyType(t *testing.T) {
 
 	kt, err = KeyTypeToLDKeyType(crypto.SECP256k1)
 	assert.NoError(t, err)
-	assert.Equal(t, kt, cryptosuite.EcdsaSecp256k1VerificationKey2019)
+	assert.Equal(t, kt, cryptosuite.ECDSASECP256k1VerificationKey2019)
 
 	kt, err = KeyTypeToLDKeyType(crypto.Ed25519)
 	assert.NoError(t, err)

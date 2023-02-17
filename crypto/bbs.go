@@ -4,25 +4,25 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 
-	bbs "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
+	bbsg2 "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
 )
 
 // GenerateBBSKeyPair https://w3c-ccg.github.io/ldp-bbs2020
-func GenerateBBSKeyPair() (*bbs.PublicKey, *bbs.PrivateKey, error) {
+func GenerateBBSKeyPair() (*bbsg2.PublicKey, *bbsg2.PrivateKey, error) {
 	seed := make([]byte, 32)
 	if _, err := rand.Read(seed); err != nil {
 		return nil, nil, err
 	}
-	return bbs.GenerateKeyPair(sha256.New, seed)
+	return bbsg2.GenerateKeyPair(sha256.New, seed)
 }
 
 type BBSPlusSigner struct {
 	kid string
-	*bbs.PrivateKey
-	*bbs.PublicKey
+	*bbsg2.PrivateKey
+	*bbsg2.PublicKey
 }
 
-func NewBBSPlusSigner(kid string, privKey *bbs.PrivateKey) (*BBSPlusSigner, error) {
+func NewBBSPlusSigner(kid string, privKey *bbsg2.PrivateKey) (*BBSPlusSigner, error) {
 	return &BBSPlusSigner{
 		kid:        kid,
 		PrivateKey: privKey,
@@ -30,17 +30,17 @@ func NewBBSPlusSigner(kid string, privKey *bbs.PrivateKey) (*BBSPlusSigner, erro
 	}, nil
 }
 
-func (s *BBSPlusSigner) GetKID() string {
+func (s *BBSPlusSigner) GetKeyID() string {
 	return s.kid
 }
 
 func (s *BBSPlusSigner) Sign(messages ...[]byte) ([]byte, error) {
-	bls := bbs.New()
+	bls := bbsg2.New()
 	return bls.SignWithKey(messages, s.PrivateKey)
 }
 
 func (s *BBSPlusSigner) Verify(signature []byte, messages ...[]byte) error {
-	bls := bbs.New()
+	bls := bbsg2.New()
 	pubKeyBytes, err := s.PublicKey.Marshal()
 	if err != nil {
 		return err
@@ -54,10 +54,10 @@ func (s *BBSPlusSigner) ToVerifier() (*BBSPlusVerifier, error) {
 
 type BBSPlusVerifier struct {
 	kid string
-	*bbs.PublicKey
+	*bbsg2.PublicKey
 }
 
-func NewBBSPlusVerifier(kid string, pubKey *bbs.PublicKey) (*BBSPlusVerifier, error) {
+func NewBBSPlusVerifier(kid string, pubKey *bbsg2.PublicKey) (*BBSPlusVerifier, error) {
 	return &BBSPlusVerifier{
 		kid:       kid,
 		PublicKey: pubKey,
@@ -68,8 +68,17 @@ func (s *BBSPlusVerifier) GetKeyID() string {
 	return s.kid
 }
 
-func (s *BBSPlusVerifier) Verify(signature []byte, messages ...[]byte) error {
-	bls := bbs.New()
+func (s *BBSPlusVerifier) Verify(signature []byte, message []byte) error {
+	bls := bbsg2.New()
+	pubKeyBytes, err := s.PublicKey.Marshal()
+	if err != nil {
+		return err
+	}
+	return bls.Verify([][]byte{message}, signature, pubKeyBytes)
+}
+
+func (s *BBSPlusVerifier) VerifyMultiple(signature []byte, messages ...[]byte) error {
+	bls := bbsg2.New()
 	pubKeyBytes, err := s.PublicKey.Marshal()
 	if err != nil {
 		return err
@@ -79,13 +88,13 @@ func (s *BBSPlusVerifier) Verify(signature []byte, messages ...[]byte) error {
 
 // Utility methods to be used without a signer
 
-func SignBBSMessage(privKey *bbs.PrivateKey, messages ...[]byte) ([]byte, error) {
-	bls := bbs.New()
+func SignBBSMessage(privKey *bbsg2.PrivateKey, messages ...[]byte) ([]byte, error) {
+	bls := bbsg2.New()
 	return bls.SignWithKey(messages, privKey)
 }
 
-func VerifyBBSMessage(pubKey *bbs.PublicKey, signature []byte, messages ...[]byte) error {
-	bls := bbs.New()
+func VerifyBBSMessage(pubKey *bbsg2.PublicKey, signature []byte, messages ...[]byte) error {
+	bls := bbsg2.New()
 	pubKeyBytes, err := pubKey.Marshal()
 	if err != nil {
 		return err

@@ -33,7 +33,7 @@ type JWSSignatureSuite struct {
 }
 
 func GetJSONWebSignature2020Suite() CryptoSuite {
-	return &JWSSignatureSuite{}
+	return new(JWSSignatureSuite)
 }
 
 // CryptoSuiteInfo interface
