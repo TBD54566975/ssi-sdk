@@ -77,6 +77,9 @@ type Verifier interface {
 type ProofOptions struct {
 	// JSON-LD contexts to add to the proof
 	Contexts []interface{}
+
+	// Indexes of the credential subject to require be revealed in BBS+ signatures
+	RevealIndexes []int
 }
 
 // GetContextsFromProvable searches from a Linked Data `@context` property in the document and returns the value

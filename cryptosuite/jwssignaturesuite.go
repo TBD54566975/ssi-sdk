@@ -97,7 +97,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 
 func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	proof := p.GetProof()
-	gotProof, err := FromGenericProof(*proof)
+	gotProof, err := JSONWebSignatureProofFromGenericProof(*proof)
 	if err != nil {
 		return errors.Wrap(err, "could not prepare proof for verification; error coercing proof into JsonWebSignature2020 proof")
 	}
@@ -258,7 +258,7 @@ type JSONWebSignature2020Proof struct {
 	VerificationMethod string        `json:"verificationMethod,omitempty"`
 }
 
-func FromGenericProof(p crypto.Proof) (*JSONWebSignature2020Proof, error) {
+func JSONWebSignatureProofFromGenericProof(p crypto.Proof) (*JSONWebSignature2020Proof, error) {
 	proofBytes, err := json.Marshal(p)
 	if err != nil {
 		return nil, err

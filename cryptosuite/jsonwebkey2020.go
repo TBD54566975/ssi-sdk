@@ -243,16 +243,16 @@ type JSONWebKeyVerifier struct {
 
 // Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
 // and an error should it fail.
-func (v *JSONWebKeyVerifier) Verify(message, signature []byte) error {
+func (v JSONWebKeyVerifier) Verify(message, signature []byte) error {
 	_, err := jws.Verify(signature, jwa.SignatureAlgorithm(v.Algorithm()), v.Key, jws.WithDetachedPayload(message))
 	return err
 }
 
-func (v *JSONWebKeyVerifier) GetKeyID() string {
+func (v JSONWebKeyVerifier) GetKeyID() string {
 	return v.Key.KeyID()
 }
 
-func (v *JSONWebKeyVerifier) GetKeyType() string {
+func (v JSONWebKeyVerifier) GetKeyType() string {
 	return string(v.Key.KeyType())
 }
 
