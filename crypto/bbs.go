@@ -39,6 +39,15 @@ func (s *BBSPlusSigner) Sign(messages ...[]byte) ([]byte, error) {
 	return bls.SignWithKey(messages, s.PrivateKey)
 }
 
+func (s *BBSPlusSigner) DeriveProof(messages [][]byte, sigBytes, nonce []byte, revealedIndexes []int) ([]byte, error) {
+	bls := bbsg2.New()
+	pubKeyBytes, err := s.PublicKey.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	return bls.DeriveProof(messages, sigBytes, nonce, pubKeyBytes, revealedIndexes)
+}
+
 func (s *BBSPlusSigner) Verify(message []byte, signature []byte) error {
 	bls := bbsg2.New()
 	pubKeyBytes, err := s.PublicKey.Marshal()

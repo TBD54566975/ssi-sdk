@@ -78,6 +78,10 @@ func (b *BBSPlusSigner) Sign(tbs []byte) ([]byte, error) {
 	return b.BBSPlusSigner.Sign(tbs)
 }
 
+func (b *BBSPlusSigner) DeriveProof(messages [][]byte, sigBytes, nonce []byte, revealedIndexes []int) ([]byte, error) {
+	return b.BBSPlusSigner.DeriveProof(messages, sigBytes, nonce, revealedIndexes)
+}
+
 func (b *BBSPlusSigner) GetKeyID() string {
 	return b.BBSPlusSigner.GetKeyID()
 }

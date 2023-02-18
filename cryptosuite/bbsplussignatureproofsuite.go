@@ -3,12 +3,11 @@ package cryptosuite
 import (
 	gocrypto "crypto"
 	"encoding/base64"
-	"fmt"
 	"strings"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
 	. "github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -20,7 +19,7 @@ type BBSPlusSignatureProofSuite struct {
 	CryptoSuiteProofType
 }
 
-func GetBBSPlusSignatureProofSuite() CryptoSuite {
+func GetBBSPlusSignatureProofSuite() *BBSPlusSignatureProofSuite {
 	return new(BBSPlusSignatureProofSuite)
 }
 
@@ -50,31 +49,95 @@ func (BBSPlusSignatureProofSuite) RequiredContexts() []string {
 	return []string{BBSSecurityContext}
 }
 
-// SelectivelyDisclose takes in a credential and  a map of fields to disclose
-func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(p Provable, toDisclose map[string]any) (map[string]any, error) {
+// SelectivelyDisclose takes in a credential and  a map of fields to disclose as an LD frame
+func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(s BBSPlusSigner, p Provable, toDiscloseFrame map[string]any) (*BBSPlusSignature2020Proof, error) {
 	// remove the proof from the document
 	proofCopy := p.GetProof()
 	p.SetProof(nil)
 
-	bbsCVHBytes, err := b.CreateVerifyHash(p, nil, nil)
+	deriveProofResult, err := b.CreateDeriveProof(p, toDiscloseFrame)
 	if err != nil {
 		return nil, err
 	}
-	var cvh bbsCVH
-	if err = json.Unmarshal(bbsCVHBytes, &cvh); err != nil {
+
+	bbsPlusProof, err := BBSPlusProofFromGenericProof(proofCopy)
+	if err != nil {
 		return nil, err
 	}
 
+	// prepare the statements and indicies to be revealed
+	statements, revealIndicies, err := b.prepareRevealData(*deriveProofResult, *bbsPlusProof)
+	if err != nil {
+		return nil, err
+	}
+
+	// pull of signature from original provable
+	signatureBytes, err := base64.RawStdEncoding.DecodeString(bbsPlusProof.ProofValue)
+	if err != nil {
+		return nil, err
+	}
+
+	// generate a nonce
+	nonce := []byte(uuid.New().String())
+
+	// derive the proof
+	derivedProofValue, err := s.DeriveProof(statements, signatureBytes, nonce, revealIndicies)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BBSPlusSignature2020Proof{
+		Type:               BBSPlusSignatureProof2020,
+		Created:            bbsPlusProof.Created,
+		VerificationMethod: bbsPlusProof.VerificationMethod,
+		ProofPurpose:       bbsPlusProof.ProofPurpose,
+		ProofValue:         base64.RawStdEncoding.EncodeToString(derivedProofValue),
+	}, nil
 }
 
-type CreateDeriveProofResult struct {
+func (b BBSPlusSignatureProofSuite) prepareRevealData(deriveProofResult DeriveProofResult, bbsPlusProof BBSPlusSignature2020Proof) (statementBytesArrays [][]byte, revealIndices []int, err error) {
+	// canonicalize proof after removing the proof value
+	bbsPlusProof.SetProofValue("")
+	marshaledProof, err := b.Marshal(bbsPlusProof)
+	if err != nil {
+		return
+	}
+	canonicalProof, err := b.Canonicalize(marshaledProof)
+	if err != nil {
+		return
+	}
+	canonicalProofStatements := canonicalizedLDToStatements(*canonicalProof)
+
+	// total # indicies to be revealed = total statements in the proof - original proof result + revealed indicies
+	revealIndices = make([]int, len(canonicalProofStatements)+len(deriveProofResult.RevealedIndicies))
+
+	// add the original proof result to the beginning of the reveal indicies
+	for i := range canonicalProofStatements {
+		revealIndices[i] = i
+	}
+
+	// add the other statements to the indicies
+	for i := range deriveProofResult.RevealedIndicies {
+		revealIndices[i+len(canonicalProofStatements)] = deriveProofResult.RevealedIndicies[i]
+	}
+
+	// turn all statements into bytes before signing
+	statements := append(canonicalProofStatements, deriveProofResult.InputProofDocumentStatements...)
+	statementBytesArrays = make([][]byte, len(statements))
+	for i := range statements {
+		statementBytesArrays[i] = []byte(statements[i])
+	}
+	return
+}
+
+type DeriveProofResult struct {
 	RevealedIndicies             []int
 	TotalStatements              int
 	InputProofDocumentStatements []string
 }
 
 // CreateDeriveProof https://w3c-ccg.github.io/ldp-bbs2020/#create-derive-proof-data-algorithm
-func (b BBSPlusSignatureSuite) CreateDeriveProof(inputProofDocument Provable, revealDocument map[string]any) (*CreateDeriveProofResult, error) {
+func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument Provable, revealDocument map[string]any) (*DeriveProofResult, error) {
 	// 1. Apply the canonicalization algorithm to the input proof document to obtain a set of statements represented
 	// as n-quads. Let this set be known as the input proof document statements.
 	marshaledInputProofDoc, err := b.Marshal(inputProofDocument)
@@ -131,77 +194,11 @@ func (b BBSPlusSignatureSuite) CreateDeriveProof(inputProofDocument Provable, re
 		revealedIndicies[i] = statementIndex
 	}
 
-	return &CreateDeriveProofResult{
+	return &DeriveProofResult{
 		RevealedIndicies:             revealedIndicies,
 		TotalStatements:              totalStatements,
 		InputProofDocumentStatements: statements,
 	}, nil
-}
-
-func (b BBSPlusSignatureProofSuite) Sign(s Signer, p Provable) error {
-	// create proof before CVH
-	// TODO(gabe) support required reveal values
-	proof := b.createProof(s.GetKeyID(), s.GetProofPurpose(), nil)
-
-	// prepare proof options
-	contexts, err := GetContextsFromProvable(p)
-	if err != nil {
-		return errors.Wrap(err, "could not get contexts from provable")
-	}
-
-	// make sure the suite's context(s) are included
-	contexts = ensureRequiredContexts(contexts, b.RequiredContexts())
-	opts := &ProofOptions{Contexts: contexts}
-
-	// 3. tbs value as a result of cvh
-	tbs, err := b.CreateVerifyHash(p, proof, opts)
-	if err != nil {
-		return errors.Wrap(err, "create verify hash algorithm failed")
-	}
-
-	// 4 & 5. create the signature over the provable data as a JWS
-	proofValue, err := s.Sign(tbs)
-	if err != nil {
-		return errors.Wrap(err, "could not sign provable value")
-	}
-
-	// set the signature on the proof object and return
-	proof.SetProofValue(base64.RawStdEncoding.EncodeToString(proofValue))
-	genericProof := crypto.Proof(proof)
-	p.SetProof(&genericProof)
-	return nil
-}
-
-func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) (*crypto.Proof, error) {
-	proofBytes, err := json.Marshal(proof)
-	if err != nil {
-		return nil, err
-	}
-
-	var genericProof map[string]any
-	if err = json.Unmarshal(proofBytes, &genericProof); err != nil {
-		return nil, err
-	}
-
-	// proof cannot have a proof value
-	delete(genericProof, "proofValue")
-
-	// make sure the proof has a timestamp
-	created, ok := genericProof["created"]
-	if !ok || created == "" {
-		genericProof["created"] = GetRFC3339Timestamp()
-	}
-
-	var contexts []any
-	if opts != nil {
-		contexts = opts.Contexts
-	} else {
-		// if none provided, make sure the proof has a context value for this suite
-		contexts = ArrayStrToInterface(b.RequiredContexts())
-	}
-	genericProof["@context"] = contexts
-	p := crypto.Proof(genericProof)
-	return &p, nil
 }
 
 func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
@@ -271,50 +268,6 @@ func (BBSPlusSignatureProofSuite) Canonicalize(marshaled []byte) (*string, error
 	return &canonicalString, nil
 }
 
-// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
-// augmented by https://w3c-ccg.github.io/ldp-bbs2020/#create-verify-data-algorithm
-func (b BBSPlusSignatureProofSuite) CreateVerifyHash(provable Provable, _ crypto.Proof, _ *ProofOptions) ([]byte, error) {
-	// marshal provable to prepare for canonicalizaiton
-	marshaledProvable, err := b.Marshal(provable)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal provable")
-	}
-
-	// 1.Canonicalize the input document using the canonicalization algorithm
-	// to a set of statements represented as n-quads.
-	canonicalProvable, err := b.Canonicalize(marshaledProvable)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not canonicalize provable")
-	}
-
-	// 2. Initialize an empty array of length equal to the number of statements,
-	// let this be known as the statement digests array.
-	statements := canonicalizedLDToStatements(*canonicalProvable)
-	statementDigestsArray := make([]string, len(statements))
-
-	// 3. For each statement in order:
-	// 3.1 Apply the statement digest algorithm to obtain a statement digest
-	// 3.2 Insert the statement digest into the statement digests array which
-	// MUST maintain same order as the order of the statements returned from the canonicalization algorithm.
-	for _, statement := range statements {
-		statementDigest, err := b.Digest([]byte(statement))
-		if err != nil {
-			return nil, errors.Wrap(err, "could not take digest of statement")
-		}
-		statementDigestsArray = append(statementDigestsArray, string(statementDigest))
-	}
-
-	bbsCVHBytes, err := json.Marshal(statementDigestsArray)
-	if err != nil {
-		return nil, err
-	}
-	return bbsCVHBytes, nil
-}
-
-type bbsCVH struct {
-	statementDigestsArray []string
-}
-
 func canonicalizedLDToStatements(canonicalized string) []string {
 	lines := strings.Split(canonicalized, "\n")
 	res := make([]string, 0, len(lines))
@@ -324,21 +277,4 @@ func canonicalizedLDToStatements(canonicalized string) []string {
 		}
 	}
 	return res
-}
-
-func (b BBSPlusSignatureProofSuite) Digest(tbd []byte) ([]byte, error) {
-	if b.MessageDigestAlgorithm() != gocrypto.BLAKE2b_384 {
-		return nil, fmt.Errorf("unexpected digest algorithm: %s", b.MessageDigestAlgorithm().String())
-	}
-	return gocrypto.BLAKE2b_384.New().Sum(tbd), nil
-}
-
-func (b BBSPlusSignatureProofSuite) createProof(verificationMethod string, purpose ProofPurpose, requiredRevealStatements []int) BBSPlusSignature2020Proof {
-	return BBSPlusSignature2020Proof{
-		Type:                     b.SignatureAlgorithm(),
-		Created:                  GetRFC3339Timestamp(),
-		VerificationMethod:       verificationMethod,
-		ProofPurpose:             purpose,
-		RequiredRevealStatements: requiredRevealStatements,
-	}
 }
