@@ -20,7 +20,6 @@ const (
 	// BBSPlusSignatureSuiteDigestAlgorithm uses https://www.rfc-editor.org/rfc/rfc4634
 	BBSPlusSignatureSuiteDigestAlgorithm gocrypto.Hash = gocrypto.BLAKE2b_384
 	// BBSPlusSignatureSuiteProofAlgorithm  uses https://www.rfc-editor.org/rfc/rfc7797
-	BBSPlusSignatureSuiteProofAlgorithm = BBSPlusSignature2020
 )
 
 type BBSPlusSignatureSuite struct {
@@ -50,7 +49,7 @@ func (BBSPlusSignatureSuite) MessageDigestAlgorithm() gocrypto.Hash {
 }
 
 func (BBSPlusSignatureSuite) SignatureAlgorithm() SignatureType {
-	return BBSPlusSignatureSuiteProofAlgorithm
+	return BBSPlusSignature2020
 }
 
 func (BBSPlusSignatureSuite) RequiredContexts() []string {

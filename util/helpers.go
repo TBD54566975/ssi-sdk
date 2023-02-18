@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
-
 	"github.com/piprate/json-gold/ld"
 
 	"github.com/go-playground/validator/v10"
@@ -71,6 +70,12 @@ func (l LDProcessor) GetContextFromMap(dataMap map[string]any) (*ld.Context, err
 func LDNormalize(document any) (any, error) {
 	processor := NewLDProcessor()
 	return processor.Normalize(document, processor.GetOptions())
+}
+
+func LDFrame(document any, frame any) (any, error) {
+	processor := NewLDProcessor()
+
+	return processor.Frame(document, frame, processor.GetOptions())
 }
 
 func GetRFC3339Timestamp() string {
