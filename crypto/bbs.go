@@ -39,7 +39,16 @@ func (s *BBSPlusSigner) Sign(messages ...[]byte) ([]byte, error) {
 	return bls.SignWithKey(messages, s.PrivateKey)
 }
 
-func (s *BBSPlusSigner) Verify(signature []byte, messages ...[]byte) error {
+func (s *BBSPlusSigner) Verify(message []byte, signature []byte) error {
+	bls := bbsg2.New()
+	pubKeyBytes, err := s.PublicKey.Marshal()
+	if err != nil {
+		return err
+	}
+	return bls.Verify([][]byte{message}, signature, pubKeyBytes)
+}
+
+func (s *BBSPlusSigner) VerifyMultiple(signature []byte, messages ...[]byte) error {
 	bls := bbsg2.New()
 	pubKeyBytes, err := s.PublicKey.Marshal()
 	if err != nil {
@@ -68,7 +77,7 @@ func (s *BBSPlusVerifier) GetKeyID() string {
 	return s.kid
 }
 
-func (s *BBSPlusVerifier) Verify(signature []byte, message []byte) error {
+func (s *BBSPlusVerifier) Verify(message []byte, signature []byte) error {
 	bls := bbsg2.New()
 	pubKeyBytes, err := s.PublicKey.Marshal()
 	if err != nil {

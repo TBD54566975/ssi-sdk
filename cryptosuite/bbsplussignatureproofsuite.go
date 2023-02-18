@@ -144,7 +144,7 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 		return errors.Wrap(err, "create verify hash algorithm failed")
 	}
 
-	if err = v.Verify(tbv, jwsCopy); err != nil {
+	if err = v.Verify(jwsCopy, tbv); err != nil {
 		return errors.Wrap(err, "could not verify BBS+ signature")
 	}
 	return nil
