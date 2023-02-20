@@ -136,7 +136,7 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 	defer p.SetProof(proof)
 
 	// remove the proof value in the proof before verification
-	proofCopy, err := base64.RawStdEncoding.DecodeString(gotProof.ProofValue)
+	proofCopy, err := decodeProofValue(gotProof.ProofValue)
 	if err != nil {
 		return errors.Wrap(err, "could not decode proof value")
 	}
@@ -162,6 +162,19 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 		return errors.Wrap(err, "could not verify BBS+ signature")
 	}
 	return nil
+}
+
+// decodeProofValue because the proof could have been encoded in a variety of manners we must try them all
+func decodeProofValue(proofValue string) ([]byte, error) {
+	signatureBytes, err := base64.RawStdEncoding.DecodeString(proofValue)
+	if err == nil {
+		return signatureBytes, nil
+	}
+	signatureBytes, err = base64.StdEncoding.DecodeString(proofValue)
+	if err == nil {
+		return signatureBytes, nil
+	}
+	return nil, errors.New("unknown encoding of proof value")
 }
 
 // CryptoSuiteProofType interface

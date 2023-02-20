@@ -72,7 +72,7 @@ func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(s BBSPlusSigner, p Prova
 	}
 
 	// pull of signature from original provable
-	signatureBytes, err := base64.RawStdEncoding.DecodeString(bbsPlusProof.ProofValue)
+	signatureBytes, err := decodeProofValue(bbsPlusProof.ProofValue)
 	if err != nil {
 		return nil, err
 	}
@@ -100,11 +100,11 @@ func (b BBSPlusSignatureProofSuite) prepareRevealData(deriveProofResult DerivePr
 	bbsPlusProof.SetProofValue("")
 	marshaledProof, err := b.Marshal(bbsPlusProof)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 	canonicalProof, err := b.Canonicalize(marshaledProof)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 	canonicalProofStatements := canonicalizedLDToStatements(*canonicalProof)
 
@@ -127,7 +127,7 @@ func (b BBSPlusSignatureProofSuite) prepareRevealData(deriveProofResult DerivePr
 	for i := range statements {
 		statementBytesArrays[i] = []byte(statements[i])
 	}
-	return
+	return statementBytesArrays, revealIndices, nil
 }
 
 type DeriveProofResult struct {
@@ -215,7 +215,7 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 	defer p.SetProof(proof)
 
 	// remove the proof value in the proof before verification
-	proofCopy, err := base64.RawStdEncoding.DecodeString(gotProof.ProofValue)
+	proofCopy, err := decodeProofValue(gotProof.ProofValue)
 	if err != nil {
 		return errors.Wrap(err, "could not decode proof value")
 	}

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
+	"github.com/hyperledger/aries-framework-go/pkg/doc/signature/jsonld"
 	"github.com/piprate/json-gold/ld"
 
 	"github.com/go-playground/validator/v10"
@@ -73,9 +74,26 @@ func LDNormalize(document any) (any, error) {
 }
 
 func LDFrame(document any, frame any) (any, error) {
-	processor := NewLDProcessor()
+	docAny := document
+	var err error
+	if _, ok := document.(map[string]interface{}); !ok {
+		docAny, err = AnyToJSONInterface(document)
+		if err != nil {
+			return nil, err
+		}
+	}
 
-	return processor.Frame(document, frame, processor.GetOptions())
+	frameAny := frame
+	if _, ok := frame.(map[string]interface{}); !ok {
+		frameAny, err = AnyToJSONInterface(frame)
+		if err != nil {
+			return nil, err
+		}
+	}
+	docLoader := ld.NewRFC7324CachingDocumentLoader(nil)
+	// use the aries processor for special framing logic necessary for blank nodes
+	return jsonld.Default().Frame(docAny.(map[string]interface{}),
+		frameAny.(map[string]interface{}), jsonld.WithDocumentLoader(docLoader), jsonld.WithFrameBlankNodes())
 }
 
 func GetRFC3339Timestamp() string {
@@ -113,6 +131,16 @@ func ToJSON(i any) (string, error) {
 func ToJSONInterface(data string) (any, error) {
 	var result any
 	err := json.Unmarshal([]byte(data), &result)
+	return result, err
+}
+
+func AnyToJSONInterface(data any) (any, error) {
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	var result any
+	err = json.Unmarshal(dataBytes, &result)
 	return result, err
 }
 

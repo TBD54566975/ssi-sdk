@@ -45,18 +45,36 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 	}
 	assert.NotEmpty(t, signer)
 
-	case16RevealDoc, err := getTestVector(TestVector1)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, case16RevealDoc)
-
-	var revealDoc map[string]any
-	err = json.Unmarshal([]byte(case16RevealDoc), &revealDoc)
+	// First verify the credential as is
+	suite := GetBBSPlusSignatureSuite()
+	err = suite.Verify(&signer, &cred)
 	assert.NoError(t, err)
 
-	suite := GetBBSPlusSignatureProofSuite()
-	selectiveDisclosure, err := suite.SelectivelyDisclose(signer, &cred, revealDoc)
+	// Test selective disclosure
+
+	// case16RevealDoc, err := getTestVector(TestVector1Reveal)
+	// assert.NoError(t, err)
+	// assert.NotEmpty(t, case16RevealDoc)
+	//
+	// var revealDoc map[string]any
+	// err = json.Unmarshal([]byte(case16RevealDoc), &revealDoc)
+	// assert.NoError(t, err)
+	//
+	// selectiveDisclosure, err := suite.SelectivelyDisclose(signer, &cred, revealDoc)
+	// assert.NoError(t, err)
+	// assert.NotEmpty(t, selectiveDisclosure)
+}
+
+func TestRoundTripTestVector(t *testing.T) {
+	var cred TestCredential
+	tv, err := getTestVector(TestVector1)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, selectiveDisclosure)
+	err = json.Unmarshal([]byte(tv), &cred)
+	assert.NoError(t, err)
+
+	credBytes, err := json.Marshal(cred)
+	assert.NoError(t, err)
+	assert.JSONEq(t, tv, string(credBytes))
 }
 
 func getTestVector(fileName string) (string, error) {

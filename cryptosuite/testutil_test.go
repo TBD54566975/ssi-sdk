@@ -7,6 +7,7 @@ import (
 type TestCredential struct {
 	Context           any           `json:"@context" validate:"required"`
 	ID                string        `json:"id,omitempty"`
+	Identifier        string        `json:"identifier,omitempty"`
 	Type              any           `json:"type" validate:"required"`
 	Name              string        `json:"name,omitempty"`
 	Description       string        `json:"description,omitempty"`
