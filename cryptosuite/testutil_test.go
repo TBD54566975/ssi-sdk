@@ -8,6 +8,8 @@ type TestCredential struct {
 	Context           any           `json:"@context" validate:"required"`
 	ID                string        `json:"id,omitempty"`
 	Type              any           `json:"type" validate:"required"`
+	Name              string        `json:"name,omitempty"`
+	Description       string        `json:"description,omitempty"`
 	Issuer            any           `json:"issuer" validate:"required"`
 	IssuanceDate      string        `json:"issuanceDate" validate:"required"`
 	ExpirationDate    string        `json:"expirationDate,omitempty"`

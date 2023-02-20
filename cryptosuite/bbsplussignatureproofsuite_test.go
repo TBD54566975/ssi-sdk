@@ -1,10 +1,10 @@
 package cryptosuite
 
 import (
+	"embed"
 	_ "embed"
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	bbsg2 "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
@@ -12,11 +12,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	// Case 16 (https://github.com/w3c-ccg/vc-http-api/pull/128)
+	TestVector1       string = "case16_vc.jsonld"
+	TestVector1Reveal string = "case16_reveal_doc.jsonld"
+)
+
 var (
-	//go:embed testdata/case16_vc.jsonld
-	case16VC string // Case 16 (https://github.com/w3c-ccg/vc-http-api/pull/128)
-	//go:embed testdata/case16_reveal_doc.jsonld
-	case16RevealDoc string
+	//go:embed testdata
+	knownTestData embed.FS
 )
 
 func TestBBSPlusSignatureProofSuite(t *testing.T) {
@@ -24,11 +28,12 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 	pubKeyBytes, err := base58.Decode(base58PubKey)
 	assert.NoError(t, err)
 
-	var cred credential.VerifiableCredential
-	vcBytes, err := json.Marshal(case16VC)
+	case16VC, err := getTestVector(TestVector1)
 	assert.NoError(t, err)
+	assert.NotEmpty(t, case16VC)
 
-	err = json.Unmarshal(vcBytes, &cred)
+	var cred TestCredential
+	err = json.Unmarshal([]byte(case16VC), &cred)
 	assert.NoError(t, err)
 
 	pubKey, err := bbsg2.UnmarshalPublicKey(pubKeyBytes)
@@ -38,16 +43,23 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 			PublicKey: pubKey,
 		},
 	}
+	assert.NotEmpty(t, signer)
+
+	case16RevealDoc, err := getTestVector(TestVector1)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, case16RevealDoc)
 
 	var revealDoc map[string]any
-	revealDocBytes, err := json.Marshal(case16RevealDoc)
-	assert.NoError(t, err)
-
-	err = json.Unmarshal(revealDocBytes, &revealDoc)
+	err = json.Unmarshal([]byte(case16RevealDoc), &revealDoc)
 	assert.NoError(t, err)
 
 	suite := GetBBSPlusSignatureProofSuite()
 	selectiveDisclosure, err := suite.SelectivelyDisclose(signer, &cred, revealDoc)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, selectiveDisclosure)
+}
+
+func getTestVector(fileName string) (string, error) {
+	b, err := knownTestData.ReadFile("testdata/" + fileName)
+	return string(b), err
 }
