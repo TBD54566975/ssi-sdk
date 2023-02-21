@@ -96,17 +96,11 @@ func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Pro
 }
 
 func (b BBSPlusSignatureProofSuite) prepareRevealData(deriveProofResult DeriveProofResult, bbsPlusProof BBSPlusSignature2020Proof) (statementBytesArrays [][]byte, revealIndices []int, err error) {
-	// canonicalize proof after removing the proof value
-	bbsPlusProof.SetProofValue("")
-	marshaledProof, err := b.Marshal(bbsPlusProof)
+	// prepare proof by removing the proof value and canonicalizing
+	canonicalProofStatements, err := b.prepareBLSProof(bbsPlusProof)
 	if err != nil {
 		return nil, nil, err
 	}
-	canonicalProof, err := b.Canonicalize(marshaledProof)
-	if err != nil {
-		return nil, nil, err
-	}
-	canonicalProofStatements := canonicalizedLDToStatements(*canonicalProof)
 
 	// total # indicies to be revealed = total statements in the proof - original proof result + revealed indicies
 	revealIndices = make([]int, len(canonicalProofStatements)+len(deriveProofResult.RevealedIndicies))
@@ -128,6 +122,34 @@ func (b BBSPlusSignatureProofSuite) prepareRevealData(deriveProofResult DerivePr
 		statementBytesArrays[i] = []byte(statements[i])
 	}
 	return statementBytesArrays, revealIndices, nil
+}
+
+func (b BBSPlusSignatureProofSuite) prepareBLSProof(bbsPlusProof BBSPlusSignature2020Proof) ([]string, error) {
+	// canonicalize proof after removing the proof value
+	bbsPlusProof.SetProofValue("")
+
+	marshaledProof, err := b.Marshal(bbsPlusProof)
+	if err != nil {
+		return nil, err
+	}
+
+	// add the security context before canonicalization
+	var genericProof map[string]any
+	if err = json.Unmarshal(marshaledProof, &genericProof); err != nil {
+		return nil, err
+	}
+	genericProof["@context"] = b.RequiredContexts()
+
+	proofBytes, err := json.Marshal(genericProof)
+	if err != nil {
+		return nil, err
+	}
+
+	canonicalProof, err := b.Canonicalize(proofBytes)
+	if err != nil {
+		return nil, err
+	}
+	return canonicalizedLDToStatements(*canonicalProof), nil
 }
 
 type DeriveProofResult struct {

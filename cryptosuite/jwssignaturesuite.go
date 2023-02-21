@@ -238,7 +238,7 @@ func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) 
 	}
 
 	var contexts []any
-	if opts != nil {
+	if opts != nil && len(opts.Contexts) > 0 {
 		contexts = opts.Contexts
 	} else {
 		// if none provided, make sure the proof has a context value for this suite
