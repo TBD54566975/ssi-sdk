@@ -42,7 +42,12 @@ func (s *BBSPlusSigner) GetKeyID() string {
 	return s.kid
 }
 
-func (s *BBSPlusSigner) Sign(messages ...[]byte) ([]byte, error) {
+func (s *BBSPlusSigner) Sign(message []byte) ([]byte, error) {
+	bls := bbsg2.New()
+	return bls.SignWithKey(prepareBBSMessage(message), s.PrivateKey)
+}
+
+func (s *BBSPlusSigner) SignMultiple(messages ...[]byte) ([]byte, error) {
 	bls := bbsg2.New()
 	return bls.SignWithKey(messages, s.PrivateKey)
 }
@@ -109,7 +114,7 @@ func SignBBSMessage(privKey *bbsg2.PrivateKey, messages ...[]byte) ([]byte, erro
 	signer := BBSPlusSigner{
 		PrivateKey: privKey,
 	}
-	return signer.Sign(messages...)
+	return signer.SignMultiple(messages...)
 }
 
 func VerifyBBSMessage(pubKey *bbsg2.PublicKey, signature []byte, message []byte) error {
