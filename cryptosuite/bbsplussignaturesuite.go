@@ -281,6 +281,18 @@ func (b *BBSPlusSignature2020Proof) SetProofValue(proofValue string) {
 	b.ProofValue = proofValue
 }
 
+func (b *BBSPlusSignature2020Proof) ToGenericProof() (crypto.Proof, error) {
+	proofBytes, err := json.Marshal(b)
+	if err != nil {
+		return nil, err
+	}
+	var genericProof crypto.Proof
+	if err = json.Unmarshal(proofBytes, &genericProof); err != nil {
+		return nil, err
+	}
+	return genericProof, nil
+}
+
 func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, error) {
 	proofBytes, err := json.Marshal(p)
 	if err != nil {

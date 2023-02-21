@@ -54,6 +54,14 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		selectiveDisclosure, err := proofSuite.SelectivelyDisclose(*verifier, &testCred, revealDoc)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, selectiveDisclosure)
+
+		// now re-attach the derived proof and verify the credential
+		genericProof, err := selectiveDisclosure.ToGenericProof()
+		assert.NoError(tt, err)
+		testCred.Proof = &genericProof
+
+		// err = proofSuite.Verify(verifier, &testCred)
+		// assert.NoError(tt, err)
 	})
 
 	t.Run("known test vector", func(tt *testing.T) {
