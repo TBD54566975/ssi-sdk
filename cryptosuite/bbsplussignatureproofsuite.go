@@ -215,7 +215,7 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 	defer p.SetProof(proof)
 
 	// remove the proof value in the proof before verification
-	proofCopy, err := decodeProofValue(gotProof.ProofValue)
+	signatureValue, err := decodeProofValue(gotProof.ProofValue)
 	if err != nil {
 		return errors.Wrap(err, "could not decode proof value")
 	}
@@ -237,7 +237,7 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 		return errors.Wrap(err, "create verify hash algorithm failed")
 	}
 
-	if err = v.Verify(proofCopy, tbv); err != nil {
+	if err = v.Verify(tbv, signatureValue); err != nil {
 		return errors.Wrap(err, "could not verify BBS+ signature")
 	}
 	return nil

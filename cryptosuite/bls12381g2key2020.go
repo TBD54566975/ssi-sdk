@@ -69,7 +69,8 @@ func GenerateBLSKey2020() (*BLSKey2020, error) {
 }
 
 type BBSPlusSigner struct {
-	crypto.BBSPlusSigner
+	*crypto.BBSPlusSigner
+	*crypto.BBSPlusVerifier
 	purpose ProofPurpose
 	format  PayloadFormat
 }
@@ -110,15 +111,12 @@ func (b *BBSPlusSigner) GetPayloadFormat() PayloadFormat {
 	return b.format
 }
 
-func NewBBSPlusSigner(kid string, privKey *bbs.PrivateKey, purpose ProofPurpose) (*BBSPlusSigner, error) {
-	signer, err := crypto.NewBBSPlusSigner(kid, privKey)
-	if err != nil {
-		return nil, err
-	}
+func NewBBSPlusSigner(kid string, privKey *bbs.PrivateKey, purpose ProofPurpose) *BBSPlusSigner {
+	signer := crypto.NewBBSPlusSigner(kid, privKey)
 	return &BBSPlusSigner{
-		BBSPlusSigner: *signer,
+		BBSPlusSigner: signer,
 		purpose:       purpose,
-	}, nil
+	}
 }
 
 type BBSPlusVerifier struct {

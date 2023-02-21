@@ -41,8 +41,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(t, err)
 		privKey, err := key.GetPrivateKey()
 		assert.NoError(t, err)
-		signer, err := NewBBSPlusSigner("test-key-1", privKey, Authentication)
-		assert.NoError(t, err)
+		signer := NewBBSPlusSigner("test-key-1", privKey, Authentication)
 		err = suite.Sign(signer, &testCred)
 		assert.NoError(t, err)
 
@@ -73,7 +72,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		pubKey, err := bbsg2.UnmarshalPublicKey(pubKeyBytes)
 		assert.NoError(tt, err)
 		signer := BBSPlusSigner{
-			BBSPlusSigner: crypto.BBSPlusSigner{
+			BBSPlusSigner: &crypto.BBSPlusSigner{
 				PublicKey: pubKey,
 			},
 		}

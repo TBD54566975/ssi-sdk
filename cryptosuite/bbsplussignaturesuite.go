@@ -3,7 +3,6 @@ package cryptosuite
 import (
 	gocrypto "crypto"
 	"encoding/base64"
-	"fmt"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	. "github.com/TBD54566975/ssi-sdk/util"
@@ -136,7 +135,7 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 	defer p.SetProof(proof)
 
 	// remove the proof value in the proof before verification
-	proofCopy, err := decodeProofValue(gotProof.ProofValue)
+	signatureValue, err := decodeProofValue(gotProof.ProofValue)
 	if err != nil {
 		return errors.Wrap(err, "could not decode proof value")
 	}
@@ -158,7 +157,7 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 		return errors.Wrap(err, "create verify hash algorithm failed")
 	}
 
-	if err = v.Verify(tbv, proofCopy); err != nil {
+	if err = v.Verify(tbv, signatureValue); err != nil {
 		return errors.Wrap(err, "could not verify BBS+ signature")
 	}
 	return nil
@@ -255,10 +254,11 @@ func (b BBSPlusSignatureSuite) CreateVerifyHash(provable Provable, proof crypto.
 }
 
 func (b BBSPlusSignatureSuite) Digest(tbd []byte) ([]byte, error) {
-	if b.MessageDigestAlgorithm() != gocrypto.BLAKE2b_384 {
-		return nil, fmt.Errorf("unexpected digest algorithm: %s", b.MessageDigestAlgorithm().String())
-	}
-	return gocrypto.BLAKE2b_384.New().Sum(tbd), nil
+	// if b.MessageDigestAlgorithm() != gocrypto.BLAKE2b_384 {
+	// 	return nil, fmt.Errorf("unexpected digest algorithm: %s", b.MessageDigestAlgorithm().String())
+	// }
+	// return gocrypto.BLAKE2b_384.New().Sum(tbd), nil
+	return tbd, nil
 }
 
 func (b BBSPlusSignatureSuite) createProof(verificationMethod string, purpose ProofPurpose, requiredRevealStatements []int) BBSPlusSignature2020Proof {
