@@ -253,11 +253,8 @@ func (b BBSPlusSignatureSuite) CreateVerifyHash(provable Provable, proof crypto.
 	return output, nil
 }
 
-func (b BBSPlusSignatureSuite) Digest(tbd []byte) ([]byte, error) {
-	// if b.MessageDigestAlgorithm() != gocrypto.BLAKE2b_384 {
-	// 	return nil, fmt.Errorf("unexpected digest algorithm: %s", b.MessageDigestAlgorithm().String())
-	// }
-	// return gocrypto.BLAKE2b_384.New().Sum(tbd), nil
+func (BBSPlusSignatureSuite) Digest(tbd []byte) ([]byte, error) {
+	// handled by the algorithm itself
 	return tbd, nil
 }
 

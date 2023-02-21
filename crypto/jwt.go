@@ -128,12 +128,12 @@ func jwtSignerVerifier(kid string, key any) (jwk.Key, *jwa.SignatureAlgorithm, e
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not get verification alg from jwk")
 	}
-	// TODO(gabe) distinguish between issuer and kid
+	// TODO(gabe) distinguish between issuer and KID
 	if err = parsedKey.Set(jwt.IssuerKey, kid); err != nil {
-		return nil, nil, fmt.Errorf("could not set kid with provided value: %s", kid)
+		return nil, nil, fmt.Errorf("could not set KID with provided value: %s", kid)
 	}
 	if err = parsedKey.Set(jwk.KeyIDKey, kid); err != nil {
-		return nil, nil, fmt.Errorf("could not set kid with provided value: %s", kid)
+		return nil, nil, fmt.Errorf("could not set KID with provided value: %s", kid)
 	}
 	if err = parsedKey.Set(jwk.AlgorithmKey, alg); err != nil {
 		return nil, nil, fmt.Errorf("could not set alg with value: %s", alg)

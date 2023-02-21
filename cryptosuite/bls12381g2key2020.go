@@ -75,16 +75,21 @@ type BBSPlusSigner struct {
 	format  PayloadFormat
 }
 
-func (b *BBSPlusSigner) Sign(tbs []byte) ([]byte, error) {
-	return b.BBSPlusSigner.Sign(tbs)
+func NewBBSPlusSigner(kid string, privKey *bbs.PrivateKey, purpose ProofPurpose) *BBSPlusSigner {
+	signer := crypto.NewBBSPlusSigner(kid, privKey)
+	return &BBSPlusSigner{
+		BBSPlusSigner:   signer,
+		BBSPlusVerifier: signer.BBSPlusVerifier,
+		purpose:         purpose,
+	}
 }
 
-func (b *BBSPlusSigner) DeriveProof(messages [][]byte, sigBytes, nonce []byte, revealedIndexes []int) ([]byte, error) {
-	return b.BBSPlusSigner.DeriveProof(messages, sigBytes, nonce, revealedIndexes)
+func (s *BBSPlusSigner) Sign(tbs []byte) ([]byte, error) {
+	return s.BBSPlusSigner.Sign(tbs)
 }
 
-func (b *BBSPlusSigner) GetKeyID() string {
-	return b.BBSPlusSigner.GetKeyID()
+func (s *BBSPlusSigner) GetKeyID() string {
+	return s.BBSPlusSigner.GetKeyID()
 }
 
 func (*BBSPlusSigner) GetSignatureType() SignatureType {
@@ -95,38 +100,40 @@ func (*BBSPlusSigner) GetSigningAlgorithm() string {
 	return string(BBSPlusSignature2020)
 }
 
-func (b *BBSPlusSigner) SetProofPurpose(purpose ProofPurpose) {
-	b.purpose = purpose
+func (s *BBSPlusSigner) SetProofPurpose(purpose ProofPurpose) {
+	s.purpose = purpose
 }
 
-func (b *BBSPlusSigner) GetProofPurpose() ProofPurpose {
-	return b.purpose
+func (s *BBSPlusSigner) GetProofPurpose() ProofPurpose {
+	return s.purpose
 }
 
-func (b *BBSPlusSigner) SetPayloadFormat(format PayloadFormat) {
-	b.format = format
+func (s *BBSPlusSigner) SetPayloadFormat(format PayloadFormat) {
+	s.format = format
 }
 
-func (b *BBSPlusSigner) GetPayloadFormat() PayloadFormat {
-	return b.format
-}
-
-func NewBBSPlusSigner(kid string, privKey *bbs.PrivateKey, purpose ProofPurpose) *BBSPlusSigner {
-	signer := crypto.NewBBSPlusSigner(kid, privKey)
-	return &BBSPlusSigner{
-		BBSPlusSigner: signer,
-		purpose:       purpose,
-	}
+func (s *BBSPlusSigner) GetPayloadFormat() PayloadFormat {
+	return s.format
 }
 
 type BBSPlusVerifier struct {
-	crypto.BBSPlusVerifier
+	*crypto.BBSPlusVerifier
 }
 
-func (b BBSPlusVerifier) Verify(message, signature []byte) error {
-	return b.BBSPlusVerifier.Verify(signature, message)
+func NewBBSPlusVerifier(kid string, pubKey *bbs.PublicKey) *BBSPlusVerifier {
+	return &BBSPlusVerifier{
+		BBSPlusVerifier: crypto.NewBBSPlusVerifier(kid, pubKey),
+	}
 }
 
-func (b BBSPlusVerifier) GetKeyID() string {
-	return b.BBSPlusVerifier.GetKeyID()
+func (v BBSPlusVerifier) DeriveProof(messages [][]byte, sigBytes, nonce []byte, revealedIndexes []int) ([]byte, error) {
+	return v.BBSPlusVerifier.DeriveProof(messages, sigBytes, nonce, revealedIndexes)
+}
+
+func (v BBSPlusVerifier) Verify(message, signature []byte) error {
+	return v.BBSPlusVerifier.Verify(message, signature)
+}
+
+func (v BBSPlusVerifier) GetKeyID() string {
+	return v.BBSPlusVerifier.GetKeyID()
 }

@@ -50,7 +50,7 @@ func (BBSPlusSignatureProofSuite) RequiredContexts() []string {
 }
 
 // SelectivelyDisclose takes in a credential and  a map of fields to disclose as an LD frame
-func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(s BBSPlusSigner, p Provable, toDiscloseFrame map[string]any) (*BBSPlusSignature2020Proof, error) {
+func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]any) (*BBSPlusSignature2020Proof, error) {
 	// remove the proof from the document
 	proofCopy := p.GetProof()
 	p.SetProof(nil)
@@ -81,7 +81,7 @@ func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(s BBSPlusSigner, p Prova
 	nonce := []byte(uuid.New().String())
 
 	// derive the proof
-	derivedProofValue, err := s.DeriveProof(statements, signatureBytes, nonce, revealIndicies)
+	derivedProofValue, err := v.DeriveProof(statements, signatureBytes, nonce, revealIndicies)
 	if err != nil {
 		return nil, err
 	}

@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	bbsg2 "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
 	"github.com/mr-tron/base58"
@@ -51,7 +50,8 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 			"type":     "VerifiableCredential",
 			"issuer":   map[string]any{},
 		}
-		selectiveDisclosure, err := proofSuite.SelectivelyDisclose(*signer, &testCred, revealDoc)
+		verifier := NewBBSPlusVerifier("test-key-1", privKey.PublicKey())
+		selectiveDisclosure, err := proofSuite.SelectivelyDisclose(*verifier, &testCred, revealDoc)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, selectiveDisclosure)
 	})
@@ -71,31 +71,27 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 
 		pubKey, err := bbsg2.UnmarshalPublicKey(pubKeyBytes)
 		assert.NoError(tt, err)
-		signer := BBSPlusSigner{
-			BBSPlusSigner: &crypto.BBSPlusSigner{
-				PublicKey: pubKey,
-			},
-		}
-		assert.NotEmpty(tt, signer)
+		verifier := NewBBSPlusVerifier("test-key-1", pubKey)
+		assert.NotEmpty(tt, verifier)
 
 		// First verify the credential as is
 		suite := GetBBSPlusSignatureSuite()
-		err = suite.Verify(&signer, &cred)
+		err = suite.Verify(verifier, &cred)
 		assert.NoError(tt, err)
 
 		// Test selective disclosure
+		proofSuite := GetBBSPlusSignatureProofSuite()
+		case16RevealDoc, err := getTestVector(TestVector1Reveal)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, case16RevealDoc)
 
-		// case16RevealDoc, err := getTestVector(TestVector1Reveal)
-		// assert.NoError(tt, err)
-		// assert.NotEmpty(tt, case16RevealDoc)
-		//
-		// var revealDoc map[string]any
-		// err = json.Unmarshal([]byte(case16RevealDoc), &revealDoc)
-		// assert.NoError(tt, err)
-		//
-		// selectiveDisclosure, err := suite.SelectivelyDisclose(signer, &cred, revealDoc)
-		// assert.NoError(tt, err)
-		// assert.NotEmpty(tt, selectiveDisclosure)
+		var revealDoc map[string]any
+		err = json.Unmarshal([]byte(case16RevealDoc), &revealDoc)
+		assert.NoError(tt, err)
+
+		selectiveDisclosure, err := proofSuite.SelectivelyDisclose(*verifier, &cred, revealDoc)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, selectiveDisclosure)
 	})
 }
 

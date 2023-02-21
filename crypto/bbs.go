@@ -32,7 +32,7 @@ func NewBBSPlusSigner(kid string, privKey *bbsg2.PrivateKey) *BBSPlusSigner {
 		PrivateKey: privKey,
 		PublicKey:  pubKey,
 		BBSPlusVerifier: &BBSPlusVerifier{
-			kid:       kid,
+			KID:       kid,
 			PublicKey: pubKey,
 		},
 	}
@@ -47,42 +47,42 @@ func (s *BBSPlusSigner) Sign(messages ...[]byte) ([]byte, error) {
 	return bls.SignWithKey(messages, s.PrivateKey)
 }
 
-func (s *BBSPlusSigner) DeriveProof(messages [][]byte, sigBytes, nonce []byte, revealedIndexes []int) ([]byte, error) {
-	bls := bbsg2.New()
-	pubKeyBytes, err := s.PublicKey.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	return bls.DeriveProof(messages, sigBytes, nonce, pubKeyBytes, revealedIndexes)
-}
-
 func (s *BBSPlusSigner) GetVerifier() *BBSPlusVerifier {
 	return s.BBSPlusVerifier
 }
 
 type BBSPlusVerifier struct {
-	kid string
+	KID string
 	*bbsg2.PublicKey
 }
 
 func NewBBSPlusVerifier(kid string, pubKey *bbsg2.PublicKey) *BBSPlusVerifier {
 	return &BBSPlusVerifier{
-		kid:       kid,
+		KID:       kid,
 		PublicKey: pubKey,
 	}
 }
 
 func (v *BBSPlusVerifier) GetKeyID() string {
-	return v.kid
+	return v.KID
 }
 
-func (v *BBSPlusVerifier) Verify(message []byte, signature []byte) error {
+func (v *BBSPlusVerifier) Verify(message, signature []byte) error {
 	bls := bbsg2.New()
 	pubKeyBytes, err := v.PublicKey.Marshal()
 	if err != nil {
 		return err
 	}
-	return bls.Verify(splitMessageIntoLines(string(message), false), signature, pubKeyBytes)
+	return bls.Verify(prepareBBSMessage(message), signature, pubKeyBytes)
+}
+
+func (v *BBSPlusVerifier) VerifyDerived(message, signature []byte) error {
+	bls := bbsg2.New()
+	pubKeyBytes, err := v.PublicKey.Marshal()
+	if err != nil {
+		return err
+	}
+	return bls.Verify(prepareBBSDerivedMessage(message), signature, pubKeyBytes)
 }
 
 func (v *BBSPlusVerifier) VerifyMultiple(signature []byte, messages ...[]byte) error {
@@ -92,6 +92,15 @@ func (v *BBSPlusVerifier) VerifyMultiple(signature []byte, messages ...[]byte) e
 		return err
 	}
 	return bls.Verify(messages, signature, pubKeyBytes)
+}
+
+func (v *BBSPlusVerifier) DeriveProof(messages [][]byte, sigBytes, nonce []byte, revealedIndexes []int) ([]byte, error) {
+	bls := bbsg2.New()
+	pubKeyBytes, err := v.PublicKey.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	return bls.DeriveProof(messages, sigBytes, nonce, pubKeyBytes, revealedIndexes)
 }
 
 // Utility methods to be used without a signer
@@ -110,25 +119,37 @@ func VerifyBBSMessage(pubKey *bbsg2.PublicKey, signature []byte, message []byte)
 	return verifier.Verify(message, signature)
 }
 
+func VerifyDerivedBBSMessage(pubKey *bbsg2.PublicKey, signature []byte, message []byte) error {
+	verifier := BBSPlusVerifier{
+		PublicKey: pubKey,
+	}
+	return verifier.VerifyDerived(message, signature)
+}
+
 // helpers
 
-func splitMessageIntoLines(msg string, transformBlankNodes bool) [][]byte {
-	rows := strings.Split(msg, "\n")
-
+func prepareBBSMessage(msg []byte) [][]byte {
+	rows := strings.Split(string(msg), "\n")
 	msgs := make([][]byte, 0, len(rows))
-
 	for _, row := range rows {
 		if strings.TrimSpace(row) == "" {
 			continue
 		}
-
-		if transformBlankNodes {
-			row = transformFromBlankNode(row)
-		}
-
 		msgs = append(msgs, []byte(row))
 	}
+	return msgs
+}
 
+func prepareBBSDerivedMessage(msg []byte) [][]byte {
+	rows := strings.Split(string(msg), "\n")
+	msgs := make([][]byte, 0, len(rows))
+	for _, row := range rows {
+		if strings.TrimSpace(row) == "" {
+			continue
+		}
+		row = transformFromBlankNode(row)
+		msgs = append(msgs, []byte(row))
+	}
 	return msgs
 }
 
