@@ -305,9 +305,14 @@ func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, e
 		}
 		p = proofArray[0]
 	}
-	generic, ok := p.(map[string]any)
-	if !ok {
-		return nil, errors.New("proof is not a map")
+
+	proofBytes, err := json.Marshal(p)
+	if err != nil {
+		return nil, err
+	}
+	var generic map[string]any
+	if err = json.Unmarshal(proofBytes, &generic); err != nil {
+		return nil, err
 	}
 
 	typeValue, ok := generic["type"].(string)

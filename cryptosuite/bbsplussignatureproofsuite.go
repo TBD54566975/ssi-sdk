@@ -259,6 +259,7 @@ func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument Provabl
 	}, nil
 }
 
+// Bug here: https://github.com/w3c-ccg/ldp-bbs2020/issues/62
 func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 	proof := p.GetProof()
 	gotProof, err := BBSPlusProofFromGenericProof(*proof)
@@ -409,14 +410,18 @@ func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *Proof
 		return nil, err
 	}
 
-	// proof cannot have a proof value
+	// proof cannot have a proof value or nonce
 	delete(genericProof, "proofValue")
+	delete(genericProof, "nonce")
 
 	// make sure the proof has a timestamp
 	created, ok := genericProof["created"]
 	if !ok || created == "" {
 		genericProof["created"] = GetRFC3339Timestamp()
 	}
+
+	// for verification, we must replace the BBS ProofType with the Signature Type
+	genericProof["type"] = BBSPlusSignature2020
 
 	var contexts []any
 	if opts != nil {

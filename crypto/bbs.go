@@ -152,8 +152,8 @@ func prepareBBSDerivedMessage(msg []byte) [][]byte {
 		if strings.TrimSpace(row) == "" {
 			continue
 		}
-		row = transformFromBlankNode(row)
-		msgs = append(msgs, []byte(row))
+		transformedRow := transformFromBlankNode(row)
+		msgs = append(msgs, []byte(transformedRow))
 	}
 	return msgs
 }
