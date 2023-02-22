@@ -21,7 +21,7 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -41,7 +41,7 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-2",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -83,7 +83,7 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -103,7 +103,7 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-2",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -133,7 +133,7 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -153,7 +153,7 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-2",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -191,7 +191,7 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -220,7 +220,7 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -251,7 +251,7 @@ func TestValidateCredentialInStatusList(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -285,12 +285,12 @@ func TestValidateCredentialInStatusList(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
 			},
-			CredentialStatus: map[string]any{
+			CredentialStatus: map[string]interface{}{
 				"id":                   revocationID,
 				"type":                 "Block",
 				"statusPurpose":        "revocation",
@@ -319,7 +319,7 @@ func TestValidateCredentialInStatusList(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -339,7 +339,7 @@ func TestValidateCredentialInStatusList(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-2",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -373,7 +373,7 @@ func TestValidateCredentialInStatusList(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",

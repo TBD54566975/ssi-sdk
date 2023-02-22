@@ -86,7 +86,7 @@ func GetContextsFromProvable(p Provable) ([]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	var genericProvable map[string]any
+	var genericProvable map[string]interface{}
 	if err = json.Unmarshal(provableBytes, &genericProvable); err != nil {
 		return nil, err
 	}

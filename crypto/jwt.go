@@ -147,7 +147,7 @@ func (s *JWTSigner) GetSigningAlgorithm() string {
 }
 
 // SignJWT takes a set of JWT keys and values to add to a JWT before singing them with the key defined in the signer
-func (s *JWTSigner) SignJWT(kvs map[string]any) ([]byte, error) {
+func (s *JWTSigner) SignJWT(kvs map[string]interface{}) ([]byte, error) {
 	t := jwt.New()
 
 	// set known default values, which can be overridden by the kvs

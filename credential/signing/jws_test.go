@@ -14,7 +14,7 @@ func TestVerifiableCredentialJWS(t *testing.T) {
 		Type:              []any{"VerifiableCredential"},
 		Issuer:            "did:example:123",
 		IssuanceDate:      "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]any{},
+		CredentialSubject: map[string]interface{}{},
 	}
 	signer := getTestVectorKey0Signer(t)
 

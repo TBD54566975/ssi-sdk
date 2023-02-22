@@ -22,14 +22,14 @@ func main() {
 	knownType := []string{"VerifiableCredential", "AlumniCredential"}
 	knownIssuer := "https://example.edu/issuers/565049"
 	knownIssuanceDate := "2010-01-01T19:23:24Z"
-	knownSubject := map[string]any{
+	knownSubject := map[string]interface{}{
 		"id": "did:example:ebfeb1f712ebc6f1c276e12ec21", // did:<method-name>:<method-specific-id>
-		"alumniOf": map[string]any{ // claims are here
+		"alumniOf": map[string]interface{}{ // claims are here
 			"id": "did:example:c276e12ec21ebfeb1f712ebc6f1",
 			"name": []any{
-				map[string]any{"value": "Example University",
+				map[string]interface{}{"value": "Example University",
 					"lang": "en",
-				}, map[string]any{
+				}, map[string]interface{}{
 					"value": "Exemple d'Université",
 					"lang":  "fr",
 				},

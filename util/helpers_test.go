@@ -123,10 +123,10 @@ func TestLDProcessor(t *testing.T) {
 	})
 
 	t.Run("get context from map", func(tt *testing.T) {
-		contextMap := map[string]any{
+		contextMap := map[string]interface{}{
 			"dc": "http://purl.org/dc/elements/1.1/",
 			"ex": "http://example.org/vocab#",
-			"ex:contains": map[string]any{
+			"ex:contains": map[string]interface{}{
 				"@type": "@id",
 			},
 		}

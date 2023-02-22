@@ -41,7 +41,7 @@ func (v *VerifiableCredential) SetProof(p *crypto.Proof) {
 }
 
 // GenericCredential represents a credential that is not constrained by a specific type
-type GenericCredential map[string]any
+type GenericCredential map[string]interface{}
 
 func (g *GenericCredential) GetProof() *crypto.Proof {
 	if g == nil {
@@ -71,7 +71,7 @@ type DefaultCredentialStatus struct {
 	Type string `json:"type" validate:"required"`
 }
 
-type CredentialSubject map[string]any
+type CredentialSubject map[string]interface{}
 
 func (cs CredentialSubject) GetID() string {
 	id := ""

@@ -75,7 +75,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 	})
 
 	t.Run("Test Invalid JSON Schema", func(tt *testing.T) {
-		addressData := map[string]any{
+		addressData := map[string]interface{}{
 			"street-address": "1455 Market St.",
 			"city":           "San Francisco",
 			"state":          "California",
@@ -93,7 +93,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 		addressJSONSchema, err := getTestVector(JSONSchemaTestVector1)
 		assert.NoError(tt, err)
 
-		addressData := map[string]any{
+		addressData := map[string]interface{}{
 			"street-address": "1455 Market St.",
 			"city":           "San Francisco",
 			"state":          "California",
@@ -114,7 +114,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 		assert.NoError(tt, err)
 
 		// Missing required field
-		addressData := map[string]any{
+		addressData := map[string]interface{}{
 			"street-address": "1455 Market St.",
 			"city":           "San Francisco",
 			"state":          "California",
@@ -136,7 +136,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 		assert.NoError(tt, err)
 
 		// Additional field
-		personData := map[string]any{
+		personData := map[string]interface{}{
 			"firstName": "Satoshi",
 			"lastName":  "Nakamoto",
 		}
@@ -155,7 +155,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 		assert.NoError(tt, err)
 
 		// Additional field
-		personData := map[string]any{
+		personData := map[string]interface{}{
 			"firstName":  "Satoshi",
 			"middleName": "Coin",
 			"lastName":   "Nakamoto",
@@ -198,7 +198,7 @@ func TestLoadJSONSchema(t *testing.T) {
 
 	assert.NoError(t, IsValidJSONSchema(schemaString))
 
-	latLong := map[string]any{
+	latLong := map[string]interface{}{
 		"latitude":  1,
 		"longitude": 1,
 	}

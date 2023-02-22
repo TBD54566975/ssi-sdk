@@ -52,11 +52,11 @@ func (l LDProcessor) GetOptions() *ld.JsonLdOptions {
 	return l.JsonLdOptions
 }
 
-func (l LDProcessor) GetContextFromMap(dataMap map[string]any) (*ld.Context, error) {
+func (l LDProcessor) GetContextFromMap(dataMap map[string]interface{}) (*ld.Context, error) {
 	var activeCtx *ld.Context
 	var err error
 	ldCtx := ld.NewContext(nil, l.JsonLdOptions)
-	contextMap, ok := dataMap["@context"].(map[string]any)
+	contextMap, ok := dataMap["@context"].(map[string]interface{})
 	if !ok {
 		activeCtx, err = ldCtx.Parse(dataMap)
 	} else {
@@ -306,12 +306,12 @@ func InterfaceToStrings(have any) ([]string, error) {
 	return nil, errors.New("could not turn interface into strings")
 }
 
-func ToJSONMap(data any) (map[string]any, error) {
+func ToJSONMap(data any) (map[string]interface{}, error) {
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
-	var jsonMap map[string]any
+	var jsonMap map[string]interface{}
 	if err := json.Unmarshal(dataBytes, &jsonMap); err != nil {
 		return nil, err
 	}

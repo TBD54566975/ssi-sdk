@@ -38,25 +38,25 @@ func prepareResultingCredentialSchema(issuerDID string) schema.VCJSONSchema {
 		Name:     "Drivers License Schema",
 		Author:   issuerDID,
 		Authored: time.Now().Format(time.RFC3339),
-		Schema: map[string]any{
+		Schema: map[string]interface{}{
 			"id":          "ca-dmv-drivers-license-schema-1.0",
 			"$schema":     "https://json-schema.org/draft/2019-09/schema",
 			"description": "CA DMV Drivers License Schema",
 			"type":        "object",
-			"properties": map[string]any{
-				"firstName": map[string]any{
+			"properties": map[string]interface{}{
+				"firstName": map[string]interface{}{
 					"type": "string",
 				},
-				"lastName": map[string]any{
+				"lastName": map[string]interface{}{
 					"type": "string",
 				},
-				"dateOfBirth": map[string]any{
+				"dateOfBirth": map[string]interface{}{
 					"type": "string",
 				},
-				"licenseNumber": map[string]any{
+				"licenseNumber": map[string]interface{}{
 					"type": "string",
 				},
-				"licenseClass": map[string]any{
+				"licenseClass": map[string]interface{}{
 					"type": "string",
 				},
 			},
@@ -205,7 +205,7 @@ func issueApplicationCredential(id did.DIDKey, s schema.VCJSONSchema) (*credenti
 		return nil, err
 	}
 
-	if err := builder.SetCredentialSubject(map[string]any{
+	if err := builder.SetCredentialSubject(map[string]interface{}{
 		"id":          id.String(),
 		"firstName":   "Satoshi",
 		"lastName":    "Nakamoto",
@@ -292,7 +292,7 @@ func issueDriversLicenseCredential(issuerDID did.DIDKey, subjectDID string, s sc
 		return nil, err
 	}
 
-	if err := builder.SetCredentialSubject(map[string]any{
+	if err := builder.SetCredentialSubject(map[string]interface{}{
 		"id":            subjectDID,
 		"firstName":     data.FirstName,
 		"lastName":      data.LastName,
@@ -313,7 +313,7 @@ func processCredentialApplication(cm manifest.CredentialManifest, ca manifest.Cr
 		return nil, err
 	}
 
-	request := make(map[string]any)
+	request := make(map[string]interface{})
 	if err = json.Unmarshal(credAppRequestBytes, &request); err != nil {
 		return nil, err
 	}

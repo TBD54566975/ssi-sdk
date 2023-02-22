@@ -51,7 +51,7 @@ func (BBSPlusSignatureProofSuite) RequiredContexts() []string {
 }
 
 // SelectivelyDisclose takes in a credential and  a map of fields to disclose as an LD frame
-func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]any, nonce []byte) (map[string]any, error) {
+func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]interface{}, nonce []byte) (map[string]interface{}, error) {
 	// first compact the document with the security context
 	compactProvable, compactProof, err := b.compactProvable(p)
 	if err != nil {
@@ -101,7 +101,7 @@ func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Pro
 }
 
 func (BBSPlusSignatureProofSuite) compactProvable(p Provable) (Provable, *crypto.Proof, error) {
-	var genericProvable map[string]any
+	var genericProvable map[string]interface{}
 	provableBytes, err := json.Marshal(p)
 	if err != nil {
 		return nil, nil, err
@@ -170,7 +170,7 @@ func (b BBSPlusSignatureProofSuite) prepareBLSProof(bbsPlusProof BBSPlusSignatur
 	}
 
 	// add the security context before canonicalization
-	var genericProof map[string]any
+	var genericProof map[string]interface{}
 	if err = json.Unmarshal(marshaledProof, &genericProof); err != nil {
 		return nil, err
 	}
@@ -191,11 +191,11 @@ func (b BBSPlusSignatureProofSuite) prepareBLSProof(bbsPlusProof BBSPlusSignatur
 type DeriveProofResult struct {
 	RevealedIndicies             []int
 	InputProofDocumentStatements []string
-	RevealedDocument             map[string]any
+	RevealedDocument             map[string]interface{}
 }
 
 // CreateDeriveProof https://w3c-ccg.github.io/ldp-bbs2020/#create-derive-proof-data-algorithm
-func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument Provable, revealDocument map[string]any) (*DeriveProofResult, error) {
+func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument Provable, revealDocument map[string]interface{}) (*DeriveProofResult, error) {
 	// 1. Apply the canonicalization algorithm to the input proof document to obtain a set of statements represented
 	// as n-quads. Let this set be known as the input proof document statements.
 	marshaledInputProofDoc, err := b.Marshal(inputProofDocument)
@@ -255,7 +255,7 @@ func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument Provabl
 	return &DeriveProofResult{
 		RevealedIndicies:             revealedIndicies,
 		InputProofDocumentStatements: statements,
-		RevealedDocument:             revealedDocument.(map[string]any),
+		RevealedDocument:             revealedDocument.(map[string]interface{}),
 	}, nil
 }
 
@@ -324,7 +324,7 @@ func (BBSPlusSignatureProofSuite) Marshal(data any) ([]byte, error) {
 
 func (BBSPlusSignatureProofSuite) Canonicalize(marshaled []byte) (*string, error) {
 	// the LD library anticipates a generic golang json object to normalize
-	var generic map[string]any
+	var generic map[string]interface{}
 	if err := json.Unmarshal(marshaled, &generic); err != nil {
 		return nil, err
 	}
@@ -405,7 +405,7 @@ func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *Proof
 		return nil, err
 	}
 
-	var genericProof map[string]any
+	var genericProof map[string]interface{}
 	if err = json.Unmarshal(proofBytes, &genericProof); err != nil {
 		return nil, err
 	}

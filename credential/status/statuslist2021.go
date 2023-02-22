@@ -310,7 +310,7 @@ func toStatusList2021Entry(credStatus any) (*StatusList2021Entry, bool) {
 		return &statusListEntryValue, true
 	}
 
-	credStatusMap, ok := credStatus.(map[string]any)
+	credStatusMap, ok := credStatus.(map[string]interface{})
 	if !ok {
 		return nil, false
 	}

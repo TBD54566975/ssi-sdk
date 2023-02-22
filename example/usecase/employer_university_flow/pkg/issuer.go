@@ -22,14 +22,14 @@ func BuildExampleUniversityVC(universityID, recipient string) (*credential.Verif
 	knownType := []string{"VerifiableCredential", "AlumniCredential"}
 	knownIssuer := "https://example.edu/issuers/565049"
 	knownIssuanceDate := time.Now().Format(time.RFC3339)
-	knownSubject := map[string]any{
+	knownSubject := map[string]interface{}{
 		"id": universityID, // did:<method-name>:<method-specific-id>
-		"alumniOf": map[string]any{ // claims are here
+		"alumniOf": map[string]interface{}{ // claims are here
 			"id": recipient,
 			"name": []any{
-				map[string]any{"value": "Example University",
+				map[string]interface{}{"value": "Example University",
 					"lang": "en",
-				}, map[string]any{
+				}, map[string]interface{}{
 					"value": "Exemple d'Université",
 					"lang":  "fr",
 				},

@@ -89,7 +89,7 @@ func TestVerifier(t *testing.T) {
 		assert.Contains(tt, err.Error(), "missing properties: 'emailAddress'")
 
 		// verify cred with schema, schema passed in, cred with good data
-		sampleCredential.CredentialSubject = map[string]any{
+		sampleCredential.CredentialSubject = map[string]interface{}{
 			"id":           "test-vc-id",
 			"emailAddress": "grandma@aol.com",
 		}
@@ -111,7 +111,7 @@ func getSampleCredential() credential.VerifiableCredential {
 		Issuer:         "test-issuer",
 		ExpirationDate: "2021-01-01T00:00:00Z",
 		IssuanceDate:   "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]any{
+		CredentialSubject: map[string]interface{}{
 			"id":      "test-vc-id",
 			"company": "Block",
 			"website": "https://block.xyz",

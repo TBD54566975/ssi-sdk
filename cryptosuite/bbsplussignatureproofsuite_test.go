@@ -37,7 +37,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       "did:example:123",
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]any{
+			CredentialSubject: map[string]interface{}{
 				"id": "did:example:abcd",
 			},
 		}
@@ -50,10 +50,10 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(t, err)
 
 		proofSuite := GetBBSPlusSignatureProofSuite()
-		revealDoc := map[string]any{
+		revealDoc := map[string]interface{}{
 			"@context": []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/bbs/v1"},
 			"type":     "VerifiableCredential",
-			"issuer":   map[string]any{},
+			"issuer":   map[string]interface{}{},
 		}
 		verifier := NewBBSPlusVerifier("test-key-1", privKey.PublicKey())
 
@@ -99,7 +99,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, case16RevealDoc)
 
-		var revealDoc map[string]any
+		var revealDoc map[string]interface{}
 		err = json.Unmarshal([]byte(case16RevealDoc), &revealDoc)
 		assert.NoError(tt, err)
 
@@ -173,7 +173,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, case18RevealDoc)
 
-		var revealDoc map[string]any
+		var revealDoc map[string]interface{}
 		err = json.Unmarshal([]byte(case18RevealDoc), &revealDoc)
 		assert.NoError(tt, err)
 

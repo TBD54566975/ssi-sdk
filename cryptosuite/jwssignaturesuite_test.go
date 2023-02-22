@@ -92,7 +92,7 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 		Type:         []string{"VerifiableCredential"},
 		Issuer:       "did:example:123",
 		IssuanceDate: "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]any{
+		CredentialSubject: map[string]interface{}{
 			"id":        "did:example:abcd",
 			"firstName": "Satoshi",
 			"lastName":  "Nakamoto",
@@ -134,14 +134,14 @@ func TestCredentialLDProof(t *testing.T) {
 		Type:         []any{"VerifiableCredential", "AlumniCredential"},
 		Issuer:       issuer,
 		IssuanceDate: "2010-01-01T19:23:24Z",
-		CredentialSubject: map[string]any{
+		CredentialSubject: map[string]interface{}{
 			"id": "did:example:ebfeb1f712ebc6f1c276e12ec21",
-			"alumniOf": map[string]any{
+			"alumniOf": map[string]interface{}{
 				"id": "did:example:c276e12ec21ebfeb1f712ebc6f1",
 				"name": []any{
-					map[string]any{"value": "Example University",
+					map[string]interface{}{"value": "Example University",
 						"lang": "en",
-					}, map[string]any{
+					}, map[string]interface{}{
 						"value": "Exemple d'Université",
 						"lang":  "fr",
 					},
@@ -206,7 +206,7 @@ func TestJsonWebSignature2020TestVectorCredential0(t *testing.T) {
 		Type:              []string{"VerifiableCredential"},
 		Issuer:            "did:example:123",
 		IssuanceDate:      "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]any{},
+		CredentialSubject: map[string]interface{}{},
 	}
 
 	suite := GetJSONWebSignature2020Suite()
@@ -248,7 +248,7 @@ func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
 		Issuer:         "did:example:123",
 		IssuanceDate:   "2021-01-01T19:23:24Z",
 		ExpirationDate: "2031-01-01T19:23:24Z",
-		CredentialSubject: map[string]any{
+		CredentialSubject: map[string]interface{}{
 			"id":   "did:example:456",
 			"type": "Person",
 		},
@@ -310,7 +310,7 @@ func TestJsonWebSignature2020TestVectorPresentation0(t *testing.T) {
 
 	// verify against known working impl
 	// https://identity.foundation/JWS-Test-Suite/implementations/transmute/presentation-0--key-0-ed25519.vp.json
-	var knownProof crypto.Proof = map[string]any{
+	var knownProof crypto.Proof = map[string]interface{}{
 		"type":               "JsonWebSignature2020",
 		"proofPurpose":       "authentication",
 		"challenge":          "123",
@@ -331,7 +331,7 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 	signer, jwk := getTestVectorKey0Signer(t, Authentication)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/presentations/presentation-1.json
-	var credProof crypto.Proof = map[string]any{
+	var credProof crypto.Proof = map[string]interface{}{
 		"type":               "JsonWebSignature2020",
 		"created":            "2021-10-02T17:58:00Z",
 		"proofPurpose":       "assertionMethod",
@@ -348,17 +348,17 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 			{
 				Context: []any{"https://www.w3.org/2018/credentials/v1",
 					"https://w3id.org/security/suites/jws-2020/v1",
-					map[string]any{
+					map[string]interface{}{
 						"@vocab": "https://example.com/#",
 					}},
 				Type:         []string{"VerifiableCredential"},
 				Issuer:       "did:example:123",
 				IssuanceDate: "2021-01-01T19:23:24Z",
-				CredentialSubject: map[string]any{
+				CredentialSubject: map[string]interface{}{
 					"id": "did:example:456",
 				},
 				Evidence: []any{
-					map[string]any{
+					map[string]interface{}{
 						"id":               "https://example.edu/evidence/f2aeec97-fc0d-42bf-8ca7-0548192d4231",
 						"type":             []string{"DocumentVerification"},
 						"verifier":         "https://example.edu/issuers/14",
@@ -366,7 +366,7 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 						"subjectPresence":  "Physical",
 						"documentPresence": "Physical",
 					},
-					map[string]any{
+					map[string]interface{}{
 						"id":               "https://example.edu/evidence/f2aeec97-fc0d-42bf-8ca7-0548192dxyzab",
 						"type":             []string{"SupportingActivity"},
 						"verifier":         "https://example.edu/issuers/14",
@@ -394,7 +394,7 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 
 	// verify against known working impl
 	// https://identity.foundation/JWS-Test-Suite/implementations/transmute/presentation-1--key-0-ed25519.vp.json
-	var knownProof crypto.Proof = map[string]any{
+	var knownProof crypto.Proof = map[string]interface{}{
 		"type":               "JsonWebSignature2020",
 		"created":            "2022-03-08T23:38:19Z",
 		"verificationMethod": "did:example:123#key-0",

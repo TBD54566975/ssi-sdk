@@ -69,7 +69,7 @@ func makeDid(_ js.Value, args []js.Value) any {
 
 	// unmarshall into json bytes, then back into a simple struct for converting to js
 	resultBytes, _ := json.Marshal(result)
-	var resultObj map[string]any
+	var resultObj map[string]interface{}
 	json.Unmarshal(resultBytes, &resultObj)
 	return js.ValueOf(resultObj)
 
@@ -93,7 +93,7 @@ func resolveDid(_ js.Value, args []js.Value) any {
 	if err != nil {
 		return err
 	}
-	var resultObj map[string]any
+	var resultObj map[string]interface{}
 	err = json.Unmarshal(resultBytes, &resultObj)
 	if err != nil {
 		return err

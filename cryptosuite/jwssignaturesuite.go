@@ -147,7 +147,7 @@ func (JWSSignatureSuite) Marshal(data any) ([]byte, error) {
 
 func (JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	// the LD library anticipates a generic golang json object to normalize
-	var generic map[string]any
+	var generic map[string]interface{}
 	if err := json.Unmarshal(marshaled, &generic); err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) 
 		return nil, err
 	}
 
-	var genericProof map[string]any
+	var genericProof map[string]interface{}
 	if err = json.Unmarshal(proofBytes, &genericProof); err != nil {
 		return nil, err
 	}
@@ -263,7 +263,7 @@ func JSONWebSignatureProofFromGenericProof(p crypto.Proof) (*JSONWebSignature202
 	if err != nil {
 		return nil, err
 	}
-	var generic map[string]any
+	var generic map[string]interface{}
 	if err = json.Unmarshal(proofBytes, &generic); err != nil {
 		return nil, err
 	}

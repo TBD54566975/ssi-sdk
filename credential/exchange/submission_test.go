@@ -287,13 +287,13 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 
 		vcBytesJWT, err := json.Marshal(vp.VerifiableCredential[1])
 		assert.NoError(tt, err)
-		var asVCJWT map[string]any
+		var asVCJWT map[string]interface{}
 		err = json.Unmarshal(vcBytesJWT, &asVCJWT)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, asVCJWT)
 
 		assert.Equal(tt, "did:example:456", asVCJWT["sub"])
-		assert.Equal(tt, "yellow", asVCJWT["vc"].(map[string]any)["credentialSubject"].(map[string]any)["color"])
+		assert.Equal(tt, "yellow", asVCJWT["vc"].(map[string]interface{})["credentialSubject"].(map[string]interface{})["color"])
 	})
 }
 
@@ -599,19 +599,19 @@ func TestConstructLimitedClaim(t *testing.T) {
 		credSubjRes, ok := result["credentialSubject"]
 		assert.True(tt, ok)
 
-		id, ok := credSubjRes.(map[string]any)["id"]
+		id, ok := credSubjRes.(map[string]interface{})["id"]
 		assert.True(tt, ok)
 		assert.Contains(tt, id, "test-id")
 
-		favoritesRes, ok := credSubjRes.(map[string]any)["favorites"]
+		favoritesRes, ok := credSubjRes.(map[string]interface{})["favorites"]
 		assert.True(tt, ok)
 		assert.NotEmpty(tt, favoritesRes)
 
-		statesRes, ok := favoritesRes.(map[string]any)["citiesByState"]
+		statesRes, ok := favoritesRes.(map[string]interface{})["citiesByState"]
 		assert.True(tt, ok)
 		assert.Contains(tt, statesRes, "CA")
 
-		citiesRes, ok := statesRes.(map[string]any)["CA"]
+		citiesRes, ok := statesRes.(map[string]interface{})["CA"]
 		assert.True(tt, ok)
 		assert.Contains(tt, citiesRes, "Oakland")
 	})
@@ -636,7 +636,7 @@ func TestConstructLimitedClaim(t *testing.T) {
 		assert.True(tt, ok)
 		assert.NotEmpty(tt, csValue)
 
-		addressValue, ok := csValue.(map[string]any)["address"]
+		addressValue, ok := csValue.(map[string]interface{})["address"]
 		assert.True(tt, ok)
 		assert.Contains(tt, addressValue, "road street")
 		assert.Contains(tt, addressValue, "USA")
@@ -651,7 +651,7 @@ func getTestVerifiableCredential() credential.VerifiableCredential {
 		Type:         []string{"VerifiableCredential"},
 		Issuer:       "test-issuer",
 		IssuanceDate: "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]any{
+		CredentialSubject: map[string]interface{}{
 			"id":      "test-vc-id",
 			"company": "Block",
 			"website": "https://block.xyz",
@@ -672,7 +672,7 @@ func getTestVerifiablePresentation() credential.VerifiablePresentation {
 				Type:         []string{"VerifiableCredential"},
 				Issuer:       "test-issuer",
 				IssuanceDate: "2021-01-01T19:23:24Z",
-				CredentialSubject: map[string]any{
+				CredentialSubject: map[string]interface{}{
 					"id":      "test-vp-vc-id",
 					"company": "TBD",
 					"github":  "https://github.com/TBD54566975",
@@ -767,25 +767,25 @@ func getTestJWTVerifiableCredential() string {
 	return strings.ReplaceAll(noTabs, " ", "")
 }
 
-func getGenericTestClaim() map[string]any {
-	return map[string]any{
+func getGenericTestClaim() map[string]interface{} {
+	return map[string]interface{}{
 		"@context": []any{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
 		"type":         []string{"VerifiableCredential"},
 		"issuer":       "did:example:123",
 		"issuanceDate": "2021-01-01T19:23:24Z",
-		"credentialSubject": map[string]any{
+		"credentialSubject": map[string]interface{}{
 			"id":        "test-id",
 			"firstName": "Satoshi",
 			"lastName":  "Nakamoto",
-			"address": map[string]any{
+			"address": map[string]interface{}{
 				"number":  1,
 				"street":  "road street",
 				"country": "USA",
 			},
-			"favorites": map[string]any{
+			"favorites": map[string]interface{}{
 				"color": "blue",
-				"citiesByState": map[string]any{
+				"citiesByState": map[string]interface{}{
 					"NY": []string{"NY"},
 					"CA": []string{"Oakland", "San Francisco"},
 				},

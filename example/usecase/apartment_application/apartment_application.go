@@ -62,7 +62,7 @@ func main() {
 
 	knownIssuer := govtDIDKey
 	knownIssuanceDate := "2020-01-01T19:23:24Z"
-	knownSubject := map[string]any{
+	knownSubject := map[string]interface{}{
 		"id":        string(*holderDIDKey),
 		"birthdate": "1975-01-01",
 	}

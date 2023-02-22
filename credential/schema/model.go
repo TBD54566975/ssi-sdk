@@ -7,7 +7,7 @@ const (
 	VCJSONSchemaType string = "https://w3c-ccg.github.io/vc-json-schemas/schema/2.0/schema.json"
 )
 
-type JSONSchema map[string]any
+type JSONSchema map[string]interface{}
 
 // VCJSONSchema is the model representing the
 // credential json schema specification https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition

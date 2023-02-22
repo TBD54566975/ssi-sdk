@@ -167,7 +167,7 @@ func (vcb *VerifiableCredentialBuilder) SetCredentialStatus(status any) error {
 
 	statusMap, err := util.ToJSONMap(status)
 	if err != nil {
-		return errors.Wrap(err, "status value not of required type map[string]any")
+		return errors.Wrap(err, "status value not of required type map[string]interface{}")
 	}
 
 	// check required properties
