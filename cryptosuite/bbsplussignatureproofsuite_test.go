@@ -2,7 +2,6 @@ package cryptosuite
 
 import (
 	"embed"
-	_ "embed"
 	"encoding/base64"
 	"testing"
 
@@ -181,7 +180,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		selectivelyDisclosedCred, err := proofSuite.SelectivelyDisclose(*verifier, &cred, revealDoc, nonce)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, selectivelyDisclosedCred)
-		
+
 		credBytes, err := json.Marshal(selectivelyDisclosedCred)
 		assert.NoError(tt, err)
 		var genericCred credential.GenericCredential
