@@ -105,7 +105,8 @@ func (b BBSPlusSignatureProofSuite) prepareRevealData(deriveProofResult DerivePr
 	}
 
 	// total # indicies to be revealed = total statements in the proof - original proof result + revealed indicies
-	revealIndices = make([]int, len(canonicalProofStatements)+len(deriveProofResult.RevealedIndicies))
+	numProofStatements := len(canonicalProofStatements)
+	revealIndices = make([]int, numProofStatements+len(deriveProofResult.RevealedIndicies))
 
 	// add the original proof result to the beginning of the reveal indicies
 	for i := range canonicalProofStatements {
@@ -114,7 +115,7 @@ func (b BBSPlusSignatureProofSuite) prepareRevealData(deriveProofResult DerivePr
 
 	// add the other statements to the indicies
 	for i := range deriveProofResult.RevealedIndicies {
-		revealIndices[i+len(canonicalProofStatements)] = deriveProofResult.RevealedIndicies[i]
+		revealIndices[i+numProofStatements] = numProofStatements + deriveProofResult.RevealedIndicies[i]
 	}
 
 	// turn all statements into bytes before signing
