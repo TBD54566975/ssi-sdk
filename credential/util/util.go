@@ -40,7 +40,7 @@ func CredentialsFromInterface(genericCred interface{}) (*credential.VerifiableCr
 	}
 }
 
-// ClaimAsJSON converts a claim with an unknown any into the go-json representation of that credential.
+// ClaimAsJSON converts a claim with an unknown interface{} into the go-json representation of that credential.
 // claim can only be of type {string, map[string]interface, VerifiableCredential}.
 func ClaimAsJSON(claim interface{}) (map[string]interface{}, error) {
 	switch c := claim.(type) {

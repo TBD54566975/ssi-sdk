@@ -25,7 +25,7 @@ type (
 // VerificationOption represents a single option that may be required for a verifier
 type VerificationOption struct {
 	ID     OptionKey
-	Option any
+	Option interface{}
 }
 
 // GetVerificationOption returns a verification option given an ID

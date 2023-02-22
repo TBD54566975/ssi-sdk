@@ -42,13 +42,13 @@ func main() {
 }
 
 // 1. Simplest function - note we wrap things with js.ValueOf (if a primitive you don't technically need to)
-func sayHello(_ js.Value, args []js.Value) any {
+func sayHello(_ js.Value, args []js.Value) interface{} {
 	return js.ValueOf("Hello from golang via wasm!")
 }
 
 // 2. Calling a ssi-sdk function directly - but returning a plain old string
 // TODO: check arg lentgh and return an error if not correct
-func generateKey(_ js.Value, args []js.Value) any {
+func generateKey(_ js.Value, args []js.Value) interface{} {
 
 	keyType := args[0].String()
 	kt := crypto.KeyType(keyType)
@@ -61,7 +61,7 @@ func generateKey(_ js.Value, args []js.Value) any {
 }
 
 // 3. Returning a richer object, converting to json and then unmarshalling to make it a js object
-func makeDid(_ js.Value, args []js.Value) any {
+func makeDid(_ js.Value, args []js.Value) interface{} {
 
 	pubKey, _, _ := crypto.GenerateKeyByKeyType(crypto.Ed25519)
 	didKey, _ := did.CreateDIDKey(crypto.Ed25519, pubKey.(ed25519.PublicKey))
@@ -75,7 +75,7 @@ func makeDid(_ js.Value, args []js.Value) any {
 
 }
 
-func resolveDid(_ js.Value, args []js.Value) any {
+func resolveDid(_ js.Value, args []js.Value) interface{} {
 
 	didString := args[0].String()
 	resolvers := []did.Resolution{did.KeyResolver{}, did.WebResolver{}, did.PKHResolver{}, did.PeerResolver{}}
