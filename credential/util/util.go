@@ -11,7 +11,7 @@ import (
 )
 
 // CredentialsFromInterface turn a generic cred into a known shape without maintaining the proof/signature wrapper
-func CredentialsFromInterface(genericCred any) (*credential.VerifiableCredential, error) {
+func CredentialsFromInterface(genericCred interface{}) (*credential.VerifiableCredential, error) {
 	switch genericCred.(type) {
 	case string:
 		// JWT

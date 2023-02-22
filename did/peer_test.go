@@ -209,7 +209,7 @@ func TestPeerMethod2(t *testing.T) {
 		Accept:          []string{"didcomm/v2"},
 	}
 
-	m2 := PeerMethod2{KT: kt, Values: []any{pubKey, service}}
+	m2 := PeerMethod2{KT: kt, Values: []interface{}{pubKey, service}}
 
 	did, err := m2.Generate()
 	assert.NoError(t, err)

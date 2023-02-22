@@ -121,7 +121,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 	return nil
 }
 
-func toPresentationSubmission(maybePresentationSubmission any) (*PresentationSubmission, error) {
+func toPresentationSubmission(maybePresentationSubmission interface{}) (*PresentationSubmission, error) {
 	bytes, err := json.Marshal(maybePresentationSubmission)
 	if err != nil {
 		return nil, err
@@ -133,7 +133,7 @@ func toPresentationSubmission(maybePresentationSubmission any) (*PresentationSub
 	return &submission, nil
 }
 
-func findMatchingPath(claim any, paths []string) error {
+func findMatchingPath(claim interface{}, paths []string) error {
 	for _, path := range paths {
 		if _, err := jsonpath.JsonPathLookup(claim, path); err == nil {
 			return nil

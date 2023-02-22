@@ -48,7 +48,7 @@ func TestInterfaceToStrings(t *testing.T) {
 
 func TestArrayInterfaceToStr(t *testing.T) {
 	t.Run("simple string array", func(tt *testing.T) {
-		data := []any{"hello"}
+		data := []interface{}{"hello"}
 		res, err := ArrayInterfaceToStr(data)
 		assert.NoError(tt, err)
 		assert.True(tt, len(res) == 1)

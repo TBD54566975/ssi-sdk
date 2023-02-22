@@ -65,7 +65,7 @@ func (vcb *VerifiableCredentialBuilder) IsEmpty() bool {
 	return reflect.DeepEqual(vcb, &VerifiableCredentialBuilder{})
 }
 
-func (vcb *VerifiableCredentialBuilder) AddContext(context any) error {
+func (vcb *VerifiableCredentialBuilder) AddContext(context interface{}) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -88,7 +88,7 @@ func (vcb *VerifiableCredentialBuilder) SetID(id string) error {
 	return nil
 }
 
-func (vcb *VerifiableCredentialBuilder) AddType(t any) error {
+func (vcb *VerifiableCredentialBuilder) AddType(t interface{}) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -102,7 +102,7 @@ func (vcb *VerifiableCredentialBuilder) AddType(t any) error {
 	return nil
 }
 
-func (vcb *VerifiableCredentialBuilder) SetIssuer(issuer any) error {
+func (vcb *VerifiableCredentialBuilder) SetIssuer(issuer interface{}) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -160,7 +160,7 @@ func (vcb *VerifiableCredentialBuilder) SetExpirationDate(dateTime string) error
 	return nil
 }
 
-func (vcb *VerifiableCredentialBuilder) SetCredentialStatus(status any) error {
+func (vcb *VerifiableCredentialBuilder) SetCredentialStatus(status interface{}) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -233,7 +233,7 @@ func (vcb *VerifiableCredentialBuilder) SetTermsOfUse(terms []TermsOfUse) error 
 	return nil
 }
 
-func (vcb *VerifiableCredentialBuilder) SetEvidence(evidence []any) error {
+func (vcb *VerifiableCredentialBuilder) SetEvidence(evidence []interface{}) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -289,7 +289,7 @@ func (vpb *VerifiablePresentationBuilder) IsEmpty() bool {
 	return reflect.DeepEqual(vpb, &VerifiablePresentationBuilder{})
 }
 
-func (vpb *VerifiablePresentationBuilder) AddContext(context any) error {
+func (vpb *VerifiablePresentationBuilder) AddContext(context interface{}) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -321,7 +321,7 @@ func (vpb *VerifiablePresentationBuilder) SetHolder(holder string) error {
 	return nil
 }
 
-func (vpb *VerifiablePresentationBuilder) AddType(t any) error {
+func (vpb *VerifiablePresentationBuilder) AddType(t interface{}) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -335,7 +335,7 @@ func (vpb *VerifiablePresentationBuilder) AddType(t any) error {
 	return nil
 }
 
-func (vpb *VerifiablePresentationBuilder) SetPresentationSubmission(ps any) error {
+func (vpb *VerifiablePresentationBuilder) SetPresentationSubmission(ps interface{}) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -346,7 +346,7 @@ func (vpb *VerifiablePresentationBuilder) SetPresentationSubmission(ps any) erro
 
 // AddVerifiableCredentials appends the given credentials to the verifiable presentation.
 // It does not check for duplicates.
-func (vpb *VerifiablePresentationBuilder) AddVerifiableCredentials(creds ...any) error {
+func (vpb *VerifiablePresentationBuilder) AddVerifiableCredentials(creds ...interface{}) error {
 	if vpb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}

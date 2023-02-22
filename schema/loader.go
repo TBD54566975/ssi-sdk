@@ -112,7 +112,7 @@ func (cl *CachingLoader) cachingLoaderForProtocol(protocol string) func(url stri
 // GetCachedSchemas returns an array of cached schema URIs
 func (cl *CachingLoader) GetCachedSchemas() ([]string, error) {
 	var schemas []string
-	cl.schemas.Range(func(_, value any) bool {
+	cl.schemas.Range(func(_, value interface{}) bool {
 		schemas = append(schemas, value.(string))
 		return true
 	})

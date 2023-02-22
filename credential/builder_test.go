@@ -20,7 +20,7 @@ func TestCredential(t *testing.T) {
 		"id": "did:example:ebfeb1f712ebc6f1c276e12ec21",
 		"alumniOf": map[string]interface{}{
 			"id": "did:example:c276e12ec21ebfeb1f712ebc6f1",
-			"name": []any{
+			"name": []interface{}{
 				map[string]interface{}{"value": "Example University",
 					"lang": "en",
 				}, map[string]interface{}{

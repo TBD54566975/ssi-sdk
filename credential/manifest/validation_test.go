@@ -372,7 +372,7 @@ func getValidTestCredManifestCredApplication(t *testing.T) (CredentialManifest, 
 	require.NotEmpty(t, vc)
 	require.NoError(t, vc.IsValid())
 
-	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []any{vc}}
+	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []interface{}{vc}}
 }
 
 func getValidTestCredManifestCredApplicationJWTCred(t *testing.T) (CredentialManifest, CredentialApplicationWrapper) {
@@ -416,5 +416,5 @@ func getValidTestCredManifestCredApplicationJWTCred(t *testing.T) (CredentialMan
 	require.NoError(t, err)
 	require.NotEmpty(t, jwt)
 
-	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []any{string(jwt)}}
+	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []interface{}{string(jwt)}}
 }

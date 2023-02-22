@@ -112,7 +112,7 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 	jwtData := map[string]interface{}{
 		"id":   "abcd",
 		"jti":  "1234",
-		"data": []any{"one", "two", "three"},
+		"data": []interface{}{"one", "two", "three"},
 		"more_data": map[string]int{
 			"a": 1,
 			"b": 2,

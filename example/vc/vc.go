@@ -26,7 +26,7 @@ func main() {
 		"id": "did:example:ebfeb1f712ebc6f1c276e12ec21", // did:<method-name>:<method-specific-id>
 		"alumniOf": map[string]interface{}{ // claims are here
 			"id": "did:example:c276e12ec21ebfeb1f712ebc6f1",
-			"name": []any{
+			"name": []interface{}{
 				map[string]interface{}{"value": "Example University",
 					"lang": "en",
 				}, map[string]interface{}{

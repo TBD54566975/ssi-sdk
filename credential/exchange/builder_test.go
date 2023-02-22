@@ -117,7 +117,7 @@ func TestInputDescriptorBuilderProperties(t *testing.T) {
 		   }
 		}`)
 
-	var props any
+	var props interface{}
 	err := json.Unmarshal(b, &props)
 	assert.NoError(t, err)
 
@@ -169,7 +169,7 @@ func TestInputDescriptorBuilderRequired(t *testing.T) {
 		   }
 		}`)
 
-	var props any
+	var props interface{}
 	err := json.Unmarshal(b, &props)
 	assert.NoError(t, err)
 

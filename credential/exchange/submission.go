@@ -57,7 +57,7 @@ func (pc *PresentationClaim) IsEmpty() bool {
 
 // GetClaimValue returns the value of the claim, since PresentationClaim is a union type. An error is returned if
 // no value is present in any of the possible embedded types.
-func (pc *PresentationClaim) GetClaimValue() (any, error) {
+func (pc *PresentationClaim) GetClaimValue() (interface{}, error) {
 	if pc.Credential != nil {
 		return *pc.Credential, nil
 	}
@@ -293,7 +293,7 @@ type processedInputDescriptor struct {
 // limitedInputDescriptor is the claim data after being filtered/limited via JSON path
 type limitedInputDescriptor struct {
 	Path string
-	Data any
+	Data interface{}
 }
 
 // processInputDescriptor runs the input evaluation algorithm described in the spec for a specific input descriptor

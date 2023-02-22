@@ -104,7 +104,7 @@ func NoOpVerifier(_ credential.VerifiableCredential, _ ...VerificationOption) er
 
 func getSampleCredential() credential.VerifiableCredential {
 	return credential.VerifiableCredential{
-		Context: []any{"https://www.w3.org/2018/credentials/v1",
+		Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
 		ID:             "test-verifiable-credential",
 		Type:           []string{"VerifiableCredential"},

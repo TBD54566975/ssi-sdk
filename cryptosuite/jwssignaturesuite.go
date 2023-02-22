@@ -136,7 +136,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 
 // CryptoSuiteProofType interface
 
-func (JWSSignatureSuite) Marshal(data any) ([]byte, error) {
+func (JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 	// JSONify the provable object
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
@@ -237,7 +237,7 @@ func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) 
 		genericProof["created"] = GetRFC3339Timestamp()
 	}
 
-	var contexts []any
+	var contexts []interface{}
 	if opts != nil && len(opts.Contexts) > 0 {
 		contexts = opts.Contexts
 	} else {

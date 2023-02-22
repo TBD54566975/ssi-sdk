@@ -38,7 +38,7 @@ func NewErrorResponse(errorType Type, errorMessage string) *Response {
 	}
 }
 
-func NewErrorResponsef(errorType Type, msg string, a ...any) *Response {
+func NewErrorResponsef(errorType Type, msg string, a ...interface{}) *Response {
 	return &Response{
 		Valid:     isApplicationErr(errorType),
 		ErrorType: errorType,

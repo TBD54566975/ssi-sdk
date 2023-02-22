@@ -26,7 +26,7 @@ func BuildExampleUniversityVC(universityID, recipient string) (*credential.Verif
 		"id": universityID, // did:<method-name>:<method-specific-id>
 		"alumniOf": map[string]interface{}{ // claims are here
 			"id": recipient,
-			"name": []any{
+			"name": []interface{}{
 				map[string]interface{}{"value": "Example University",
 					"lang": "en",
 				}, map[string]interface{}{

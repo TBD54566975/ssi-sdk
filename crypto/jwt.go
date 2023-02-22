@@ -111,7 +111,7 @@ func jwkVerifierFromKey(kid string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgorit
 	return jwtSignerVerifier(kid, key)
 }
 
-func jwtSignerVerifier(kid string, key any) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+func jwtSignerVerifier(kid string, key interface{}) (jwk.Key, *jwa.SignatureAlgorithm, error) {
 	jwkBytes, err := json.Marshal(key)
 	if err != nil {
 		return nil, nil, err

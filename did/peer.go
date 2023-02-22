@@ -153,7 +153,7 @@ func (PeerMethod1) Method() Method {
 // PeerMethod2 Method 2: multiple inception key without doc
 type PeerMethod2 struct {
 	KT     crypto.KeyType
-	Values []any
+	Values []interface{}
 }
 
 func (PeerMethod2) Method() Method {

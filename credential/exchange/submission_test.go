@@ -115,7 +115,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		assert.NotEmpty(tt, asVC)
 
 		assert.Equal(tt, "test-verifiable-credential", asVC.ID)
-		assert.Equal(tt, "Block", asVC.CredentialSubject["company"])
+		assert.Equal(tt, "Block", asVC.CredentialSubject["compinterface{}"])
 	})
 
 	t.Run("Single input descriptor definition with no matching claims", func(tt *testing.T) {

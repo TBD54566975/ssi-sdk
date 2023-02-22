@@ -11,22 +11,22 @@ import (
 // vc-data-model spec https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concepts
 type VerifiableCredential struct {
 	// Either a string or set of strings
-	Context any    `json:"@context" validate:"required"`
-	ID      string `json:"id,omitempty"`
+	Context interface{} `json:"@context" validate:"required"`
+	ID      string      `json:"id,omitempty"`
 	// Either a string or a set of strings https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#types
-	Type any `json:"type" validate:"required"`
+	Type interface{} `json:"type" validate:"required"`
 	// either a URI or an object containing an `id` property.
-	Issuer any `json:"issuer" validate:"required"`
+	Issuer interface{} `json:"issuer" validate:"required"`
 	// https://www.w3.org/TR/xmlschema11-2/#dateTimes
-	IssuanceDate     string `json:"issuanceDate" validate:"required"`
-	ExpirationDate   string `json:"expirationDate,omitempty"`
-	CredentialStatus any    `json:"credentialStatus,omitempty" validate:"omitempty,dive"`
+	IssuanceDate     string      `json:"issuanceDate" validate:"required"`
+	ExpirationDate   string      `json:"expirationDate,omitempty"`
+	CredentialStatus interface{} `json:"credentialStatus,omitempty" validate:"omitempty,dive"`
 	// This is where the subject's ID *may* be present
 	CredentialSubject CredentialSubject `json:"credentialSubject" validate:"required"`
 	CredentialSchema  *CredentialSchema `json:"credentialSchema,omitempty" validate:"omitempty,dive"`
 	RefreshService    *RefreshService   `json:"refreshService,omitempty" validate:"omitempty,dive"`
 	TermsOfUse        []TermsOfUse      `json:"termsOfUse,omitempty" validate:"omitempty,dive"`
-	Evidence          []any             `json:"evidence,omitempty" validate:"omitempty,dive"`
+	Evidence          []interface{}     `json:"evidence,omitempty" validate:"omitempty,dive"`
 	// For embedded proof support
 	// Proof is a digital signature over a credential https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#proofs-signatures
 	Proof *crypto.Proof `json:"proof,omitempty"`
@@ -121,14 +121,14 @@ func (v *VerifiableCredential) IsValid() error {
 // VerifiablePresentation https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#presentations-0
 type VerifiablePresentation struct {
 	// Either a string or set of strings
-	Context any    `json:"@context,omitempty"`
-	ID      string `json:"id,omitempty"`
-	Holder  string `json:"holder,omitempty"`
-	Type    any    `json:"type" validate:"required"`
+	Context interface{} `json:"@context,omitempty"`
+	ID      string      `json:"id,omitempty"`
+	Holder  string      `json:"holder,omitempty"`
+	Type    interface{} `json:"type" validate:"required"`
 	// an optional field as a part of https://identity.foundation/presentation-exchange/#embed-targets
-	PresentationSubmission any `json:"presentation_submission,omitempty"`
+	PresentationSubmission interface{} `json:"presentation_submission,omitempty"`
 	// Verifiable credential could be our object model, a JWT, or any other valid credential representation
-	VerifiableCredential []any         `json:"verifiableCredential,omitempty"`
+	VerifiableCredential []interface{} `json:"verifiableCredential,omitempty"`
 	Proof                *crypto.Proof `json:"proof,omitempty"`
 }
 
