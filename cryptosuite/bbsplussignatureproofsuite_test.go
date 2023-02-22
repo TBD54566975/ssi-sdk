@@ -3,6 +3,7 @@ package cryptosuite
 import (
 	"embed"
 	_ "embed"
+	"encoding/base64"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -10,6 +11,7 @@ import (
 	bbsg2 "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
 	"github.com/mr-tron/base58"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -52,7 +54,11 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 			"issuer":   map[string]any{},
 		}
 		verifier := NewBBSPlusVerifier("test-key-1", privKey.PublicKey())
-		selectiveDisclosure, err := proofSuite.SelectivelyDisclose(*verifier, &testCred, revealDoc)
+
+		nonce, err := base64.StdEncoding.DecodeString("G/hn9Ca9bIWZpJGlhnr/41r8RB0OO0TLChZASr3QJVztdri/JzS8Zf/xWJT5jW78zlM=")
+		require.NoError(t, err)
+
+		selectiveDisclosure, err := proofSuite.SelectivelyDisclose(*verifier, &testCred, revealDoc, nonce)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, selectiveDisclosure)
 
@@ -62,9 +68,6 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(tt, err)
 		err = json.Unmarshal(sdBytes, &genericCred)
 		assert.NoError(tt, err)
-
-		b, _ := json.Marshal(genericCred)
-		println(string(b))
 
 		err = proofSuite.Verify(verifier, &genericCred)
 		assert.NoError(tt, err)
@@ -103,7 +106,10 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		err = json.Unmarshal([]byte(case16RevealDoc), &revealDoc)
 		assert.NoError(tt, err)
 
-		selectiveDisclosure, err := proofSuite.SelectivelyDisclose(*verifier, &cred, revealDoc)
+		nonce, err := base64.StdEncoding.DecodeString("G/hn9Ca9bIWZpJGlhnr/41r8RB0OO0TLChZASr3QJVztdri/JzS8Zf/xWJT5jW78zlM=")
+		require.NoError(t, err)
+
+		selectiveDisclosure, err := proofSuite.SelectivelyDisclose(*verifier, &cred, revealDoc, nonce)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, selectiveDisclosure)
 

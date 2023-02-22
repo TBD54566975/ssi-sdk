@@ -274,6 +274,7 @@ type BBSPlusSignature2020Proof struct {
 	VerificationMethod       string        `json:"verificationMethod,omitempty"`
 	ProofPurpose             ProofPurpose  `json:"proofPurpose,omitempty"`
 	ProofValue               string        `json:"proofValue,omitempty"`
+	Nonce                    string        `json:"nonce,omitempty"`
 	RequiredRevealStatements []int         `json:"requiredRevealStatements,omitempty"`
 }
 
@@ -322,6 +323,10 @@ func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, e
 	if !ok {
 		proofValue = ""
 	}
+	nonce, ok := generic["nonce"].(string)
+	if !ok {
+		nonce = ""
+	}
 	requiredRevealStatements, ok := generic["requiredRevealStatements"].([]int)
 	if !ok {
 		requiredRevealStatements = nil
@@ -332,6 +337,7 @@ func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, e
 		VerificationMethod:       methodValue,
 		ProofPurpose:             ProofPurpose(purposeValue),
 		ProofValue:               proofValue,
+		Nonce:                    nonce,
 		RequiredRevealStatements: requiredRevealStatements,
 	}, nil
 }

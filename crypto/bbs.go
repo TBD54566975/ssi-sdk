@@ -81,13 +81,13 @@ func (v *BBSPlusVerifier) Verify(message, signature []byte) error {
 	return bls.Verify(prepareBBSMessage(message), signature, pubKeyBytes)
 }
 
-func (v *BBSPlusVerifier) VerifyDerived(message, signature []byte) error {
+func (v *BBSPlusVerifier) VerifyDerived(message, signature, nonce []byte) error {
 	bls := bbsg2.New()
 	pubKeyBytes, err := v.PublicKey.Marshal()
 	if err != nil {
 		return err
 	}
-	return bls.Verify(prepareBBSDerivedMessage(message), signature, pubKeyBytes)
+	return bls.VerifyProof(prepareBBSDerivedMessage(message), signature, nonce, pubKeyBytes)
 }
 
 func (v *BBSPlusVerifier) VerifyMultiple(signature []byte, messages ...[]byte) error {
@@ -117,18 +117,18 @@ func SignBBSMessage(privKey *bbsg2.PrivateKey, messages ...[]byte) ([]byte, erro
 	return signer.SignMultiple(messages...)
 }
 
-func VerifyBBSMessage(pubKey *bbsg2.PublicKey, signature []byte, message []byte) error {
+func VerifyBBSMessage(pubKey *bbsg2.PublicKey, signature, message []byte) error {
 	verifier := BBSPlusVerifier{
 		PublicKey: pubKey,
 	}
 	return verifier.Verify(message, signature)
 }
 
-func VerifyDerivedBBSMessage(pubKey *bbsg2.PublicKey, signature []byte, message []byte) error {
+func VerifyDerivedBBSMessage(pubKey *bbsg2.PublicKey, signature, message, nonce []byte) error {
 	verifier := BBSPlusVerifier{
 		PublicKey: pubKey,
 	}
-	return verifier.VerifyDerived(message, signature)
+	return verifier.VerifyDerived(message, signature, nonce)
 }
 
 // helpers

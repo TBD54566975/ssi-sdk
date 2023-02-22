@@ -8,7 +8,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	. "github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -51,7 +50,7 @@ func (BBSPlusSignatureProofSuite) RequiredContexts() []string {
 }
 
 // SelectivelyDisclose takes in a credential and  a map of fields to disclose as an LD frame
-func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]any) (map[string]any, error) {
+func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]any, nonce []byte) (map[string]any, error) {
 	// remove the proof from the document
 	proofCopy := p.GetProof()
 	p.SetProof(nil)
@@ -78,9 +77,6 @@ func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Pro
 		return nil, err
 	}
 
-	// generate a nonce
-	nonce := []byte(uuid.New().String())
-
 	// derive the proof
 	derivedProofValue, err := v.DeriveProof(statements, signatureBytes, nonce, revealIndicies)
 	if err != nil {
@@ -93,7 +89,8 @@ func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Pro
 		Created:            bbsPlusProof.Created,
 		VerificationMethod: bbsPlusProof.VerificationMethod,
 		ProofPurpose:       bbsPlusProof.ProofPurpose,
-		ProofValue:         base64.RawStdEncoding.EncodeToString(derivedProofValue),
+		ProofValue:         base64.StdEncoding.EncodeToString(derivedProofValue),
+		Nonce:              base64.StdEncoding.EncodeToString(nonce),
 	}
 	derivedCred := deriveProofResult.RevealedDocument
 	derivedCred["proof"] = derivedProof
@@ -269,7 +266,11 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 		return errors.New("verifier does not implement BBSPlusVerifier")
 	}
 
-	if err = bbsPlusVerifier.VerifyDerived(tbv, signatureValue); err != nil {
+	nonce, err := base64.StdEncoding.DecodeString(gotProof.Nonce)
+	if err != nil {
+		return errors.Wrap(err, "could not decode nonce")
+	}
+	if err = bbsPlusVerifier.VerifyDerived(tbv, signatureValue, nonce); err != nil {
 		return errors.Wrap(err, "could not verify BBS+ signature")
 	}
 	return nil
