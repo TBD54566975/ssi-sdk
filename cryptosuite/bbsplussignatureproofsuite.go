@@ -174,7 +174,7 @@ func (b BBSPlusSignatureProofSuite) prepareBLSProof(bbsPlusProof BBSPlusSignatur
 	if err = json.Unmarshal(marshaledProof, &genericProof); err != nil {
 		return nil, err
 	}
-	genericProof["@context"] = b.RequiredContexts()
+	genericProof["@context"] = W3CSecurityContext
 
 	proofBytes, err := json.Marshal(genericProof)
 	if err != nil {

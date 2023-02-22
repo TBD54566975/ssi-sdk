@@ -16,8 +16,9 @@ import (
 
 const (
 	// Case 16 (https://github.com/w3c-ccg/vc-http-api/pull/128)
-	TestVector1       string = "case16_vc.jsonld"
-	TestVector1Reveal string = "case16_reveal_doc.jsonld"
+	TestVector1         string = "case16_vc.jsonld"
+	TestVector1Reveal   string = "case16_reveal_doc.jsonld"
+	TestVector1Revealed string = "case16_revealed.jsonld"
 )
 
 var (
@@ -43,7 +44,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(t, err)
 		privKey, err := key.GetPrivateKey()
 		assert.NoError(t, err)
-		signer := NewBBSPlusSigner("test-key-1", privKey, Authentication)
+		signer := NewBBSPlusSigner("test-key-1", privKey, AssertionMethod)
 		err = suite.Sign(signer, &testCred)
 		assert.NoError(t, err)
 
@@ -63,12 +64,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NotEmpty(tt, selectiveDisclosure)
 
 		// now verify the derived credential
-		var genericCred credential.GenericCredential
-		sdBytes, err := json.Marshal(selectiveDisclosure)
-		assert.NoError(tt, err)
-		err = json.Unmarshal(sdBytes, &genericCred)
-		assert.NoError(tt, err)
-
+		genericCred := credential.GenericCredential(selectiveDisclosure)
 		err = proofSuite.Verify(verifier, &genericCred)
 		assert.NoError(tt, err)
 	})
@@ -88,7 +84,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 
 		pubKey, err := bbsg2.UnmarshalPublicKey(pubKeyBytes)
 		assert.NoError(tt, err)
-		verifier := NewBBSPlusVerifier("test-key-1", pubKey)
+		verifier := NewBBSPlusVerifier("did:key:zUC724vuGvHpnCGFG1qqpXb81SiBLu3KLSqVzenwEZNPoY35i2Bscb8DLaVwHvRFs6F2NkNNXRcPWvqnPDUd9ukdjLkjZd3u9zzL4wDZDUpkPAatLDGLEYVo8kkAzuAKJQMr7N2#zUC724vuGvHpnCGFG1qqpXb81SiBLu3KLSqVzenwEZNPoY35i2Bscb8DLaVwHvRFs6F2NkNNXRcPWvqnPDUd9ukdjLkjZd3u9zzL4wDZDUpkPAatLDGLEYVo8kkAzuAKJQMr7N2", pubKey)
 		assert.NotEmpty(tt, verifier)
 
 		// First verify the credential as is
@@ -114,13 +110,31 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NotEmpty(tt, selectiveDisclosure)
 
 		// now verify the derived credential
-		var genericCred credential.GenericCredential
-		sdBytes, err := json.Marshal(selectiveDisclosure)
+		genericCred := credential.GenericCredential(selectiveDisclosure)
+		err = proofSuite.Verify(verifier, &genericCred)
 		assert.NoError(tt, err)
-		err = json.Unmarshal(sdBytes, &genericCred)
+	})
+
+	t.Run("verify known selective disclosure", func(tt *testing.T) {
+		revealedDoc, err := getTestVector(TestVector1Revealed)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, revealedDoc)
+
+		var genericCred credential.GenericCredential
+		err = json.Unmarshal([]byte(revealedDoc), &genericCred)
 		assert.NoError(tt, err)
 
-		err = proofSuite.Verify(verifier, &genericCred)
+		base58PubKey := "nEP2DEdbRaQ2r5Azeatui9MG6cj7JUHa8GD7khub4egHJREEuvj4Y8YG8w51LnhPEXxVV1ka93HpSLkVzeQuuPE1mH9oCMrqoHXAKGBsuDT1yJvj9cKgxxLCXiRRirCycki"
+		pubKeyBytes, err := base58.Decode(base58PubKey)
+		assert.NoError(tt, err)
+
+		pubKey, err := bbsg2.UnmarshalPublicKey(pubKeyBytes)
+		assert.NoError(tt, err)
+		verifier := NewBBSPlusVerifier("did:key:zUC724vuGvHpnCGFG1qqpXb81SiBLu3KLSqVzenwEZNPoY35i2Bscb8DLaVwHvRFs6F2NkNNXRcPWvqnPDUd9ukdjLkjZd3u9zzL4wDZDUpkPAatLDGLEYVo8kkAzuAKJQMr7N2#zUC724vuGvHpnCGFG1qqpXb81SiBLu3KLSqVzenwEZNPoY35i2Bscb8DLaVwHvRFs6F2NkNNXRcPWvqnPDUd9ukdjLkjZd3u9zzL4wDZDUpkPAatLDGLEYVo8kkAzuAKJQMr7N2", pubKey)
+		assert.NotEmpty(tt, verifier)
+
+		suite := GetBBSPlusSignatureProofSuite()
+		err = suite.Verify(verifier, &genericCred)
 		assert.NoError(tt, err)
 	})
 }

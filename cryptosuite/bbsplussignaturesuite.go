@@ -295,14 +295,21 @@ func (b *BBSPlusSignature2020Proof) ToGenericProof() (crypto.Proof, error) {
 }
 
 func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, error) {
-	proofBytes, err := json.Marshal(p)
-	if err != nil {
-		return nil, err
+	// check if the proof is an array
+	if proofArray, ok := p.([]any); ok {
+		if len(proofArray) == 0 {
+			return nil, errors.New("expected at least one proof")
+		}
+		if len(proofArray) > 1 {
+			return nil, errors.New("expected only one proof")
+		}
+		p = proofArray[0]
 	}
-	var generic map[string]any
-	if err = json.Unmarshal(proofBytes, &generic); err != nil {
-		return nil, err
+	generic, ok := p.(map[string]any)
+	if !ok {
+		return nil, errors.New("proof is not a map")
 	}
+
 	typeValue, ok := generic["type"].(string)
 	if !ok {
 		typeValue = ""
