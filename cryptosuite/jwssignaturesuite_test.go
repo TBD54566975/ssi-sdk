@@ -267,11 +267,11 @@ func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
 }
 
 type TestVerifiablePresentation struct {
-	Context                any              `json:"@context,omitempty"`
+	Context                interface{}      `json:"@context,omitempty"`
 	ID                     string           `json:"id,omitempty"`
 	Holder                 string           `json:"holder,omitempty"`
-	Type                   any              `json:"type" validate:"required"`
-	PresentationSubmission any              `json:"presentation_submission,omitempty"`
+	Type                   interface{}      `json:"type" validate:"required"`
+	PresentationSubmission interface{}      `json:"presentation_submission,omitempty"`
 	VerifiableCredential   []TestCredential `json:"verifiableCredential,omitempty" validate:"omitempty,dive"`
 	Proof                  *crypto.Proof    `json:"proof,omitempty"`
 }

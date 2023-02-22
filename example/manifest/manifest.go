@@ -259,7 +259,7 @@ func prepareCredentialApplication(cm manifest.CredentialManifest, vc credential.
 
 	return &manifest.CredentialApplicationWrapper{
 		CredentialApplication: *application,
-		Credentials:           []interface{}{vc},
+		Credentials:           []any{vc},
 	}, nil
 }
 
@@ -313,7 +313,7 @@ func processCredentialApplication(cm manifest.CredentialManifest, ca manifest.Cr
 		return nil, err
 	}
 
-	request := make(map[string]interface{})
+	request := make(map[string]any)
 	if err = json.Unmarshal(credAppRequestBytes, &request); err != nil {
 		return nil, err
 	}
@@ -356,7 +356,7 @@ func processCredentialApplication(cm manifest.CredentialManifest, ca manifest.Cr
 
 	return &manifest.CredentialResponseWrapper{
 		CredentialResponse: *credentialResponse,
-		Credentials:        []interface{}{licenseCredential},
+		Credentials:        []any{licenseCredential},
 	}, nil
 }
 
