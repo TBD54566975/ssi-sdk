@@ -32,7 +32,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		// generate a test credential to selectively disclosure just the issuer
 		suite := GetBBSPlusSignatureSuite()
 		testCred := TestCredential{
-			Context: []any{"https://www.w3.org/2018/credentials/v1",
+			Context: []interface{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/bbs/v1"},
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       "did:example:123",
@@ -51,7 +51,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 
 		proofSuite := GetBBSPlusSignatureProofSuite()
 		revealDoc := map[string]interface{}{
-			"@context": []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/bbs/v1"},
+			"@context": []interface{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/bbs/v1"},
 			"type":     "VerifiableCredential",
 			"issuer":   map[string]interface{}{},
 		}

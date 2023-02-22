@@ -227,12 +227,12 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// empty evidence
-	err = builder.SetEvidence([]any{})
+	err = builder.SetEvidence([]interface{})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "evidence cannot be empty")
 
 	// valid evidence
-	evidence := []any{"evidence"}
+	evidence := []interface{"evidence"}
 	err = builder.SetEvidence(evidence)
 	assert.NoError(t, err)
 
@@ -303,7 +303,7 @@ func TestVerifiablePresentationBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// add two credentials
-	creds := []any{
+	creds := []interface{}{
 		VerifiableCredential{
 			ID:     "cred-1",
 			Type:   "type",

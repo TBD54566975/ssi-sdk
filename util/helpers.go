@@ -255,13 +255,13 @@ func InterfaceToInterfaceArray(have interface{}) ([]interface{}, error) {
 	// case 1: it's a string
 	strVal, ok := have.(string)
 	if ok {
-		return []any{strVal}, nil
+		return []interface{}{strVal}, nil
 	}
 
 	// case 2: it's an array of string types
 	strVals, ok := have.([]string)
 	if ok {
-		var want []any
+		var want []interface{}
 		for _, s := range strVals {
 			want = append(want, s)
 		}
@@ -269,16 +269,16 @@ func InterfaceToInterfaceArray(have interface{}) ([]interface{}, error) {
 	}
 
 	// case 3: it's an array of interface types
-	interVals, ok := have.([]any)
+	interVals, ok := have.([]interface{})
 	if ok {
 		return interVals, nil
 	}
 
 	// case 4: it's another interface type
-	return []any{have}, nil
+	return []interface{}{have}, nil
 }
 
-// InterfaceToStrings assumes we are given an interface of either `string`, `[]string` or `[]any` types
+// InterfaceToStrings assumes we are given an interface of either `string`, `[]string` or `[]interface{}` types
 // and attempts to flatten into an array of strings
 func InterfaceToStrings(have any) ([]string, error) {
 	// case 1: it's a string
@@ -298,7 +298,7 @@ func InterfaceToStrings(have any) ([]string, error) {
 	}
 
 	// case 3: it's an array of interface types
-	interVals, ok := have.([]any)
+	interVals, ok := have.([]interface{})
 	if ok {
 		return ArrayInterfaceToStr(interVals)
 	}

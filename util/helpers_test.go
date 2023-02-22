@@ -56,14 +56,14 @@ func TestArrayInterfaceToStr(t *testing.T) {
 	})
 
 	t.Run("multi value string array", func(tt *testing.T) {
-		data := []any{"hello", "goodbye"}
+		data := []interface{}{"hello", "goodbye"}
 		res, err := ArrayInterfaceToStr(data)
 		assert.NoError(tt, err)
 		assert.True(tt, len(res) == 2)
 	})
 
 	t.Run("non string array", func(tt *testing.T) {
-		bad := []any{2}
+		bad := []interface{}{2}
 		_, err := ArrayInterfaceToStr(bad)
 		assert.Error(tt, err)
 	})

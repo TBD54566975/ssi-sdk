@@ -259,7 +259,7 @@ func prepareCredentialApplication(cm manifest.CredentialManifest, vc credential.
 
 	return &manifest.CredentialApplicationWrapper{
 		CredentialApplication: *application,
-		Credentials:           []any{vc},
+		Credentials:           []interface{}{vc},
 	}, nil
 }
 
@@ -356,7 +356,7 @@ func processCredentialApplication(cm manifest.CredentialManifest, ca manifest.Cr
 
 	return &manifest.CredentialResponseWrapper{
 		CredentialResponse: *credentialResponse,
-		Credentials:        []any{licenseCredential},
+		Credentials:        []interface{}{licenseCredential},
 	}, nil
 }
 

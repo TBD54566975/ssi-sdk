@@ -86,7 +86,7 @@ func (od *OutputDescriptor) IsValid() error {
 
 type CredentialApplicationWrapper struct {
 	CredentialApplication CredentialApplication `json:"credential_application"`
-	Credentials           []any                 `json:"verifiableCredentials,omitempty"`
+	Credentials           []interface{}         `json:"verifiableCredentials,omitempty"`
 }
 
 // CredentialApplication https://identity.foundation/credential-manifest/#credential-application
@@ -123,7 +123,7 @@ func (ca *CredentialApplication) IsValid() error {
 
 type CredentialResponseWrapper struct {
 	CredentialResponse CredentialResponse `json:"credential_response"`
-	Credentials        []any              `json:"verifiableCredentials,omitempty"`
+	Credentials        []interface{}      `json:"verifiableCredentials,omitempty"`
 }
 
 // CredentialResponse https://identity.foundation/credential-manifest/#credential-response

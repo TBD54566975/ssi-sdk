@@ -95,7 +95,7 @@ func (pc *PresentationClaim) GetClaimFormat() (string, error) {
 	return "", errors.New("claim is empty")
 }
 
-// GetClaimJSON gets the claim value and attempts to turn it into a generic go-JSON object represented by an any
+// GetClaimJSON gets the claim value and attempts to turn it into a generic go-JSON object represented by an interface{}
 func (pc *PresentationClaim) GetClaimJSON() (map[string]interface{}, error) {
 	claimValue, err := pc.GetClaimValue()
 	if err != nil {

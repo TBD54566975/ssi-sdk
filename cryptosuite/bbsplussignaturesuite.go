@@ -109,7 +109,7 @@ func (b BBSPlusSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptio
 		genericProof["created"] = GetRFC3339Timestamp()
 	}
 
-	var contexts []any
+	var contexts []interface{}
 	if opts != nil {
 		contexts = opts.Contexts
 	} else {
@@ -296,7 +296,7 @@ func (b *BBSPlusSignature2020Proof) ToGenericProof() (crypto.Proof, error) {
 
 func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, error) {
 	// check if the proof is an array
-	if proofArray, ok := p.([]any); ok {
+	if proofArray, ok := p.([]interface{}); ok {
 		if len(proofArray) == 0 {
 			return nil, errors.New("expected at least one proof")
 		}

@@ -76,7 +76,7 @@ type PresentationDefinition struct {
 	SubmissionRequirements []SubmissionRequirement `json:"submission_requirements,omitempty" validate:"omitempty,dive"`
 
 	// https://identity.foundation/presentation-exchange/#json-ld-framing-feature
-	Frame any `json:"frame,omitempty"`
+	Frame interface{} `json:"frame,omitempty"`
 }
 
 func (pd *PresentationDefinition) IsEmpty() bool {
@@ -287,23 +287,23 @@ type RelationalConstraint struct {
 }
 
 type Filter struct {
-	Type                 string   `json:"type,omitempty"`
-	Format               string   `json:"format,omitempty"`
-	Properties           any      `json:"properties,omitempty"`
-	Required             []string `json:"required,omitempty"`
-	AdditionalProperties bool     `json:"additionalProperties,omitempty"`
-	Pattern              string   `json:"pattern,omitempty"`
-	Minimum              any      `json:"minimum,omitempty"`
-	Maximum              any      `json:"maximum,omitempty"`
-	MinLength            int      `json:"minLength,omitempty"`
-	MaxLength            int      `json:"maxLength,omitempty"`
-	ExclusiveMinimum     any      `json:"exclusiveMinimum,omitempty"`
-	ExclusiveMaximum     any      `json:"exclusiveMaximum,omitempty"`
-	Const                any      `json:"const,omitempty"`
-	Enum                 []any    `json:"enum,omitempty"`
-	Not                  any      `json:"not,omitempty"`
-	AllOf                any      `json:"allOf,omitempty"`
-	OneOf                any      `json:"oneOf,omitempty"`
+	Type                 string        `json:"type,omitempty"`
+	Format               string        `json:"format,omitempty"`
+	Properties           interface{}   `json:"properties,omitempty"`
+	Required             []string      `json:"required,omitempty"`
+	AdditionalProperties bool          `json:"additionalProperties,omitempty"`
+	Pattern              string        `json:"pattern,omitempty"`
+	Minimum              interface{}   `json:"minimum,omitempty"`
+	Maximum              interface{}   `json:"maximum,omitempty"`
+	MinLength            int           `json:"minLength,omitempty"`
+	MaxLength            int           `json:"maxLength,omitempty"`
+	ExclusiveMinimum     interface{}   `json:"exclusiveMinimum,omitempty"`
+	ExclusiveMaximum     interface{}   `json:"exclusiveMaximum,omitempty"`
+	Const                interface{}   `json:"const,omitempty"`
+	Enum                 []interface{} `json:"enum,omitempty"`
+	Not                  interface{}   `json:"not,omitempty"`
+	AllOf                interface{}   `json:"allOf,omitempty"`
+	OneOf                interface{}   `json:"oneOf,omitempty"`
 }
 
 // CredentialStatus https://identity.foundation/presentation-exchange/#credential-status-constraint-feature

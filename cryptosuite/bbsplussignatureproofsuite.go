@@ -423,7 +423,7 @@ func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *Proof
 	// for verification, we must replace the BBS ProofType with the Signature Type
 	genericProof["type"] = BBSPlusSignature2020
 
-	var contexts []any
+	var contexts []interface{}
 	if opts != nil {
 		contexts = opts.Contexts
 	} else {

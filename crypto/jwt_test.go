@@ -146,7 +146,7 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 
 	gotData, ok := parsed.Get("data")
 	assert.True(t, ok)
-	assert.EqualValues(t, []any{"one", "two", "three"}, gotData)
+	assert.EqualValues(t, []interface{}{"one", "two", "three"}, gotData)
 
 	_, err = verifier.VerifyAndParseJWT(string(token))
 	assert.NoError(t, err)

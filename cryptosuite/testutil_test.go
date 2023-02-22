@@ -18,8 +18,8 @@ type TestCredential struct {
 	CredentialSubject any           `json:"credentialSubject" validate:"required"`
 	CredentialSchema  any           `json:"credentialSchema,omitempty" validate:"omitempty,dive"`
 	RefreshService    any           `json:"refreshService,omitempty" validate:"omitempty,dive"`
-	TermsOfUse        []any         `json:"termsOfUse,omitempty" validate:"omitempty,dive"`
-	Evidence          []any         `json:"evidence,omitempty" validate:"omitempty,dive"`
+	TermsOfUse        []interface{} `json:"termsOfUse,omitempty" validate:"omitempty,dive"`
+	Evidence          []interface{} `json:"evidence,omitempty" validate:"omitempty,dive"`
 	Proof             *crypto.Proof `json:"proof,omitempty"`
 }
 

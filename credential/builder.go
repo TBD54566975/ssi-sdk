@@ -22,7 +22,7 @@ const (
 
 // VerifiableCredentialBuilder uses the builder pattern to construct a verifiable credential
 type VerifiableCredentialBuilder struct {
-	// contexts and types are kept to avoid having cast to/from any values
+	// contexts and types are kept to avoid having cast to/from interface{} values
 	contexts []string
 	types    []string
 	*VerifiableCredential
@@ -247,7 +247,7 @@ func (vcb *VerifiableCredentialBuilder) SetEvidence(evidence []interface{}) erro
 
 // VerifiablePresentationBuilder uses the builder pattern to construct a verifiable presentation
 type VerifiablePresentationBuilder struct {
-	// contexts and types are kept to avoid having cast to/from any values
+	// contexts and types are kept to avoid having cast to/from interface{} values
 	contexts []string
 	types    []string
 	*VerifiablePresentation
