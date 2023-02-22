@@ -42,7 +42,7 @@ func (builder *DIDDocumentBuilder) Build() (*DIDDocument, error) {
 	}
 
 	if err := builder.DIDDocument.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "did doc not ready to be built")
+		return nil, errors.Wrap(err, "did doc not valid")
 	}
 
 	return builder.DIDDocument, nil
