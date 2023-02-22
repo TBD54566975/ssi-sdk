@@ -224,7 +224,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 	return unfulfilledInputDescriptors, err
 }
 
-func findMatchingPath(claim any, paths []string) error {
+func findMatchingPath(claim interface{}, paths []string) error {
 	for _, path := range paths {
 		if _, err := jsonpath.JsonPathLookup(claim, path); err == nil {
 			return nil

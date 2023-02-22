@@ -645,7 +645,7 @@ func TestConstructLimitedClaim(t *testing.T) {
 
 func getTestVerifiableCredential() credential.VerifiableCredential {
     return credential.VerifiableCredential{
-            Context: []interface{"https://www.w3.org/2018/credentials/v1",
+            Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
             "https://w3id.org/security/suites/jws-2020/v1"},
         ID:           "test-verifiable-credential",
         Type:         []string{"VerifiableCredential"},
@@ -769,7 +769,7 @@ func getTestJWTVerifiableCredential() string {
 
 func getGenericTestClaim() map[string]interface{} {
     return map[string]interface{}{
-            "@context": []interface{"https://www.w3.org/2018/credentials/v1",
+            "@context": []interface{}{"https://www.w3.org/2018/credentials/v1",
             "https://w3id.org/security/suites/jws-2020/v1"},
         "type":         []string{"VerifiableCredential"},
         "issuer":       "did:example:123",

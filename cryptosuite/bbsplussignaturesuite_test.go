@@ -17,7 +17,7 @@ const (
 func TestBBSPlusSignatureSuite(t *testing.T) {
 	suite := GetBBSPlusSignatureSuite()
 	testCred := TestCredential{
-		Context: []interface{"https://www.w3.org/2018/credentials/v1",
+		Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/bbs/v1"},
 		Type:         []string{"VerifiableCredential"},
 		Issuer:       "did:example:123",

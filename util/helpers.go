@@ -280,7 +280,7 @@ func InterfaceToInterfaceArray(have interface{}) ([]interface{}, error) {
 
 // InterfaceToStrings assumes we are given an interface of either `string`, `[]string` or `[]interface{}` types
 // and attempts to flatten into an array of strings
-func InterfaceToStrings(have any) ([]string, error) {
+func InterfaceToStrings(have interface{}) ([]string, error) {
 	// case 1: it's a string
 	strVal, ok := have.(string)
 	if ok {
@@ -306,7 +306,7 @@ func InterfaceToStrings(have any) ([]string, error) {
 	return nil, errors.New("could not turn interface into strings")
 }
 
-func ToJSONMap(data any) (map[string]interface{}, error) {
+func ToJSONMap(data interface{}) (map[string]interface{}, error) {
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
@@ -339,6 +339,6 @@ func MergeUniqueValues(a, b []string) []string {
 }
 
 // PrettyJSON JSON-ifies data in a 'pretty-print' fashion
-func PrettyJSON(data any) ([]byte, error) {
+func PrettyJSON(data interface{}) ([]byte, error) {
 	return json.MarshalIndent(data, "", "  ")
 }

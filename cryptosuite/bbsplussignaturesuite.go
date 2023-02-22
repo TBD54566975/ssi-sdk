@@ -178,7 +178,7 @@ func decodeProofValue(proofValue string) ([]byte, error) {
 
 // CryptoSuiteProofType interface
 
-func (BBSPlusSignatureSuite) Marshal(data any) ([]byte, error) {
+func (BBSPlusSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 	// JSONify the provable object
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {

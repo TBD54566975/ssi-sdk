@@ -87,7 +87,7 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 
     suite := GetJSONWebSignature2020Suite()
     testCred := TestCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1",
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
         "https://w3id.org/security/suites/jws-2020/v1"},
         Type:         []string{"VerifiableCredential"},
         Issuer:       "did:example:123",
@@ -129,7 +129,7 @@ assert.Error(tt, err)
 func TestCredentialLDProof(t *testing.T) {
     issuer := "https://example.edu/issuers/565049"
     knownCred := TestCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1", "https://www.w3.org/2018/credentials/examples/v1"},
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1", "https://www.w3.org/2018/credentials/examples/v1"},
         ID:           "http://example.edu/credentials/1872",
         Type:         []interface{}{"VerifiableCredential", "AlumniCredential"},
         Issuer:       issuer,
@@ -202,7 +202,7 @@ func TestJsonWebSignature2020TestVectorCredential0(t *testing.T) {
 
     // https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-0.json
     knownCred := TestCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
         Type:              []string{"VerifiableCredential"},
         Issuer:            "did:example:123",
         IssuanceDate:      "2021-01-01T19:23:24Z",
@@ -243,7 +243,7 @@ func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
 
     // https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-1.json
     knownCred := TestCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1", map[string]string{"@vocab": "https://example.com/#"}},
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1", map[string]string{"@vocab": "https://example.com/#"}},
         Type:           []string{"VerifiableCredential"},
         Issuer:         "did:example:123",
         IssuanceDate:   "2021-01-01T19:23:24Z",
@@ -345,7 +345,7 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
         Type:   []string{"VerifiablePresentation"},
         VerifiableCredential: []TestCredential{
             {
-                Context: []interface{"https://www.w3.org/2018/credentials/v1",
+                Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
                 "https://w3id.org/security/suites/jws-2020/v1",
                 map[string]interface{}{
                 "@vocab": "https://example.com/#",

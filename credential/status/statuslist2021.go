@@ -304,7 +304,7 @@ func ValidateCredentialInStatusList(credentialToValidate credential.VerifiableCr
 	return false, nil
 }
 
-func toStatusList2021Entry(credStatus any) (*StatusList2021Entry, bool) {
+func toStatusList2021Entry(credStatus interface{}) (*StatusList2021Entry, bool) {
 	statusListEntryValue, ok := credStatus.(StatusList2021Entry)
 	if ok {
 		return &statusListEntryValue, true

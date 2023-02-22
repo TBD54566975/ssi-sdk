@@ -232,7 +232,7 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.Contains(t, err.Error(), "evidence cannot be empty")
 
 	// valid evidence
-	evidence := []interface{"evidence"}
+	evidence := []interface{}{"evidence"}
 	err = builder.SetEvidence(evidence)
 	assert.NoError(t, err)
 

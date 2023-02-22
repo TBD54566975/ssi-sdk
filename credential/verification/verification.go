@@ -29,7 +29,7 @@ type VerificationOption struct {
 }
 
 // GetVerificationOption returns a verification option given an ID
-func GetVerificationOption(opts []VerificationOption, id OptionKey) (any, error) {
+func GetVerificationOption(opts []VerificationOption, id OptionKey) (interface{}, error) {
 	for _, opt := range opts {
 		if opt.ID == id {
 			return opt.Option, nil

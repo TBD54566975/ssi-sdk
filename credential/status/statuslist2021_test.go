@@ -14,7 +14,7 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
         revocationID := "revocation-id"
         testIssuer := "test-issuer"
         testCred1 := credential.VerifiableCredential{
-            Context: []interface{"https://www.w3.org/2018/credentials/v1",
+            Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
             "https://w3id.org/security/suites/jws-2020/v1"},
             ID:           "test-verifiable-credential-2",
             Type:         []string{"VerifiableCredential"},
@@ -34,7 +34,7 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
         },
     }
     testCred2 := credential.VerifiableCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1",
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
         "https://w3id.org/security/suites/jws-2020/v1"},
         ID:           "test-verifiable-credential-2",
         Type:         []string{"VerifiableCredential"},
@@ -76,7 +76,7 @@ t.Run("mismatched credential status purposes", func (tt *testing.T) {
     revocationID := "revocation-id"
     testIssuer := "test-issuer"
     testCred1 := credential.VerifiableCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1",
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
         "https://w3id.org/security/suites/jws-2020/v1"},
         ID:           "test-verifiable-credential-2",
         Type:         []string{"VerifiableCredential"},
@@ -96,7 +96,7 @@ t.Run("mismatched credential status purposes", func (tt *testing.T) {
     },
 }
 testCred2 := credential.VerifiableCredential{
-Context: []interface{"https://www.w3.org/2018/credentials/v1",
+Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
 "https://w3id.org/security/suites/jws-2020/v1"},
 ID:           "test-verifiable-credential-2",
 Type:         []string{"VerifiableCredential"},
@@ -126,7 +126,7 @@ t.Run("duplicate credential status index values", func (tt *testing.T) {
     revocationID := "revocation-id"
     testIssuer := "test-issuer"
     testCred1 := credential.VerifiableCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1",
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
         "https://w3id.org/security/suites/jws-2020/v1"},
         ID:           "test-verifiable-credential-2",
         Type:         []string{"VerifiableCredential"},
@@ -146,7 +146,7 @@ t.Run("duplicate credential status index values", func (tt *testing.T) {
     },
 }
 testCred2 := credential.VerifiableCredential{
-Context: []interface{"https://www.w3.org/2018/credentials/v1",
+Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
 "https://w3id.org/security/suites/jws-2020/v1"},
 ID:           "test-verifiable-credential-2",
 Type:         []string{"VerifiableCredential"},
@@ -184,7 +184,7 @@ t.Run("invalid index value", func (tt *testing.T) {
     revocationID := "revocation-id"
     testIssuer := "test-issuer"
     testCred1 := credential.VerifiableCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1",
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
         "https://w3id.org/security/suites/jws-2020/v1"},
         ID:           "test-verifiable-credential-2",
         Type:         []string{"VerifiableCredential"},
@@ -213,7 +213,7 @@ t.Run("missing index value", func (tt *testing.T) {
     revocationID := "revocation-id"
     testIssuer := "test-issuer"
     testCred1 := credential.VerifiableCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1",
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
         "https://w3id.org/security/suites/jws-2020/v1"},
         ID:           "test-verifiable-credential-2",
         Type:         []string{"VerifiableCredential"},
@@ -244,7 +244,7 @@ func TestValidateCredentialInStatusList(t *testing.T) {
         revocationID := "revocation-id"
         testIssuer := "test-issuer"
         testCred1 := credential.VerifiableCredential{
-            Context: []interface{"https://www.w3.org/2018/credentials/v1",
+            Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
             "https://w3id.org/security/suites/jws-2020/v1"},
             ID:           "test-verifiable-credential-2",
             Type:         []string{"VerifiableCredential"},
@@ -278,7 +278,7 @@ t.Run("happy path validation with credential status interface", func (tt *testin
     revocationID := "revocation-id"
     testIssuer := "test-issuer"
     testCred1 := credential.VerifiableCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1",
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
         "https://w3id.org/security/suites/jws-2020/v1"},
         ID:           "test-verifiable-credential-2",
         Type:         []string{"VerifiableCredential"},
@@ -312,7 +312,7 @@ t.Run("check for missing cred", func (tt *testing.T) {
     revocationID := "revocation-id"
     testIssuer := "test-issuer"
     testCred1 := credential.VerifiableCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1",
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
         "https://w3id.org/security/suites/jws-2020/v1"},
         ID:           "test-verifiable-credential-2",
         Type:         []string{"VerifiableCredential"},
@@ -332,7 +332,7 @@ t.Run("check for missing cred", func (tt *testing.T) {
     },
 }
 testCred2 := credential.VerifiableCredential{
-Context: []interface{"https://www.w3.org/2018/credentials/v1",
+Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
 "https://w3id.org/security/suites/jws-2020/v1"},
 ID:           "test-verifiable-credential-2",
 Type:         []string{"VerifiableCredential"},
@@ -366,7 +366,7 @@ t.Run("invalid bitstring value in status list credential", func (tt *testing.T) 
     revocationID := "revocation-id"
     testIssuer := "test-issuer"
     testCred1 := credential.VerifiableCredential{
-        Context: []interface{"https://www.w3.org/2018/credentials/v1",
+        Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
         "https://w3id.org/security/suites/jws-2020/v1"},
         ID:           "test-verifiable-credential-2",
         Type:         []string{"VerifiableCredential"},

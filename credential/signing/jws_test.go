@@ -10,7 +10,7 @@ import (
 
 func TestVerifiableCredentialJWS(t *testing.T) {
 	testCredential := credential.VerifiableCredential{
-		Context:           []interface{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
+		Context:           []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
 		Type:              []interface{}{"VerifiableCredential"},
 		Issuer:            "did:example:123",
 		IssuanceDate:      "2021-01-01T19:23:24Z",

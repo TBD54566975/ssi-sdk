@@ -313,7 +313,7 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 
 // CryptoSuiteProofType interface
 
-func (BBSPlusSignatureProofSuite) Marshal(data any) ([]byte, error) {
+func (BBSPlusSignatureProofSuite) Marshal(data interface{}) ([]byte, error) {
 	// JSONify the provable object
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {

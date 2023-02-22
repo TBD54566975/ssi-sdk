@@ -40,7 +40,7 @@ type CryptoSuiteInfo interface {
 // It encapsulates the functionality defined by the data integrity proof type specification
 // https://w3c-ccg.github.io/data-integrity-spec/#creating-new-proof-types
 type CryptoSuiteProofType interface {
-	Marshal(data any) ([]byte, error)
+	Marshal(data interface{}) ([]byte, error)
 	Canonicalize(marshaled []byte) (*string, error)
 	// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
 	CreateVerifyHash(provable Provable, proof crypto.Proof, proofOptions *ProofOptions) ([]byte, error)

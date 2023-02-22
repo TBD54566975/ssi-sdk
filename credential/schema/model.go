@@ -21,7 +21,7 @@ type VCJSONSchema struct {
 	Schema   JSONSchema `json:"schema"`
 }
 
-func (vcs VCJSONSchema) GetProperty(propertyName string) (any, error) {
+func (vcs VCJSONSchema) GetProperty(propertyName string) (interface{}, error) {
 	got, ok := vcs.Schema[propertyName]
 	if !ok {
 		return "", fmt.Errorf("property<%s> not found in schema<%s>", propertyName, vcs.ID)

@@ -82,7 +82,7 @@ func VerifyJSONSchema(cred credential.VerifiableCredential, opts ...Verification
 	return credschema.IsCredentialValidForVCJSONSchema(cred, *credSchema)
 }
 
-func optionToCredentialSchema(maybeSchema any) (*credschema.VCJSONSchema, error) {
+func optionToCredentialSchema(maybeSchema interface{}) (*credschema.VCJSONSchema, error) {
 	schema, ok := maybeSchema.(string)
 	if !ok {
 		return nil, errors.New("the option provided must be a string value representing a Verifiable Credential JSON Schema")
