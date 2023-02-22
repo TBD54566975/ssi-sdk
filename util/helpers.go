@@ -96,6 +96,14 @@ func LDFrame(document any, frame any) (any, error) {
 		frameAny.(map[string]interface{}), jsonld.WithDocumentLoader(docLoader), jsonld.WithFrameBlankNodes())
 }
 
+func LDCompact(document any, context string) (map[string]interface{}, error) {
+	processor := NewLDProcessor()
+	contextsMap := map[string]interface{}{
+		"@context": context,
+	}
+	return processor.Compact(document, contextsMap, processor.GetOptions())
+}
+
 func GetRFC3339Timestamp() string {
 	return AsRFC3339Timestamp(time.Now())
 }

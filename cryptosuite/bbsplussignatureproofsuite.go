@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	. "github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
@@ -51,16 +52,18 @@ func (BBSPlusSignatureProofSuite) RequiredContexts() []string {
 
 // SelectivelyDisclose takes in a credential and  a map of fields to disclose as an LD frame
 func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]any, nonce []byte) (map[string]any, error) {
-	// remove the proof from the document
-	proofCopy := p.GetProof()
-	p.SetProof(nil)
-
-	deriveProofResult, err := b.CreateDeriveProof(p, toDiscloseFrame)
+	// first compact the document with the security context
+	compactProvable, compactProof, err := b.compactProvable(p)
 	if err != nil {
 		return nil, err
 	}
 
-	bbsPlusProof, err := BBSPlusProofFromGenericProof(proofCopy)
+	deriveProofResult, err := b.CreateDeriveProof(compactProvable, toDiscloseFrame)
+	if err != nil {
+		return nil, err
+	}
+
+	bbsPlusProof, err := BBSPlusProofFromGenericProof(compactProof)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +98,36 @@ func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Pro
 	derivedCred := deriveProofResult.RevealedDocument
 	derivedCred["proof"] = derivedProof
 	return derivedCred, nil
+}
+
+func (BBSPlusSignatureProofSuite) compactProvable(p Provable) (Provable, *crypto.Proof, error) {
+	var genericProvable map[string]any
+	provableBytes, err := json.Marshal(p)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err = json.Unmarshal(provableBytes, &genericProvable); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal provable to generic map")
+	}
+	compactProvable, err := LDCompact(genericProvable, W3CSecurityContext)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to compact provable")
+	}
+
+	// create a copy of the proof and remove it from the provable
+	compactProof := crypto.Proof(compactProvable["proof"])
+	delete(compactProvable, "proof")
+
+	// turn the compact provable back to a generic credential
+	compactedProvableBytes, err := json.Marshal(compactProvable)
+	if err != nil {
+		return nil, nil, err
+	}
+	var genericCred credential.GenericCredential
+	if err = json.Unmarshal(compactedProvableBytes, &genericCred); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal compacted provable to generic credential")
+	}
+	return &genericCred, &compactProof, nil
 }
 
 func (b BBSPlusSignatureProofSuite) prepareRevealData(deriveProofResult DeriveProofResult, bbsPlusProof BBSPlusSignature2020Proof) (statementBytesArrays [][]byte, revealIndices []int, err error) {
