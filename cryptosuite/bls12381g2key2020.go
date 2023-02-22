@@ -134,6 +134,10 @@ func (v BBSPlusVerifier) Verify(message, signature []byte) error {
 	return v.BBSPlusVerifier.Verify(message, signature)
 }
 
+func (v BBSPlusVerifier) VerifyDerived(message, signature []byte) error {
+	return v.BBSPlusVerifier.VerifyDerived(message, signature)
+}
+
 func (v BBSPlusVerifier) GetKeyID() string {
 	return v.BBSPlusVerifier.GetKeyID()
 }

@@ -40,6 +40,31 @@ func (v *VerifiableCredential) SetProof(p *crypto.Proof) {
 	v.Proof = p
 }
 
+// GenericCredential represents a credential that is not constrained by a specific type
+type GenericCredential map[string]any
+
+func (g *GenericCredential) GetProof() *crypto.Proof {
+	if g == nil {
+		return nil
+	}
+	cred := *g
+	proof, gotProof := cred["proof"]
+	if !gotProof {
+		return nil
+	}
+	p := crypto.Proof(proof)
+	return &p
+}
+
+func (g *GenericCredential) SetProof(p *crypto.Proof) {
+	if g == nil {
+		return
+	}
+	cred := *g
+	cred["proof"] = p
+	*g = cred
+}
+
 // DefaultCredentialStatus https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#status
 type DefaultCredentialStatus struct {
 	ID   string `json:"id" validate:"required"`

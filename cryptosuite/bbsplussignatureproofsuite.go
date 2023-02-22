@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	. "github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
@@ -50,7 +51,7 @@ func (BBSPlusSignatureProofSuite) RequiredContexts() []string {
 }
 
 // SelectivelyDisclose takes in a credential and  a map of fields to disclose as an LD frame
-func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]any) (*BBSPlusSignature2020Proof, error) {
+func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]any) (map[string]any, error) {
 	// remove the proof from the document
 	proofCopy := p.GetProof()
 	p.SetProof(nil)
@@ -86,13 +87,17 @@ func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Pro
 		return nil, err
 	}
 
-	return &BBSPlusSignature2020Proof{
+	// attach the proof to the derived credential
+	derivedProof := &BBSPlusSignature2020Proof{
 		Type:               BBSPlusSignatureProof2020,
 		Created:            bbsPlusProof.Created,
 		VerificationMethod: bbsPlusProof.VerificationMethod,
 		ProofPurpose:       bbsPlusProof.ProofPurpose,
 		ProofValue:         base64.RawStdEncoding.EncodeToString(derivedProofValue),
-	}, nil
+	}
+	derivedCred := deriveProofResult.RevealedDocument
+	derivedCred["proof"] = derivedProof
+	return derivedCred, nil
 }
 
 func (b BBSPlusSignatureProofSuite) prepareRevealData(deriveProofResult DeriveProofResult, bbsPlusProof BBSPlusSignature2020Proof) (statementBytesArrays [][]byte, revealIndices []int, err error) {
@@ -154,8 +159,8 @@ func (b BBSPlusSignatureProofSuite) prepareBLSProof(bbsPlusProof BBSPlusSignatur
 
 type DeriveProofResult struct {
 	RevealedIndicies             []int
-	TotalStatements              int
 	InputProofDocumentStatements []string
+	RevealedDocument             map[string]any
 }
 
 // CreateDeriveProof https://w3c-ccg.github.io/ldp-bbs2020/#create-derive-proof-data-algorithm
@@ -204,7 +209,7 @@ func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument Provabl
 	// 6.2. Insert this numerical index into the revealed indicies array
 
 	// create an index of all statements in the original doc
-	documentStatementsMap := make(map[string]int, len(statements))
+	documentStatementsMap := make(map[string]int, totalStatements)
 	for i, statement := range statements {
 		documentStatementsMap[statement] = i
 	}
@@ -218,8 +223,8 @@ func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument Provabl
 
 	return &DeriveProofResult{
 		RevealedIndicies:             revealedIndicies,
-		TotalStatements:              totalStatements,
 		InputProofDocumentStatements: statements,
+		RevealedDocument:             revealedDocument.(map[string]any),
 	}, nil
 }
 
@@ -259,7 +264,12 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 		return errors.Wrap(err, "create verify hash algorithm failed")
 	}
 
-	if err = v.Verify(tbv, signatureValue); err != nil {
+	bbsPlusVerifier, ok := v.(*BBSPlusVerifier)
+	if !ok {
+		return errors.New("verifier does not implement BBSPlusVerifier")
+	}
+
+	if err = bbsPlusVerifier.VerifyDerived(tbv, signatureValue); err != nil {
 		return errors.Wrap(err, "could not verify BBS+ signature")
 	}
 	return nil
@@ -299,4 +309,93 @@ func canonicalizedLDToStatements(canonicalized string) []string {
 		}
 	}
 	return res
+}
+
+// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
+// augmented by https://w3c-ccg.github.io/ldp-bbs2020/#create-verify-data-algorithm
+func (b BBSPlusSignatureProofSuite) CreateVerifyHash(provable Provable, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
+	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
+	preparedProof, err := b.prepareProof(proof, opts)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not prepare proof for the create verify hash algorithm")
+	}
+
+	// marshal provable to prepare for canonicalizaiton
+	marshaledProvable, err := b.Marshal(provable)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not marshal provable")
+	}
+
+	// canonicalize provable using the suite's method
+	canonicalProvable, err := b.Canonicalize(marshaledProvable)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not canonicalize provable")
+	}
+
+	// marshal proof to prepare for canonicalizaiton
+	marshaledOptions, err := b.Marshal(preparedProof)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not marshal proof")
+	}
+
+	// 4.1 canonicalize  proof using the suite's method
+	canonicalizedOptions, err := b.Canonicalize(marshaledOptions)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not canonicalize proof")
+	}
+
+	// 4.2 set output to the result of the hash of the canonicalized options document
+	canonicalizedOptionsBytes := []byte(*canonicalizedOptions)
+	optionsDigest, err := b.Digest(canonicalizedOptionsBytes)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not take digest of proof")
+	}
+
+	// 4.3 hash the canonicalized doc and append it to the output
+	canonicalDoc := []byte(*canonicalProvable)
+	documentDigest, err := b.Digest(canonicalDoc)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not take digest of provable")
+	}
+
+	// 5. return the output
+	output := append(optionsDigest, documentDigest...)
+	return output, nil
+}
+
+func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) (*crypto.Proof, error) {
+	proofBytes, err := json.Marshal(proof)
+	if err != nil {
+		return nil, err
+	}
+
+	var genericProof map[string]any
+	if err = json.Unmarshal(proofBytes, &genericProof); err != nil {
+		return nil, err
+	}
+
+	// proof cannot have a proof value
+	delete(genericProof, "proofValue")
+
+	// make sure the proof has a timestamp
+	created, ok := genericProof["created"]
+	if !ok || created == "" {
+		genericProof["created"] = GetRFC3339Timestamp()
+	}
+
+	var contexts []any
+	if opts != nil {
+		contexts = opts.Contexts
+	} else {
+		// if none provided, make sure the proof has a context value for this suite
+		contexts = ArrayStrToInterface(b.RequiredContexts())
+	}
+	genericProof["@context"] = contexts
+	p := crypto.Proof(genericProof)
+	return &p, nil
+}
+
+func (BBSPlusSignatureProofSuite) Digest(tbd []byte) ([]byte, error) {
+	// handled by the algorithm itself
+	return tbd, nil
 }

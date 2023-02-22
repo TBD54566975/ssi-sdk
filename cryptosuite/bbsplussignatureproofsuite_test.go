@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/goccy/go-json"
 	bbsg2 "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
 	"github.com/mr-tron/base58"
@@ -55,13 +56,18 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, selectiveDisclosure)
 
-		// now re-attach the derived proof and verify the credential
-		genericProof, err := selectiveDisclosure.ToGenericProof()
+		// now verify the derived credential
+		var genericCred credential.GenericCredential
+		sdBytes, err := json.Marshal(selectiveDisclosure)
 		assert.NoError(tt, err)
-		testCred.Proof = &genericProof
+		err = json.Unmarshal(sdBytes, &genericCred)
+		assert.NoError(tt, err)
 
-		// err = proofSuite.Verify(verifier, &testCred)
-		// assert.NoError(tt, err)
+		b, _ := json.Marshal(genericCred)
+		println(string(b))
+
+		err = proofSuite.Verify(verifier, &genericCred)
+		assert.NoError(tt, err)
 	})
 
 	t.Run("known test vector", func(tt *testing.T) {
@@ -100,6 +106,16 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		selectiveDisclosure, err := proofSuite.SelectivelyDisclose(*verifier, &cred, revealDoc)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, selectiveDisclosure)
+
+		// now verify the derived credential
+		var genericCred credential.GenericCredential
+		sdBytes, err := json.Marshal(selectiveDisclosure)
+		assert.NoError(tt, err)
+		err = json.Unmarshal(sdBytes, &genericCred)
+		assert.NoError(tt, err)
+
+		err = proofSuite.Verify(verifier, &genericCred)
+		assert.NoError(tt, err)
 	})
 }
 
