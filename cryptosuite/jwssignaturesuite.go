@@ -65,7 +65,7 @@ func (JWSSignatureSuite) RequiredContexts() []string {
 }
 
 func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
-	// create proof before CVH
+	// create proof before running the create verify hash algorithm
 	proof := j.createProof(s.GetKeyID(), s.GetProofPurpose())
 
 	// prepare proof options
@@ -78,7 +78,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	contexts = ensureRequiredContexts(contexts, j.RequiredContexts())
 	opts := &ProofOptions{Contexts: contexts}
 
-	// 3. tbs value as a result of cvh
+	// 3. tbs value as a result of create verify hash
 	tbs, err := j.CreateVerifyHash(p, proof, opts)
 	if err != nil {
 		return errors.Wrap(err, "create verify hash algorithm failed")
@@ -124,7 +124,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	contexts = ensureRequiredContexts(contexts, j.RequiredContexts())
 	opts := &ProofOptions{Contexts: contexts}
 
-	// run CVH on both provable and the proof
+	// run the create verify hash algorithm on both provable and the proof
 	tbv, err := j.CreateVerifyHash(p, gotProof, opts)
 	if err != nil {
 		return errors.Wrap(err, "create verify hash algorithm failed")

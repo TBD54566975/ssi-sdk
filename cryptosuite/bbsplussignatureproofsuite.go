@@ -292,7 +292,7 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 	contexts = ensureRequiredContexts(contexts, b.RequiredContexts())
 	opts := &ProofOptions{Contexts: contexts}
 
-	// run CVH on both provable and the proof
+	// run the create verify hash algorithm on both provable and the proof
 	tbv, err := b.CreateVerifyHash(p, gotProof, opts)
 	if err != nil {
 		return errors.Wrap(err, "create verify hash algorithm failed")
@@ -414,7 +414,7 @@ func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *Proof
 		return nil, err
 	}
 
-	// proof cannot have a proof value or nonce
+	// must make sure the proof does not have a proof value or nonce before signing/verifying
 	delete(genericProof, "proofValue")
 	delete(genericProof, "nonce")
 

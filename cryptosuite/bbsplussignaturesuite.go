@@ -58,7 +58,7 @@ func (BBSPlusSignatureSuite) RequiredContexts() []string {
 }
 
 func (b BBSPlusSignatureSuite) Sign(s Signer, p Provable) error {
-	// create proof before CVH
+	// create proof before running the create verify hash algorithm
 	// TODO(gabe) support required reveal values
 	proof := b.createProof(s.GetKeyID(), s.GetProofPurpose(), nil)
 
@@ -72,13 +72,13 @@ func (b BBSPlusSignatureSuite) Sign(s Signer, p Provable) error {
 	contexts = ensureRequiredContexts(contexts, b.RequiredContexts())
 	opts := &ProofOptions{Contexts: contexts}
 
-	// 3. tbs value as a result of cvh
+	// 3. tbs value as a result of create verify hash
 	tbs, err := b.CreateVerifyHash(p, proof, opts)
 	if err != nil {
 		return errors.Wrap(err, "create verify hash algorithm failed")
 	}
 
-	// 4 & 5. create the signature over the provable data as a JWS
+	// 4 & 5. create the signature over the provable data as a BBS+ signature
 	proofValue, err := s.Sign(tbs)
 	if err != nil {
 		return errors.Wrap(err, "could not sign provable value")
@@ -102,7 +102,7 @@ func (b BBSPlusSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptio
 		return nil, err
 	}
 
-	// proof cannot have a proof value
+	// must make sure there is no proof value before signing/verifying
 	delete(genericProof, "proofValue")
 
 	// make sure the proof has a timestamp
@@ -153,7 +153,7 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 	contexts = ensureRequiredContexts(contexts, b.RequiredContexts())
 	opts := &ProofOptions{Contexts: contexts}
 
-	// run CVH on both provable and the proof
+	// run the create verify hash algorithm on both provable and the proof
 	tbv, err := b.CreateVerifyHash(p, gotProof, opts)
 	if err != nil {
 		return errors.Wrap(err, "create verify hash algorithm failed")
