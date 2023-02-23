@@ -13,8 +13,8 @@ import (
 func TestGenerateBBSKeyPair(t *testing.T) {
 	t.Run("generate key pair", func(tt *testing.T) {
 		pubKey, privKey, err := GenerateBBSKeyPair()
-		assert.NotNil(tt, pubKey)
-		assert.NotNil(tt, privKey)
+		assert.NotEmpty(tt, pubKey)
+		assert.NotEmpty(tt, privKey)
 		assert.NoError(tt, err)
 	})
 
