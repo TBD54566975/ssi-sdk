@@ -216,7 +216,7 @@ func (BBSPlusSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	}
 	normalized, err := LDNormalize(generic)
 	if err != nil {
-		return nil, errors.Wrap(err, "canonicalizing provable document")
+		return nil, errors.Wrap(err, "ld normalizing")
 	}
 	canonicalString := normalized.(string)
 	return &canonicalString, nil
