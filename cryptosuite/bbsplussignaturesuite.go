@@ -65,7 +65,7 @@ func (b BBSPlusSignatureSuite) Sign(s Signer, p Provable) error {
 	// prepare proof options
 	contexts, err := GetContextsFromProvable(p)
 	if err != nil {
-		return errors.Wrap(err, "could not get contexts from provable")
+		return errors.Wrap(err, "getting contexts from provable")
 	}
 
 	// make sure the suite's context(s) are included
@@ -75,13 +75,13 @@ func (b BBSPlusSignatureSuite) Sign(s Signer, p Provable) error {
 	// 3. tbs value as a result of create verify hash
 	tbs, err := b.CreateVerifyHash(p, proof, opts)
 	if err != nil {
-		return errors.Wrap(err, "create verify hash algorithm failed")
+		return errors.Wrap(err, "running create verify hash algorithm")
 	}
 
 	// 4 & 5. create the signature over the provable data as a BBS+ signature
 	proofValue, err := s.Sign(tbs)
 	if err != nil {
-		return errors.Wrap(err, "could not sign provable value")
+		return errors.Wrap(err, "signing provable value")
 	}
 
 	// set the signature on the proof object and return
@@ -139,14 +139,14 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 	// remove the proof value in the proof before verification
 	signatureValue, err := decodeProofValue(gotProof.ProofValue)
 	if err != nil {
-		return errors.Wrap(err, "could not decode proof value")
+		return errors.Wrap(err, "decoding proof value")
 	}
 	gotProof.SetProofValue("")
 
 	// prepare proof options
 	contexts, err := GetContextsFromProvable(p)
 	if err != nil {
-		return errors.Wrap(err, "could not get contexts from provable")
+		return errors.Wrap(err, "getting contexts from provable")
 	}
 
 	// make sure the suite's context(s) are included
@@ -156,11 +156,11 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 	// run the create verify hash algorithm on both provable and the proof
 	tbv, err := b.CreateVerifyHash(p, gotProof, opts)
 	if err != nil {
-		return errors.Wrap(err, "create verify hash algorithm failed")
+		return errors.Wrap(err, "running create verify hash algorithm")
 	}
 
 	if err = v.Verify(tbv, signatureValue); err != nil {
-		return errors.Wrap(err, "could not verify BBS+ signature")
+		return errors.Wrap(err, "verifying BBS+ signature")
 	}
 	return nil
 }
@@ -199,7 +199,7 @@ func (BBSPlusSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	}
 	normalized, err := LDNormalize(generic)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not canonicalize provable document")
+		return nil, errors.Wrap(err, "canonicalizing provable document")
 	}
 	canonicalString := normalized.(string)
 	return &canonicalString, nil
@@ -211,45 +211,45 @@ func (b BBSPlusSignatureSuite) CreateVerifyHash(provable Provable, proof crypto.
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := b.prepareProof(proof, opts)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not prepare proof for the create verify hash algorithm")
+		return nil, errors.Wrap(err, "preparing proof for the create verify hash algorithm")
 	}
 
 	// marshal provable to prepare for canonicalizaiton
 	marshaledProvable, err := b.Marshal(provable)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal provable")
+		return nil, errors.Wrap(err, "marshalling provable")
 	}
 
 	// canonicalize provable using the suite's method
 	canonicalProvable, err := b.Canonicalize(marshaledProvable)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not canonicalize provable")
+		return nil, errors.Wrap(err, "canonicalizing provable")
 	}
 
 	// marshal proof to prepare for canonicalizaiton
 	marshaledOptions, err := b.Marshal(preparedProof)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal proof")
+		return nil, errors.Wrap(err, "marshalling proof")
 	}
 
 	// 4.1 canonicalize  proof using the suite's method
 	canonicalizedOptions, err := b.Canonicalize(marshaledOptions)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not canonicalize proof")
+		return nil, errors.Wrap(err, "canonicalizing proof")
 	}
 
 	// 4.2 set output to the result of the hash of the canonicalized options document
 	canonicalizedOptionsBytes := []byte(*canonicalizedOptions)
 	optionsDigest, err := b.Digest(canonicalizedOptionsBytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not take digest of proof")
+		return nil, errors.Wrap(err, "taking digest of proof")
 	}
 
 	// 4.3 hash the canonicalized doc and append it to the output
 	canonicalDoc := []byte(*canonicalProvable)
 	documentDigest, err := b.Digest(canonicalDoc)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not take digest of provable")
+		return nil, errors.Wrap(err, "taking digest of provable")
 	}
 
 	// 5. return the output
