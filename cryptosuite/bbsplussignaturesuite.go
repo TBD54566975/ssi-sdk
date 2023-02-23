@@ -73,7 +73,15 @@ func (b BBSPlusSignatureSuite) Sign(s Signer, p Provable) error {
 	opts := &ProofOptions{Contexts: contexts}
 
 	// 3. tbs value as a result of create verify hash
-	tbs, err := b.CreateVerifyHash(p, proof, opts)
+	var genericProvable map[string]interface{}
+	pBytes, err := json.Marshal(p)
+	if err != nil {
+		return errors.Wrap(err, "marshaling provable")
+	}
+	if err = json.Unmarshal(pBytes, p); err != nil {
+		return errors.Wrap(err, "unmarshaling provable")
+	}
+	tbs, err := b.CreateVerifyHash(genericProvable, proof, opts)
 	if err != nil {
 		return errors.Wrap(err, "running create verify hash algorithm")
 	}
@@ -154,7 +162,15 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 	opts := &ProofOptions{Contexts: contexts}
 
 	// run the create verify hash algorithm on both provable and the proof
-	tbv, err := b.CreateVerifyHash(p, gotProof, opts)
+	var genericProvable map[string]interface{}
+	pBytes, err := json.Marshal(p)
+	if err != nil {
+		return errors.Wrap(err, "marshaling provable")
+	}
+	if err = json.Unmarshal(pBytes, p); err != nil {
+		return errors.Wrap(err, "unmarshaling provable")
+	}
+	tbv, err := b.CreateVerifyHash(genericProvable, gotProof, opts)
 	if err != nil {
 		return errors.Wrap(err, "running create verify hash algorithm")
 	}
@@ -166,6 +182,7 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 }
 
 // decodeProofValue because the proof could have been encoded in a variety of manners we must try them all
+// https://github.com/w3c-ccg/ldp-bbs2020/issues/16#issuecomment-1436148820
 func decodeProofValue(proofValue string) ([]byte, error) {
 	signatureBytes, err := base64.RawStdEncoding.DecodeString(proofValue)
 	if err == nil {
@@ -207,23 +224,23 @@ func (BBSPlusSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 
 // CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
 // augmented by https://w3c-ccg.github.io/ldp-bbs2020/#create-verify-data-algorithm
-func (b BBSPlusSignatureSuite) CreateVerifyHash(provable Provable, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
+func (b BBSPlusSignatureSuite) CreateVerifyHash(doc map[string]interface{}, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := b.prepareProof(proof, opts)
 	if err != nil {
 		return nil, errors.Wrap(err, "preparing proof for the create verify hash algorithm")
 	}
 
-	// marshal provable to prepare for canonicalizaiton
-	marshaledProvable, err := b.Marshal(provable)
+	// marshal doc to prepare for canonicalizaiton
+	marshaledProvable, err := b.Marshal(doc)
 	if err != nil {
-		return nil, errors.Wrap(err, "marshalling provable")
+		return nil, errors.Wrap(err, "marshalling doc")
 	}
 
-	// canonicalize provable using the suite's method
+	// canonicalize doc using the suite's method
 	canonicalProvable, err := b.Canonicalize(marshaledProvable)
 	if err != nil {
-		return nil, errors.Wrap(err, "canonicalizing provable")
+		return nil, errors.Wrap(err, "canonicalizing doc")
 	}
 
 	// marshal proof to prepare for canonicalizaiton
@@ -249,7 +266,7 @@ func (b BBSPlusSignatureSuite) CreateVerifyHash(provable Provable, proof crypto.
 	canonicalDoc := []byte(*canonicalProvable)
 	documentDigest, err := b.Digest(canonicalDoc)
 	if err != nil {
-		return nil, errors.Wrap(err, "taking digest of provable")
+		return nil, errors.Wrap(err, "taking digest of doc")
 	}
 
 	// 5. return the output

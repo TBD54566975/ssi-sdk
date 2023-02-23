@@ -43,7 +43,7 @@ type CryptoSuiteProofType interface {
 	Marshal(data interface{}) ([]byte, error)
 	Canonicalize(marshaled []byte) (*string, error)
 	// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
-	CreateVerifyHash(provable Provable, proof crypto.Proof, proofOptions *ProofOptions) ([]byte, error)
+	CreateVerifyHash(doc map[string]interface{}, proof crypto.Proof, proofOptions *ProofOptions) ([]byte, error)
 	Digest(tbd []byte) ([]byte, error)
 }
 
