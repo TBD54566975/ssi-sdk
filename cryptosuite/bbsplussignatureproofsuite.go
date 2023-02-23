@@ -298,7 +298,7 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 	if err != nil {
 		return errors.Wrap(err, "marshaling provable")
 	}
-	if err = json.Unmarshal(pBytes, p); err != nil {
+	if err = json.Unmarshal(pBytes, &genericProvable); err != nil {
 		return errors.Wrap(err, "unmarshaling provable")
 	}
 	tbv, err := b.CreateVerifyHash(genericProvable, gotProof, opts)

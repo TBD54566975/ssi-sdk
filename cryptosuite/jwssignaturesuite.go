@@ -84,7 +84,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	if err != nil {
 		return errors.Wrap(err, "marshaling provable")
 	}
-	if err = json.Unmarshal(pBytes, p); err != nil {
+	if err = json.Unmarshal(pBytes, &genericProvable); err != nil {
 		return errors.Wrap(err, "unmarshaling provable")
 	}
 	tbs, err := j.CreateVerifyHash(genericProvable, proof, opts)
@@ -138,7 +138,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	if err != nil {
 		return errors.Wrap(err, "marshaling provable")
 	}
-	if err = json.Unmarshal(pBytes, p); err != nil {
+	if err = json.Unmarshal(pBytes, &genericProvable); err != nil {
 		return errors.Wrap(err, "unmarshaling provable")
 	}
 	tbv, err := j.CreateVerifyHash(genericProvable, gotProof, opts)
