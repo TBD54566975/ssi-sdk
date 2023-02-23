@@ -14,13 +14,11 @@ const (
 )
 
 type BLSKey2020 struct {
-	ID         string    `json:"id,omitempty"`
-	Type       LDKeyType `json:"type,omitempty"`
-	Controller string    `json:"controller,omitempty"`
-
-	// One of public key base 58 or public key JWK is required
-	PublicKeyBase58  string `json:"publicKeyBase58,omitempty"`
-	PrivateKeyBase58 string `json:"privateKeyBase58,omitempty"`
+	ID               string    `json:"id,omitempty"`
+	Type             LDKeyType `json:"type,omitempty"`
+	Controller       string    `json:"controller,omitempty"`
+	PublicKeyBase58  string    `json:"publicKeyBase58,omitempty"`
+	PrivateKeyBase58 string    `json:"privateKeyBase58,omitempty"`
 }
 
 func (b BLSKey2020) GetPublicKey() (*bbs.PublicKey, error) {

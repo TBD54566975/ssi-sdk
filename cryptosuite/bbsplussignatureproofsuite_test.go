@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	bbsg2 "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
 	"github.com/mr-tron/base58"
@@ -67,6 +68,18 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		genericCred := GenericProvable(selectiveDisclosure)
 		err = proofSuite.Verify(verifier, &genericCred)
 		assert.NoError(tt, err)
+
+		// orig
+		p, _ := util.PrettyJSON(testCred)
+		println(string(p))
+
+		// frame
+		p, _ = util.PrettyJSON(revealDoc)
+		println(string(p))
+
+		// // reveal
+		p, _ = util.PrettyJSON(selectiveDisclosure)
+		println(string(p))
 	})
 
 	t.Run("known test vector", func(tt *testing.T) {
