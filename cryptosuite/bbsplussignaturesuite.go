@@ -125,7 +125,7 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 	proof := p.GetProof()
 	gotProof, err := BBSPlusProofFromGenericProof(*proof)
 	if err != nil {
-		return errors.Wrap(err, "could not prepare proof for verification; error coercing proof into BBSPlusSignature2020Proof proof")
+		return errors.Wrap(err, "coercing proof into BBSPlusSignature2020Proof proof")
 	}
 
 	// remove proof before verifying
