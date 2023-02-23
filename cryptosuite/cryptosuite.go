@@ -79,6 +79,31 @@ type ProofOptions struct {
 	RevealIndexes []int
 }
 
+// GenericProvable represents a provable that is not constrained by a specific type
+type GenericProvable map[string]interface{}
+
+func (g *GenericProvable) GetProof() *crypto.Proof {
+	if g == nil {
+		return nil
+	}
+	provable := *g
+	proof, gotProof := provable["proof"]
+	if !gotProof {
+		return nil
+	}
+	p := crypto.Proof(proof)
+	return &p
+}
+
+func (g *GenericProvable) SetProof(p *crypto.Proof) {
+	if g == nil {
+		return
+	}
+	provable := *g
+	provable["proof"] = p
+	*g = provable
+}
+
 // GetContextsFromProvable searches from a Linked Data `@context` property in the document and returns the value
 // associated with the context, if it exists.
 func GetContextsFromProvable(p Provable) ([]interface{}, error) {

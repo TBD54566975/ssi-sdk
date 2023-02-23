@@ -266,6 +266,8 @@ func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+var _ Provable = (*TestVerifiablePresentation)(nil)
+
 type TestVerifiablePresentation struct {
 	Context                interface{}      `json:"@context,omitempty"`
 	ID                     string           `json:"id,omitempty"`

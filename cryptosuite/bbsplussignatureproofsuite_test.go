@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/goccy/go-json"
 	bbsg2 "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
 	"github.com/mr-tron/base58"
@@ -65,7 +64,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NotEmpty(tt, selectiveDisclosure)
 
 		// now verify the derived credential
-		genericCred := credential.GenericCredential(selectiveDisclosure)
+		genericCred := GenericProvable(selectiveDisclosure)
 		err = proofSuite.Verify(verifier, &genericCred)
 		assert.NoError(tt, err)
 	})
@@ -111,7 +110,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NotEmpty(tt, selectiveDisclosure)
 
 		// now verify the derived credential
-		genericCred := credential.GenericCredential(selectiveDisclosure)
+		genericCred := GenericProvable(selectiveDisclosure)
 		err = proofSuite.Verify(verifier, &genericCred)
 		assert.NoError(tt, err)
 	})
@@ -121,7 +120,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, revealedDoc)
 
-		var genericCred credential.GenericCredential
+		var genericCred GenericProvable
 		err = json.Unmarshal([]byte(revealedDoc), &genericCred)
 		assert.NoError(tt, err)
 
@@ -183,7 +182,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 
 		credBytes, err := json.Marshal(selectivelyDisclosedCred)
 		assert.NoError(tt, err)
-		var genericCred credential.GenericCredential
+		var genericCred GenericProvable
 		err = json.Unmarshal(credBytes, &genericCred)
 		assert.NoError(tt, err)
 

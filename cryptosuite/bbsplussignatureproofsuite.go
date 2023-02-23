@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"strings"
 
-	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	. "github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
@@ -125,7 +124,7 @@ func (BBSPlusSignatureProofSuite) compactProvable(p Provable) (Provable, *crypto
 	if err != nil {
 		return nil, nil, err
 	}
-	var genericCred credential.GenericCredential
+	var genericCred GenericProvable
 	if err = json.Unmarshal(compactedProvableBytes, &genericCred); err != nil {
 		return nil, nil, errors.Wrap(err, "unmarshalling compacted provable to generic credential")
 	}
