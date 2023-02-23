@@ -31,6 +31,8 @@ func GetBBSPlusSignatureSuite() CryptoSuite {
 
 // CryptoSuiteInfo interface
 
+var _ CryptoSuiteInfo = (*BBSPlusSignatureSuite)(nil)
+
 func (BBSPlusSignatureSuite) ID() string {
 	return BBSPlusSignatureSuiteID
 }
@@ -177,6 +179,8 @@ func decodeProofValue(proofValue string) ([]byte, error) {
 }
 
 // CryptoSuiteProofType interface
+
+var _ CryptoSuiteProofType = (*BBSPlusSignatureSuite)(nil)
 
 func (BBSPlusSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 	// JSONify the provable object

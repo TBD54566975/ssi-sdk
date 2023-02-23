@@ -38,6 +38,8 @@ func GetJSONWebSignature2020Suite() CryptoSuite {
 
 // CryptoSuiteInfo interface
 
+var _ CryptoSuiteInfo = (*JWSSignatureSuite)(nil)
+
 func (JWSSignatureSuite) ID() string {
 	return JWSSignatureSuiteID
 }
@@ -135,6 +137,8 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 }
 
 // CryptoSuiteProofType interface
+
+var _ CryptoSuiteProofType = (*JWSSignatureSuite)(nil)
 
 func (JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 	// JSONify the provable object

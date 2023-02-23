@@ -26,6 +26,8 @@ func GetBBSPlusSignatureProofSuite() *BBSPlusSignatureProofSuite {
 
 // CryptoSuiteInfo interface
 
+var _ CryptoSuiteInfo = (*BBSPlusSignatureProofSuite)(nil)
+
 func (BBSPlusSignatureProofSuite) ID() string {
 	return BBSPlusSignatureSuiteID
 }
@@ -259,7 +261,7 @@ func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument Provabl
 	}, nil
 }
 
-// Bug here: https://github.com/w3c-ccg/ldp-bbs2020/issues/62
+// Verify verifies a BBS Plus derived proof. Bug here: https://github.com/w3c-ccg/ldp-bbs2020/issues/62
 func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 	proof := p.GetProof()
 	gotProof, err := BBSPlusProofFromGenericProof(*proof)
@@ -312,6 +314,8 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 }
 
 // CryptoSuiteProofType interface
+
+var _ CryptoSuiteProofType = (*BBSPlusSignatureProofSuite)(nil)
 
 func (BBSPlusSignatureProofSuite) Marshal(data interface{}) ([]byte, error) {
 	// JSONify the provable object

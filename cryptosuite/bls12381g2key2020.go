@@ -126,14 +126,19 @@ func NewBBSPlusVerifier(kid string, pubKey *bbs.PublicKey) *BBSPlusVerifier {
 	}
 }
 
+// DeriveProof derives a proof from the given signature and nonce. It is used in creating selective disclosure
+// representations of a signed object.
 func (v BBSPlusVerifier) DeriveProof(messages [][]byte, sigBytes, nonce []byte, revealedIndexes []int) ([]byte, error) {
 	return v.BBSPlusVerifier.DeriveProof(messages, sigBytes, nonce, revealedIndexes)
 }
 
+// Verify is used to verify a signature over a message using a BLS key.
 func (v BBSPlusVerifier) Verify(message, signature []byte) error {
 	return v.BBSPlusVerifier.Verify(message, signature)
 }
 
+// VerifyDerived is used to verify a derived proof over a message using a BLS key. It is used in verifying selective
+// disclosure representations of a signed object.
 func (v BBSPlusVerifier) VerifyDerived(message, signature, nonce []byte) error {
 	return v.BBSPlusVerifier.VerifyDerived(message, signature, nonce)
 }

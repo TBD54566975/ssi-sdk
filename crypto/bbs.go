@@ -81,6 +81,8 @@ func (v *BBSPlusVerifier) Verify(message, signature []byte) error {
 	return bls.Verify(prepareBBSMessage(message), signature, pubKeyBytes)
 }
 
+// VerifyDerived verifies a derived proof, or a selective disclosure proof that has been derived from a
+// BBSPlusSignature signed object.
 func (v *BBSPlusVerifier) VerifyDerived(message, signature, nonce []byte) error {
 	bls := bbsg2.New()
 	pubKeyBytes, err := v.PublicKey.Marshal()
@@ -133,6 +135,8 @@ func VerifyDerivedBBSMessage(pubKey *bbsg2.PublicKey, signature, message, nonce 
 
 // helpers
 
+// prepareBBSMessage transforms a message into a message that can be used to verify a BBS+ signature
+// as per https://w3c-ccg.github.io/ldp-bbs2020/#create-verify-data-algorithm
 func prepareBBSMessage(msg []byte) [][]byte {
 	rows := strings.Split(string(msg), "\n")
 	msgs := make([][]byte, 0, len(rows))
@@ -145,6 +149,8 @@ func prepareBBSMessage(msg []byte) [][]byte {
 	return msgs
 }
 
+// prepareBBSDerivedMessage transforms a message from a derived proof into a message that can be used
+// to verify the derived proof as per https://w3c-ccg.github.io/ldp-bbs2020/#create-verify-data-algorithm
 func prepareBBSDerivedMessage(msg []byte) [][]byte {
 	rows := strings.Split(string(msg), "\n")
 	msgs := make([][]byte, 0, len(rows))
@@ -158,6 +164,8 @@ func prepareBBSDerivedMessage(msg []byte) [][]byte {
 	return msgs
 }
 
+// necessary to patch this version of the go JSON-LD library; taken from:
+// https://github.com/hyperledger/aries-framework-go/blob/02f80847168a99c8eb3baeaafcba8d0367bd9551/pkg/doc/signature/jsonld/processor.go#L453
 func transformFromBlankNode(row string) string {
 	// transform from "urn:bnid:_:c14n0" to "_:c14n0"
 	const (

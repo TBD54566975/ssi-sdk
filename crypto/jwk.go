@@ -26,7 +26,7 @@ type PrivateKeyJWK struct {
 	Use    string `json:"use,omitempty"`
 	KeyOps string `json:"key_ops,omitempty"`
 	Alg    string `json:"alg,omitempty"`
-	KID    string `json:"KID,omitempty"`
+	KID    string `json:"kid,omitempty"`
 	D      string `json:"d,omitempty"`
 	DP     string `json:"dp,omitempty"`
 	DQ     string `json:"dq,omitempty"`
@@ -46,7 +46,7 @@ type PublicKeyJWK struct {
 	Use    string `json:"use,omitempty"`
 	KeyOps string `json:"key_ops,omitempty"`
 	Alg    string `json:"alg,omitempty"`
-	KID    string `json:"KID,omitempty"`
+	KID    string `json:"kid,omitempty"`
 }
 
 // JWKToPrivateKeyJWK converts a JWK to a PrivateKeyJWK

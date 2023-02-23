@@ -31,6 +31,8 @@ func TestGenerateBBSKeyPair(t *testing.T) {
 		assert.NoError(tt, err)
 	})
 
+	// This test aims to verify implementation compatibility with the aries-framework-go, taken from here:
+	// https://github.com/hyperledger/aries-framework-go/blob/02f80847168a99c8eb3baeaafcba8d0367bd9551/pkg/doc/signature/verifier/public_key_verifier_test.go#L452
 	t.Run("verify test vector", func(tt *testing.T) {
 		// pkBase58 from did:key:zUC724vuGvHpnCGFG1qqpXb81SiBLu3KLSqVzenwEZNPoY35i2Bscb8DLaVwHvRFs6F2NkNNXRcPWvqnPDUd9ukdjLkjZd3u9zzL4wDZDUpkPAatLDGLEYVo8kkAzuAKJQMr7N2
 		pubKeyBase58 := "nEP2DEdbRaQ2r5Azeatui9MG6cj7JUHa8GD7khub4egHJREEuvj4Y8YG8w51LnhPEXxVV1ka93HpSLkVzeQuuPE1mH9oCMrqoHXAKGBsuDT1yJvj9cKgxxLCXiRRirCycki"
