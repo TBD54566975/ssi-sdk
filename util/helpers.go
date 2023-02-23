@@ -73,6 +73,7 @@ func LDNormalize(document interface{}) (interface{}, error) {
 	return processor.Normalize(document, processor.GetOptions())
 }
 
+// LDFrame runs https://www.w3.org/TR/json-ld11-framing/ to transform the data in a document according to its frame
 func LDFrame(document interface{}, frame interface{}) (interface{}, error) {
 	docAny := document
 	var err error
@@ -96,6 +97,7 @@ func LDFrame(document interface{}, frame interface{}) (interface{}, error) {
 		frameAny.(map[string]interface{}), jsonld.WithDocumentLoader(docLoader), jsonld.WithFrameBlankNodes())
 }
 
+// LDCompact runs https://www.w3.org/TR/json-ld-api/#compaction-algorithms which shortens IRIs in the document
 func LDCompact(document interface{}, context string) (map[string]interface{}, error) {
 	processor := NewLDProcessor()
 	contextsMap := map[string]interface{}{
