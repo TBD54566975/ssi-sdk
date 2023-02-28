@@ -138,7 +138,7 @@ func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCrede
 	subStr, ok := sub.(string)
 	if hasSub && ok && subStr != "" {
 		if cred.CredentialSubject == nil {
-			cred.CredentialSubject = make(map[string]interface{})
+			cred.CredentialSubject = make(map[string]any)
 		}
 		cred.CredentialSubject[credential.VerifiableCredentialIDProperty] = subStr
 	}

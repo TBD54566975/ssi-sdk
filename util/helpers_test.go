@@ -48,7 +48,7 @@ func TestInterfaceToStrings(t *testing.T) {
 
 func TestArrayInterfaceToStr(t *testing.T) {
 	t.Run("simple string array", func(tt *testing.T) {
-		data := []interface{}{"hello"}
+		data := []any{"hello"}
 		res, err := ArrayInterfaceToStr(data)
 		assert.NoError(tt, err)
 		assert.True(tt, len(res) == 1)
@@ -56,14 +56,14 @@ func TestArrayInterfaceToStr(t *testing.T) {
 	})
 
 	t.Run("multi value string array", func(tt *testing.T) {
-		data := []interface{}{"hello", "goodbye"}
+		data := []any{"hello", "goodbye"}
 		res, err := ArrayInterfaceToStr(data)
 		assert.NoError(tt, err)
 		assert.True(tt, len(res) == 2)
 	})
 
 	t.Run("non string array", func(tt *testing.T) {
-		bad := []interface{}{2}
+		bad := []any{2}
 		_, err := ArrayInterfaceToStr(bad)
 		assert.Error(tt, err)
 	})
@@ -123,10 +123,10 @@ func TestLDProcessor(t *testing.T) {
 	})
 
 	t.Run("get context from map", func(tt *testing.T) {
-		contextMap := map[string]interface{}{
+		contextMap := map[string]any{
 			"dc": "http://purl.org/dc/elements/1.1/",
 			"ex": "http://example.org/vocab#",
-			"ex:contains": map[string]interface{}{
+			"ex:contains": map[string]any{
 				"@type": "@id",
 			},
 		}

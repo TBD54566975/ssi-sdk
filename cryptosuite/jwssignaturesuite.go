@@ -136,7 +136,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 
 // CryptoSuiteProofType interface
 
-func (JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
+func (JWSSignatureSuite) Marshal(data any) ([]byte, error) {
 	// JSONify the provable object
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
@@ -147,7 +147,7 @@ func (JWSSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 
 func (JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	// the LD library anticipates a generic golang json object to normalize
-	var generic map[string]interface{}
+	var generic map[string]any
 	if err := json.Unmarshal(marshaled, &generic); err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) 
 		return nil, err
 	}
 
-	var genericProof map[string]interface{}
+	var genericProof map[string]any
 	if err = json.Unmarshal(proofBytes, &genericProof); err != nil {
 		return nil, err
 	}
@@ -237,7 +237,7 @@ func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) 
 		genericProof["created"] = GetRFC3339Timestamp()
 	}
 
-	var contexts []interface{}
+	var contexts []any
 	if opts != nil {
 		contexts = opts.Contexts
 	} else {
@@ -263,7 +263,7 @@ func FromGenericProof(p crypto.Proof) (*JSONWebSignature2020Proof, error) {
 	if err != nil {
 		return nil, err
 	}
-	var generic map[string]interface{}
+	var generic map[string]any
 	if err = json.Unmarshal(proofBytes, &generic); err != nil {
 		return nil, err
 	}

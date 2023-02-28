@@ -87,7 +87,7 @@ func getDummyPresentationDefinition() PresentationDefinition {
 }
 
 // turn two objects into json and compare value equality
-func jsonEq(t *testing.T, a interface{}, b interface{}) {
+func jsonEq(t *testing.T, a any, b any) {
 	aBytes, err := json.Marshal(a)
 	assert.NoError(t, err)
 	bBytes, err := json.Marshal(b)

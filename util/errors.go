@@ -31,7 +31,7 @@ func LoggingNewError(msg string) error {
 }
 
 // LoggingNewErrorf is a utility to create an error from a formatted message, log it, and return it as an error
-func LoggingNewErrorf(msg string, args ...interface{}) error {
+func LoggingNewErrorf(msg string, args ...any) error {
 	return LoggingNewError(fmt.Sprintf(msg, args...))
 }
 
@@ -42,7 +42,7 @@ func LoggingErrorMsg(err error, msg string) error {
 }
 
 // LoggingErrorMsgf is a utility to combine logging an error, and returning and error with a formatted message
-func LoggingErrorMsgf(err error, msg string, args ...interface{}) error {
+func LoggingErrorMsgf(err error, msg string, args ...any) error {
 	return LoggingErrorMsg(err, fmt.Sprintf(msg, args...))
 }
 
