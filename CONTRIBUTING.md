@@ -12,10 +12,10 @@ This guide is for you.
 
 ## Development Prerequisites
 
-| Requirement | Tested Version | Installation Instructions                             |
-|-------------|----------------|-------------------------------------------------------|
-| Go          | 1.19.6         | [go.dev](https://go.dev/doc/tutorial/compile-install) |
-| Mage        | 1.13.0-6       | [magefile.org](https://magefile.org/)                 |
+| Requirement | Tested Version | Installation Instructions                              |
+|-------------|----------------|--------------------------------------------------------|
+| Go          | 1.20.1         | [go.dev](https://go.dev/doc/tutorial/compile-install)  |
+| Mage        | 1.13.0-6       | [magefile.org](https://magefile.org/)                  |
 
 ### Go
 
@@ -25,7 +25,7 @@ You may verify your `go` installation via the terminal:
 
 ```
 $> go version
-go version go1.19.6 darwin/amd64
+go version go1.20.1 darwin/amd64
 ```
 
 If you do not have go, we recommend installing it by:
