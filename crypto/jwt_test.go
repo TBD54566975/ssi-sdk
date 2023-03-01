@@ -46,7 +46,7 @@ func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 
 func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 	testKID := "test-kid"
-	testData := map[string]interface{}{
+	testData := map[string]any{
 		"test": "data",
 	}
 
@@ -109,10 +109,10 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 	verifier, err := signer.ToVerifier()
 	assert.NoError(t, err)
 
-	jwtData := map[string]interface{}{
+	jwtData := map[string]any{
 		"id":   "abcd",
 		"jti":  "1234",
-		"data": []interface{}{"one", "two", "three"},
+		"data": []any{"one", "two", "three"},
 		"more_data": map[string]int{
 			"a": 1,
 			"b": 2,
@@ -146,7 +146,7 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 
 	gotData, ok := parsed.Get("data")
 	assert.True(t, ok)
-	assert.EqualValues(t, []interface{}{"one", "two", "three"}, gotData)
+	assert.EqualValues(t, []any{"one", "two", "three"}, gotData)
 
 	_, err = verifier.VerifyAndParseJWT(string(token))
 	assert.NoError(t, err)

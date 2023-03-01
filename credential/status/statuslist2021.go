@@ -147,7 +147,7 @@ func prepareCredentialsForStatusList(purpose StatusPurpose, credentials []creden
 
 // determine whether the credential status property is of the expected format
 // additionally makes sure the status list has all required properties
-func getStatusEntry(maybeCredentialStatus interface{}) (*StatusList2021Entry, error) {
+func getStatusEntry(maybeCredentialStatus any) (*StatusList2021Entry, error) {
 	statusBytes, err := json.Marshal(maybeCredentialStatus)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not marshal credential status property")
@@ -304,13 +304,13 @@ func ValidateCredentialInStatusList(credentialToValidate credential.VerifiableCr
 	return false, nil
 }
 
-func toStatusList2021Entry(credStatus interface{}) (*StatusList2021Entry, bool) {
+func toStatusList2021Entry(credStatus any) (*StatusList2021Entry, bool) {
 	statusListEntryValue, ok := credStatus.(StatusList2021Entry)
 	if ok {
 		return &statusListEntryValue, true
 	}
 
-	credStatusMap, ok := credStatus.(map[string]interface{})
+	credStatusMap, ok := credStatus.(map[string]any)
 	if !ok {
 		return nil, false
 	}

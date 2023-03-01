@@ -16,7 +16,7 @@ import (
 // IsValidCredentialApplicationForManifest validates the rules on how a credential manifest [cm] and credential
 // application [ca] relate to each other https://identity.foundation/credential-manifest/#credential-application
 // applicationAndCredsJSON is the credential application and credentials as a JSON object
-func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationAndCredsJSON map[string]interface{}) (map[string]string, error) {
+func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationAndCredsJSON map[string]any) (map[string]string, error) {
 	var err error
 
 	// parse out the application to its known object model
@@ -176,7 +176,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 			continue
 		}
 
-		// convert submitted claim vc to map[string]interface{}
+		// convert submitted claim vc to map[string]any
 		cred, credErr := credutil.CredentialsFromInterface(submittedClaim)
 		if credErr != nil {
 			unfulfilledInputDescriptors[inputDescriptor.ID] = "failed to extract credential from json"
@@ -196,7 +196,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 
 		// TODO(gabe) consider enforcing limited disclosure if present
 		// for each field we need to verify at least one path matches
-		credMap := make(map[string]interface{})
+		credMap := make(map[string]any)
 		claimBytes, jsonErr := json.Marshal(cred)
 		if jsonErr != nil {
 			err = errresp.NewErrorResponseWithErrorAndMsg(errresp.CriticalError, err, "failed to marshal vc")
@@ -224,7 +224,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 	return unfulfilledInputDescriptors, err
 }
 
-func findMatchingPath(claim interface{}, paths []string) error {
+func findMatchingPath(claim any, paths []string) error {
 	for _, path := range paths {
 		if _, err := jsonpath.JsonPathLookup(claim, path); err == nil {
 			return nil

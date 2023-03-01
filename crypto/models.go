@@ -1,7 +1,7 @@
 package crypto
 
 type (
-	Proof              interface{}
+	Proof              any
 	KeyType            string
 	HashType           string
 	SignatureAlgorithm string

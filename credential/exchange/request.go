@@ -40,7 +40,7 @@ func BuildPresentationRequest(signer crypto.JWTSigner, pt PresentationRequestTyp
 
 // BuildJWTPresentationRequest builds a JWT representation of a presentation request
 func BuildJWTPresentationRequest(signer crypto.JWTSigner, def PresentationDefinition, target string) ([]byte, error) {
-	jwtValues := map[string]interface{}{
+	jwtValues := map[string]any{
 		jwt.JwtIDKey:              uuid.NewString(),
 		jwt.IssuerKey:             signer.KeyID(),
 		jwt.AudienceKey:           target,

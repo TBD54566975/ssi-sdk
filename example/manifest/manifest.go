@@ -38,25 +38,25 @@ func prepareResultingCredentialSchema(issuerDID string) schema.VCJSONSchema {
 		Name:     "Drivers License Schema",
 		Author:   issuerDID,
 		Authored: time.Now().Format(time.RFC3339),
-		Schema: map[string]interface{}{
+		Schema: map[string]any{
 			"id":          "ca-dmv-drivers-license-schema-1.0",
 			"$schema":     "https://json-schema.org/draft/2019-09/schema",
 			"description": "CA DMV Drivers License Schema",
 			"type":        "object",
-			"properties": map[string]interface{}{
-				"firstName": map[string]interface{}{
+			"properties": map[string]any{
+				"firstName": map[string]any{
 					"type": "string",
 				},
-				"lastName": map[string]interface{}{
+				"lastName": map[string]any{
 					"type": "string",
 				},
-				"dateOfBirth": map[string]interface{}{
+				"dateOfBirth": map[string]any{
 					"type": "string",
 				},
-				"licenseNumber": map[string]interface{}{
+				"licenseNumber": map[string]any{
 					"type": "string",
 				},
-				"licenseClass": map[string]interface{}{
+				"licenseClass": map[string]any{
 					"type": "string",
 				},
 			},
@@ -205,7 +205,7 @@ func issueApplicationCredential(id did.DIDKey, s schema.VCJSONSchema) (*credenti
 		return nil, err
 	}
 
-	if err := builder.SetCredentialSubject(map[string]interface{}{
+	if err := builder.SetCredentialSubject(map[string]any{
 		"id":          id.String(),
 		"firstName":   "Satoshi",
 		"lastName":    "Nakamoto",
@@ -292,7 +292,7 @@ func issueDriversLicenseCredential(issuerDID did.DIDKey, subjectDID string, s sc
 		return nil, err
 	}
 
-	if err := builder.SetCredentialSubject(map[string]interface{}{
+	if err := builder.SetCredentialSubject(map[string]any{
 		"id":            subjectDID,
 		"firstName":     data.FirstName,
 		"lastName":      data.LastName,
