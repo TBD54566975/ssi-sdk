@@ -49,7 +49,7 @@ func NewJWTSignerFromKey(kid string, key jwk.Key) (*JWTSigner, error) {
 	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
 		return nil, fmt.Errorf("unsupported signing algorithm: %s", alg)
 	}
-	return &JWTSigner{Key: gotJWK}, nil
+	return &JWTSigner{SignatureAlgorithm: *alg, Key: gotJWK}, nil
 }
 
 func (s *JWTSigner) ToVerifier() (*JWTVerifier, error) {
