@@ -16,14 +16,14 @@ func TestCredential(t *testing.T) {
 	knownType := []string{"VerifiableCredential", "AlumniCredential"}
 	knownIssuer := "https://example.edu/issuers/565049"
 	knownIssuanceDate := "2010-01-01T19:23:24Z"
-	knownSubject := map[string]interface{}{
+	knownSubject := map[string]any{
 		"id": "did:example:ebfeb1f712ebc6f1c276e12ec21",
-		"alumniOf": map[string]interface{}{
+		"alumniOf": map[string]any{
 			"id": "did:example:c276e12ec21ebfeb1f712ebc6f1",
-			"name": []interface{}{
-				map[string]interface{}{"value": "Example University",
+			"name": []any{
+				map[string]any{"value": "Example University",
 					"lang": "en",
-				}, map[string]interface{}{
+				}, map[string]any{
 					"value": "Exemple d'Université",
 					"lang":  "fr",
 				},
@@ -119,7 +119,7 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// reset issuer as an object without an id property
-	badIssuerObject := map[string]interface{}{
+	badIssuerObject := map[string]any{
 		"issuer": "abcd",
 		"bad":    "efghi",
 	}
@@ -128,7 +128,7 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.Contains(t, err.Error(), "issuer object did not contain `id` property")
 
 	// issuer object with an id property
-	goodIssuerObject := map[string]interface{}{
+	goodIssuerObject := map[string]any{
 		"id": "issuer",
 	}
 	err = builder.SetIssuer(goodIssuerObject)
@@ -227,12 +227,12 @@ func TestCredentialBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// empty evidence
-	err = builder.SetEvidence([]interface{}{})
+	err = builder.SetEvidence([]any{})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "evidence cannot be empty")
 
 	// valid evidence
-	evidence := []interface{}{"evidence"}
+	evidence := []any{"evidence"}
 	err = builder.SetEvidence(evidence)
 	assert.NoError(t, err)
 
@@ -303,7 +303,7 @@ func TestVerifiablePresentationBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// add two credentials
-	creds := []interface{}{
+	creds := []any{
 		VerifiableCredential{
 			ID:     "cred-1",
 			Type:   "type",

@@ -71,7 +71,7 @@ type DIDResolutionMetadata struct {
 // DIDDocument is a representation of the did core specification https://www.w3.org/TR/did-core
 // TODO(gabe) enforce validation of DID syntax https://www.w3.org/TR/did-core/#did-syntax
 type DIDDocument struct {
-	Context interface{} `json:"@context,omitempty"`
+	Context any `json:"@context,omitempty"`
 	// As per https://www.w3.org/TR/did-core/#did-subject intermediate representations of DID Documents do not
 	// require an ID property. The provided test vectors demonstrate IRs. As such, the property is optional.
 	ID                   string                  `json:"id,omitempty"`
@@ -103,7 +103,7 @@ type VerificationMethod struct {
 // `capabilityInvocation`, and `capabilityDelegation` types.
 // A set of one or more verification methods. Each verification method MAY be embedded or referenced.
 // TODO(gabe) consider changing this to a custom unmarshaler https://stackoverflow.com/a/28016508
-type VerificationMethodSet interface{}
+type VerificationMethodSet any
 
 // Service is a property compliant with the did-core spec https://www.w3.org/TR/did-core/#services
 type Service struct {
@@ -111,9 +111,9 @@ type Service struct {
 	Type string `json:"type" validate:"required"`
 	// A string, map, or set composed of one or more strings and/or maps
 	// All string values must be valid URIs
-	ServiceEndpoint interface{} `json:"serviceEndpoint" validate:"required"`
-	RoutingKeys     []string    `json:"routingKeys,omitempty"`
-	Accept          []string    `json:"accept,omitempty"`
+	ServiceEndpoint any      `json:"serviceEndpoint" validate:"required"`
+	RoutingKeys     []string `json:"routingKeys,omitempty"`
+	Accept          []string `json:"accept,omitempty"`
 }
 
 func (s *Service) IsValid() bool {

@@ -15,13 +15,13 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 		revocationID := "revocation-id"
 		testIssuer := "test-issuer"
 		testCred1 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -35,13 +35,13 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 			},
 		}
 		testCred2 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-2",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -77,13 +77,13 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 		revocationID := "revocation-id"
 		testIssuer := "test-issuer"
 		testCred1 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -97,13 +97,13 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 			},
 		}
 		testCred2 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-2",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -127,13 +127,13 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 		revocationID := "revocation-id"
 		testIssuer := "test-issuer"
 		testCred1 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -147,13 +147,13 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 			},
 		}
 		testCred2 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-2",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -185,13 +185,13 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 		revocationID := "revocation-id"
 		testIssuer := "test-issuer"
 		testCred1 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -214,13 +214,13 @@ func TestGenerateStatusList2021Credential(t *testing.T) {
 		revocationID := "revocation-id"
 		testIssuer := "test-issuer"
 		testCred1 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -245,13 +245,13 @@ func TestValidateCredentialInStatusList(t *testing.T) {
 		revocationID := "revocation-id"
 		testIssuer := "test-issuer"
 		testCred1 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -279,18 +279,18 @@ func TestValidateCredentialInStatusList(t *testing.T) {
 		revocationID := "revocation-id"
 		testIssuer := "test-issuer"
 		testCred1 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
 			},
-			CredentialStatus: map[string]interface{}{
+			CredentialStatus: map[string]any{
 				"id":                   revocationID,
 				"type":                 "Block",
 				"statusPurpose":        "revocation",
@@ -313,13 +313,13 @@ func TestValidateCredentialInStatusList(t *testing.T) {
 		revocationID := "revocation-id"
 		testIssuer := "test-issuer"
 		testCred1 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -333,13 +333,13 @@ func TestValidateCredentialInStatusList(t *testing.T) {
 			},
 		}
 		testCred2 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-2",
 				"company": "Block",
 				"website": "https://block.xyz",
@@ -367,13 +367,13 @@ func TestValidateCredentialInStatusList(t *testing.T) {
 		revocationID := "revocation-id"
 		testIssuer := "test-issuer"
 		testCred1 := credential.VerifiableCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			ID:           "test-verifiable-credential-2",
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       testIssuer,
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id":      "test-vc-id-1",
 				"company": "Block",
 				"website": "https://block.xyz",

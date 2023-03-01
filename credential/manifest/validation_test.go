@@ -20,7 +20,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
 
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -35,7 +35,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
 
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -52,7 +52,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
 
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -184,7 +184,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -201,7 +201,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -220,7 +220,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -236,7 +236,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -255,7 +255,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -278,7 +278,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -298,7 +298,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -312,7 +312,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		cm, ca := getValidTestCredManifestCredApplication(tt)
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -328,7 +328,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		ca.CredentialApplication.PresentationSubmission = nil
 		credAppRequestBytes, err := json.Marshal(ca)
 		assert.NoError(tt, err)
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		err = json.Unmarshal(credAppRequestBytes, &request)
 		assert.NoError(tt, err)
 
@@ -372,7 +372,7 @@ func getValidTestCredManifestCredApplication(t *testing.T) (CredentialManifest, 
 	require.NotEmpty(t, vc)
 	require.NoError(t, vc.IsValid())
 
-	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []interface{}{vc}}
+	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []any{vc}}
 }
 
 func getValidTestCredManifestCredApplicationJWTCred(t *testing.T) (CredentialManifest, CredentialApplicationWrapper) {
@@ -416,5 +416,5 @@ func getValidTestCredManifestCredApplicationJWTCred(t *testing.T) (CredentialMan
 	require.NoError(t, err)
 	require.NotEmpty(t, jwt)
 
-	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []interface{}{string(jwt)}}
+	return cm, CredentialApplicationWrapper{CredentialApplication: ca, Credentials: []any{string(jwt)}}
 }

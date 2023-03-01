@@ -134,7 +134,7 @@ func (pdb *PresentationDefinitionBuilder) SetSubmissionRequirements(requirements
 	return nil
 }
 
-func (pdb *PresentationDefinitionBuilder) SetFrame(frame interface{}) error {
+func (pdb *PresentationDefinitionBuilder) SetFrame(frame any) error {
 	if pdb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// contexts and types are kept to avoid having cast to/from interface{} values
+// contexts and types are kept to avoid having cast to/from any values
 type DIDDocumentBuilder struct {
 	contexts []string
 	types    []string
@@ -55,7 +55,7 @@ func (builder *DIDDocumentBuilder) IsEmpty() bool {
 	return reflect.DeepEqual(builder, &DIDDocumentBuilder{})
 }
 
-func (builder *DIDDocumentBuilder) AddContext(context interface{}) error {
+func (builder *DIDDocumentBuilder) AddContext(context any) error {
 	if builder.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
