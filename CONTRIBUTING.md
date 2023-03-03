@@ -75,7 +75,6 @@ $> mage test
 ```
 
 ---
-
 ## Communications
 
 ### Issues
@@ -95,10 +94,16 @@ Build and Test cycles are run on every commit to every branch
 using [GitHub Actions](https://github.com/TBD54566975/ssi-sdk/actions).
 
 ## Contribution
+---
 
 We review contributions to the codebase via GitHub's Pull Request mechanism. We have the following guidelines to ease
 your experience and help our leads respond quickly to your valuable work:
 
+### Code
+* All new code and PRs should follow [Uber's Go Style guide](https://github.com/uber-go/guide/blob/master/style.md).
+* All new tests should follow unit test [best practices from Microsoft](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices#best-practices). 
+
+### Process
 * Start by proposing a change either in Issues (most appropriate for small change requests or bug fixes) or in
   Discussions (most appropriate for design and architecture considerations, proposing a new feature, or where you'd like
   insight and feedback)
