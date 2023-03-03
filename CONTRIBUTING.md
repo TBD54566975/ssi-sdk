@@ -75,6 +75,7 @@ $> mage test
 ```
 
 ---
+
 ## Communications
 
 ### Issues
@@ -94,7 +95,6 @@ Build and Test cycles are run on every commit to every branch
 using [GitHub Actions](https://github.com/TBD54566975/ssi-sdk/actions).
 
 ## Contribution
----
 
 We review contributions to the codebase via GitHub's Pull Request mechanism. We have the following guidelines to ease
 your experience and help our leads respond quickly to your valuable work:
