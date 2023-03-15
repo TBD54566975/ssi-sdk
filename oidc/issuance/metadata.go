@@ -64,7 +64,7 @@ type CredentialSupported struct {
 	*JWTVCJSONCredentialMetadata
 }
 
-// DIDBindingMethods returns a list of all the
+// DIDBindingMethods returns a list of all the did methods supported from the list of CryptographicBindingMethodsSupported.
 func (s CredentialSupported) DIDBindingMethods() []did.Method {
 	methods := make([]did.Method, 0, len(s.CryptographicBindingMethodsSupported))
 	for _, bm := range s.CryptographicBindingMethodsSupported {
