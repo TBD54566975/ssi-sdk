@@ -34,7 +34,7 @@ func TestInvalidJSON(t *testing.T) {
 		  "locale": "en-US"
 		}
 	  ]
-	}`)Mo
+	}`)
 	err := json.Unmarshal(claimWithManyLocales, &Claim{})
 	require.Error(t, err)
 	require.Equal(t, "found repeated claim.display.locale for en-US", err.Error())

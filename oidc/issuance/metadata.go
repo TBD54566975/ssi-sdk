@@ -44,9 +44,9 @@ type CredentialDisplay struct {
 type Format string
 
 const (
-	JwtVcJSON   Format = "jwt_vc_json"
-	JwtVcJSONLd Format = "jwt_vc_json-ld"
-	LdpVc       Format = "ldp_vc"
+	JWTVCJSON   Format = "jwt_vc_json"
+	JWTVCJSONLD Format = "jwt_vc_json-ld"
+	LDPVC       Format = "ldp_vc"
 )
 
 type CredentialSupported struct {
@@ -98,7 +98,7 @@ type IssuerMetadata struct {
 	// Must use the `https` scheme.
 	BatchCredentialEndpoint *util.URL `json:"batch_credential_endpoint,omitempty"`
 
-	CredentialsSupported CredentialSupported `json:"credentials_supported,omitempty"`
+	CredentialsSupported []CredentialSupported `json:"credentials_supported,omitempty"`
 
 	Display []displayJSON `json:"display,omitempty"`
 }
