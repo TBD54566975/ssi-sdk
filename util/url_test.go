@@ -25,5 +25,4 @@ func TestURL_UnmarshalJSON(t *testing.T) {
 
 	expected := URL{url.URL{Scheme: "web5", Host: "tbd.website"}}
 	assert.Equal(t, expected, u)
-
 }

@@ -11,12 +11,12 @@ type CryptographicBindingMethodSupported string
 
 const (
 	JWKFormat CryptographicBindingMethodSupported = "jwk"
-	COSEKey                                       = "cose_key"
-	AllDIDs                                       = "did"
+	COSEKey   CryptographicBindingMethodSupported = "cose_key"
+	AllDIDs   CryptographicBindingMethodSupported = "did"
 )
 
 type Logo struct {
-	Url     *util.URL `json:"url,omitempty"`
+	URL     *util.URL `json:"url,omitempty"`
 	AltText *string   `json:"alt_text,omitempty"`
 }
 
@@ -32,9 +32,9 @@ type CredentialDisplay struct {
 type Format string
 
 const (
-	JwtVcJson   Format = "jwt_vc_json"
-	JwtVcJsonLd        = "jwt_vc_json-ld"
-	LdpVc              = "ldp_vc"
+	JwtVcJSON   Format = "jwt_vc_json"
+	JwtVcJSONLd Format = "jwt_vc_json-ld"
+	LdpVc       Format = "ldp_vc"
 )
 
 type CredentialSupported struct {
