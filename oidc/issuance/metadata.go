@@ -1,6 +1,9 @@
 package issuance
 
 import (
+	"strings"
+
+	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
@@ -9,10 +12,19 @@ import (
 
 type CryptographicBindingMethodSupported string
 
+// DIDBinding returns the did.Method for this binding, and whether this is actually a DID binding method.
+func (s CryptographicBindingMethodSupported) DIDBinding() (method did.Method, isDIDBinding bool) {
+	methodStr, isDIDBinding := strings.CutPrefix(string(s), "did:")
+	return did.Method(methodStr), isDIDBinding
+}
+
+// The possible values coming from https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#section-10.2.3.1-2.3.1
 const (
 	JWKFormat CryptographicBindingMethodSupported = "jwk"
 	COSEKey   CryptographicBindingMethodSupported = "cose_key"
-	AllDIDs   CryptographicBindingMethodSupported = "did"
+
+	// AllDIDMethods is the value used to indicates support for all DID methods in the DID registry.
+	AllDIDMethods CryptographicBindingMethodSupported = "did"
 )
 
 type Logo struct {
@@ -50,6 +62,18 @@ type CredentialSupported struct {
 
 	// Present when format == jwt_vc_json
 	*JWTVCJSONCredentialMetadata
+}
+
+// DIDBindingMethods returns a list of all the
+func (s CredentialSupported) DIDBindingMethods() []did.Method {
+	methods := make([]did.Method, 0, len(s.CryptographicBindingMethodsSupported))
+	for _, bm := range s.CryptographicBindingMethodsSupported {
+		method, ok := bm.DIDBinding()
+		if ok {
+			methods = append(methods, method)
+		}
+	}
+	return methods
 }
 
 type displayJSON struct {

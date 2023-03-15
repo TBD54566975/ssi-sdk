@@ -4,7 +4,9 @@ import (
 	_ "embed"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/goccy/go-json"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,4 +38,19 @@ func TestInvalidJSON(t *testing.T) {
 	err := json.Unmarshal(claimWithManyLocales, &Claim{})
 	require.Error(t, err)
 	require.Equal(t, "found repeated claim.display.locale for en-US", err.Error())
+}
+
+func TestDIDBindingMethods(t *testing.T) {
+	var c CredentialSupported
+	credentialSupportedJSON := []byte(`{
+      "cryptographic_binding_methods_supported": [
+        "did:web",
+        "did:ion",
+        "did",
+        "jwk"
+      ]
+    }`)
+	require.NoError(t, json.Unmarshal(credentialSupportedJSON, &c))
+
+	assert.ElementsMatch(t, []did.Method{"web", "ion"}, c.DIDBindingMethods())
 }
