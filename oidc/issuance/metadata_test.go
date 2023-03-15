@@ -34,7 +34,7 @@ func TestInvalidJSON(t *testing.T) {
 		  "locale": "en-US"
 		}
 	  ]
-	}`)
+	}`)Mo
 	err := json.Unmarshal(claimWithManyLocales, &Claim{})
 	require.Error(t, err)
 	require.Equal(t, "found repeated claim.display.locale for en-US", err.Error())
@@ -52,5 +52,5 @@ func TestDIDBindingMethods(t *testing.T) {
     }`)
 	require.NoError(t, json.Unmarshal(credentialSupportedJSON, &c))
 
-	assert.ElementsMatch(t, []did.Method{"web", "ion"}, c.DIDBindingMethods())
+	assert.ElementsMatch(t, []did.Method{"web", "ion"}, c.BindingDIDMethods())
 }

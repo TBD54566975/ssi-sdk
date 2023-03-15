@@ -52,7 +52,7 @@ const (
 type CredentialSupported struct {
 	Format Format `json:"format" validate:"required"`
 
-	Id *string `json:"id,omitempty"`
+	ID *string `json:"id,omitempty"`
 
 	CryptographicBindingMethodsSupported []CryptographicBindingMethodSupported `json:"cryptographic_binding_methods_supported,omitempty"`
 
@@ -64,8 +64,8 @@ type CredentialSupported struct {
 	*JWTVCJSONCredentialMetadata
 }
 
-// DIDBindingMethods returns a list of all the did methods supported from the list of CryptographicBindingMethodsSupported.
-func (s CredentialSupported) DIDBindingMethods() []did.Method {
+// BindingDIDMethods returns a list of all the did methods supported from the list of CryptographicBindingMethodsSupported.
+func (s CredentialSupported) BindingDIDMethods() []did.Method {
 	methods := make([]did.Method, 0, len(s.CryptographicBindingMethodsSupported))
 	for _, bm := range s.CryptographicBindingMethodsSupported {
 		method, ok := bm.DIDBinding()
@@ -98,7 +98,7 @@ type IssuerMetadata struct {
 	// Must use the `https` scheme.
 	BatchCredentialEndpoint *util.URL `json:"batch_credential_endpoint,omitempty"`
 
-	CredentialsSupported []CredentialSupported `json:"credentials_supported,omitempty"`
+	CredentialsSupported CredentialSupported `json:"credentials_supported,omitempty"`
 
 	Display []displayJSON `json:"display,omitempty"`
 }
@@ -158,8 +158,7 @@ func (c Claim) MarshalJSON() ([]byte, error) {
 
 func (c *Claim) UnmarshalJSON(data []byte) error {
 	var cJSON claimJSON
-	err := json.Unmarshal(data, &cJSON)
-	if err != nil {
+	if err := json.Unmarshal(data, &cJSON); err != nil {
 		return errors.Wrap(err, "unmarshalling")
 	}
 	c.Mandatory = cJSON.Mandatory

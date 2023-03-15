@@ -18,8 +18,8 @@ func (u URL) MarshalJSON() ([]byte, error) {
 
 func (u *URL) UnmarshalJSON(data []byte) error {
 	var dataStr string
-	err := json.Unmarshal(data, &dataStr)
-	if err != nil {
+
+	if err := json.Unmarshal(data, &dataStr); err != nil {
 		return errors.Wrap(err, "unmarshalling")
 	}
 	parsed, err := url.Parse(dataStr)
