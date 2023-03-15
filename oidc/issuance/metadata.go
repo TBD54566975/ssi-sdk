@@ -33,7 +33,7 @@ type Logo struct {
 }
 
 type CredentialDisplay struct {
-	displayJSON
+	Display
 
 	Logo            *Logo   `json:"logo,omitempty"`
 	Description     *string `json:"description,omitempty"`
@@ -76,7 +76,7 @@ func (s CredentialSupported) BindingDIDMethods() []did.Method {
 	return methods
 }
 
-type displayJSON struct {
+type Display struct {
 	Name *string `json:"name,omitempty"`
 
 	Locale *language.Tag `json:"locale,omitempty"`
@@ -98,33 +98,102 @@ type IssuerMetadata struct {
 	// Must use the `https` scheme.
 	BatchCredentialEndpoint *util.URL `json:"batch_credential_endpoint,omitempty"`
 
-	CredentialsSupported []CredentialSupported `json:"credentials_supported,omitempty"`
+	// Credentials supported indexes by the ID field.
+	CredentialsSupported map[string]CredentialSupported
 
-	Display []displayJSON `json:"display,omitempty"`
+	// Credentials supported that did not have an ID field.
+	OtherCredentialsSupported []CredentialSupported
+
+	Display []Display `json:"display,omitempty"`
 }
 
-func (i IssuerMetadata) IsValid() error {
-	if i.CredentialEndpoint.Scheme != "https" {
-		return errors.Errorf("scheme for credential_endpoint must be https (found %s)", i.CredentialEndpoint.Scheme)
+func (m IssuerMetadata) MarshalJSON() ([]byte, error) {
+	imj := issuerMetadataJSON{
+		CredentialIssuer:        m.CredentialIssuer,
+		AuthorizationServer:     m.AuthorizationServer,
+		CredentialEndpoint:      m.CredentialEndpoint,
+		BatchCredentialEndpoint: m.BatchCredentialEndpoint,
+		CredentialsSupported:    make([]CredentialSupported, 0, len(m.CredentialsSupported)+len(m.OtherCredentialsSupported)),
+		Display:                 m.Display,
 	}
 
-	if i.BatchCredentialEndpoint != nil && i.BatchCredentialEndpoint.Scheme != "https" {
-		return errors.Errorf("scheme for batch_credential_endpoint must be https (found %s)", i.BatchCredentialEndpoint.Scheme)
+	for _, v := range m.CredentialsSupported {
+		imj.CredentialsSupported = append(imj.CredentialsSupported, v)
 	}
+
+	for _, v := range m.OtherCredentialsSupported {
+		imj.CredentialsSupported = append(imj.CredentialsSupported, v)
+	}
+
+	return json.Marshal(imj)
+}
+
+func (m *IssuerMetadata) UnmarshalJSON(data []byte) error {
+	var metadataJSON issuerMetadataJSON
+	if err := json.Unmarshal(data, &metadataJSON); err != nil {
+		return errors.Wrap(err, "unmarshalling json")
+	}
+
+	unmarshalled := IssuerMetadata{
+		CredentialIssuer:          metadataJSON.CredentialIssuer,
+		AuthorizationServer:       metadataJSON.AuthorizationServer,
+		CredentialEndpoint:        metadataJSON.CredentialEndpoint,
+		BatchCredentialEndpoint:   metadataJSON.BatchCredentialEndpoint,
+		CredentialsSupported:      make(map[string]CredentialSupported, len(metadataJSON.CredentialsSupported)),
+		OtherCredentialsSupported: make([]CredentialSupported, 0, len(metadataJSON.CredentialsSupported)),
+		Display:                   metadataJSON.Display,
+	}
+	for _, c := range metadataJSON.CredentialsSupported {
+		if c.ID == nil {
+			unmarshalled.OtherCredentialsSupported = append(unmarshalled.OtherCredentialsSupported, c)
+		} else {
+			if _, ok := unmarshalled.CredentialsSupported[*c.ID]; ok {
+				return errors.Errorf("found repeated credentials_supported.id for %s", *c.ID)
+			}
+			unmarshalled.CredentialsSupported[*c.ID] = c
+		}
+	}
+
+	*m = unmarshalled
 
 	return nil
 }
 
-type Display struct {
-	Name  *string
-	Extra map[string]any
+type issuerMetadataJSON struct {
+	CredentialIssuer util.URL `json:"credential_issuer" validate:"required"`
+
+	// Points to a URL that resolves to authorization server metdata as defined in
+	// https://www.rfc-editor.org/rfc/rfc8414.html#section-2
+	AuthorizationServer *util.URL `json:"authorization_server,omitempty"`
+
+	// Must use the `https` scheme.
+	CredentialEndpoint util.URL `json:"credential_endpoint" validate:"required"`
+
+	// Must use the `https` scheme.
+	BatchCredentialEndpoint *util.URL `json:"batch_credential_endpoint,omitempty"`
+
+	CredentialsSupported []CredentialSupported `json:"credentials_supported,omitempty"`
+
+	Display []Display `json:"display,omitempty"`
+}
+
+func (m IssuerMetadata) IsValid() error {
+	if m.CredentialEndpoint.Scheme != "https" {
+		return errors.Errorf("scheme for credential_endpoint must be https (found %s)", m.CredentialEndpoint.Scheme)
+	}
+
+	if m.BatchCredentialEndpoint != nil && m.BatchCredentialEndpoint.Scheme != "https" {
+		return errors.Errorf("scheme for batch_credential_endpoint must be https (found %s)", m.BatchCredentialEndpoint.Scheme)
+	}
+
+	return nil
 }
 
 type claimJSON struct {
 	Mandatory *bool   `json:"mandatory,omitempty"`
 	ValueType *string `json:"value_type,omitempty"`
 
-	Display []displayJSON `json:"display,omitempty"`
+	Display []Display `json:"display,omitempty"`
 }
 
 type Claim struct {
@@ -139,18 +208,13 @@ func (c Claim) MarshalJSON() ([]byte, error) {
 	jsonStruct := claimJSON{
 		Mandatory: c.Mandatory,
 		ValueType: c.ValueType,
-		Display:   make([]displayJSON, 0, len(c.Display)+len(c.OtherDisplays)),
+		Display:   make([]Display, 0, len(c.Display)+len(c.OtherDisplays)),
 	}
-	for k, v := range c.Display {
-		jsonStruct.Display = append(jsonStruct.Display, displayJSON{
-			Name:   v.Name,
-			Locale: &k,
-		})
+	for _, v := range c.Display {
+		jsonStruct.Display = append(jsonStruct.Display, v)
 	}
 	for _, v := range c.OtherDisplays {
-		jsonStruct.Display = append(jsonStruct.Display, displayJSON{
-			Name: v.Name,
-		})
+		jsonStruct.Display = append(jsonStruct.Display, v)
 	}
 
 	return json.Marshal(jsonStruct)
@@ -161,24 +225,26 @@ func (c *Claim) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &cJSON); err != nil {
 		return errors.Wrap(err, "unmarshalling")
 	}
-	c.Mandatory = cJSON.Mandatory
-	c.ValueType = cJSON.ValueType
-	c.Display = make(map[language.Tag]Display, len(cJSON.Display))
+
+	unmarshalled := Claim{
+		Mandatory:     cJSON.Mandatory,
+		ValueType:     cJSON.ValueType,
+		Display:       make(map[language.Tag]Display, len(cJSON.Display)),
+		OtherDisplays: make([]Display, 0, len(cJSON.Display)),
+	}
 
 	for _, d := range cJSON.Display {
-		display := Display{
-			Name: d.Name,
-		}
-
 		if d.Locale == nil {
-			c.OtherDisplays = append(c.OtherDisplays, display)
+			unmarshalled.OtherDisplays = append(unmarshalled.OtherDisplays, d)
 		} else {
-			if _, ok := c.Display[*d.Locale]; ok {
+			if _, ok := unmarshalled.Display[*d.Locale]; ok {
 				return errors.Errorf("found repeated claim.display.locale for %s", d.Locale)
 			}
-			c.Display[*d.Locale] = display
+			unmarshalled.Display[*d.Locale] = d
 		}
 	}
+
+	*c = unmarshalled
 
 	return nil
 }

@@ -22,7 +22,7 @@ func TestUnmarshalAndMarshallIsLossless(t *testing.T) {
 	require.JSONEq(t, string(exampleIssuerMetadata), string(jsonData))
 }
 
-func TestInvalidJSON(t *testing.T) {
+func TestInvalidClaimJSON(t *testing.T) {
 	claimWithManyLocales := []byte(`{
 	  "display": [
 		{
@@ -35,9 +35,28 @@ func TestInvalidJSON(t *testing.T) {
 		}
 	  ]
 	}`)
+
 	err := json.Unmarshal(claimWithManyLocales, &Claim{})
+
 	require.Error(t, err)
 	require.Equal(t, "found repeated claim.display.locale for en-US", err.Error())
+}
+
+func TestInvalidIssuerMetadataJSON(t *testing.T) {
+	metadataWithManyCredentialSupportedIDs := []byte(`{
+		"credentials_supported": [{
+				"id":"one"
+			},
+			{
+				"id":"one"
+			}
+		]
+	}`)
+
+	err := json.Unmarshal(metadataWithManyCredentialSupportedIDs, &IssuerMetadata{})
+
+	require.Error(t, err)
+	require.Equal(t, "found repeated credentials_supported.id for one", err.Error())
 }
 
 func TestDIDBindingMethods(t *testing.T) {
