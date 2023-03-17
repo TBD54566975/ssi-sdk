@@ -4,25 +4,18 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 )
 
+// object models
+
 type Document struct {
 	PublicKeys []PublicKey
 	Services   []Service
 }
 
+// Service declaration in a DID Document
 type Service struct {
 	ID              string
 	Type            string
 	ServiceEndpoint any
-}
-
-type AddServicesAction struct {
-	Action   string
-	Services []Service
-}
-
-type RemoveServicesAction struct {
-	Action string
-	IDs    []string
 }
 
 type PublicKey struct {
@@ -32,47 +25,70 @@ type PublicKey struct {
 	Purposes     []PublicKeyPurpose
 }
 
-type AddPublicKeysAction struct {
-	Action     string
-	PublicKeys []PublicKey
+// action models
+
+// AddServicesAction https://identity.foundation/sidetree/spec/#add-services
+type AddServicesAction struct {
+	Action   PatchAction
+	Services []Service
 }
 
-type RemovePublicKeysAction struct {
-	Action string
+// RemoveServicesAction https://identity.foundation/sidetree/spec/#remove-services
+type RemoveServicesAction struct {
+	Action PatchAction
 	IDs    []string
 }
 
-type CreateRequest struct {
-	Type       OperationType
-	SuffixData struct {
-		DeltaHash          string
-		RecoveryCommitment string
-	}
-	Delta []struct {
-		UpdateCommitment string
-		Patches          struct {
-			Action   string
-			Document Document
-		}
-	}
+// AddPublicKeysAction https://identity.foundation/sidetree/spec/#add-public-keys
+type AddPublicKeysAction struct {
+	Action     PatchAction
+	PublicKeys []PublicKey
 }
 
-// Patches Only one of these values should be set
-type Patches struct {
+// RemovePublicKeysAction https://identity.foundation/sidetree/spec/#add-public-keys
+type RemovePublicKeysAction struct {
+	Action PatchAction
+	IDs    []string
+}
+
+// ReplaceAction https://identity.foundation/sidetree/spec/#replace
+type ReplaceAction struct {
+	Action   PatchAction `json:"action" validate:"required"`
+	Document Document    `json:"document" validate:"required"`
+}
+
+// request models
+
+// Patch Only one of these values should be set
+type Patch struct {
 	*AddServicesAction
 	*AddPublicKeysAction
 	*RemoveServicesAction
 	*RemovePublicKeysAction
+	*ReplaceAction
+}
+
+type CreateRequest struct {
+	Type       OperationType
+	SuffixData SuffixData
+	Delta      Delta
+}
+
+type SuffixData struct {
+	DeltaHash          string
+	RecoveryCommitment string
 }
 
 type UpdateRequest struct {
 	Type        OperationType
 	DIDSuffix   string
 	RevealValue string
-	Delta       []struct {
-		UpdateCommitment string
-		Patches          []Patches
-	}
+	Delta       Delta
+}
+
+type Delta struct {
+	UpdateCommitment string
+	Patches          []Patch
 }
 
 type DeactivateRequest struct {
@@ -86,12 +102,6 @@ type RecoverRequest struct {
 	Type        OperationType
 	DIDSuffix   string
 	RevealValue string
-	Delta       []struct {
-		UpdateCommitment string
-		Patches          struct {
-			Action   string
-			Document Document
-		}
-	}
-	SignedData string
+	Delta       Delta
+	SignedData  string
 }

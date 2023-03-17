@@ -75,6 +75,24 @@ func JWKToPublicKeyJWK(key jwk.Key) (*PublicKeyJWK, error) {
 	return &pubKeyJWK, nil
 }
 
+// JWKFromPublicKeyJWK converts a PublicKeyJWK to a JWK
+func JWKFromPublicKeyJWK(key PublicKeyJWK) (jwk.Key, error) {
+	keyBytes, err := json.Marshal(key)
+	if err != nil {
+		return nil, err
+	}
+	return jwk.ParseKey(keyBytes)
+}
+
+// JWKFromPrivateKeyJWK converts a PrivateKeyJWK to a JWK
+func JWKFromPrivateKeyJWK(key PrivateKeyJWK) (jwk.Key, error) {
+	keyBytes, err := json.Marshal(key)
+	if err != nil {
+		return nil, err
+	}
+	return jwk.ParseKey(keyBytes)
+}
+
 // PublicKeyToJWK converts a public key to a JWK
 func PublicKeyToJWK(key crypto.PublicKey) (jwk.Key, error) {
 	switch k := key.(type) {
