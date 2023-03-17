@@ -82,7 +82,7 @@ func makePresentationRequest(presentationData exchange.PresentationDefinition) (
 		return nil, err
 	}
 
-	parsed, err := verifier.VerifyAndParseJWT(string(requestJWTBytes))
+	parsed, err := verifier.VerifyAndParse(string(requestJWTBytes))
 	if err != nil {
 		return nil, err
 	}

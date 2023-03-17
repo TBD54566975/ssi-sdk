@@ -21,12 +21,12 @@ func SignVerifiableCredentialJWS(signer crypto.JWTSigner, cred credential.Verifi
 		return nil, errors.Wrap(err, "marshalling credential")
 	}
 
-	hdrs := jws.NewHeaders()
-	if err := hdrs.Set(jws.ContentTypeKey, VCMediaType); err != nil {
+	headers := jws.NewHeaders()
+	if err = headers.Set(jws.ContentTypeKey, VCMediaType); err != nil {
 		return nil, errors.Wrap(err, "setting content type JOSE header")
 	}
 
-	signed, err := jws.Sign(payload, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key, jws.WithHeaders(hdrs))
+	signed, err := jws.Sign(payload, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key, jws.WithHeaders(headers))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not sign JWT credential")
 	}
