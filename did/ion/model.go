@@ -84,6 +84,7 @@ type UpdateRequest struct {
 	DIDSuffix   string
 	RevealValue string
 	Delta       Delta
+	SignedData  string
 }
 
 type Delta struct {
