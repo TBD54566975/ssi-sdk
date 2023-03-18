@@ -21,7 +21,7 @@ type Service struct {
 type PublicKey struct {
 	ID           string              `json:"id,omitempty"`
 	Type         string              `json:"type,omitempty"`
-	PublicKeyJWK crypto.PublicKeyJWK `json:"publicKeyJWK,omitempty"`
+	PublicKeyJWK crypto.PublicKeyJWK `json:"publicKeyJwk,omitempty"`
 	Purposes     []PublicKeyPurpose  `json:"purposes,omitempty"`
 }
 
@@ -53,20 +53,20 @@ type RemovePublicKeysAction struct {
 
 // ReplaceAction https://identity.foundation/sidetree/spec/#replace
 type ReplaceAction struct {
-	Action   PatchAction `json:"action" validate:"required"`
-	Document Document    `json:"document" validate:"required"`
+	Action   PatchAction `json:"action,omitempty"`
+	Document Document    `json:"document,omitempty"`
 }
 
 // request models
 
 // Patch Only one of these values should be set
-type Patch struct {
-	*AddServicesAction
-	*AddPublicKeysAction
-	*RemoveServicesAction
-	*RemovePublicKeysAction
-	*ReplaceAction
-}
+// type Patch struct {
+// 	*AddServicesAction
+// 	*AddPublicKeysAction
+// 	*RemoveServicesAction
+// 	*RemovePublicKeysAction
+// 	*ReplaceAction
+// }
 
 type CreateRequest struct {
 	Type       OperationType `json:"type,omitempty"`
@@ -88,8 +88,8 @@ type UpdateRequest struct {
 }
 
 type Delta struct {
-	UpdateCommitment string  `json:"updateCommitment,omitempty"`
-	Patches          []Patch `json:"patches,omitempty"`
+	UpdateCommitment string `json:"updateCommitment,omitempty"`
+	Patches          []any  `json:"patches,omitempty"`
 }
 
 type DeactivateRequest struct {

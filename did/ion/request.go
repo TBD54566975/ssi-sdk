@@ -15,12 +15,10 @@ const (
 // NewCreateRequest creates a new create request https://identity.foundation/sidetree/spec/#create
 func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Document) (*CreateRequest, error) {
 	// prepare delta
-	patches := []Patch{
-		{
-			ReplaceAction: &ReplaceAction{
-				Action:   Replace,
-				Document: document,
-			},
+	patches := []any{
+		ReplaceAction{
+			Action:   Replace,
+			Document: document,
 		},
 	}
 	_, updateCommitment, err := Commit(updateKey)
@@ -46,7 +44,7 @@ func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Docum
 		return nil, err
 	}
 	suffixData := SuffixData{
-		DeltaHash:          string(deltaHash),
+		DeltaHash:          deltaHash,
 		RecoveryCommitment: recoveryCommitment,
 	}
 
@@ -102,12 +100,10 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 	}
 
 	// prepare delta
-	patches := []Patch{
-		{
-			ReplaceAction: &ReplaceAction{
-				Action:   Replace,
-				Document: document,
-			},
+	patches := []any{
+		ReplaceAction{
+			Action:   Replace,
+			Document: document,
 		},
 	}
 
@@ -142,7 +138,7 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 	}{
 		RecoveryCommitment: recoveryCommitment,
 		RecoveryKey:        recoveryKey,
-		DeltaHash:          string(deltaHash),
+		DeltaHash:          deltaHash,
 	}
 	toBeSignedBytes, err := json.Marshal(toBeSigned)
 	if err != nil {
@@ -245,12 +241,12 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	}
 
 	// construct update patches
-	var patches []Patch
+	var patches []any
 
 	// services to add
 	if len(stateChange.ServicesToAdd) > 0 {
-		addServicesPatch := Patch{
-			AddServicesAction: &AddServicesAction{
+		addServicesPatch := []any{
+			AddServicesAction{
 				Action:   AddServices,
 				Services: stateChange.ServicesToAdd,
 			},
@@ -260,8 +256,8 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 
 	// services to remove
 	if len(stateChange.ServiceIDsToRemove) > 0 {
-		removeServicesPatch := Patch{
-			RemoveServicesAction: &RemoveServicesAction{
+		removeServicesPatch := []any{
+			RemoveServicesAction{
 				Action: RemoveServices,
 				IDs:    stateChange.ServiceIDsToRemove,
 			},
@@ -271,8 +267,8 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 
 	// public keys to add
 	if len(stateChange.PublicKeysToAdd) > 0 {
-		addPublicKeysPatch := Patch{
-			AddPublicKeysAction: &AddPublicKeysAction{
+		addPublicKeysPatch := []any{
+			AddPublicKeysAction{
 				Action:     AddPublicKeys,
 				PublicKeys: stateChange.PublicKeysToAdd,
 			},
@@ -282,8 +278,8 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 
 	// public keys to remove
 	if len(stateChange.PublicKeyIDsToRemove) > 0 {
-		removePublicKeysPatch := Patch{
-			RemovePublicKeysAction: &RemovePublicKeysAction{
+		removePublicKeysPatch := []any{
+			RemovePublicKeysAction{
 				Action: RemovePublicKeys,
 				IDs:    stateChange.PublicKeyIDsToRemove,
 			},
@@ -321,7 +317,7 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 		DeltaHash string              `json:"deltaHash"`
 	}{
 		UpdateKey: updateKey,
-		DeltaHash: string(deltaHash),
+		DeltaHash: deltaHash,
 	}
 	toBeSignedBytes, err := json.Marshal(toBeSigned)
 	if err != nil {

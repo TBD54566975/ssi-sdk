@@ -3,9 +3,9 @@ package ion
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 
 	sdkcrypto "github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/goccy/go-json"
 	"github.com/gowebpki/jcs"
 	"github.com/multiformats/go-multihash"
 	"github.com/sirupsen/logrus"
@@ -19,6 +19,12 @@ func HashEncode(data []byte) (string, error) {
 		return "", err
 	}
 	return Encode(hashed), nil
+}
+
+// Hash hashes given data according to the protocol's hashing process; not multihashed
+func Hash(data []byte) []byte {
+	hashed := sha256.Sum256(data)
+	return hashed[:]
 }
 
 // Multihash https://multiformats.io/multihash/
@@ -85,12 +91,8 @@ func Commit(key sdkcrypto.PublicKeyJWK) (reveal, commitment string, err error) {
 	// 3. Use the implementation’s HASH_PROTOCOL to Multihash the canonicalized public key to generate the REVEAL_VALUE,
 	// then Multihash the resulting Multihash value again using the implementation’s HASH_PROTOCOL to produce
 	// the public key commitment.
-
-	revealValue, err := Multihash(canonicalKey)
-	if err != nil {
-		logrus.WithError(err).Error("could not generate reveal value")
-		return "", "", err
-	}
+	revealValue := Hash(canonicalKey)
+	reveal = string(revealValue)
 	commitment, err = HashEncode(revealValue)
 	if err != nil {
 		logrus.WithError(err).Error("could not generate commitment value")
