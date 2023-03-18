@@ -91,9 +91,13 @@ func Commit(key sdkcrypto.PublicKeyJWK) (reveal, commitment string, err error) {
 	// 3. Use the implementation’s HASH_PROTOCOL to Multihash the canonicalized public key to generate the REVEAL_VALUE,
 	// then Multihash the resulting Multihash value again using the implementation’s HASH_PROTOCOL to produce
 	// the public key commitment.
-	revealValue := Hash(canonicalKey)
-	reveal = string(revealValue)
-	commitment, err = HashEncode(revealValue)
+	intermediateHash := Hash(canonicalKey)
+	reveal, err = HashEncode(canonicalKey)
+	if err != nil {
+		logrus.WithError(err).Error("could not generate reveal value")
+		return "", "", err
+	}
+	commitment, err = HashEncode(intermediateHash)
 	if err != nil {
 		logrus.WithError(err).Error("could not generate commitment value")
 		return "", "", err

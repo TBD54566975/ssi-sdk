@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	maxIDLength   = 50
-	maxTypeLength = 30
+	maxIDLength          = 50
+	maxServiceTypeLength = 30
 )
 
 // NewCreateRequest creates a new create request https://identity.foundation/sidetree/spec/#create
@@ -183,7 +183,7 @@ func (s StateChange) IsValid() error {
 		}
 
 		// make sure service is valid if it's not a dupe
-		if len(service.Type) > maxTypeLength {
+		if len(service.Type) > maxServiceTypeLength {
 			return fmt.Errorf("service<%s> type %s is too long", service.ID, service.Type)
 		}
 
@@ -202,17 +202,12 @@ func (s StateChange) IsValid() error {
 			return fmt.Errorf("public key<%s> id is too long", publicKey.ID)
 		}
 
-		// make sure public key is valid if it's not a dupe
-		if len(publicKey.Type) > maxTypeLength {
-			return fmt.Errorf("public key<%s> type %s is too long", publicKey.ID, publicKey.Type)
-		}
-
 		publicKeys[publicKey.ID] = publicKey
 	}
 
 	// check if services to remove are valid
 	for _, serviceID := range s.ServiceIDsToRemove {
-		if _, ok := services[serviceID]; !ok {
+		if _, ok := services[serviceID]; ok {
 			return fmt.Errorf("service<%s> added and removed in same request", serviceID)
 		}
 
@@ -223,7 +218,7 @@ func (s StateChange) IsValid() error {
 
 	// check if public keys to remove are valid
 	for _, publicKeyID := range s.PublicKeyIDsToRemove {
-		if _, ok := publicKeys[publicKeyID]; !ok {
+		if _, ok := publicKeys[publicKeyID]; ok {
 			return fmt.Errorf("public key<%s> added and removed in same request", publicKeyID)
 		}
 
