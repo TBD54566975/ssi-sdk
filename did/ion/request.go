@@ -93,6 +93,79 @@ func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, sig
 	}, nil
 }
 
+// NewRecoverRequest creates a new recover request https://identity.foundation/sidetree/spec/#recover
+func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer crypto.JWTSigner) (*RecoverRequest, error) {
+	// prepare reveal value
+	revealValue, _, err := CommitJWK(recoveryKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// prepare delta
+	patches := []Patch{
+		{
+			ReplaceAction: &ReplaceAction{
+				Action:   Replace,
+				Document: document,
+			},
+		},
+	}
+
+	_, updateCommitment, err := CommitJWK(nextUpdateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	delta := Delta{
+		UpdateCommitment: updateCommitment,
+		Patches:          patches,
+	}
+
+	// prepare signed data
+	deltaCanonical, err := CanonicalizeAny(delta)
+	if err != nil {
+		return nil, err
+	}
+	deltaHash, err := Multihash(deltaCanonical)
+	if err != nil {
+		return nil, err
+	}
+	_, recoveryCommitment, err := CommitJWK(nextRecoveryKey)
+	if err != nil {
+		return nil, err
+	}
+
+	toBeSigned := struct {
+		RecoveryCommitment string              `json:"recoveryCommitment"`
+		RecoveryKey        crypto.PublicKeyJWK `json:"recoveryKey"`
+		DeltaHash          string              `json:"deltaHash"`
+	}{
+		RecoveryCommitment: recoveryCommitment,
+		RecoveryKey:        recoveryKey,
+		DeltaHash:          string(deltaHash),
+	}
+	toBeSignedBytes, err := json.Marshal(toBeSigned)
+	if err != nil {
+		return nil, err
+	}
+	var toBeSignedJSON map[string]any
+	if err = json.Unmarshal(toBeSignedBytes, &toBeSignedJSON); err != nil {
+		return nil, err
+	}
+	signedJWT, err := signer.SignJWT(toBeSignedJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RecoverRequest{
+		Type:        Recover,
+		DIDSuffix:   didSuffix,
+		RevealValue: revealValue,
+		Delta:       delta,
+		SignedData:  string(signedJWT),
+	}, nil
+}
+
 type StateChange struct {
 	ServicesToAdd        []Service
 	ServiceIDsToRemove   []string
@@ -165,6 +238,7 @@ func (s StateChange) IsValid() error {
 	return nil
 }
 
+// NewUpdateRequest creates a new update request https://identity.foundation/sidetree/spec/#update
 func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKeyJWK, signer crypto.JWTSigner, stateChange StateChange) (*UpdateRequest, error) {
 	if err := stateChange.IsValid(); err != nil {
 		return nil, err
