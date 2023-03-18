@@ -23,7 +23,7 @@ func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Docum
 			},
 		},
 	}
-	_, updateCommitment, err := CommitJWK(updateKey)
+	_, updateCommitment, err := Commit(updateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -37,11 +37,11 @@ func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Docum
 	if err != nil {
 		return nil, err
 	}
-	deltaHash, err := Multihash(deltaCanonical)
+	deltaHash, err := HashEncode(deltaCanonical)
 	if err != nil {
 		return nil, err
 	}
-	_, recoveryCommitment, err := CommitJWK(recoveryKey)
+	_, recoveryCommitment, err := Commit(recoveryKey)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Docum
 // NewDeactivateRequest creates a new deactivate request https://identity.foundation/sidetree/spec/#deactivate
 func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, signer crypto.JWTSigner) (*DeactivateRequest, error) {
 	// prepare reveal value
-	revealValue, _, err := CommitJWK(recoveryKey)
+	revealValue, _, err := Commit(recoveryKey)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, sig
 // NewRecoverRequest creates a new recover request https://identity.foundation/sidetree/spec/#recover
 func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer crypto.JWTSigner) (*RecoverRequest, error) { //revive:disable-line:argument-limit
 	// prepare reveal value
-	revealValue, _, err := CommitJWK(recoveryKey)
+	revealValue, _, err := Commit(recoveryKey)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 		},
 	}
 
-	_, updateCommitment, err := CommitJWK(nextUpdateKey)
+	_, updateCommitment, err := Commit(nextUpdateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -126,11 +126,11 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 	if err != nil {
 		return nil, err
 	}
-	deltaHash, err := Multihash(deltaCanonical)
+	deltaHash, err := HashEncode(deltaCanonical)
 	if err != nil {
 		return nil, err
 	}
-	_, recoveryCommitment, err := CommitJWK(nextRecoveryKey)
+	_, recoveryCommitment, err := Commit(nextRecoveryKey)
 	if err != nil {
 		return nil, err
 	}
@@ -292,13 +292,13 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	}
 
 	// prepare reveal value
-	revealValue, _, err := CommitJWK(updateKey)
+	revealValue, _, err := Commit(updateKey)
 	if err != nil {
 		return nil, err
 	}
 
 	// prepare delta
-	_, nextUpdateCommitment, err := CommitJWK(nextUpdateKey)
+	_, nextUpdateCommitment, err := Commit(nextUpdateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +310,7 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	if err != nil {
 		return nil, err
 	}
-	deltaHash, err := Multihash(deltaCanonical)
+	deltaHash, err := HashEncode(deltaCanonical)
 	if err != nil {
 		return nil, err
 	}

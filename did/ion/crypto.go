@@ -1,14 +1,12 @@
 package ion
 
 import (
-	"crypto"
 	"crypto/sha256"
 	"encoding/base64"
 
 	sdkcrypto "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/gowebpki/jcs"
-	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/multiformats/go-multihash"
 	"github.com/sirupsen/logrus"
 )
@@ -70,21 +68,15 @@ func CanonicalizeAny(data any) ([]byte, error) {
 
 // Commit creates a public key commitment according to the steps defined in the protocol
 // https://identity.foundation/sidetree/spec/#public-key-commitment-scheme
-func Commit(key crypto.PublicKey) (reveal, commitment string, err error) {
+func Commit(key sdkcrypto.PublicKeyJWK) (reveal, commitment string, err error) {
 	// 1. Encode the public key into the form of a valid JWK.
-	rawKey, err := jwk.FromRaw(key)
+	gotJWK, err := sdkcrypto.JWKFromPublicKeyJWK(key)
 	if err != nil {
-		logrus.WithError(err).Error("could not parse public key as a JWK")
-		return "", "", err
-	}
-	keyBytes, err := json.Marshal(rawKey)
-	if err != nil {
-		logrus.WithError(err).Error("could not marshal jwk to JSON")
 		return "", "", err
 	}
 
 	// 2. Canonicalize the JWK encoded public key using the implementation’s JSON_CANONICALIZATION_SCHEME.
-	canonicalKey, err := Canonicalize(keyBytes)
+	canonicalKey, err := CanonicalizeAny(gotJWK)
 	if err != nil {
 		logrus.WithError(err).Error("could not canonicalize JWK")
 		return "", "", err
@@ -99,21 +91,11 @@ func Commit(key crypto.PublicKey) (reveal, commitment string, err error) {
 		logrus.WithError(err).Error("could not generate reveal value")
 		return "", "", err
 	}
-	commitment, err = HashEncode([]byte(revealValue))
+	commitment, err = HashEncode(revealValue)
 	if err != nil {
 		logrus.WithError(err).Error("could not generate commitment value")
 		return "", "", err
 	}
 
 	return reveal, commitment, nil
-}
-
-// CommitJWK creates a public key commitment according to the steps defined in the protocol
-// https://identity.foundation/sidetree/spec/#public-key-commitment-scheme
-func CommitJWK(key sdkcrypto.PublicKeyJWK) (reveal, commitment string, err error) {
-	gotJWK, err := sdkcrypto.JWKFromPublicKeyJWK(key)
-	if err != nil {
-		return "", "", err
-	}
-	return Commit(gotJWK)
 }
