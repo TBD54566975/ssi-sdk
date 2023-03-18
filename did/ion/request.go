@@ -94,7 +94,7 @@ func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, sig
 }
 
 // NewRecoverRequest creates a new recover request https://identity.foundation/sidetree/spec/#recover
-func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer crypto.JWTSigner) (*RecoverRequest, error) {
+func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer crypto.JWTSigner) (*RecoverRequest, error) { //revive:disable-line:argument-limit
 	// prepare reveal value
 	revealValue, _, err := CommitJWK(recoveryKey)
 	if err != nil {
