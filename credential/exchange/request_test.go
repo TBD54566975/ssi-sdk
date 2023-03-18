@@ -24,7 +24,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		verifier, err := signer.ToVerifier()
 		assert.NoError(t, err)
 
-		parsed, err := verifier.VerifyAndParseJWT(string(requestJWTBytes))
+		parsed, err := verifier.VerifyAndParse(string(requestJWTBytes))
 		assert.NoError(t, err)
 
 		presDef, ok := parsed.Get(PresentationDefinitionKey)
@@ -47,7 +47,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		verifier, err := signer.ToVerifier()
 		assert.NoError(t, err)
 
-		parsed, err := verifier.VerifyAndParseJWT(string(requestJWTBytes))
+		parsed, err := verifier.VerifyAndParse(string(requestJWTBytes))
 		assert.NoError(t, err)
 
 		presDef, ok := parsed.Get(PresentationDefinitionKey)

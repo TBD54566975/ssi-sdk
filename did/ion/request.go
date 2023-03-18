@@ -79,7 +79,7 @@ func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, sig
 	if err = json.Unmarshal(toBeSignedBytes, &toBeSignedJSON); err != nil {
 		return nil, err
 	}
-	signedJWT, err := signer.SignJWT(toBeSignedJSON)
+	signedJWT, err := signer.SignWithDefaults(toBeSignedJSON)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 	if err = json.Unmarshal(toBeSignedBytes, &toBeSignedJSON); err != nil {
 		return nil, err
 	}
-	signedJWT, err := signer.SignJWT(toBeSignedJSON)
+	signedJWT, err := signer.SignWithDefaults(toBeSignedJSON)
 	if err != nil {
 		return nil, err
 	}
@@ -318,11 +318,7 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	if err != nil {
 		return nil, err
 	}
-	var toBeSignedJSON map[string]any
-	if err = json.Unmarshal(toBeSignedBytes, &toBeSignedJSON); err != nil {
-		return nil, err
-	}
-	signedJWT, err := signer.SignJWT(toBeSignedJSON)
+	signedJWS, err := signer.SignJWS(toBeSignedBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -332,6 +328,6 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 		DIDSuffix:   didSuffix,
 		RevealValue: revealValue,
 		Delta:       delta,
-		SignedData:  string(signedJWT),
+		SignedData:  string(signedJWS),
 	}, nil
 }

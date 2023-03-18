@@ -88,8 +88,8 @@ type UpdateRequest struct {
 }
 
 type Delta struct {
-	UpdateCommitment string `json:"updateCommitment,omitempty"`
 	Patches          []any  `json:"patches,omitempty"`
+	UpdateCommitment string `json:"updateCommitment,omitempty"`
 }
 
 type DeactivateRequest struct {

@@ -85,7 +85,7 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 // VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
 // the token in a verifiable credential.
 func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (*credential.VerifiableCredential, error) {
-	if err := verifier.VerifyJWT(token); err != nil {
+	if err := verifier.Verify(token); err != nil {
 		return nil, errors.Wrap(err, "could not verify JWT and its signature")
 	}
 	return ParseVerifiableCredentialFromJWT(token)
@@ -194,7 +194,7 @@ func SignVerifiablePresentationJWT(signer crypto.JWTSigner, pres credential.Veri
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
 func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) (*credential.VerifiablePresentation, error) {
-	if err := verifier.VerifyJWT(token); err != nil {
+	if err := verifier.Verify(token); err != nil {
 		return nil, errors.Wrap(err, "could not verify JWT and its signature")
 	}
 	return ParseVerifiablePresentationFromJWT(token)

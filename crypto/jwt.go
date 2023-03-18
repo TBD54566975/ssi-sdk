@@ -146,14 +146,17 @@ func (s *JWTSigner) GetSigningAlgorithm() string {
 	return s.Algorithm()
 }
 
-// SignJWT takes a set of JWT keys and values to add to a JWT before singing them with the key defined in the signer
-func (s *JWTSigner) SignJWT(kvs map[string]any) ([]byte, error) {
+// SignWithDefaults takes a set of JWT keys and values to add to a JWT before singing them with
+// the key defined in the signer. Automatically sets iss and iat
+func (s *JWTSigner) SignWithDefaults(kvs map[string]any) ([]byte, error) {
 	t := jwt.New()
 
 	// set known default values, which can be overridden by the kvs
 	kid := s.Key.KeyID()
-	if err := t.Set(jwt.IssuerKey, kid); err != nil {
-		return nil, fmt.Errorf("could not set iss with provided value: %s", kid)
+	if kid != "" {
+		if err := t.Set(jwt.IssuerKey, kid); err != nil {
+			return nil, fmt.Errorf("could not set iss with provided value: %s", kid)
+		}
 	}
 	iat := time.Now().Unix()
 	if err := t.Set(jwt.IssuedAtKey, iat); err != nil {
@@ -168,8 +171,13 @@ func (s *JWTSigner) SignJWT(kvs map[string]any) ([]byte, error) {
 	return jwt.Sign(t, jwa.SignatureAlgorithm(s.GetSigningAlgorithm()), s.Key)
 }
 
-// ParseJWT attempts to turn a string into a jwt.Token
-func (*JWTSigner) ParseJWT(token string) (jwt.Token, error) {
+// SignJWS takes a set of payload and signs it with the key defined in the signer
+func (s *JWTSigner) SignJWS(payload []byte) ([]byte, error) {
+	return jws.Sign(payload, jwa.SignatureAlgorithm(s.GetSigningAlgorithm()), s.Key)
+}
+
+// Parse attempts to turn a string into a jwt.Token
+func (*JWTSigner) Parse(token string) (jwt.Token, error) {
 	parsed, err := jwt.Parse([]byte(token))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse JWT")
@@ -185,16 +193,16 @@ func (v *JWTVerifier) VerifyJWS(token string) error {
 	return nil
 }
 
-// VerifyJWT parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success
-func (v *JWTVerifier) VerifyJWT(token string) error {
+// Verify parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success
+func (v *JWTVerifier) Verify(token string) error {
 	if _, err := jwt.Parse([]byte(token), jwt.WithVerify(jwa.SignatureAlgorithm(v.Algorithm()), v.Key)); err != nil {
 		return errors.Wrap(err, "could not verify JWT")
 	}
 	return nil
 }
 
-// ParseJWT attempts to turn a string into a jwt.Token
-func (*JWTVerifier) ParseJWT(token string) (jwt.Token, error) {
+// Parse attempts to turn a string into a jwt.Token
+func (*JWTVerifier) Parse(token string) (jwt.Token, error) {
 	parsed, err := jwt.Parse([]byte(token))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse JWT")
@@ -215,8 +223,8 @@ func (*JWTVerifier) ParseJWS(token string) (*jws.Signature, error) {
 	return signatures[0], nil
 }
 
-// VerifyAndParseJWT attempts to turn a string into a jwt.Token and verify its signature using the verifier
-func (v *JWTVerifier) VerifyAndParseJWT(token string) (jwt.Token, error) {
+// VerifyAndParse attempts to turn a string into a jwt.Token and verify its signature using the verifier
+func (v *JWTVerifier) VerifyAndParse(token string) (jwt.Token, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithVerify(jwa.SignatureAlgorithm(v.Algorithm()), v.Key))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse and verify JWT")
