@@ -2,6 +2,7 @@ package ion
 
 import (
 	"embed"
+	"strings"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -105,7 +106,20 @@ func TestUpdateRequest(t *testing.T) {
 	assert.Equal(t, didSuffix, updateRequest.DIDSuffix)
 	assert.Equal(t, Update, updateRequest.Type)
 	assert.Equal(t, "EiAJ-97Is59is6FKAProwDo870nmwCeP8n5nRRFwPpUZVQ", updateRequest.RevealValue)
-	assert.Equal(t, "eyJhbGciOiJFUzI1NksifQ.eyJ1cGRhdGVLZXkiOnsia3R5IjoiRUMiLCJjcnYiOiJzZWNwMjU2azEiLCJ4IjoibklxbFJDeDBleUJTWGNRbnFEcFJlU3Y0enVXaHdDUldzc29jOUxfbmo2QSIsInkiOiJpRzI5Vks2bDJVNXNLQlpVU0plUHZ5RnVzWGdTbEsyZERGbFdhQ004RjdrIn0sImRlbHRhSGFzaCI6IkVpQXZsbVVRYy1jaDg0Slp5bmdQdkJzUkc3eWh4aUFSenlYOE5lNFQ4LTlyTncifQ.Q9MuoQqFlhYhuLDgx4f-0UM9QyCfZp_cXt7vnQ4ict5P4_ZWKwG4OXxxqFvdzE-e3ZkEbvfR0YxEIpYO9MrPFw", updateRequest.SignedData)
+
+	knownJWS := "eyJhbGciOiJFUzI1NksifQ.eyJ1cGRhdGVLZXkiOnsia3R5IjoiRUMiLCJjcnYiOiJzZWNwMjU2azEiLCJ4IjoibklxbFJDeDBleUJTWGNRbnFEcFJlU3Y0enVXaHdDUldzc29jOUxfbmo2QSIsInkiOiJpRzI5Vks2bDJVNXNLQlpVU0plUHZ5RnVzWGdTbEsyZERGbFdhQ004RjdrIn0sImRlbHRhSGFzaCI6IkVpQXZsbVVRYy1jaDg0Slp5bmdQdkJzUkc3eWh4aUFSenlYOE5lNFQ4LTlyTncifQ.Q9MuoQqFlhYhuLDgx4f-0UM9QyCfZp_cXt7vnQ4ict5P4_ZWKwG4OXxxqFvdzE-e3ZkEbvfR0YxEIpYO9MrPFw"
+	knownSplit := strings.Split(knownJWS, ".")
+	assert.Len(t, knownSplit, 3)
+
+	resultSplit := strings.Split(updateRequest.SignedData, ".")
+	assert.Len(t, resultSplit, 3)
+
+	// make sure the first two parts of the JWS are consistent. the last (the signature) does not need to be consistent
+	// because there is a random nonce in the signature for replay protection
+	assert.Equal(t, knownSplit[0], resultSplit[0])
+	assert.Equal(t, knownSplit[1], resultSplit[1])
+	assert.NotEqual(t, knownSplit[2], resultSplit[2])
+
 	assert.Equal(t, "EiDKIkwqO69IPG3pOlHkdb86nYt0aNxSHZu2r-bhEznjdA", updateRequest.Delta.UpdateCommitment)
 	assert.Len(t, updateRequest.Delta.Patches, 4)
 }

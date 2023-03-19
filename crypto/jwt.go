@@ -173,7 +173,7 @@ func (s *JWTSigner) SignWithDefaults(kvs map[string]any) ([]byte, error) {
 
 // SignJWS takes a set of payload and signs it with the key defined in the signer
 func (s *JWTSigner) SignJWS(payload []byte) ([]byte, error) {
-	return jws.Sign(payload, jwa.SignatureAlgorithm(s.GetSigningAlgorithm()), s.Key)
+	return jws.Sign(payload, s.SignatureAlgorithm, s.Key)
 }
 
 // Parse attempts to turn a string into a jwt.Token
