@@ -10,7 +10,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gowebpki/jcs v1.0.0
 	github.com/jarcoal/httpmock v1.3.0
-	github.com/lestrrat-go/jwx v1.2.25
 	github.com/lestrrat-go/jwx/v2 v2.0.8
 	github.com/magefile/mage v1.14.0
 	github.com/mr-tron/base58 v1.2.0
@@ -37,7 +36,6 @@ require (
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.1 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.4 // indirect

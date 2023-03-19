@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/goccy/go-json"
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/oliveagle/jsonpath"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -798,7 +798,7 @@ func getJWKSignerVerifier(t *testing.T) (*crypto.JWTSigner, *crypto.JWTVerifier)
 	_, privKey, err := crypto.GenerateEd25519Key()
 	require.NoError(t, err)
 
-	key, err := jwk.New(privKey)
+	key, err := jwk.FromRaw(privKey)
 	require.NoError(t, err)
 
 	kid := "test-key"

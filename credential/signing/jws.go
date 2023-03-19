@@ -4,8 +4,8 @@ import (
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jws"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/pkg/errors"
 )
 
@@ -26,7 +26,7 @@ func SignVerifiableCredentialJWS(signer crypto.JWTSigner, cred credential.Verifi
 		return nil, errors.Wrap(err, "setting content type JOSE header")
 	}
 
-	signed, err := jws.Sign(payload, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key, jws.WithHeaders(headers))
+	signed, err := jws.Sign(payload, jws.WithKey(jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key), jws.WithHeaders(headers))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not sign JWT credential")
 	}

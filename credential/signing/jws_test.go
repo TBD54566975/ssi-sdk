@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/lestrrat-go/jwx/jws"
+	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/stretchr/testify/assert"
 )
 

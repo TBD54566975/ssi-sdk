@@ -240,44 +240,36 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 
 	// services to add
 	if len(stateChange.ServicesToAdd) > 0 {
-		addServicesPatch := []any{
-			AddServicesAction{
-				Action:   AddServices,
-				Services: stateChange.ServicesToAdd,
-			},
+		addServicesPatch := AddServicesAction{
+			Action:   AddServices,
+			Services: stateChange.ServicesToAdd,
 		}
 		patches = append(patches, addServicesPatch)
 	}
 
 	// services to remove
 	if len(stateChange.ServiceIDsToRemove) > 0 {
-		removeServicesPatch := []any{
-			RemoveServicesAction{
-				Action: RemoveServices,
-				IDs:    stateChange.ServiceIDsToRemove,
-			},
+		removeServicesPatch := RemoveServicesAction{
+			Action: RemoveServices,
+			IDs:    stateChange.ServiceIDsToRemove,
 		}
 		patches = append(patches, removeServicesPatch)
 	}
 
 	// public keys to add
 	if len(stateChange.PublicKeysToAdd) > 0 {
-		addPublicKeysPatch := []any{
-			AddPublicKeysAction{
-				Action:     AddPublicKeys,
-				PublicKeys: stateChange.PublicKeysToAdd,
-			},
+		addPublicKeysPatch := AddPublicKeysAction{
+			Action:     AddPublicKeys,
+			PublicKeys: stateChange.PublicKeysToAdd,
 		}
 		patches = append(patches, addPublicKeysPatch)
 	}
 
 	// public keys to remove
 	if len(stateChange.PublicKeyIDsToRemove) > 0 {
-		removePublicKeysPatch := []any{
-			RemovePublicKeysAction{
-				Action: RemovePublicKeys,
-				IDs:    stateChange.PublicKeyIDsToRemove,
-			},
+		removePublicKeysPatch := RemovePublicKeysAction{
+			Action: RemovePublicKeys,
+			IDs:    stateChange.PublicKeyIDsToRemove,
 		}
 		patches = append(patches, removePublicKeysPatch)
 	}
