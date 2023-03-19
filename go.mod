@@ -4,6 +4,8 @@ go 1.19
 
 require (
 	github.com/bits-and-blooms/bitset v1.5.0
+	github.com/btcsuite/btcd/btcec/v2 v2.3.2
+	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.1
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/goccy/go-json v0.10.0
@@ -11,7 +13,6 @@ require (
 	github.com/gowebpki/jcs v1.0.0
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/lestrrat-go/jwx v1.2.25
-	github.com/lestrrat-go/jwx/v2 v2.0.8
 	github.com/magefile/mage v1.14.0
 	github.com/mr-tron/base58 v1.2.0
 	github.com/multiformats/go-multibase v0.1.1
@@ -40,7 +41,6 @@ require (
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.1 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
-	github.com/lestrrat-go/httprc v1.0.4 // indirect
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.0 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect

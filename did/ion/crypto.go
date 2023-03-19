@@ -3,9 +3,13 @@ package ion
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
+
+	"github.com/goccy/go-json"
 
 	sdkcrypto "github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/gowebpki/jcs"
 	"github.com/multiformats/go-multihash"
 	"github.com/sirupsen/logrus"
@@ -104,4 +108,45 @@ func Commit(key sdkcrypto.PublicKeyJWK) (reveal, commitment string, err error) {
 	}
 
 	return reveal, commitment, nil
+}
+
+type BTCSigner struct {
+	publicKey  *btcec.PublicKey
+	privateKey *btcec.PrivateKey
+}
+
+func NewBTCSigner(privateKey sdkcrypto.PrivateKeyJWK) (*BTCSigner, error) {
+	privateKeyBytes, err := json.Marshal(privateKey)
+	if err != nil {
+		return nil, err
+	}
+	privKey, pubKey := btcec.PrivKeyFromBytes(privateKeyBytes)
+	return &BTCSigner{
+		publicKey:  pubKey,
+		privateKey: privKey,
+	}, nil
+}
+
+func (s *BTCSigner) Sign(data []byte) []byte {
+	messageHash := chainhash.DoubleHashB(data)
+	signature := ecdsa.Sign(s.privateKey, messageHash)
+	return signature.Serialize()
+}
+
+func (s *BTCSigner) Verify(data []byte, signature []byte) (bool, error) {
+	parsed, err := ecdsa.ParseSignature(signature)
+	if err != nil {
+		return false, err
+	}
+	messageHash := chainhash.DoubleHashB(data)
+	verified := parsed.Verify(messageHash, s.publicKey)
+	return verified, nil
+}
+
+func (s *BTCSigner) SignJWS(data []byte) ([]byte, error) {
+	return nil, nil
+}
+
+func (s *BTCSigner) VerifyJWS(data []byte, signature []byte) (bool, error) {
+	return false, nil
 }

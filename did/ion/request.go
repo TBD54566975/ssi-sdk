@@ -56,7 +56,7 @@ func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Docum
 }
 
 // NewDeactivateRequest creates a new deactivate request https://identity.foundation/sidetree/spec/#deactivate
-func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, signer crypto.JWTSigner) (*DeactivateRequest, error) {
+func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, signer BTCSigner) (*DeactivateRequest, error) {
 	// prepare reveal value
 	revealValue, _, err := Commit(recoveryKey)
 	if err != nil {
@@ -92,7 +92,7 @@ func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, sig
 }
 
 // NewRecoverRequest creates a new recover request https://identity.foundation/sidetree/spec/#recover
-func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer crypto.JWTSigner) (*RecoverRequest, error) { //revive:disable-line:argument-limit
+func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer BTCSigner) (*RecoverRequest, error) { //revive:disable-line:argument-limit
 	// prepare reveal value
 	revealValue, _, err := Commit(recoveryKey)
 	if err != nil {
@@ -230,7 +230,7 @@ func (s StateChange) IsValid() error {
 }
 
 // NewUpdateRequest creates a new update request https://identity.foundation/sidetree/spec/#update
-func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKeyJWK, signer crypto.JWTSigner, stateChange StateChange) (*UpdateRequest, error) {
+func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKeyJWK, signer BTCSigner, stateChange StateChange) (*UpdateRequest, error) {
 	if err := stateChange.IsValid(); err != nil {
 		return nil, err
 	}

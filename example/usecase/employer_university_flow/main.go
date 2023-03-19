@@ -50,9 +50,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/example"
