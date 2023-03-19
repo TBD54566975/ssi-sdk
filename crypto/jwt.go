@@ -168,7 +168,7 @@ func (s *JWTSigner) SignWithDefaults(kvs map[string]any) ([]byte, error) {
 			return nil, errors.Wrapf(err, "could not set %s to value: %v", k, v)
 		}
 	}
-	return jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(s.GetSigningAlgorithm()), s.Key))
+	return jwt.Sign(t, jwt.WithKey(s.SignatureAlgorithm, s.Key))
 }
 
 // SignJWS takes a set of payload and signs it with the key defined in the signer
@@ -182,7 +182,7 @@ func (s *JWTSigner) SignJWS(payload []byte) ([]byte, error) {
 
 // Parse attempts to turn a string into a jwt.Token
 func (*JWTSigner) Parse(token string) (jwt.Token, error) {
-	parsed, err := jwt.Parse([]byte(token), jwt.WithVerify(false))
+	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse JWT")
 	}
@@ -208,7 +208,7 @@ func (v *JWTVerifier) Verify(token string) error {
 
 // Parse attempts to turn a string into a jwt.Token
 func (*JWTVerifier) Parse(token string) (jwt.Token, error) {
-	parsed, err := jwt.Parse([]byte(token), jwt.WithVerify(false))
+	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse JWT")
 	}

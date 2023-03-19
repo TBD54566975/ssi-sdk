@@ -7,11 +7,9 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
-	"strconv"
 
 	secp256k1 "github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/goccy/go-json"
-	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/x25519"
 	"github.com/pkg/errors"
@@ -217,27 +215,17 @@ func jwkFromRSAPrivateKey(key rsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, er
 		return nil, nil, errors.New("failed to cast rsa jwk")
 	}
 
-	kty := rsaJWK.KeyType().String()
-
-	n := encodeToBase64RawURL(key.N.Bytes())
-	e := encodeToBase64RawURL([]byte(strconv.Itoa(key.E)))
-
-	publicKeyJWK := PublicKeyJWK{
-		KTY: kty,
-		N:   n,
-		E:   e,
+	rsaJWKBytes, err := json.Marshal(rsaJWK)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to marshal rsa jwk")
 	}
-
-	privateKeyJWK := PrivateKeyJWK{
-		KTY: kty,
-		N:   n,
-		E:   e,
-		D:   encodeToBase64RawURL(rsaJWK.D()),
-		DP:  encodeToBase64RawURL(rsaJWK.DP()),
-		DQ:  encodeToBase64RawURL(rsaJWK.DQ()),
-		P:   encodeToBase64RawURL(rsaJWK.P()),
-		Q:   encodeToBase64RawURL(rsaJWK.Q()),
-		QI:  encodeToBase64RawURL(rsaJWK.QI()),
+	var publicKeyJWK PublicKeyJWK
+	if err = json.Unmarshal(rsaJWKBytes, &publicKeyJWK); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal rsa jwk")
+	}
+	var privateKeyJWK PrivateKeyJWK
+	if err = json.Unmarshal(rsaJWKBytes, &privateKeyJWK); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal rsa jwk")
 	}
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
@@ -265,14 +253,16 @@ func jwkFromRSAPublicKey(key rsa.PublicKey) (*PublicKeyJWK, error) {
 	if !ok {
 		return nil, errors.New("failed to cast rsa jwk")
 	}
-	kty := rsaJWK.KeyType().String()
-	n := encodeToBase64RawURL(rsaJWK.N())
-	e := encodeToBase64RawURL(rsaJWK.E())
-	return &PublicKeyJWK{
-		KTY: kty,
-		N:   n,
-		E:   e,
-	}, nil
+
+	rsaJWKBytes, err := json.Marshal(rsaJWK)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal rsa jwk")
+	}
+	var publicKeyJWK PublicKeyJWK
+	if err = json.Unmarshal(rsaJWKBytes, &publicKeyJWK); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal rsa jwk")
+	}
+	return &publicKeyJWK, nil
 }
 
 // jwkKeyFromEd25519PrivateKey converts an Ed25519 private key to a JWK
@@ -299,20 +289,17 @@ func jwkFromEd25519PrivateKey(key ed25519.PrivateKey) (*PublicKeyJWK, *PrivateKe
 		return nil, nil, errors.New("failed to cast ed25519 jwk")
 	}
 
-	kty := ed25519JWK.KeyType().String()
-	crv := ed25519JWK.Crv().String()
-	x := encodeToBase64RawURL(ed25519JWK.X())
-
-	publicKeyJWK := PublicKeyJWK{
-		KTY: kty,
-		CRV: crv,
-		X:   x,
+	ed25519JWKBytes, err := json.Marshal(ed25519JWK)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to marshal ed25519 jwk")
 	}
-	privateKeyJWK := PrivateKeyJWK{
-		KTY: kty,
-		CRV: crv,
-		X:   x,
-		D:   encodeToBase64RawURL(ed25519JWK.D()),
+	var publicKeyJWK PublicKeyJWK
+	if err = json.Unmarshal(ed25519JWKBytes, &publicKeyJWK); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal ed25519 jwk")
+	}
+	var privateKeyJWK PrivateKeyJWK
+	if err = json.Unmarshal(ed25519JWKBytes, &privateKeyJWK); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal ed25519 jwk")
 	}
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
@@ -341,14 +328,15 @@ func jwkFromEd25519PublicKey(key ed25519.PublicKey) (*PublicKeyJWK, error) {
 		return nil, errors.New("failed to cast ed25519 jwk")
 	}
 
-	kty := ed25519JWK.KeyType().String()
-	crv := ed25519JWK.Crv().String()
-	x := encodeToBase64RawURL(ed25519JWK.X())
-	return &PublicKeyJWK{
-		KTY: kty,
-		CRV: crv,
-		X:   x,
-	}, nil
+	ed25519JWKBytes, err := json.Marshal(ed25519JWK)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal ed25519 jwk")
+	}
+	var publicKeyJWK PublicKeyJWK
+	if err = json.Unmarshal(ed25519JWKBytes, &publicKeyJWK); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal ed25519 jwk")
+	}
+	return &publicKeyJWK, nil
 }
 
 // jwkFromX25519PrivateKey converts a X25519 private key to a JWK
@@ -397,23 +385,17 @@ func jwkFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (*PublicKeyJWK, *Priva
 		return nil, nil, errors.New("failed to cast secp256k1 jwk")
 	}
 
-	kty := secp256k1JWK.KeyType().String()
-	crv := secp256k1JWK.Crv().String()
-	x := encodeToBase64RawURL(secp256k1JWK.X())
-	y := encodeToBase64RawURL(secp256k1JWK.Y())
-
-	publicKeyJWK := PublicKeyJWK{
-		KTY: kty,
-		CRV: crv,
-		X:   x,
-		Y:   y,
+	secp256k1JWKBytes, err := json.Marshal(secp256k1JWK)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to marshal secp256k1 jwk")
 	}
-	privateKeyJWK := PrivateKeyJWK{
-		KTY: kty,
-		CRV: crv,
-		X:   x,
-		Y:   y,
-		D:   encodeToBase64RawURL(secp256k1JWK.D()),
+	var publicKeyJWK PublicKeyJWK
+	if err = json.Unmarshal(secp256k1JWKBytes, &publicKeyJWK); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal secp256k1 jwk")
+	}
+	var privateKeyJWK PrivateKeyJWK
+	if err = json.Unmarshal(secp256k1JWKBytes, &privateKeyJWK); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal secp256k1 jwk")
 	}
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
@@ -444,28 +426,15 @@ func jwkFromSECP256k1PublicKey(key secp256k1.PublicKey) (*PublicKeyJWK, error) {
 		return nil, errors.New("failed to cast secp256k1 jwk")
 	}
 
-	kty := secp256k1JWK.KeyType().String()
-	maybeCRV, ok := secp256k1JWK.Get(jwk.ECDSACrvKey)
-	if !ok {
-		return nil, errors.New("failed to get crv from secp256k1 jwk")
+	secp256k1JWKBytes, err := json.Marshal(secp256k1JWK)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal secp256k1 jwk")
 	}
-	crv := maybeCRV.(jwa.EllipticCurveAlgorithm).String()
-	maybeX, ok := secp256k1JWK.Get(jwk.ECDSAXKey)
-	if !ok {
-		return nil, errors.New("failed to get x from secp256k1 jwk")
+	var publicKeyJWK PublicKeyJWK
+	if err = json.Unmarshal(secp256k1JWKBytes, &publicKeyJWK); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal secp256k1 jwk")
 	}
-	x := encodeToBase64RawURL(maybeX.([]byte))
-	maybeY, ok := secp256k1JWK.Get(jwk.ECDSAYKey)
-	if !ok {
-		return nil, errors.New("failed to get y from secp256k1 jwk")
-	}
-	y := encodeToBase64RawURL(maybeY.([]byte))
-	return &PublicKeyJWK{
-		KTY: kty,
-		CRV: crv,
-		X:   x,
-		Y:   y,
-	}, nil
+	return &publicKeyJWK, nil
 }
 
 // jwkKeyFromECDSAPrivateKey converts a ECDSA private key to a JWK
@@ -492,24 +461,19 @@ func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK
 		return nil, nil, errors.New("failed to cast ecdsa jwk")
 	}
 
-	kty := ecdsaKey.KeyType().String()
-	crv := ecdsaKey.Crv().String()
-	x := encodeToBase64RawURL(ecdsaKey.X())
-	y := encodeToBase64RawURL(ecdsaKey.Y())
+	ecdsaKeyBytes, err := json.Marshal(ecdsaKey)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to marshal ecdsa jwk")
+	}
+	var publicKeyJWK PublicKeyJWK
+	if err = json.Unmarshal(ecdsaKeyBytes, &publicKeyJWK); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal ecdsa jwk")
+	}
+	var privateKeyJWK PrivateKeyJWK
+	if err = json.Unmarshal(ecdsaKeyBytes, &privateKeyJWK); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to unmarshal ecdsa jwk")
+	}
 
-	publicKeyJWK := PublicKeyJWK{
-		KTY: kty,
-		CRV: crv,
-		X:   x,
-		Y:   y,
-	}
-	privateKeyJWK := PrivateKeyJWK{
-		KTY: kty,
-		CRV: crv,
-		X:   x,
-		Y:   y,
-		D:   encodeToBase64RawURL(ecdsaKey.D()),
-	}
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
 
@@ -536,16 +500,16 @@ func jwkFromECDSAPublicKey(key ecdsa.PublicKey) (*PublicKeyJWK, error) {
 	if !ok {
 		return nil, errors.New("failed to cast ecdsa jwk")
 	}
-	kty := ecdsaKey.KeyType().String()
-	crv := ecdsaKey.Crv().String()
-	x := encodeToBase64RawURL(ecdsaKey.X())
-	y := encodeToBase64RawURL(ecdsaKey.Y())
-	return &PublicKeyJWK{
-		KTY: kty,
-		CRV: crv,
-		X:   x,
-		Y:   y,
-	}, nil
+	
+	ecdsaKeyBytes, err := json.Marshal(ecdsaKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal ecdsa jwk")
+	}
+	var publicKeyJWK PublicKeyJWK
+	if err = json.Unmarshal(ecdsaKeyBytes, &publicKeyJWK); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal ecdsa jwk")
+	}
+	return &publicKeyJWK, nil
 }
 
 func encodeToBase64RawURL(data []byte) string {

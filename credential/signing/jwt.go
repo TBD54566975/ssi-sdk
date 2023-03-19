@@ -9,7 +9,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/pkg/errors"
 )
@@ -75,7 +74,7 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 		return nil, errors.New("could not set credential value")
 	}
 
-	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key))
+	signed, err := jwt.Sign(t, jwt.WithKey(signer.SignatureAlgorithm, signer.Key))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not sign JWT credential")
 	}
@@ -96,7 +95,7 @@ func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (*
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiableCredential object is returned.
 func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCredential, error) {
-	parsed, err := jwt.Parse([]byte(token), jwt.WithVerify(false))
+	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse credential token")
 	}
@@ -181,7 +180,7 @@ func SignVerifiablePresentationJWT(signer crypto.JWTSigner, pres credential.Veri
 		return nil, errors.Wrap(err, "could not set nonce value")
 	}
 
-	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key))
+	signed, err := jwt.Sign(t, jwt.WithKey(signer.SignatureAlgorithm, signer.Key))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not sign JWT presentation")
 	}
@@ -205,7 +204,7 @@ func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) 
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
 func ParseVerifiablePresentationFromJWT(token string) (*credential.VerifiablePresentation, error) {
-	parsed, err := jwt.Parse([]byte(token), jwt.WithVerify(false))
+	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse vp token")
 	}
