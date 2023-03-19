@@ -500,7 +500,7 @@ func jwkFromECDSAPublicKey(key ecdsa.PublicKey) (*PublicKeyJWK, error) {
 	if !ok {
 		return nil, errors.New("failed to cast ecdsa jwk")
 	}
-	
+
 	ecdsaKeyBytes, err := json.Marshal(ecdsaKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal ecdsa jwk")
