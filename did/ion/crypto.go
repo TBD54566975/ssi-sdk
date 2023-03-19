@@ -3,13 +3,16 @@ package ion
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
+	"strings"
 
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/goccy/go-json"
+	"github.com/pkg/errors"
 
 	sdkcrypto "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/gowebpki/jcs"
 	"github.com/multiformats/go-multihash"
 	"github.com/sirupsen/logrus"
@@ -53,6 +56,15 @@ func Encode(data []byte) string {
 // EncodeString encodes a string according to the encoding scheme of the sidetree spec
 func EncodeString(data string) string {
 	return Encode([]byte(data))
+}
+
+// EncodeAny encodes any according to the encoding scheme of the sidetree spec
+func EncodeAny(data any) (string, error) {
+	anyBytes, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+	return Encode(anyBytes), nil
 }
 
 // Decode decodes according to the encoding scheme of the sidetree spec
@@ -110,30 +122,40 @@ func Commit(key sdkcrypto.PublicKeyJWK) (reveal, commitment string, err error) {
 	return reveal, commitment, nil
 }
 
-type BTCSigner struct {
+type BTCSignerVerifier struct {
 	publicKey  *btcec.PublicKey
 	privateKey *btcec.PrivateKey
 }
 
-func NewBTCSigner(privateKey sdkcrypto.PrivateKeyJWK) (*BTCSigner, error) {
+// NewBTCSignerVerifier creates a new signer/verifier for signatures suited for the BTC blockchain
+func NewBTCSignerVerifier(privateKey sdkcrypto.PrivateKeyJWK) (*BTCSignerVerifier, error) {
 	privateKeyBytes, err := json.Marshal(privateKey)
 	if err != nil {
 		return nil, err
 	}
 	privKey, pubKey := btcec.PrivKeyFromBytes(privateKeyBytes)
-	return &BTCSigner{
+	return &BTCSignerVerifier{
 		publicKey:  pubKey,
 		privateKey: privKey,
 	}, nil
 }
 
-func (s *BTCSigner) Sign(data []byte) []byte {
+// GetJWSHeader returns the default JWS header for the BTC signer
+func (*BTCSignerVerifier) GetJWSHeader() map[string]any {
+	return map[string]any{
+		"alg": "ES256K",
+	}
+}
+
+// Sign signs the given data according to Bitcoin's signing process
+func (s *BTCSignerVerifier) Sign(data []byte) []byte {
 	messageHash := chainhash.DoubleHashB(data)
 	signature := ecdsa.Sign(s.privateKey, messageHash)
 	return signature.Serialize()
 }
 
-func (s *BTCSigner) Verify(data []byte, signature []byte) (bool, error) {
+// Verify verifies the given data according to Bitcoin's verification process
+func (s *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
 	parsed, err := ecdsa.ParseSignature(signature)
 	if err != nil {
 		return false, err
@@ -143,10 +165,44 @@ func (s *BTCSigner) Verify(data []byte, signature []byte) (bool, error) {
 	return verified, nil
 }
 
-func (s *BTCSigner) SignJWS(data []byte) ([]byte, error) {
-	return nil, nil
+// SignJWS signs the given data according to the protocol's JWS signing process,
+// creating a compact JWS
+func (s *BTCSignerVerifier) SignJWS(data any) string {
+	encodedHeader, err := EncodeAny(s.GetJWSHeader())
+	if err != nil {
+		logrus.WithError(err).Error("could not encode header")
+		return ""
+	}
+	encodedPayload, err := EncodeAny(data)
+	if err != nil {
+		logrus.WithError(err).Error("could not encode payload")
+		return ""
+	}
+
+	signingContent := encodedHeader + "." + encodedPayload
+	contentHash := Hash([]byte(signingContent))
+
+	signed := s.Sign(contentHash)
+	encodedSignature := Encode(signed)
+
+	compactJWS := encodedHeader + "." + encodedPayload + "." + encodedSignature
+	return compactJWS
 }
 
-func (s *BTCSigner) VerifyJWS(data []byte, signature []byte) (bool, error) {
-	return false, nil
+// VerifyJWS verifies the given data according to the protocol's JWS verification process
+func (s *BTCSignerVerifier) VerifyJWS(jws string) (bool, error) {
+	jwsParts := strings.Split(jws, ".")
+	if len(jwsParts) != 3 {
+		return false, fmt.Errorf("invalid JWS: %s", jws)
+	}
+
+	signingContent := jwsParts[0] + "." + jwsParts[1]
+	contentHash := Hash([]byte(signingContent))
+
+	decodedSignature, err := Decode(jwsParts[2])
+	if err != nil {
+		return false, errors.Wrap(err, "could not decode signature")
+	}
+
+	return s.Verify(contentHash, decodedSignature)
 }

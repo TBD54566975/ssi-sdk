@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/goccy/go-json"
 )
 
 const (
@@ -56,7 +55,7 @@ func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Docum
 }
 
 // NewDeactivateRequest creates a new deactivate request https://identity.foundation/sidetree/spec/#deactivate
-func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, signer BTCSigner) (*DeactivateRequest, error) {
+func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, signer BTCSignerVerifier) (*DeactivateRequest, error) {
 	// prepare reveal value
 	revealValue, _, err := Commit(recoveryKey)
 	if err != nil {
@@ -71,28 +70,17 @@ func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, sig
 		DIDSuffix:   didSuffix,
 		RecoveryKey: recoveryKey,
 	}
-	toBeSignedBytes, err := json.Marshal(toBeSigned)
-	if err != nil {
-		return nil, err
-	}
-	var toBeSignedJSON map[string]any
-	if err = json.Unmarshal(toBeSignedBytes, &toBeSignedJSON); err != nil {
-		return nil, err
-	}
-	signedJWT, err := signer.SignWithDefaults(toBeSignedJSON)
-	if err != nil {
-		return nil, err
-	}
+	signedJWT := signer.SignJWS(toBeSigned)
 	return &DeactivateRequest{
 		Type:        Deactivate,
 		DIDSuffix:   didSuffix,
 		RevealValue: revealValue,
-		SignedData:  string(signedJWT),
+		SignedData:  signedJWT,
 	}, nil
 }
 
 // NewRecoverRequest creates a new recover request https://identity.foundation/sidetree/spec/#recover
-func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer BTCSigner) (*RecoverRequest, error) { //revive:disable-line:argument-limit
+func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer BTCSignerVerifier) (*RecoverRequest, error) { //revive:disable-line:argument-limit
 	// prepare reveal value
 	revealValue, _, err := Commit(recoveryKey)
 	if err != nil {
@@ -140,25 +128,13 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 		RecoveryKey:        recoveryKey,
 		DeltaHash:          deltaHash,
 	}
-	toBeSignedBytes, err := json.Marshal(toBeSigned)
-	if err != nil {
-		return nil, err
-	}
-	var toBeSignedJSON map[string]any
-	if err = json.Unmarshal(toBeSignedBytes, &toBeSignedJSON); err != nil {
-		return nil, err
-	}
-	signedJWT, err := signer.SignWithDefaults(toBeSignedJSON)
-	if err != nil {
-		return nil, err
-	}
-
+	signedJWT := signer.SignJWS(toBeSigned)
 	return &RecoverRequest{
 		Type:        Recover,
 		DIDSuffix:   didSuffix,
 		RevealValue: revealValue,
 		Delta:       delta,
-		SignedData:  string(signedJWT),
+		SignedData:  signedJWT,
 	}, nil
 }
 
@@ -230,7 +206,7 @@ func (s StateChange) IsValid() error {
 }
 
 // NewUpdateRequest creates a new update request https://identity.foundation/sidetree/spec/#update
-func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKeyJWK, signer BTCSigner, stateChange StateChange) (*UpdateRequest, error) {
+func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKeyJWK, signer BTCSignerVerifier, stateChange StateChange) (*UpdateRequest, error) {
 	if err := stateChange.IsValid(); err != nil {
 		return nil, err
 	}
@@ -306,20 +282,12 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 		UpdateKey: updateKey,
 		DeltaHash: deltaHash,
 	}
-	toBeSignedBytes, err := json.Marshal(toBeSigned)
-	if err != nil {
-		return nil, err
-	}
-	signedJWS, err := signer.SignJWS(toBeSignedBytes)
-	if err != nil {
-		return nil, err
-	}
-
+	signedJWS := signer.SignJWS(toBeSigned)
 	return &UpdateRequest{
 		Type:        Update,
 		DIDSuffix:   didSuffix,
 		RevealValue: revealValue,
 		Delta:       delta,
-		SignedData:  string(signedJWS),
+		SignedData:  signedJWS,
 	}, nil
 }
