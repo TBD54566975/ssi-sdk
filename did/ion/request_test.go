@@ -110,11 +110,11 @@ func TestUpdateRequest(t *testing.T) {
 	assert.Len(t, updateRequest.Delta.Patches, 4)
 }
 
-func TestRecoverRequest(t *testing.T) {
+func TestRecoverRequest(_ *testing.T) {
 
 }
 
-func TestDeactivateRequest(t *testing.T) {
+func TestDeactivateRequest(_ *testing.T) {
 
 }
 
