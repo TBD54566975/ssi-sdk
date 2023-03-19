@@ -59,15 +59,6 @@ type ReplaceAction struct {
 
 // request models
 
-// Patch Only one of these values should be set
-// type Patch struct {
-// 	*AddServicesAction
-// 	*AddPublicKeysAction
-// 	*RemoveServicesAction
-// 	*RemovePublicKeysAction
-// 	*ReplaceAction
-// }
-
 type CreateRequest struct {
 	Type       OperationType `json:"type,omitempty"`
 	SuffixData SuffixData    `json:"suffixData,omitempty"`
