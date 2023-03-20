@@ -3,9 +3,10 @@ package ion
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"fmt"
+	"math/big"
 	"reflect"
+	"strconv"
 	"strings"
 	"unsafe"
 
@@ -167,12 +168,39 @@ func toCompactHex(signature *ecdsa.Signature) ([]byte, error) {
 	if !signature.IsEqual(reconstructed) {
 		return nil, errors.New("could not reconstruct signature")
 	}
+
+	// convert r and s to big ints and then to 32 byte hex strings
 	rBytes := gotR.Bytes()
 	sBytes := gotS.Bytes()
-	rString := hex.EncodeToString(rBytes[:])
-	sString := hex.EncodeToString(sBytes[:])
+	rBigInt := new(big.Int).SetBytes(rBytes[:])
+	sBigInt := new(big.Int).SetBytes(sBytes[:])
 
-	return []byte(rString + sString), nil
+	return hexToBytes(numTo32bStr(rBigInt) + numTo32bStr(sBigInt))
+}
+
+func hexToBytes(hex string) ([]byte, error) {
+	if hex == "" {
+		return nil, errors.New("hexToBytes: expected non-empty string")
+	}
+	if len(hex)%2 != 0 {
+		return nil, errors.New("hexToBytes: received invalid unpadded hex")
+	}
+	b := make([]byte, len(hex)/2)
+	for i := 0; i < len(b); i++ {
+		j := i * 2
+		hexByte := hex[j : j+2]
+		byteValue, err := strconv.ParseUint(hexByte, 16, 8)
+		if err != nil {
+			return nil, errors.New("Invalid byte sequence")
+		}
+		b[i] = byte(byteValue)
+	}
+	return b, nil
+}
+
+func numTo32bStr(num *big.Int) string {
+	hexStr := fmt.Sprintf("%x", num)
+	return fmt.Sprintf("%064s", hexStr)
 }
 
 func getUnexportedField(field reflect.Value) interface{} {
@@ -213,7 +241,7 @@ func (s *BTCSignerVerifier) SignJWT(data any) (string, error) {
 	if err != nil {
 		return "", nil
 	}
-	encodedSignature := Encode(signed)
+	encodedSignature := Encode([]byte(signed))
 
 	compactJWS := encodedHeader + "." + encodedPayload + "." + encodedSignature
 	return compactJWS, nil
