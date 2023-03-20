@@ -12,8 +12,8 @@ import (
 )
 
 type InitialState struct {
-	SuffixData SuffixData
-	Delta      Delta
+	SuffixData SuffixData `json:"suffixData,omitempty"`
+	Delta      Delta      `json:"delta,omitempty"`
 }
 
 func CreateLongFormDID(recoveryKey, updateKey crypto.PublicKeyJWK, document Document) (string, error) {
@@ -64,7 +64,7 @@ func DecodeLongFormDID(longFormDID string) (string, *InitialState, error) {
 	if len(split) != 4 {
 		return "", nil, errors.New("invalid long form URI")
 	}
-	if split[0] != "did" || (did.Method(split[1]) == did.IONMethod) {
+	if split[0] != "did" || (did.Method(split[1]) != did.IONMethod) {
 		return "", nil, errors.New("not a valid ion DID")
 	}
 	decoded, err := Decode(split[3])
