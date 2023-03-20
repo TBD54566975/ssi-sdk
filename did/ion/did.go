@@ -11,11 +11,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type InitialState struct {
+type initialState struct {
 	SuffixData SuffixData `json:"suffixData,omitempty"`
 	Delta      Delta      `json:"delta,omitempty"`
 }
 
+// CreateLongFormDID generates a long form DID URI representation from a document, recovery, and update keys,
+// intended to be the initial state of a DID Document. The method follows the guidelines in the spec:
+// https://identity.foundation/sidetree/spec/#long-form-did-uris
 func CreateLongFormDID(recoveryKey, updateKey crypto.PublicKeyJWK, document Document) (string, error) {
 	createRequest, err := NewCreateRequest(recoveryKey, updateKey, document)
 	if err != nil {
@@ -27,12 +30,12 @@ func CreateLongFormDID(recoveryKey, updateKey crypto.PublicKeyJWK, document Docu
 		return "", err
 	}
 
-	initialState := InitialState{
+	is := initialState{
 		Delta:      createRequest.Delta,
 		SuffixData: createRequest.SuffixData,
 	}
 
-	initialStateBytesCanonical, err := CanonicalizeAny(initialState)
+	initialStateBytesCanonical, err := CanonicalizeAny(is)
 	if err != nil {
 		logrus.WithError(err).Error("could not canonicalize long form DID suffix data")
 		return "", err
@@ -42,7 +45,8 @@ func CreateLongFormDID(recoveryKey, updateKey crypto.PublicKeyJWK, document Docu
 }
 
 // ShortFormDID follows the process on did uri composition from the spec:
-// https://identity.foundation/sidetree/spec/#did-uri-composition
+// https://identity.foundation/sidetree/spec/#did-uri-composition, used to generate a short form DID URI,
+// which is most frequently used in the protocol and when sharing out ION DIDs.
 func ShortFormDID(suffixData any) (string, error) {
 	createOpSuffixDataCanonical, err := CanonicalizeAny(suffixData)
 	if err != nil {
@@ -59,7 +63,7 @@ func ShortFormDID(suffixData any) (string, error) {
 
 // DecodeLongFormDID decodes a long form DID into a short form DID and
 // its create operation suffix data
-func DecodeLongFormDID(longFormDID string) (string, *InitialState, error) {
+func DecodeLongFormDID(longFormDID string) (string, *initialState, error) {
 	split := strings.Split(longFormDID, ":")
 	if len(split) != 4 {
 		return "", nil, errors.New("invalid long form URI")
@@ -71,7 +75,7 @@ func DecodeLongFormDID(longFormDID string) (string, *InitialState, error) {
 	if err != nil {
 		return "", nil, errors.Wrap(err, "could not decode long form URI")
 	}
-	var initialState InitialState
+	var initialState initialState
 	if err = json.Unmarshal(decoded, &initialState); err != nil {
 		return "", nil, errors.Wrap(err, "could not unmarshal long form URI")
 	}
