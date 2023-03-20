@@ -1,19 +1,16 @@
 package ion
 
 import (
+	"crypto/ecdsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"math/big"
-	"reflect"
 	"strconv"
 	"strings"
-	"unsafe"
 
 	sdkcrypto "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
-	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/goccy/go-json"
 	"github.com/gowebpki/jcs"
 	"github.com/multiformats/go-multihash"
@@ -126,8 +123,8 @@ func Commit(key sdkcrypto.PublicKeyJWK) (reveal, commitment string, err error) {
 }
 
 type BTCSignerVerifier struct {
-	publicKey  *btcec.PublicKey
-	privateKey *btcec.PrivateKey
+	publicKey  *ecdsa.PublicKey
+	privateKey *ecdsa.PrivateKey
 }
 
 // NewBTCSignerVerifier creates a new signer/verifier for signatures suited for the BTC blockchain
@@ -138,8 +135,8 @@ func NewBTCSignerVerifier(privateKey sdkcrypto.PrivateKeyJWK) (*BTCSignerVerifie
 	}
 	privKey, pubKey := btcec.PrivKeyFromBytes(privateKeyBytes)
 	return &BTCSignerVerifier{
-		publicKey:  pubKey,
-		privateKey: privKey,
+		publicKey:  pubKey.ToECDSA(),
+		privateKey: privKey.ToECDSA(),
 	}, nil
 }
 
@@ -151,37 +148,23 @@ func (*BTCSignerVerifier) GetJWSHeader() map[string]any {
 }
 
 // Sign signs the given data according to Bitcoin's signing process
-func (s *BTCSignerVerifier) Sign(data []byte) ([]byte, error) {
+func (sv *BTCSignerVerifier) Sign(data []byte) ([]byte, error) {
 	messageHash := Hash(data)
-	signature := ecdsa.Sign(s.privateKey, messageHash)
-	return toCompactHex(signature)
+	r, s, err := ecdsa.Sign(zeroReader{}, sv.privateKey, messageHash)
+	if err != nil {
+		return nil, err
+	}
+	return toCompactHex(r, s)
 }
 
-func toCompactHex(signature *ecdsa.Signature) ([]byte, error) {
-	r := reflect.ValueOf(signature).Elem().FieldByName("r")
-	s := reflect.ValueOf(signature).Elem().FieldByName("s")
+type zeroReader struct{}
 
-	gotR := getUnexportedField(r).(secp256k1.ModNScalar)
-	gotS := getUnexportedField(s).(secp256k1.ModNScalar)
-
-	reconstructed := ecdsa.NewSignature(&gotR, &gotS)
-	if !signature.IsEqual(reconstructed) {
-		return nil, errors.New("could not reconstruct signature")
-	}
-
-	// convert r and s to big ints and then to 32 byte hex strings
-	rBytes := gotR.Bytes()
-	sBytes := gotS.Bytes()
-	rBigInt := new(big.Int).SetBytes(rBytes[:])
-	sBigInt := new(big.Int).SetBytes(sBytes[:])
-
-	return hexToBytes(numTo32bStr(rBigInt) + numTo32bStr(sBigInt))
+func (zeroReader) Read(p []byte) (n int, err error) {
+	return len(p), nil
 }
 
-func hexToBytes(hex string) ([]byte, error) {
-	if hex == "" {
-		return nil, errors.New("hexToBytes: expected non-empty string")
-	}
+func toCompactHex(r, s *big.Int) ([]byte, error) {
+	hex := numTo32bStr(r) + numTo32bStr(s)
 	if len(hex)%2 != 0 {
 		return nil, errors.New("hexToBytes: received invalid unpadded hex")
 	}
@@ -203,27 +186,16 @@ func numTo32bStr(num *big.Int) string {
 	return fmt.Sprintf("%064s", hexStr)
 }
 
-func getUnexportedField(field reflect.Value) interface{} {
-	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface()
-}
-
-type Signature struct {
-	r secp256k1.ModNScalar
-	s secp256k1.ModNScalar
-}
-
 // Verify verifies the given data according to Bitcoin's verification process
-func (s *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
-	// goecdsa.Si()
-	// messageHash := Hash(data)
-	// return verified, nil
-	return false, nil
+func (sv *BTCSignerVerifier) Verify(data, signature []byte) bool {
+	messageHash := Hash(data)
+	return ecdsa.VerifyASN1(sv.publicKey, messageHash, signature)
 }
 
 // SignJWT signs the given data according to the protocol's JWT signing process,
 // creating a compact JWS in a JWT
-func (s *BTCSignerVerifier) SignJWT(data any) (string, error) {
-	encodedHeader, err := EncodeAny(s.GetJWSHeader())
+func (sv *BTCSignerVerifier) SignJWT(data any) (string, error) {
+	encodedHeader, err := EncodeAny(sv.GetJWSHeader())
 	if err != nil {
 		logrus.WithError(err).Error("could not encode header")
 		return "", nil
@@ -237,7 +209,7 @@ func (s *BTCSignerVerifier) SignJWT(data any) (string, error) {
 	signingContent := encodedHeader + "." + encodedPayload
 	contentHash := Hash([]byte(signingContent))
 
-	signed, err := s.Sign(contentHash)
+	signed, err := sv.Sign(contentHash)
 	if err != nil {
 		return "", nil
 	}
@@ -248,7 +220,7 @@ func (s *BTCSignerVerifier) SignJWT(data any) (string, error) {
 }
 
 // VerifyJWS verifies the given data according to the protocol's JWS verification process
-func (s *BTCSignerVerifier) VerifyJWS(jws string) (bool, error) {
+func (sv *BTCSignerVerifier) VerifyJWS(jws string) (bool, error) {
 	jwsParts := strings.Split(jws, ".")
 	if len(jwsParts) != 3 {
 		return false, fmt.Errorf("invalid JWS: %s", jws)
@@ -262,5 +234,5 @@ func (s *BTCSignerVerifier) VerifyJWS(jws string) (bool, error) {
 		return false, errors.Wrap(err, "could not decode signature")
 	}
 
-	return s.Verify(contentHash, decodedSignature)
+	return sv.Verify(contentHash, decodedSignature), nil
 }

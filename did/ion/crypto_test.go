@@ -24,8 +24,7 @@ func TestBTCSignerVerifier(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, signature)
 
-		verified, err := signer.Verify([]byte("test"), signature)
-		assert.NoError(tt, err)
+		verified := signer.Verify([]byte("test"), signature)
 		assert.True(tt, verified)
 	})
 
