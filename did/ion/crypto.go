@@ -1,15 +1,18 @@
 package ion
 
 import (
-	"crypto/ecdsa"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"reflect"
 	"strings"
+	"unsafe"
 
 	sdkcrypto "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/btcsuite/btcd/btcec/v2"
-	secp "github.com/decred/dcrd/dcrec/secp256k1"
+	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/goccy/go-json"
 	"github.com/gowebpki/jcs"
 	"github.com/multiformats/go-multihash"
@@ -122,8 +125,8 @@ func Commit(key sdkcrypto.PublicKeyJWK) (reveal, commitment string, err error) {
 }
 
 type BTCSignerVerifier struct {
-	publicKey  *ecdsa.PublicKey
-	privateKey *ecdsa.PrivateKey
+	publicKey  *btcec.PublicKey
+	privateKey *btcec.PrivateKey
 }
 
 // NewBTCSignerVerifier creates a new signer/verifier for signatures suited for the BTC blockchain
@@ -134,8 +137,8 @@ func NewBTCSignerVerifier(privateKey sdkcrypto.PrivateKeyJWK) (*BTCSignerVerifie
 	}
 	privKey, pubKey := btcec.PrivKeyFromBytes(privateKeyBytes)
 	return &BTCSignerVerifier{
-		publicKey:  pubKey.ToECDSA(),
-		privateKey: privKey.ToECDSA(),
+		publicKey:  pubKey,
+		privateKey: privKey,
 	}, nil
 }
 
@@ -149,27 +152,58 @@ func (*BTCSignerVerifier) GetJWSHeader() map[string]any {
 // Sign signs the given data according to Bitcoin's signing process
 func (sv *BTCSignerVerifier) Sign(data []byte) ([]byte, error) {
 	messageHash := Hash(data)
+	signature := ecdsa.Sign(sv.privateKey, messageHash)
 
-	SignComp
-	secp.SignCompact(btcec.S256(), sv.privateKey, messageHash, true)
-	return ecdsa.SignASN1(zeroReader{}, sv.privateKey, messageHash)
+	r := reflect.ValueOf(signature).Elem().FieldByName("r")
+	s := reflect.ValueOf(signature).Elem().FieldByName("s")
+
+	gotR := getUnexportedField(r).(secp256k1.ModNScalar)
+	gotS := getUnexportedField(s).(secp256k1.ModNScalar)
+
+	reconstructed := ecdsa.NewSignature(&gotR, &gotS)
+	if !signature.IsEqual(reconstructed) {
+		return nil, errors.New("could not reconstruct signature")
+	}
+
+	// Convert the signature from DER format to 64-byte hexadecimal format
+	rBytes := gotR.Bytes()
+	sBytes := gotS.Bytes()
+	hexR := hex.EncodeToString(rBytes[:])
+	hexS := hex.EncodeToString(sBytes[:])
+
+	hexSStr := fmt.Sprintf("%064s", hexR)
+	hexRStr := fmt.Sprintf("%064s", hexS)
+
+	return []byte(hexRStr + hexSStr), nil
 }
 
-// zeroReader is a reader that always returns 0 - essentially a no-op reader for randomness,
-// enabling deterministic signatures
-type zeroReader struct{}
+func getUnexportedField(field reflect.Value) interface{} {
+	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface()
+}
 
-func (zeroReader) Read(p []byte) (n int, err error) {
-	for i := range p {
-		p[i] = 0
-	}
-	return len(p), nil
+type Signature struct {
+	R secp256k1.ModNScalar
+	S secp256k1.ModNScalar
 }
 
 // Verify verifies the given data according to Bitcoin's verification process
-func (sv *BTCSignerVerifier) Verify(data, signature []byte) bool {
+func (sv *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
 	messageHash := Hash(data)
-	return ecdsa.VerifyASN1(sv.publicKey, messageHash, signature)
+
+	// Deconstruct the signature from 64-byte hexadecimal format
+	sigDecoded, err := hex.DecodeString(string(signature))
+	if err != nil {
+		return false, err
+	}
+	r := new(secp256k1.ModNScalar)
+	r.SetBytes((*[32]byte)(sigDecoded[:32]))
+	s := new(secp256k1.ModNScalar)
+	s.SetBytes((*[32]byte)(sigDecoded[32:]))
+
+	// Reconstruct the signature once we have the R and S values
+	reconstructedSignature := ecdsa.NewSignature(r, s)
+
+	return reconstructedSignature.Verify(messageHash, sv.publicKey), nil
 }
 
 // SignJWT signs the given data according to the protocol's JWT signing process,
@@ -214,5 +248,5 @@ func (sv *BTCSignerVerifier) VerifyJWS(jws string) (bool, error) {
 		return false, errors.Wrap(err, "could not decode signature")
 	}
 
-	return sv.Verify(contentHash, decodedSignature), nil
+	return sv.Verify(contentHash, decodedSignature)
 }
