@@ -174,7 +174,7 @@ func (s StateChange) IsValid() error {
 
 	// check if public keys are valid
 	// build index of public keys to add
-	publicKeys := make(map[string]PublicKey)
+	publicKeys := make(map[string]struct{}, len(s.PublicKeysToAdd))
 	for _, publicKey := range s.PublicKeysToAdd {
 		if _, ok := publicKeys[publicKey.ID]; ok {
 			return fmt.Errorf("public key<%s> is duplicated", publicKey.ID)
