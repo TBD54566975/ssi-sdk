@@ -6,7 +6,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/pkg/errors"
 )
 

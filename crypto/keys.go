@@ -14,7 +14,7 @@ import (
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
-	"github.com/lestrrat-go/jwx/x25519"
+	"github.com/lestrrat-go/jwx/v2/x25519"
 )
 
 // GenerateKeyByKeyType creates a brand-new key, returning the public and private key for the given key type

@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jws"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/pkg/errors"
 )
 
@@ -143,7 +143,7 @@ func jwtSignerVerifier(kid string, key any) (jwk.Key, *jwa.SignatureAlgorithm, e
 
 // GetSigningAlgorithm returns the algorithm used to sign the JWT
 func (s *JWTSigner) GetSigningAlgorithm() string {
-	return s.Algorithm()
+	return s.Algorithm().String()
 }
 
 // SignWithDefaults takes a set of JWT keys and values to add to a JWT before singing them with
@@ -168,17 +168,21 @@ func (s *JWTSigner) SignWithDefaults(kvs map[string]any) ([]byte, error) {
 			return nil, errors.Wrapf(err, "could not set %s to value: %v", k, v)
 		}
 	}
-	return jwt.Sign(t, jwa.SignatureAlgorithm(s.GetSigningAlgorithm()), s.Key)
+	return jwt.Sign(t, jwt.WithKey(s.SignatureAlgorithm, s.Key))
 }
 
 // SignJWS takes a set of payload and signs it with the key defined in the signer
 func (s *JWTSigner) SignJWS(payload []byte) ([]byte, error) {
-	return jws.Sign(payload, s.SignatureAlgorithm, s.Key)
+	headers := jws.NewHeaders()
+	if err := headers.Set(jws.AlgorithmKey, s.SignatureAlgorithm); err != nil {
+		return nil, errors.Wrap(err, "setting algorithm header")
+	}
+	return jws.Sign(payload, jws.WithKey(s.SignatureAlgorithm, s.Key, jws.WithProtectedHeaders(headers)))
 }
 
 // Parse attempts to turn a string into a jwt.Token
 func (*JWTSigner) Parse(token string) (jwt.Token, error) {
-	parsed, err := jwt.Parse([]byte(token))
+	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse JWT")
 	}
@@ -187,7 +191,8 @@ func (*JWTSigner) Parse(token string) (jwt.Token, error) {
 
 // VerifyJWS parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success.
 func (v *JWTVerifier) VerifyJWS(token string) error {
-	if _, err := jws.Verify([]byte(token), jwa.SignatureAlgorithm(v.Algorithm()), v.Key); err != nil {
+	key := jws.WithKey(v.Algorithm(), v.Key)
+	if _, err := jws.Verify([]byte(token), key); err != nil {
 		return errors.Wrap(err, "verifying JWT")
 	}
 	return nil
@@ -195,7 +200,7 @@ func (v *JWTVerifier) VerifyJWS(token string) error {
 
 // Verify parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success
 func (v *JWTVerifier) Verify(token string) error {
-	if _, err := jwt.Parse([]byte(token), jwt.WithVerify(jwa.SignatureAlgorithm(v.Algorithm()), v.Key)); err != nil {
+	if _, err := jwt.Parse([]byte(token), jwt.WithKey(v.Algorithm(), v.Key)); err != nil {
 		return errors.Wrap(err, "could not verify JWT")
 	}
 	return nil
@@ -203,7 +208,7 @@ func (v *JWTVerifier) Verify(token string) error {
 
 // Parse attempts to turn a string into a jwt.Token
 func (*JWTVerifier) Parse(token string) (jwt.Token, error) {
-	parsed, err := jwt.Parse([]byte(token))
+	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse JWT")
 	}
@@ -225,7 +230,7 @@ func (*JWTVerifier) ParseJWS(token string) (*jws.Signature, error) {
 
 // VerifyAndParse attempts to turn a string into a jwt.Token and verify its signature using the verifier
 func (v *JWTVerifier) VerifyAndParse(token string) (jwt.Token, error) {
-	parsed, err := jwt.Parse([]byte(token), jwt.WithVerify(jwa.SignatureAlgorithm(v.Algorithm()), v.Key))
+	parsed, err := jwt.Parse([]byte(token), jwt.WithKey(v.Algorithm(), v.Key))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse and verify JWT")
 	}

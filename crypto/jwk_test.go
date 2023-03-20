@@ -3,7 +3,7 @@ package crypto
 import (
 	"testing"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +14,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 	assert.NotEmpty(t, privateKey)
 
 	// convert to JWK
-	key, err := jwk.New(privateKey)
+	key, err := jwk.FromRaw(privateKey)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, key)
 
@@ -34,7 +34,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 	assert.NotEmpty(t, publicKey)
 
 	// convert to JWK
-	key, err := jwk.New(publicKey)
+	key, err := jwk.FromRaw(publicKey)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, key)
 
@@ -54,7 +54,7 @@ func TestJWKFromPrivateKeyJWK(t *testing.T) {
 	assert.NotEmpty(t, privateKey)
 
 	// convert to JWK
-	key, err := jwk.New(privateKey)
+	key, err := jwk.FromRaw(privateKey)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, key)
 
@@ -80,7 +80,7 @@ func TestJWKFromPublicKeyJWK(t *testing.T) {
 	assert.NotEmpty(t, publicKey)
 
 	// convert to JWK
-	key, err := jwk.New(publicKey)
+	key, err := jwk.FromRaw(publicKey)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, key)
 
