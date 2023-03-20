@@ -97,3 +97,11 @@ type RecoverRequest struct {
 	Delta       Delta         `json:"delta,omitempty"`
 	SignedData  string        `json:"signedData,omitempty"`
 }
+
+// RecoverySignedDataObject https://identity.foundation/sidetree/spec/#recovery-signed-data-object
+type RecoverySignedDataObject struct {
+	RecoveryCommitment string              `json:"recoveryCommitment,omitempty"`
+	RecoveryKey        crypto.PublicKeyJWK `json:"recoveryKey,omitempty"`
+	DeltaHash          string              `json:"deltaHash,omitempty"`
+	AnchorOrigin       string              `json:"anchorOrigin,omitempty"`
+}

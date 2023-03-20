@@ -1,9 +1,8 @@
 package ion
 
 import (
-	"fmt"
-
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -72,7 +71,7 @@ func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, sig
 	}
 	signedJWT, err := signer.SignJWT(toBeSigned)
 	if err != nil {
-		return nil, fmt.Errorf("failed to sign JWT: %w", err)
+		return nil, errors.Wrap(err, "signing JWT")
 	}
 	return &DeactivateRequest{
 		Type:        Deactivate,
@@ -122,11 +121,7 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 		return nil, err
 	}
 
-	toBeSigned := struct {
-		RecoveryCommitment string              `json:"recoveryCommitment"`
-		RecoveryKey        crypto.PublicKeyJWK `json:"recoveryKey"`
-		DeltaHash          string              `json:"deltaHash"`
-	}{
+	toBeSigned := RecoverySignedDataObject{
 		RecoveryCommitment: recoveryCommitment,
 		RecoveryKey:        recoveryKey,
 		DeltaHash:          deltaHash,
@@ -154,19 +149,19 @@ type StateChange struct {
 func (s StateChange) IsValid() error {
 	// check if services are valid
 	// build index of services to make sure IDs are unique
-	services := make(map[string]struct{}, len(s.ServicesToAdd))
+	services := make(map[string]Service, len(s.ServicesToAdd))
 	for _, service := range s.ServicesToAdd {
 		if _, ok := services[service.ID]; ok {
-			return fmt.Errorf("service %s duplicated", service.ID)
+			return errors.Errorf("service %s duplicated", service.ID)
 		}
 
 		if len(service.ID) > maxIDLength {
-			return fmt.Errorf("service<%s> id is too long", service.ID)
+			return errors.Errorf("service<%s> id is too long", service.ID)
 		}
 
 		// make sure service is valid if it's not a dupe
 		if len(service.Type) > maxServiceTypeLength {
-			return fmt.Errorf("service<%s> type %s is too long", service.ID, service.Type)
+			return errors.Errorf("service<%s> type %s is too long", service.ID, service.Type)
 		}
 
 		services[service.ID] = service
@@ -174,14 +169,14 @@ func (s StateChange) IsValid() error {
 
 	// check if public keys are valid
 	// build index of public keys to add
-	publicKeys := make(map[string]struct{}, len(s.PublicKeysToAdd))
+	publicKeys := make(map[string]PublicKey, len(s.PublicKeysToAdd))
 	for _, publicKey := range s.PublicKeysToAdd {
 		if _, ok := publicKeys[publicKey.ID]; ok {
-			return fmt.Errorf("public key<%s> is duplicated", publicKey.ID)
+			return errors.Errorf("public key<%s> is duplicated", publicKey.ID)
 		}
 
 		if len(publicKey.ID) > maxIDLength {
-			return fmt.Errorf("public key<%s> id is too long", publicKey.ID)
+			return errors.Errorf("public key<%s> id is too long", publicKey.ID)
 		}
 
 		publicKeys[publicKey.ID] = publicKey
@@ -190,22 +185,22 @@ func (s StateChange) IsValid() error {
 	// check if services to remove are valid
 	for _, serviceID := range s.ServiceIDsToRemove {
 		if _, ok := services[serviceID]; ok {
-			return fmt.Errorf("service<%s> added and removed in same request", serviceID)
+			return errors.Errorf("service<%s> added and removed in same request", serviceID)
 		}
 
 		if len(serviceID) > maxIDLength {
-			return fmt.Errorf("service<%s> id is too long", serviceID)
+			return errors.Errorf("service<%s> id is too long", serviceID)
 		}
 	}
 
 	// check if public keys to remove are valid
 	for _, publicKeyID := range s.PublicKeyIDsToRemove {
 		if _, ok := publicKeys[publicKeyID]; ok {
-			return fmt.Errorf("public key<%s> added and removed in same request", publicKeyID)
+			return errors.Errorf("public key<%s> added and removed in same request", publicKeyID)
 		}
 
 		if len(publicKeyID) > maxIDLength {
-			return fmt.Errorf("public key<%s> id is too long", publicKeyID)
+			return errors.Errorf("public key<%s> id is too long", publicKeyID)
 		}
 	}
 	return nil
@@ -218,7 +213,7 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	}
 
 	// construct update patches
-	patches := make([]any, 0, len(stateChange.ServicesToAdd) + ...)
+	patches := make([]any, 0, len(stateChange.ServicesToAdd))
 
 	// services to add
 	if len(stateChange.ServicesToAdd) > 0 {

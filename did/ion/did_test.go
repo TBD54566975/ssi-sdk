@@ -4,35 +4,22 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 )
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonDid.spec.ts#L18
 func TestCreateLongFormDID(t *testing.T) {
-	recoveryKeyJSON, err := getTestData("jwkes256k1public.json")
-	assert.NoError(t, err)
 	var recoveryKey crypto.PublicKeyJWK
-	err = json.Unmarshal([]byte(recoveryKeyJSON), &recoveryKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	updateKeyJSON, err := getTestData("jwkes256k2public.json")
-	assert.NoError(t, err)
 	var updateKey crypto.PublicKeyJWK
-	err = json.Unmarshal([]byte(updateKeyJSON), &updateKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
 
-	publicKeyJSON, err := getTestData("publickeymodel1.json")
-	assert.NoError(t, err)
 	var publicKey PublicKey
-	err = json.Unmarshal([]byte(publicKeyJSON), &publicKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
-	serviceJSON, err := getTestData("service1.json")
-	assert.NoError(t, err)
 	var service Service
-	err = json.Unmarshal([]byte(serviceJSON), &service)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "service1.json", &service)
 
 	document := Document{
 		PublicKeys: []PublicKey{
@@ -58,4 +45,17 @@ func TestCreateLongFormDID(t *testing.T) {
 
 	assert.Equal(t, expectedDID, ourDID)
 	assert.Equal(t, expectedIS, ourInitialState)
+}
+
+func TestCreateShortFormDID(t *testing.T) {
+	knownSuffixData := SuffixData{
+		DeltaHash:          "EiCfDWRnYlcD9EGA3d_5Z1AHu-iYqMbJ9nfiqdz5S8VDbg",
+		RecoveryCommitment: "EiBfOZdMtU6OBw8Pk879QtZ-2J-9FbbjSZyoaA_bqD4zhA",
+	}
+
+	shortFormDID, err := CreateShortFormDID(knownSuffixData)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, shortFormDID)
+
+	assert.Equal(t, shortFormDID, "did:ion:EiDyOQbbZAa3aiRzeCkV7LOx3SERjjH93EXoIM3UoN4oWg")
 }

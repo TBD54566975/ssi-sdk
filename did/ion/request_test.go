@@ -1,44 +1,25 @@
 package ion
 
 import (
-	"embed"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
-)
-
-var (
-	//go:embed testdata
-	testData embed.FS
 )
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L7
 func TestCreateRequest(t *testing.T) {
-	recoveryKeyJSON, err := getTestData("jwkes256k1public.json")
-	assert.NoError(t, err)
 	var recoveryKey crypto.PublicKeyJWK
-	err = json.Unmarshal([]byte(recoveryKeyJSON), &recoveryKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	updateKeyJSON, err := getTestData("jwkes256k2public.json")
-	assert.NoError(t, err)
 	var updateKey crypto.PublicKeyJWK
-	err = json.Unmarshal([]byte(updateKeyJSON), &updateKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
 
-	publicKeyJSON, err := getTestData("publickeymodel1.json")
-	assert.NoError(t, err)
 	var publicKey PublicKey
-	err = json.Unmarshal([]byte(publicKeyJSON), &publicKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
-	serviceJSON, err := getTestData("service1.json")
-	assert.NoError(t, err)
 	var service Service
-	err = json.Unmarshal([]byte(serviceJSON), &service)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "service1.json", &service)
 
 	document := Document{
 		PublicKeys: []PublicKey{publicKey},
@@ -58,35 +39,20 @@ func TestCreateRequest(t *testing.T) {
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L32
 func TestUpdateRequest(t *testing.T) {
-	updateKeyJSON, err := getTestData("jwkes256k1public.json")
-	assert.NoError(t, err)
 	var updateKey crypto.PublicKeyJWK
-	err = json.Unmarshal([]byte(updateKeyJSON), &updateKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k1public.json", &updateKey)
 
-	updatePrivateKeyJSON, err := getTestData("jwkes256k1private.json")
-	assert.NoError(t, err)
 	var updatePrivateKey crypto.PrivateKeyJWK
-	err = json.Unmarshal([]byte(updatePrivateKeyJSON), &updatePrivateKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k1private.json", &updatePrivateKey)
 
-	nextUpdateKeyJSON, err := getTestData("jwkes256k2public.json")
-	assert.NoError(t, err)
 	var nextUpdateKey crypto.PublicKeyJWK
-	err = json.Unmarshal([]byte(nextUpdateKeyJSON), &nextUpdateKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k2public.json", &nextUpdateKey)
 
-	publicKeyJSON, err := getTestData("publickeymodel1.json")
-	assert.NoError(t, err)
 	var publicKey PublicKey
-	err = json.Unmarshal([]byte(publicKeyJSON), &publicKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
-	serviceJSON, err := getTestData("service1.json")
-	assert.NoError(t, err)
 	var service Service
-	err = json.Unmarshal([]byte(serviceJSON), &service)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "service1.json", &service)
 
 	signer, err := NewBTCSignerVerifier(updatePrivateKey)
 	assert.NoError(t, err)
@@ -113,43 +79,25 @@ func TestUpdateRequest(t *testing.T) {
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L72
 func TestRecoverRequest(t *testing.T) {
-	publicKeyJSON, err := getTestData("publickeymodel1.json")
-	assert.NoError(t, err)
 	var publicKey PublicKey
-	err = json.Unmarshal([]byte(publicKeyJSON), &publicKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
-	serviceJSON, err := getTestData("service1.json")
-	assert.NoError(t, err)
 	var service Service
-	err = json.Unmarshal([]byte(serviceJSON), &service)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "service1.json", &service)
 
 	document := Document{PublicKeys: []PublicKey{publicKey}, Services: []Service{service}}
 
-	recoveryKeyJSON, err := getTestData("jwkes256k1public.json")
-	assert.NoError(t, err)
 	var recoveryKey crypto.PublicKeyJWK
-	err = json.Unmarshal([]byte(recoveryKeyJSON), &recoveryKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	recoveryPrivateKeyJSON, err := getTestData("jwkes256k1private.json")
-	assert.NoError(t, err)
 	var recoveryPrivateKey crypto.PrivateKeyJWK
-	err = json.Unmarshal([]byte(recoveryPrivateKeyJSON), &recoveryPrivateKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k1private.json", &recoveryPrivateKey)
 
-	nextRecoveryKeyJSON, err := getTestData("jwkes256k2public.json")
-	assert.NoError(t, err)
 	var nextRecoveryKey crypto.PublicKeyJWK
-	err = json.Unmarshal([]byte(nextRecoveryKeyJSON), &nextRecoveryKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k2public.json", &nextRecoveryKey)
 
-	nextUpdateKeyJSON, err := getTestData("jwkes256k3public.json")
-	assert.NoError(t, err)
 	var nextUpdateKey crypto.PublicKeyJWK
-	err = json.Unmarshal([]byte(nextUpdateKeyJSON), &nextUpdateKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k3public.json", &nextUpdateKey)
 
 	signer, err := NewBTCSignerVerifier(recoveryPrivateKey)
 	assert.NoError(t, err)
@@ -170,17 +118,11 @@ func TestRecoverRequest(t *testing.T) {
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L102
 func TestDeactivateRequest(t *testing.T) {
-	recoveryKeyJSON, err := getTestData("jwkes256k1public.json")
-	assert.NoError(t, err)
 	var recoveryKey crypto.PublicKeyJWK
-	err = json.Unmarshal([]byte(recoveryKeyJSON), &recoveryKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	recoveryPrivateKeyJSON, err := getTestData("jwkes256k1private.json")
-	assert.NoError(t, err)
 	var recoveryPrivateKey crypto.PrivateKeyJWK
-	err = json.Unmarshal([]byte(recoveryPrivateKeyJSON), &recoveryPrivateKey)
-	assert.NoError(t, err)
+	RetrieveTestVectorAs(t, "jwkes256k1private.json", &recoveryPrivateKey)
 
 	signer, err := NewBTCSignerVerifier(recoveryPrivateKey)
 	assert.NoError(t, err)
@@ -195,9 +137,4 @@ func TestDeactivateRequest(t *testing.T) {
 	assert.Equal(t, Deactivate, deactivateRequest.Type)
 	assert.Equal(t, deactivateRequest.RevealValue, "EiAJ-97Is59is6FKAProwDo870nmwCeP8n5nRRFwPpUZVQ")
 	assert.Equal(t, deactivateRequest.SignedData, "eyJhbGciOiJFUzI1NksifQ.eyJkaWRTdWZmaXgiOiJFaUR5T1FiYlpBYTNhaVJ6ZUNrVjdMT3gzU0VSampIOTNFWG9JTTNVb040b1dnIiwicmVjb3ZlcnlLZXkiOnsia3R5IjoiRUMiLCJjcnYiOiJzZWNwMjU2azEiLCJ4IjoibklxbFJDeDBleUJTWGNRbnFEcFJlU3Y0enVXaHdDUldzc29jOUxfbmo2QSIsInkiOiJpRzI5Vks2bDJVNXNLQlpVU0plUHZ5RnVzWGdTbEsyZERGbFdhQ004RjdrIn19.uLgnDBmmFzST4VTmdJcmFKVicF0kQaBqEnRQLbqJydgIg_2oreihCA5sBBIUBlSXwvnA9xdK97ksJGmPQ7asPQ")
-}
-
-func getTestData(fileName string) (string, error) {
-	b, err := testData.ReadFile("testdata/" + fileName)
-	return string(b), err
 }

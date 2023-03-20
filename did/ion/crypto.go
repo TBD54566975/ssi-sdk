@@ -110,13 +110,11 @@ func Commit(key sdkcrypto.PublicKeyJWK) (reveal, commitment string, err error) {
 	intermediateHash := Hash(canonicalKey)
 	reveal, err = HashEncode(canonicalKey)
 	if err != nil {
-		logrus.WithError(err).Error("could not generate reveal value")
-		return "", "", err
+		return "", "", errors.Wrap(err, "generating reveal value")
 	}
 	commitment, err = HashEncode(intermediateHash)
 	if err != nil {
-		logrus.WithError(err).Error("could not generate commitment value")
-		return "", "", err
+		return "", "", errors.Wrap(err, "generating commitment value")
 	}
 
 	return reveal, commitment, nil
@@ -207,7 +205,7 @@ func (sv *BTCSignerVerifier) SignJWT(data any) (string, error) {
 func (sv *BTCSignerVerifier) VerifyJWS(jws string) (bool, error) {
 	jwsParts := strings.Split(jws, ".")
 	if len(jwsParts) != 3 {
-		return false, fmt.Errorf("invalid JWS: %s", jws)
+		return false, errors.Errorf("invalid JWS: %s", jws)
 	}
 
 	signingContent := jwsParts[0] + "." + jwsParts[1]
@@ -215,7 +213,7 @@ func (sv *BTCSignerVerifier) VerifyJWS(jws string) (bool, error) {
 
 	decodedSignature, err := Decode(jwsParts[2])
 	if err != nil {
-		return false, errors.Wrap(err, "could not decode signature")
+		return false, errors.Wrap(err, "decoding signature")
 	}
 
 	return sv.Verify(contentHash, decodedSignature)

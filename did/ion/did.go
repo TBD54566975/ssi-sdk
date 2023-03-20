@@ -8,10 +8,11 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
-type initialState struct {
+// InitialState is the initial state of a DID Document as defined in the spec
+// https://identity.foundation/sidetree/spec/#long-form-did-uris
+type InitialState struct {
 	SuffixData SuffixData `json:"suffixData,omitempty"`
 	Delta      Delta      `json:"delta,omitempty"`
 }
@@ -25,45 +26,45 @@ func CreateLongFormDID(recoveryKey, updateKey crypto.PublicKeyJWK, document Docu
 		return "", err
 	}
 
-	shortFormDID, err := ShortFormDID(createRequest.SuffixData)
+	shortFormDID, err := CreateShortFormDID(createRequest.SuffixData)
 	if err != nil {
 		return "", err
 	}
 
-	is := initialState{
+	b, _ := json.Marshal(createRequest.SuffixData)
+	println(string(b))
+
+	is := InitialState{
 		Delta:      createRequest.Delta,
 		SuffixData: createRequest.SuffixData,
 	}
 
 	initialStateBytesCanonical, err := CanonicalizeAny(is)
 	if err != nil {
-		logrus.WithError(err).Error("could not canonicalize long form DID suffix data")
-		return "", err
+		return "", errors.Wrap(err, "canonicalizing long form DID suffix data")
 	}
 	encoded := Encode(initialStateBytesCanonical)
 	return strings.Join([]string{shortFormDID, encoded}, ":"), nil
 }
 
-// ShortFormDID follows the process on did uri composition from the spec:
+// CreateShortFormDID follows the process on did uri composition from the spec:
 // https://identity.foundation/sidetree/spec/#did-uri-composition, used to generate a short form DID URI,
 // which is most frequently used in the protocol and when sharing out ION DIDs.
-func ShortFormDID(suffixData any) (string, error) {
+func CreateShortFormDID(suffixData any) (string, error) {
 	createOpSuffixDataCanonical, err := CanonicalizeAny(suffixData)
 	if err != nil {
-		logrus.WithError(err).Error("could not canonicalize suffix data")
-		return "", err
+		return "", errors.Wrap(err, "canonicalizing suffix data")
 	}
 	hash, err := HashEncode(createOpSuffixDataCanonical)
 	if err != nil {
-		logrus.WithError(err).Error("could not generate multihash for DID URI")
-		return "", err
+		return "", errors.Wrap(err, "generating multihash for DID URI")
 	}
 	return strings.Join([]string{"did", did.IONMethod.String(), hash}, ":"), nil
 }
 
 // DecodeLongFormDID decodes a long form DID into a short form DID and
 // its create operation suffix data
-func DecodeLongFormDID(longFormDID string) (string, *initialState, error) {
+func DecodeLongFormDID(longFormDID string) (string, *InitialState, error) {
 	split := strings.Split(longFormDID, ":")
 	if len(split) != 4 {
 		return "", nil, errors.New("invalid long form URI")
@@ -73,11 +74,11 @@ func DecodeLongFormDID(longFormDID string) (string, *initialState, error) {
 	}
 	decoded, err := Decode(split[3])
 	if err != nil {
-		return "", nil, errors.Wrap(err, "could not decode long form URI")
+		return "", nil, errors.Wrap(err, "decoding long form URI")
 	}
-	var initialState initialState
+	var initialState InitialState
 	if err = json.Unmarshal(decoded, &initialState); err != nil {
-		return "", nil, errors.Wrap(err, "could not unmarshal long form URI")
+		return "", nil, errors.Wrap(err, "unmarshalling long form URI")
 	}
 	return strings.Join(split[0:3], ":"), &initialState, nil
 }
