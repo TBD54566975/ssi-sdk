@@ -166,7 +166,7 @@ func (zeroReader) Read(p []byte) (n int, err error) {
 func toCompactHex(r, s *big.Int) ([]byte, error) {
 	hex := numTo32bStr(r) + numTo32bStr(s)
 	if len(hex)%2 != 0 {
-		return nil, errors.New("hexToBytes: received invalid unpadded hex")
+		return nil, errors.New("received invalid unpadded hex")
 	}
 	b := make([]byte, len(hex)/2)
 	for i := 0; i < len(b); i++ {
@@ -174,7 +174,7 @@ func toCompactHex(r, s *big.Int) ([]byte, error) {
 		hexByte := hex[j : j+2]
 		byteValue, err := strconv.ParseUint(hexByte, 16, 8)
 		if err != nil {
-			return nil, errors.New("Invalid byte sequence")
+			return nil, errors.New("invalid byte sequence")
 		}
 		b[i] = byte(byteValue)
 	}
@@ -213,7 +213,7 @@ func (sv *BTCSignerVerifier) SignJWT(data any) (string, error) {
 	if err != nil {
 		return "", nil
 	}
-	encodedSignature := Encode([]byte(signed))
+	encodedSignature := Encode(signed)
 
 	compactJWS := encodedHeader + "." + encodedPayload + "." + encodedSignature
 	return compactJWS, nil
