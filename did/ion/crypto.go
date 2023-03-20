@@ -5,9 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"reflect"
 	"strings"
-	"unsafe"
 
 	sdkcrypto "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/btcsuite/btcd/btcec/v2"
@@ -167,15 +165,6 @@ func (sv *BTCSignerVerifier) Sign(dataHash []byte) ([]byte, error) {
 	return hex.DecodeString(r + s)
 }
 
-func getUnexportedField(field reflect.Value) interface{} {
-	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface()
-}
-
-type Signature struct {
-	R secp256k1.ModNScalar
-	S secp256k1.ModNScalar
-}
-
 // Verify verifies the given data according to Bitcoin's verification process
 func (sv *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
 	r := new(secp256k1.ModNScalar)
@@ -186,7 +175,7 @@ func (sv *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
 	// Reconstruct the signature once we have the R and S values
 	reconstructedSignature := ecdsa.NewSignature(r, s)
 
-	return reconstructedSignature.Verify([]byte(data), sv.publicKey), nil
+	return reconstructedSignature.Verify(data, sv.publicKey), nil
 }
 
 // SignJWT signs the given data according to the protocol's JWT signing process,
