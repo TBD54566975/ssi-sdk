@@ -5,8 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"math/big"
-	"strconv"
 	"strings"
 
 	sdkcrypto "github.com/TBD54566975/ssi-sdk/crypto"
@@ -150,40 +148,18 @@ func (*BTCSignerVerifier) GetJWSHeader() map[string]any {
 // Sign signs the given data according to Bitcoin's signing process
 func (sv *BTCSignerVerifier) Sign(data []byte) ([]byte, error) {
 	messageHash := Hash(data)
-	r, s, err := ecdsa.Sign(zeroReader{}, sv.privateKey, messageHash)
-	if err != nil {
-		return nil, err
-	}
-	return toCompactHex(r, s)
+	return ecdsa.SignASN1(zeroReader{}, sv.privateKey, messageHash)
 }
 
+// zeroReader is a reader that always returns 0 - essentially a no-op reader for randomness,
+// enabling deterministic signatures
 type zeroReader struct{}
 
 func (zeroReader) Read(p []byte) (n int, err error) {
+	for i := range p {
+		p[i] = 0
+	}
 	return len(p), nil
-}
-
-func toCompactHex(r, s *big.Int) ([]byte, error) {
-	hex := numTo32bStr(r) + numTo32bStr(s)
-	if len(hex)%2 != 0 {
-		return nil, errors.New("received invalid unpadded hex")
-	}
-	b := make([]byte, len(hex)/2)
-	for i := 0; i < len(b); i++ {
-		j := i * 2
-		hexByte := hex[j : j+2]
-		byteValue, err := strconv.ParseUint(hexByte, 16, 8)
-		if err != nil {
-			return nil, errors.New("invalid byte sequence")
-		}
-		b[i] = byte(byteValue)
-	}
-	return b, nil
-}
-
-func numTo32bStr(num *big.Int) string {
-	hexStr := fmt.Sprintf("%x", num)
-	return fmt.Sprintf("%064s", hexStr)
 }
 
 // Verify verifies the given data according to Bitcoin's verification process

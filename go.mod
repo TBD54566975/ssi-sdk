@@ -31,7 +31,9 @@ require (
 )
 
 require (
+	github.com/apisit/rfc6979 v0.0.0-20141003034818-6a90f24967eb // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/decred/dcrd/dcrec v1.0.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
