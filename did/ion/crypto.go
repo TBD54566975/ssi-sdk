@@ -183,13 +183,11 @@ func (sv *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
 func (sv *BTCSignerVerifier) SignJWT(data any) (string, error) {
 	encodedHeader, err := EncodeAny(sv.GetJWSHeader())
 	if err != nil {
-		logrus.WithError(err).Error("could not encode header")
-		return "", nil
+		return "", err
 	}
 	encodedPayload, err := EncodeAny(data)
 	if err != nil {
-		logrus.WithError(err).Error("could not encode payload")
-		return "", nil
+		return "", err
 	}
 
 	signingContent := encodedHeader + "." + encodedPayload
