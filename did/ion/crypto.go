@@ -9,6 +9,7 @@ import (
 
 	sdkcrypto "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/btcsuite/btcd/btcec/v2"
+	secp "github.com/decred/dcrd/dcrec/secp256k1"
 	"github.com/goccy/go-json"
 	"github.com/gowebpki/jcs"
 	"github.com/multiformats/go-multihash"
@@ -148,6 +149,9 @@ func (*BTCSignerVerifier) GetJWSHeader() map[string]any {
 // Sign signs the given data according to Bitcoin's signing process
 func (sv *BTCSignerVerifier) Sign(data []byte) ([]byte, error) {
 	messageHash := Hash(data)
+
+	SignComp
+	secp.SignCompact(btcec.S256(), sv.privateKey, messageHash, true)
 	return ecdsa.SignASN1(zeroReader{}, sv.privateKey, messageHash)
 }
 
