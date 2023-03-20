@@ -105,7 +105,7 @@ func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCrede
 	}
 	vcBytes, err := json.Marshal(vcClaim)
 	if err != nil {
-		return nil, errors.Wrap(err, "marshaling credential claim")
+		return nil, errors.Wrap(err, "marshalling credential claim")
 	}
 	var cred credential.VerifiableCredential
 	if err = json.Unmarshal(vcBytes, &cred); err != nil {
@@ -214,7 +214,7 @@ func ParseVerifiablePresentationFromJWT(token string) (*credential.VerifiablePre
 	}
 	vpBytes, err := json.Marshal(vpClaim)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshaling vp claim")
+		return nil, errors.Wrap(err, "could not marshalling vp claim")
 	}
 	var pres credential.VerifiablePresentation
 	if err = json.Unmarshal(vpBytes, &pres); err != nil {

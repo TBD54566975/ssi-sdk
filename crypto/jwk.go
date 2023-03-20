@@ -330,7 +330,7 @@ func jwkFromEd25519PublicKey(key ed25519.PublicKey) (*PublicKeyJWK, error) {
 
 	ed25519JWKBytes, err := json.Marshal(ed25519JWK)
 	if err != nil {
-		return nil, errors.Wrap(err, "marshaling ed25519 jwk")
+		return nil, errors.Wrap(err, "marshalling ed25519 jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(ed25519JWKBytes, &publicKeyJWK); err != nil {
@@ -387,7 +387,7 @@ func jwkFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (*PublicKeyJWK, *Priva
 
 	secp256k1JWKBytes, err := json.Marshal(secp256k1JWK)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "marshaling secp256k1 jwk")
+		return nil, nil, errors.Wrap(err, "marshalling secp256k1 jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(secp256k1JWKBytes, &publicKeyJWK); err != nil {
@@ -428,7 +428,7 @@ func jwkFromSECP256k1PublicKey(key secp256k1.PublicKey) (*PublicKeyJWK, error) {
 
 	secp256k1JWKBytes, err := json.Marshal(secp256k1JWK)
 	if err != nil {
-		return nil, errors.Wrap(err, "marshaling secp256k1 jwk")
+		return nil, errors.Wrap(err, "marshalling secp256k1 jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(secp256k1JWKBytes, &publicKeyJWK); err != nil {
