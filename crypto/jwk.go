@@ -208,11 +208,11 @@ func jwkKeyFromRSAPrivateKey(key rsa.PrivateKey) (jwk.Key, error) {
 func jwkFromRSAPrivateKey(key rsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	rsaJWKGeneric, err := jwk.FromRaw(key)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to generate rsa jwk")
+		return nil, nil, errors.Wrap(err, "generating rsa jwk")
 	}
 	rsaJWK, ok := rsaJWKGeneric.(jwk.RSAPrivateKey)
 	if !ok {
-		return nil, nil, errors.New("failed to cast rsa jwk")
+		return nil, nil, errors.New("casting rsa jwk")
 	}
 
 	rsaJWKBytes, err := json.Marshal(rsaJWK)
@@ -221,11 +221,11 @@ func jwkFromRSAPrivateKey(key rsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, er
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(rsaJWKBytes, &publicKeyJWK); err != nil {
-		return nil, nil, errors.Wrap(err, "failed to unmarshal rsa jwk")
+		return nil, nil, errors.Wrap(err, "unmarshalling rsa public jwk")
 	}
 	var privateKeyJWK PrivateKeyJWK
 	if err = json.Unmarshal(rsaJWKBytes, &privateKeyJWK); err != nil {
-		return nil, nil, errors.Wrap(err, "failed to unmarshal rsa jwk")
+		return nil, nil, errors.Wrap(err, "unmarshalling rsa private jwk")
 	}
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
@@ -247,7 +247,7 @@ func jwkKeyFromRSAPublicKey(key rsa.PublicKey) (jwk.Key, error) {
 func jwkFromRSAPublicKey(key rsa.PublicKey) (*PublicKeyJWK, error) {
 	rsaJWKGeneric, err := jwk.FromRaw(key)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate rsa jwk")
+		return nil, errors.Wrap(err, "generating rsa jwk")
 	}
 	rsaJWK, ok := rsaJWKGeneric.(jwk.RSAPublicKey)
 	if !ok {
@@ -256,11 +256,11 @@ func jwkFromRSAPublicKey(key rsa.PublicKey) (*PublicKeyJWK, error) {
 
 	rsaJWKBytes, err := json.Marshal(rsaJWK)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal rsa jwk")
+		return nil, errors.Wrap(err, "marshalling rsa jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(rsaJWKBytes, &publicKeyJWK); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal rsa jwk")
+		return nil, errors.Wrap(err, "unmarshalling rsa jwk")
 	}
 	return &publicKeyJWK, nil
 }
@@ -269,11 +269,11 @@ func jwkFromRSAPublicKey(key rsa.PublicKey) (*PublicKeyJWK, error) {
 func jwkKeyFromEd25519PrivateKey(key ed25519.PrivateKey) (jwk.Key, error) {
 	ed25519JWKGeneric, err := jwk.FromRaw(key)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate ed25519 jwk")
+		return nil, errors.Wrap(err, "generating ed25519 jwk")
 	}
 	ed25519JWK, ok := ed25519JWKGeneric.(jwk.OKPPrivateKey)
 	if !ok {
-		return nil, errors.New("failed to cast ed25519 jwk")
+		return nil, errors.New("casting ed25519 jwk")
 	}
 	return ed25519JWK, nil
 }
@@ -282,24 +282,24 @@ func jwkKeyFromEd25519PrivateKey(key ed25519.PrivateKey) (jwk.Key, error) {
 func jwkFromEd25519PrivateKey(key ed25519.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	ed25519JWKGeneric, err := jwk.FromRaw(key)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to generate ed25519 jwk")
+		return nil, nil, errors.Wrap(err, "generating ed25519 jwk")
 	}
 	ed25519JWK, ok := ed25519JWKGeneric.(jwk.OKPPrivateKey)
 	if !ok {
-		return nil, nil, errors.New("failed to cast ed25519 jwk")
+		return nil, nil, errors.New("casting ed25519 jwk")
 	}
 
 	ed25519JWKBytes, err := json.Marshal(ed25519JWK)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to marshal ed25519 jwk")
+		return nil, nil, errors.Wrap(err, "marshalling ed25519 jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(ed25519JWKBytes, &publicKeyJWK); err != nil {
-		return nil, nil, errors.Wrap(err, "failed to unmarshal ed25519 jwk")
+		return nil, nil, errors.Wrap(err, "unmarshalling ed25519 jwk")
 	}
 	var privateKeyJWK PrivateKeyJWK
 	if err = json.Unmarshal(ed25519JWKBytes, &privateKeyJWK); err != nil {
-		return nil, nil, errors.Wrap(err, "failed to unmarshal ed25519 jwk")
+		return nil, nil, errors.Wrap(err, "unmarshalling ed25519 jwk")
 	}
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
@@ -308,11 +308,11 @@ func jwkFromEd25519PrivateKey(key ed25519.PrivateKey) (*PublicKeyJWK, *PrivateKe
 func jwkKeyFromEd25519PublicKey(key ed25519.PublicKey) (jwk.Key, error) {
 	ed25519JWKGeneric, err := jwk.FromRaw(key)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate ed25519 jwk")
+		return nil, errors.Wrap(err, "generating ed25519 jwk")
 	}
 	ed25519JWK, ok := ed25519JWKGeneric.(jwk.OKPPublicKey)
 	if !ok {
-		return nil, errors.New("failed to cast ed25519 jwk")
+		return nil, errors.New("casting ed25519 jwk")
 	}
 	return ed25519JWK, nil
 }
@@ -321,20 +321,20 @@ func jwkKeyFromEd25519PublicKey(key ed25519.PublicKey) (jwk.Key, error) {
 func jwkFromEd25519PublicKey(key ed25519.PublicKey) (*PublicKeyJWK, error) {
 	ed25519JWKGeneric, err := jwk.FromRaw(key)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate ed25519 jwk")
+		return nil, errors.Wrap(err, "generating ed25519 jwk")
 	}
 	ed25519JWK, ok := ed25519JWKGeneric.(jwk.OKPPublicKey)
 	if !ok {
-		return nil, errors.New("failed to cast ed25519 jwk")
+		return nil, errors.New("casting ed25519 jwk")
 	}
 
 	ed25519JWKBytes, err := json.Marshal(ed25519JWK)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal ed25519 jwk")
+		return nil, errors.Wrap(err, "marshaling ed25519 jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(ed25519JWKBytes, &publicKeyJWK); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal ed25519 jwk")
+		return nil, errors.Wrap(err, "unmarshalling ed25519 jwk")
 	}
 	return &publicKeyJWK, nil
 }
@@ -364,11 +364,11 @@ func jwkKeyFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (jwk.Key, error) {
 	ecdsaPrivKey := key.ToECDSA()
 	secp256k1JWKGeneric, err := jwk.FromRaw(ecdsaPrivKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate secp256k1 jwk")
+		return nil, errors.Wrap(err, "generating secp256k1 jwk")
 	}
 	secp256k1JWK, ok := secp256k1JWKGeneric.(jwk.ECDSAPrivateKey)
 	if !ok {
-		return nil, errors.New("failed to cast secp256k1 jwk")
+		return nil, errors.New("casting secp256k1 jwk")
 	}
 	return secp256k1JWK, nil
 }
@@ -378,24 +378,24 @@ func jwkFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (*PublicKeyJWK, *Priva
 	ecdsaPrivKey := key.ToECDSA()
 	secp256k1JWKGeneric, err := jwk.FromRaw(ecdsaPrivKey)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to generate secp256k1 jwk")
+		return nil, nil, errors.Wrap(err, "generating secp256k1 jwk")
 	}
 	secp256k1JWK, ok := secp256k1JWKGeneric.(jwk.ECDSAPrivateKey)
 	if !ok {
-		return nil, nil, errors.New("failed to cast secp256k1 jwk")
+		return nil, nil, errors.New("casting secp256k1 jwk")
 	}
 
 	secp256k1JWKBytes, err := json.Marshal(secp256k1JWK)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to marshal secp256k1 jwk")
+		return nil, nil, errors.Wrap(err, "marshaling secp256k1 jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(secp256k1JWKBytes, &publicKeyJWK); err != nil {
-		return nil, nil, errors.Wrap(err, "failed to unmarshal secp256k1 jwk")
+		return nil, nil, errors.Wrap(err, "unmarshalling secp256k1 public jwk")
 	}
 	var privateKeyJWK PrivateKeyJWK
 	if err = json.Unmarshal(secp256k1JWKBytes, &privateKeyJWK); err != nil {
-		return nil, nil, errors.Wrap(err, "failed to unmarshal secp256k1 jwk")
+		return nil, nil, errors.Wrap(err, "unmarshalling secp256k1 private jwk")
 	}
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
@@ -405,11 +405,11 @@ func jwkKeyFromSECP256k1PublicKey(key secp256k1.PublicKey) (jwk.Key, error) {
 	ecdsaPubKey := key.ToECDSA()
 	secp256k1JWKGeneric, err := jwk.FromRaw(ecdsaPubKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate secp256k1 jwk")
+		return nil, errors.Wrap(err, "generating secp256k1 jwk")
 	}
 	secp256k1JWK, ok := secp256k1JWKGeneric.(jwk.ECDSAPublicKey)
 	if !ok {
-		return nil, errors.New("failed to cast secp256k1 jwk")
+		return nil, errors.New("casting secp256k1 jwk")
 	}
 	return secp256k1JWK, nil
 }
@@ -419,20 +419,20 @@ func jwkFromSECP256k1PublicKey(key secp256k1.PublicKey) (*PublicKeyJWK, error) {
 	ecdsaPubKey := key.ToECDSA()
 	secp256k1JWK, err := jwk.FromRaw(ecdsaPubKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate secp256k1 jwk")
+		return nil, errors.Wrap(err, "generating secp256k1 jwk")
 	}
 	secp256k1JWK, ok := secp256k1JWK.(jwk.ECDSAPublicKey)
 	if !ok {
-		return nil, errors.New("failed to cast secp256k1 jwk")
+		return nil, errors.New("casting secp256k1 jwk")
 	}
 
 	secp256k1JWKBytes, err := json.Marshal(secp256k1JWK)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal secp256k1 jwk")
+		return nil, errors.Wrap(err, "marshaling secp256k1 jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(secp256k1JWKBytes, &publicKeyJWK); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal secp256k1 jwk")
+		return nil, errors.Wrap(err, "unmarshalling secp256k1 jwk")
 	}
 	return &publicKeyJWK, nil
 }
@@ -441,11 +441,11 @@ func jwkFromSECP256k1PublicKey(key secp256k1.PublicKey) (*PublicKeyJWK, error) {
 func jwkKeyFromECDSAPrivateKey(key ecdsa.PrivateKey) (jwk.Key, error) {
 	ecdsaKeyGeneric, err := jwk.FromRaw(key)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate ecdsa jwk")
+		return nil, errors.Wrap(err, "generating ecdsa jwk")
 	}
 	ecdsaKey, ok := ecdsaKeyGeneric.(jwk.ECDSAPrivateKey)
 	if !ok {
-		return nil, errors.New("failed to cast ecdsa jwk")
+		return nil, errors.New("casting ecdsa jwk")
 	}
 	return ecdsaKey, nil
 }
@@ -454,24 +454,24 @@ func jwkKeyFromECDSAPrivateKey(key ecdsa.PrivateKey) (jwk.Key, error) {
 func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	ecdsaKeyGeneric, err := jwk.FromRaw(key)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to generate ecdsa jwk")
+		return nil, nil, errors.Wrap(err, "generating ecdsa jwk")
 	}
 	ecdsaKey, ok := ecdsaKeyGeneric.(jwk.ECDSAPrivateKey)
 	if !ok {
-		return nil, nil, errors.New("failed to cast ecdsa jwk")
+		return nil, nil, errors.New("casting ecdsa jwk")
 	}
 
 	ecdsaKeyBytes, err := json.Marshal(ecdsaKey)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to marshal ecdsa jwk")
+		return nil, nil, errors.Wrap(err, "marshalling ecdsa jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(ecdsaKeyBytes, &publicKeyJWK); err != nil {
-		return nil, nil, errors.Wrap(err, "failed to unmarshal ecdsa jwk")
+		return nil, nil, errors.Wrap(err, "unmarshalling ecdsa public jwk")
 	}
 	var privateKeyJWK PrivateKeyJWK
 	if err = json.Unmarshal(ecdsaKeyBytes, &privateKeyJWK); err != nil {
-		return nil, nil, errors.Wrap(err, "failed to unmarshal ecdsa jwk")
+		return nil, nil, errors.Wrap(err, "unmarshalling ecdsa private jwk")
 	}
 
 	return &publicKeyJWK, &privateKeyJWK, nil
@@ -481,11 +481,11 @@ func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK
 func jwkKeyFromECDSAPublicKey(key ecdsa.PublicKey) (jwk.Key, error) {
 	ecdsaKeyGeneric, err := jwk.FromRaw(key)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate ecdsa jwk")
+		return nil, errors.Wrap(err, "generating ecdsa jwk")
 	}
 	ecdsaKey, ok := ecdsaKeyGeneric.(jwk.ECDSAPublicKey)
 	if !ok {
-		return nil, errors.New("failed to cast ecdsa jwk")
+		return nil, errors.New("casting ecdsa jwk")
 	}
 	return ecdsaKey, nil
 }
@@ -494,20 +494,20 @@ func jwkKeyFromECDSAPublicKey(key ecdsa.PublicKey) (jwk.Key, error) {
 func jwkFromECDSAPublicKey(key ecdsa.PublicKey) (*PublicKeyJWK, error) {
 	ecdsaKeyGeneric, err := jwk.FromRaw(key)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate ecdsa jwk")
+		return nil, errors.Wrap(err, "generating ecdsa jwk")
 	}
 	ecdsaKey, ok := ecdsaKeyGeneric.(jwk.ECDSAPublicKey)
 	if !ok {
-		return nil, errors.New("failed to cast ecdsa jwk")
+		return nil, errors.New("casting ecdsa jwk")
 	}
 
 	ecdsaKeyBytes, err := json.Marshal(ecdsaKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal ecdsa jwk")
+		return nil, errors.Wrap(err, "marshalling ecdsa jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(ecdsaKeyBytes, &publicKeyJWK); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal ecdsa jwk")
+		return nil, errors.Wrap(err, "unmarshalling ecdsa jwk")
 	}
 	return &publicKeyJWK, nil
 }

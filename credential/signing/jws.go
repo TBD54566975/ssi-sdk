@@ -28,7 +28,7 @@ func SignVerifiableCredentialJWS(signer crypto.JWTSigner, cred credential.Verifi
 
 	signed, err := jws.Sign(payload, jws.WithKey(jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key, jws.WithProtectedHeaders(headers)))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not sign JWT credential")
+		return nil, errors.Wrap(err, "signing JWT credential")
 	}
 
 	return signed, nil
@@ -55,7 +55,7 @@ func ParseVerifiableCredentialFromJWS(token string) (*credential.VerifiableCrede
 
 	var cred credential.VerifiableCredential
 	if err = json.Unmarshal(parsed.Payload(), &cred); err != nil {
-		return nil, errors.Wrap(err, "could not reconstruct Verifiable Credential")
+		return nil, errors.Wrap(err, "reconstructing Verifiable Credential")
 	}
 
 	return &cred, nil
@@ -66,7 +66,7 @@ func ParseVerifiableCredentialFromJWS(token string) (*credential.VerifiableCrede
 // This is currently an experimental. It's unstable and subject to change. Use at your own peril.
 func VerifyVerifiableCredentialJWS(verifier crypto.JWTVerifier, token string) (*credential.VerifiableCredential, error) {
 	if err := verifier.VerifyJWS(token); err != nil {
-		return nil, errors.Wrap(err, "could not verify JWT and its signature")
+		return nil, errors.Wrap(err, "verifying JWT")
 	}
 	return ParseVerifiableCredentialFromJWS(token)
 }
