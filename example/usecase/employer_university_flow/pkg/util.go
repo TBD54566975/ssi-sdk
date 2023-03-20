@@ -146,7 +146,7 @@ func BuildPresentationSubmission(presentationRequest []byte, signer crypto.JWTSi
 		SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 	}
 
-	parsed, err := verifier.VerifyAndParseJWT(string(presentationRequest))
+	parsed, err := verifier.VerifyAndParse(string(presentationRequest))
 	if err != nil {
 		return nil, err
 	}

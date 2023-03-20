@@ -3,7 +3,7 @@ package crypto
 import (
 	"testing"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +14,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 	assert.NotEmpty(t, privateKey)
 
 	// convert to JWK
-	key, err := jwk.New(privateKey)
+	key, err := jwk.FromRaw(privateKey)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, key)
 
@@ -34,7 +34,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 	assert.NotEmpty(t, publicKey)
 
 	// convert to JWK
-	key, err := jwk.New(publicKey)
+	key, err := jwk.FromRaw(publicKey)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, key)
 
@@ -45,6 +45,58 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 
 	assert.Equal(t, "OKP", pubKeyJWK.KTY)
 	assert.Equal(t, "Ed25519", pubKeyJWK.CRV)
+}
+
+func TestJWKFromPrivateKeyJWK(t *testing.T) {
+	// known private key
+	_, privateKey, err := GenerateEd25519Key()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, privateKey)
+
+	// convert to JWK
+	key, err := jwk.FromRaw(privateKey)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, key)
+
+	// to our representation of a jwk
+	privKeyJWK, err := JWKToPrivateKeyJWK(key)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, privKeyJWK)
+
+	assert.Equal(t, "OKP", privKeyJWK.KTY)
+	assert.Equal(t, "Ed25519", privKeyJWK.CRV)
+
+	// back to a jwk
+	gotJWK, err := JWKFromPrivateKeyJWK(*privKeyJWK)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, gotJWK)
+	assert.Equal(t, key, gotJWK)
+}
+
+func TestJWKFromPublicKeyJWK(t *testing.T) {
+	// known public key
+	publicKey, _, err := GenerateEd25519Key()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, publicKey)
+
+	// convert to JWK
+	key, err := jwk.FromRaw(publicKey)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, key)
+
+	// to our representation of a jwk
+	pubKeyJWK, err := JWKToPublicKeyJWK(key)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, pubKeyJWK)
+
+	assert.Equal(t, "OKP", pubKeyJWK.KTY)
+	assert.Equal(t, "Ed25519", pubKeyJWK.CRV)
+
+	// back to a jwk
+	gotJWK, err := JWKFromPublicKeyJWK(*pubKeyJWK)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, gotJWK)
+	assert.Equal(t, key, gotJWK)
 }
 
 func TestPublicKeyToPublicKeyJWK(t *testing.T) {
