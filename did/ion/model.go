@@ -78,9 +78,46 @@ type UpdateRequest struct {
 	SignedData  string        `json:"signedData,omitempty"`
 }
 
+// UpdateSignedDataObject https://identity.foundation/sidetree/spec/#update-signed-data-object
+type UpdateSignedDataObject struct {
+	UpdateKey crypto.PublicKeyJWK `json:"updateKey,omitempty"`
+	DeltaHash string              `json:"deltaHash,omitempty"`
+}
+
 type Delta struct {
-	Patches          []any  `json:"patches,omitempty"`
+	Patches          []any  `json:"patches,omitempty"` //revive:disable-line
 	UpdateCommitment string `json:"updateCommitment,omitempty"`
+}
+
+func NewDelta(updateCommitment string) Delta {
+	return Delta{
+		Patches:          make([]any, 0),
+		UpdateCommitment: updateCommitment,
+	}
+}
+
+func (d *Delta) GetPatches() []any {
+	return d.Patches
+}
+
+func (d *Delta) AddAddServicesAction(patch AddServicesAction) {
+	d.Patches = append(d.Patches, patch)
+}
+
+func (d *Delta) AddRemoveServicesAction(patch RemoveServicesAction) {
+	d.Patches = append(d.Patches, patch)
+}
+
+func (d *Delta) AddAddPublicKeysAction(patch AddPublicKeysAction) {
+	d.Patches = append(d.Patches, patch)
+}
+
+func (d *Delta) AddRemovePublicKeysAction(patch RemovePublicKeysAction) {
+	d.Patches = append(d.Patches, patch)
+}
+
+func (d *Delta) AddReplaceAction(patch ReplaceAction) {
+	d.Patches = append(d.Patches, patch)
 }
 
 type DeactivateRequest struct {
@@ -88,6 +125,12 @@ type DeactivateRequest struct {
 	DIDSuffix   string        `json:"didSuffix,omitempty"`
 	RevealValue string        `json:"revealValue,omitempty"`
 	SignedData  string        `json:"signedData,omitempty"`
+}
+
+// DeactivateSignedDataObject https://identity.foundation/sidetree/spec/#deactivate-signed-data-object
+type DeactivateSignedDataObject struct {
+	DIDSuffix   string              `json:"didSuffix,omitempty"`
+	RecoveryKey crypto.PublicKeyJWK `json:"recoveryKey,omitempty"`
 }
 
 type RecoverRequest struct {

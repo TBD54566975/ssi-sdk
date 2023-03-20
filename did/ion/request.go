@@ -13,20 +13,16 @@ const (
 // NewCreateRequest creates a new create request https://identity.foundation/sidetree/spec/#create
 func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Document) (*CreateRequest, error) {
 	// prepare delta
-	patches := []any{
-		ReplaceAction{
-			Action:   Replace,
-			Document: document,
-		},
+	replaceActionPatch := ReplaceAction{
+		Action:   Replace,
+		Document: document,
 	}
 	_, updateCommitment, err := Commit(updateKey)
 	if err != nil {
 		return nil, err
 	}
-	delta := Delta{
-		UpdateCommitment: updateCommitment,
-		Patches:          patches,
-	}
+	delta := NewDelta(updateCommitment)
+	delta.AddReplaceAction(replaceActionPatch)
 
 	// prepare suffix data
 	deltaCanonical, err := CanonicalizeAny(delta)
@@ -62,10 +58,7 @@ func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, sig
 	}
 
 	// prepare signed data
-	toBeSigned := struct {
-		DIDSuffix   string              `json:"didSuffix"`
-		RecoveryKey crypto.PublicKeyJWK `json:"recoveryKey"`
-	}{
+	toBeSigned := DeactivateSignedDataObject{
 		DIDSuffix:   didSuffix,
 		RecoveryKey: recoveryKey,
 	}
@@ -90,11 +83,9 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 	}
 
 	// prepare delta
-	patches := []any{
-		ReplaceAction{
-			Action:   Replace,
-			Document: document,
-		},
+	replaceAction := ReplaceAction{
+		Action:   Replace,
+		Document: document,
 	}
 
 	_, updateCommitment, err := Commit(nextUpdateKey)
@@ -102,10 +93,8 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 		return nil, err
 	}
 
-	delta := Delta{
-		UpdateCommitment: updateCommitment,
-		Patches:          patches,
-	}
+	delta := NewDelta(updateCommitment)
+	delta.AddReplaceAction(replaceAction)
 
 	// prepare signed data
 	deltaCanonical, err := CanonicalizeAny(delta)
@@ -212,45 +201,6 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 		return nil, errors.Wrap(err, "invalid state change")
 	}
 
-	// construct update patches
-	patches := make([]any, 0, len(stateChange.ServicesToAdd))
-
-	// services to add
-	if len(stateChange.ServicesToAdd) > 0 {
-		addServicesPatch := AddServicesAction{
-			Action:   AddServices,
-			Services: stateChange.ServicesToAdd,
-		}
-		patches = append(patches, addServicesPatch)
-	}
-
-	// services to remove
-	if len(stateChange.ServiceIDsToRemove) > 0 {
-		removeServicesPatch := RemoveServicesAction{
-			Action: RemoveServices,
-			IDs:    stateChange.ServiceIDsToRemove,
-		}
-		patches = append(patches, removeServicesPatch)
-	}
-
-	// public keys to add
-	if len(stateChange.PublicKeysToAdd) > 0 {
-		addPublicKeysPatch := AddPublicKeysAction{
-			Action:     AddPublicKeys,
-			PublicKeys: stateChange.PublicKeysToAdd,
-		}
-		patches = append(patches, addPublicKeysPatch)
-	}
-
-	// public keys to remove
-	if len(stateChange.PublicKeyIDsToRemove) > 0 {
-		removePublicKeysPatch := RemovePublicKeysAction{
-			Action: RemovePublicKeys,
-			IDs:    stateChange.PublicKeyIDsToRemove,
-		}
-		patches = append(patches, removePublicKeysPatch)
-	}
-
 	// prepare reveal value
 	revealValue, _, err := Commit(updateKey)
 	if err != nil {
@@ -262,10 +212,45 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	if err != nil {
 		return nil, errors.Wrap(err, "generating commitment for next update key")
 	}
-	delta := Delta{
-		UpdateCommitment: nextUpdateCommitment,
-		Patches:          patches,
+
+	delta := NewDelta(nextUpdateCommitment)
+
+	// services to add
+	if len(stateChange.ServicesToAdd) > 0 {
+		addServicesPatch := AddServicesAction{
+			Action:   AddServices,
+			Services: stateChange.ServicesToAdd,
+		}
+		delta.AddAddServicesAction(addServicesPatch)
 	}
+
+	// services to remove
+	if len(stateChange.ServiceIDsToRemove) > 0 {
+		removeServicesPatch := RemoveServicesAction{
+			Action: RemoveServices,
+			IDs:    stateChange.ServiceIDsToRemove,
+		}
+		delta.AddRemoveServicesAction(removeServicesPatch)
+	}
+
+	// public keys to add
+	if len(stateChange.PublicKeysToAdd) > 0 {
+		addPublicKeysPatch := AddPublicKeysAction{
+			Action:     AddPublicKeys,
+			PublicKeys: stateChange.PublicKeysToAdd,
+		}
+		delta.AddAddPublicKeysAction(addPublicKeysPatch)
+	}
+
+	// public keys to remove
+	if len(stateChange.PublicKeyIDsToRemove) > 0 {
+		removePublicKeysPatch := RemovePublicKeysAction{
+			Action: RemovePublicKeys,
+			IDs:    stateChange.PublicKeyIDsToRemove,
+		}
+		delta.AddRemovePublicKeysAction(removePublicKeysPatch)
+	}
+
 	deltaCanonical, err := CanonicalizeAny(delta)
 	if err != nil {
 		return nil, errors.Wrap(err, "canonicalizing delta")
@@ -276,10 +261,7 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	}
 
 	// prepare signed data
-	toBeSigned := struct {
-		UpdateKey crypto.PublicKeyJWK `json:"updateKey"`
-		DeltaHash string              `json:"deltaHash"`
-	}{
+	toBeSigned := UpdateSignedDataObject{
 		UpdateKey: updateKey,
 		DeltaHash: deltaHash,
 	}
