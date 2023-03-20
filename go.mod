@@ -31,12 +31,44 @@ require (
 )
 
 require (
+	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
 	github.com/apisit/rfc6979 v0.0.0-20141003034818-6a90f24967eb // indirect
+	github.com/btcsuite/go-socks v0.0.0-20170105172521-4720035b7bfd // indirect
+	github.com/btcsuite/goleveldb v1.0.0 // indirect
+	github.com/btcsuite/snappy-go v1.0.0 // indirect
+	github.com/btcsuite/winsvc v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dchest/blake256 v1.0.0 // indirect
+	github.com/dchest/siphash v1.2.0 // indirect
+	github.com/decred/base58 v1.0.0 // indirect
+	github.com/decred/dcrd v1.3.0 // indirect
+	github.com/decred/dcrd/addrmgr v1.0.2 // indirect
+	github.com/decred/dcrd/blockchain v1.0.1 // indirect
+	github.com/decred/dcrd/blockchain/stake v1.0.1 // indirect
+	github.com/decred/dcrd/certgen v1.0.1 // indirect
+	github.com/decred/dcrd/chaincfg v1.1.1 // indirect
+	github.com/decred/dcrd/chaincfg/chainhash v1.0.1 // indirect
+	github.com/decred/dcrd/connmgr v1.0.1 // indirect
+	github.com/decred/dcrd/database v1.0.1 // indirect
 	github.com/decred/dcrd/dcrec v1.0.0 // indirect
+	github.com/decred/dcrd/dcrec/edwards v0.0.0-20180808153611-f0e65ec62f91 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1 v1.0.0 // indirect
+	github.com/decred/dcrd/dcrjson v1.0.0 // indirect
+	github.com/decred/dcrd/dcrutil v1.1.1 // indirect
+	github.com/decred/dcrd/gcs v1.0.2 // indirect
+	github.com/decred/dcrd/mempool v1.0.1 // indirect
+	github.com/decred/dcrd/mining v1.0.1 // indirect
+	github.com/decred/dcrd/peer v1.0.1 // indirect
+	github.com/decred/dcrd/txscript v1.0.1 // indirect
+	github.com/decred/dcrd/wire v1.1.0 // indirect
+	github.com/decred/slog v1.0.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/gorilla/websocket v1.2.0 // indirect
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
+	github.com/jessevdk/go-flags v1.4.0 // indirect
+	github.com/jrick/bitset v1.0.0 // indirect
+	github.com/jrick/logrotate v1.0.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect

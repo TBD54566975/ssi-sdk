@@ -20,11 +20,13 @@ func TestBTCSignerVerifier(t *testing.T) {
 	assert.NotNil(t, signer)
 
 	t.Run("Sign and verify", func(tt *testing.T) {
-		signature, err := signer.Sign([]byte("test"))
+		msg := "test"
+		msgHash := Hash([]byte(msg))
+		signature, err := signer.Sign(msgHash)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, signature)
 
-		verified, err := signer.Verify([]byte("test"), signature)
+		verified, err := signer.Verify(msgHash, signature)
 		assert.NoError(tt, err)
 		assert.True(tt, verified)
 	})

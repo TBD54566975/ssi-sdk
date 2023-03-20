@@ -150,31 +150,21 @@ func (*BTCSignerVerifier) GetJWSHeader() map[string]any {
 }
 
 // Sign signs the given data according to Bitcoin's signing process
-func (sv *BTCSignerVerifier) Sign(data []byte) ([]byte, error) {
-	messageHash := Hash(data)
-	signature := ecdsa.Sign(sv.privateKey, messageHash)
-
-	r := reflect.ValueOf(signature).Elem().FieldByName("r")
-	s := reflect.ValueOf(signature).Elem().FieldByName("s")
-
-	gotR := getUnexportedField(r).(secp256k1.ModNScalar)
-	gotS := getUnexportedField(s).(secp256k1.ModNScalar)
-
-	reconstructed := ecdsa.NewSignature(&gotR, &gotS)
-	if !signature.IsEqual(reconstructed) {
-		return nil, errors.New("could not reconstruct signature")
+func (sv *BTCSignerVerifier) Sign(dataHash []byte) ([]byte, error) {
+	signature, err := ecdsa.SignCompact(sv.privateKey, dataHash, false)
+	if err != nil {
+		return nil, err
 	}
 
+	rBytes := signature[1:33]
+	sBytes := signature[33:65]
+
 	// Convert the signature from DER format to 64-byte hexadecimal format
-	rBytes := gotR.Bytes()
-	sBytes := gotS.Bytes()
-	hexR := hex.EncodeToString(rBytes[:])
-	hexS := hex.EncodeToString(sBytes[:])
+	r := fmt.Sprintf("%064s", hex.EncodeToString(rBytes))
+	s := fmt.Sprintf("%064s", hex.EncodeToString(sBytes))
 
-	hexSStr := fmt.Sprintf("%064s", hexR)
-	hexRStr := fmt.Sprintf("%064s", hexS)
-
-	return []byte(hexRStr + hexSStr), nil
+	// convert to bytes and return
+	return hex.DecodeString(r + s)
 }
 
 func getUnexportedField(field reflect.Value) interface{} {
@@ -188,22 +178,15 @@ type Signature struct {
 
 // Verify verifies the given data according to Bitcoin's verification process
 func (sv *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
-	messageHash := Hash(data)
-
-	// Deconstruct the signature from 64-byte hexadecimal format
-	sigDecoded, err := hex.DecodeString(string(signature))
-	if err != nil {
-		return false, err
-	}
 	r := new(secp256k1.ModNScalar)
-	r.SetBytes((*[32]byte)(sigDecoded[:32]))
+	r.SetBytes((*[32]byte)(signature[:32]))
 	s := new(secp256k1.ModNScalar)
-	s.SetBytes((*[32]byte)(sigDecoded[32:]))
+	s.SetBytes((*[32]byte)(signature[32:]))
 
 	// Reconstruct the signature once we have the R and S values
 	reconstructedSignature := ecdsa.NewSignature(r, s)
 
-	return reconstructedSignature.Verify(messageHash, sv.publicKey), nil
+	return reconstructedSignature.Verify([]byte(data), sv.publicKey), nil
 }
 
 // SignJWT signs the given data according to the protocol's JWT signing process,
