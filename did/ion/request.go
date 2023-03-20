@@ -154,7 +154,7 @@ type StateChange struct {
 func (s StateChange) IsValid() error {
 	// check if services are valid
 	// build index of services to make sure IDs are unique
-	services := make(map[string]Service)
+	services := make(map[string]struct{}, len(s.ServicesToAdd))
 	for _, service := range s.ServicesToAdd {
 		if _, ok := services[service.ID]; ok {
 			return fmt.Errorf("service %s duplicated", service.ID)
