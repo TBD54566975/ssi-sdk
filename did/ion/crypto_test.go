@@ -20,7 +20,8 @@ func TestBTCSignerVerifier(t *testing.T) {
 	assert.NotNil(t, signer)
 
 	t.Run("Sign and verify", func(tt *testing.T) {
-		signature := signer.Sign([]byte("test"))
+		signature, err := signer.Sign([]byte("test"))
+		assert.NoError(tt, err)
 		assert.NotEmpty(tt, signature)
 
 		verified, err := signer.Verify([]byte("test"), signature)
@@ -29,10 +30,11 @@ func TestBTCSignerVerifier(t *testing.T) {
 	})
 
 	t.Run("Sign and verify JWS", func(tt *testing.T) {
-		jws := signer.SignJWS(map[string]any{"test": "data"})
-		assert.NotEmpty(tt, jws)
+		jwt, err := signer.SignJWT(map[string]any{"test": "data"})
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwt)
 
-		verified, err := signer.VerifyJWS(jws)
+		verified, err := signer.VerifyJWS(jwt)
 		assert.NoError(tt, err)
 		assert.True(tt, verified)
 	})

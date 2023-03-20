@@ -70,7 +70,10 @@ func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, sig
 		DIDSuffix:   didSuffix,
 		RecoveryKey: recoveryKey,
 	}
-	signedJWT := signer.SignJWS(toBeSigned)
+	signedJWT, err := signer.SignJWT(toBeSigned)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign JWT: %w", err)
+	}
 	return &DeactivateRequest{
 		Type:        Deactivate,
 		DIDSuffix:   didSuffix,
@@ -128,7 +131,10 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 		RecoveryKey:        recoveryKey,
 		DeltaHash:          deltaHash,
 	}
-	signedJWT := signer.SignJWS(toBeSigned)
+	signedJWT, err := signer.SignJWT(toBeSigned)
+	if err != nil {
+		return nil, err
+	}
 	return &RecoverRequest{
 		Type:        Recover,
 		DIDSuffix:   didSuffix,
@@ -282,12 +288,15 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 		UpdateKey: updateKey,
 		DeltaHash: deltaHash,
 	}
-	signedJWS := signer.SignJWS(toBeSigned)
+	signedJWT, err := signer.SignJWT(toBeSigned)
+	if err != nil {
+		return nil, err
+	}
 	return &UpdateRequest{
 		Type:        Update,
 		DIDSuffix:   didSuffix,
 		RevealValue: revealValue,
 		Delta:       delta,
-		SignedData:  signedJWS,
+		SignedData:  signedJWT,
 	}, nil
 }

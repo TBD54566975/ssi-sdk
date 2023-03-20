@@ -3,18 +3,20 @@ package ion
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"reflect"
 	"strings"
-
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/goccy/go-json"
-	"github.com/pkg/errors"
+	"unsafe"
 
 	sdkcrypto "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
+	"github.com/goccy/go-json"
 	"github.com/gowebpki/jcs"
 	"github.com/multiformats/go-multihash"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -148,10 +150,37 @@ func (*BTCSignerVerifier) GetJWSHeader() map[string]any {
 }
 
 // Sign signs the given data according to Bitcoin's signing process
-func (s *BTCSignerVerifier) Sign(data []byte) []byte {
-	messageHash := chainhash.DoubleHashB(data)
+func (s *BTCSignerVerifier) Sign(data []byte) ([]byte, error) {
+	messageHash := Hash(data)
 	signature := ecdsa.Sign(s.privateKey, messageHash)
-	return signature.Serialize()
+	return toCompactHex(signature)
+}
+
+func toCompactHex(signature *ecdsa.Signature) ([]byte, error) {
+	r := reflect.ValueOf(signature).Elem().FieldByName("r")
+	s := reflect.ValueOf(signature).Elem().FieldByName("s")
+
+	gotR := getUnexportedField(r).(secp256k1.ModNScalar)
+	gotS := getUnexportedField(s).(secp256k1.ModNScalar)
+
+	reconstructed := ecdsa.NewSignature(&gotR, &gotS)
+	if !signature.IsEqual(reconstructed) {
+		return nil, errors.New("could not reconstruct signature")
+	}
+	rBytes := gotR.Bytes()
+	sBytes := gotS.Bytes()
+	toString := hex.EncodeToString(rBytes[:]) + hex.EncodeToString(sBytes[:])
+	println(EncodeAny(toString))
+	return []byte(toString), nil
+}
+
+func getUnexportedField(field reflect.Value) interface{} {
+	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface()
+}
+
+type Signature struct {
+	r secp256k1.ModNScalar
+	s secp256k1.ModNScalar
 }
 
 // Verify verifies the given data according to Bitcoin's verification process
@@ -160,33 +189,36 @@ func (s *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	messageHash := chainhash.DoubleHashB(data)
+	messageHash := Hash(data)
 	verified := parsed.Verify(messageHash, s.publicKey)
 	return verified, nil
 }
 
-// SignJWS signs the given data according to the protocol's JWS signing process,
-// creating a compact JWS
-func (s *BTCSignerVerifier) SignJWS(data any) string {
+// SignJWT signs the given data according to the protocol's JWT signing process,
+// creating a compact JWS in a JWT
+func (s *BTCSignerVerifier) SignJWT(data any) (string, error) {
 	encodedHeader, err := EncodeAny(s.GetJWSHeader())
 	if err != nil {
 		logrus.WithError(err).Error("could not encode header")
-		return ""
+		return "", nil
 	}
 	encodedPayload, err := EncodeAny(data)
 	if err != nil {
 		logrus.WithError(err).Error("could not encode payload")
-		return ""
+		return "", nil
 	}
 
 	signingContent := encodedHeader + "." + encodedPayload
 	contentHash := Hash([]byte(signingContent))
 
-	signed := s.Sign(contentHash)
+	signed, err := s.Sign(contentHash)
+	if err != nil {
+		return "", nil
+	}
 	encodedSignature := Encode(signed)
 
 	compactJWS := encodedHeader + "." + encodedPayload + "." + encodedSignature
-	return compactJWS
+	return compactJWS, nil
 }
 
 // VerifyJWS verifies the given data according to the protocol's JWS verification process
