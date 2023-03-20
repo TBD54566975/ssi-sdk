@@ -129,9 +129,9 @@ type BTCSignerVerifier struct {
 
 // NewBTCSignerVerifier creates a new signer/verifier for signatures suited for the BTC blockchain
 func NewBTCSignerVerifier(privateKey sdkcrypto.PrivateKeyJWK) (*BTCSignerVerifier, error) {
-	privateKeyBytes, err := json.Marshal(privateKey)
+	privateKeyBytes, err := Decode(privateKey.D)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "constructing BTC signer/verifier")
 	}
 	privKey, pubKey := btcec.PrivKeyFromBytes(privateKeyBytes)
 	return &BTCSignerVerifier{
@@ -193,11 +193,11 @@ func (sv *BTCSignerVerifier) SignJWT(data any) (string, error) {
 	signingContent := encodedHeader + "." + encodedPayload
 	contentHash := Hash([]byte(signingContent))
 
-	signed, err := sv.Sign(contentHash)
+	signature, err := sv.Sign(contentHash)
 	if err != nil {
 		return "", nil
 	}
-	encodedSignature := Encode(signed)
+	encodedSignature := Encode(signature)
 
 	compactJWS := encodedHeader + "." + encodedPayload + "." + encodedSignature
 	return compactJWS, nil
