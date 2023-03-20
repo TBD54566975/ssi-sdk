@@ -218,7 +218,7 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	}
 
 	// construct update patches
-	var patches []any
+	patches := make([]any, 0, len(stateChange.ServicesToAdd) + ...)
 
 	// services to add
 	if len(stateChange.ServicesToAdd) > 0 {
