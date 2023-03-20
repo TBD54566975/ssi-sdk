@@ -209,7 +209,7 @@ func (s StateChange) IsValid() error {
 // NewUpdateRequest creates a new update request https://identity.foundation/sidetree/spec/#update
 func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKeyJWK, signer BTCSignerVerifier, stateChange StateChange) (*UpdateRequest, error) {
 	if err := stateChange.IsValid(); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "invalid state change")
 	}
 
 	// construct update patches
@@ -254,13 +254,13 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	// prepare reveal value
 	revealValue, _, err := Commit(updateKey)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "generating commitment for update key")
 	}
 
 	// prepare delta
 	_, nextUpdateCommitment, err := Commit(nextUpdateKey)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "generating commitment for next update key")
 	}
 	delta := Delta{
 		UpdateCommitment: nextUpdateCommitment,
@@ -268,11 +268,11 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	}
 	deltaCanonical, err := CanonicalizeAny(delta)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "canonicalizing delta")
 	}
 	deltaHash, err := HashEncode(deltaCanonical)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "hash-encoding delta")
 	}
 
 	// prepare signed data
@@ -285,7 +285,7 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	}
 	signedJWT, err := signer.SignJWT(toBeSigned)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "signing update request")
 	}
 	return &UpdateRequest{
 		Type:        Update,
