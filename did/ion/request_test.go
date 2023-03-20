@@ -56,6 +56,7 @@ func TestCreateRequest(t *testing.T) {
 	assert.Equal(t, "EiCfDWRnYlcD9EGA3d_5Z1AHu-iYqMbJ9nfiqdz5S8VDbg", createRequest.SuffixData.DeltaHash)
 }
 
+// https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L32
 func TestUpdateRequest(t *testing.T) {
 	updateKeyJSON, err := getTestData("jwkes256k1public.json")
 	assert.NoError(t, err)
@@ -110,6 +111,7 @@ func TestUpdateRequest(t *testing.T) {
 	assert.Len(t, updateRequest.Delta.Patches, 4)
 }
 
+// https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L72
 func TestRecoverRequest(t *testing.T) {
 	publicKeyJSON, err := getTestData("publickeymodel1.json")
 	assert.NoError(t, err)
@@ -166,6 +168,7 @@ func TestRecoverRequest(t *testing.T) {
 	assert.Len(t, recoverRequest.Delta.Patches, 1)
 }
 
+// https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L102
 func TestDeactivateRequest(t *testing.T) {
 	recoveryKeyJSON, err := getTestData("jwkes256k1public.json")
 	assert.NoError(t, err)

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonDid.spec.ts#L18
 func TestCreateLongFormDID(t *testing.T) {
 	recoveryKeyJSON, err := getTestData("jwkes256k1public.json")
 	assert.NoError(t, err)
