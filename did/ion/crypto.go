@@ -169,9 +169,10 @@ func toCompactHex(signature *ecdsa.Signature) ([]byte, error) {
 	}
 	rBytes := gotR.Bytes()
 	sBytes := gotS.Bytes()
-	toString := hex.EncodeToString(rBytes[:]) + hex.EncodeToString(sBytes[:])
-	println(EncodeAny(toString))
-	return []byte(toString), nil
+	rString := hex.EncodeToString(rBytes[:])
+	sString := hex.EncodeToString(sBytes[:])
+
+	return []byte(rString + sString), nil
 }
 
 func getUnexportedField(field reflect.Value) interface{} {
@@ -185,13 +186,10 @@ type Signature struct {
 
 // Verify verifies the given data according to Bitcoin's verification process
 func (s *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
-	parsed, err := ecdsa.ParseSignature(signature)
-	if err != nil {
-		return false, err
-	}
-	messageHash := Hash(data)
-	verified := parsed.Verify(messageHash, s.publicKey)
-	return verified, nil
+	// goecdsa.Si()
+	// messageHash := Hash(data)
+	// return verified, nil
+	return false, nil
 }
 
 // SignJWT signs the given data according to the protocol's JWT signing process,
