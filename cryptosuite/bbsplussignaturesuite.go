@@ -303,18 +303,8 @@ func (b *BBSPlusSignature2020Proof) SetProofValue(proofValue string) {
 	b.ProofValue = proofValue
 }
 
-func (b *BBSPlusSignature2020Proof) ToGenericProof() (crypto.Proof, error) {
-	proofBytes, err := json.Marshal(b)
-	if err != nil {
-		return nil, err
-	}
-	var genericProof crypto.Proof
-	if err = json.Unmarshal(proofBytes, &genericProof); err != nil {
-		return nil, err
-	}
-	return genericProof, nil
-}
-
+// BBSPlusProofFromGenericProof accepts either a slice with exactly one element, or a single element and creates a
+// BBSPlusProofFromGenericProof by unmarshaling the JSON marshaled representation of the element found in `p`.
 func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, error) {
 	// check if the proof is an array
 	if proofArray, ok := p.([]interface{}); ok {
