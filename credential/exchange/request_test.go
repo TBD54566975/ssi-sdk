@@ -24,7 +24,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		verifier, err := signer.ToVerifier()
 		assert.NoError(t, err)
 
-		parsed, err := verifier.VerifyAndParseJWT(string(requestJWTBytes))
+		parsed, err := verifier.VerifyAndParse(string(requestJWTBytes))
 		assert.NoError(t, err)
 
 		presDef, ok := parsed.Get(PresentationDefinitionKey)
@@ -47,7 +47,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		verifier, err := signer.ToVerifier()
 		assert.NoError(t, err)
 
-		parsed, err := verifier.VerifyAndParseJWT(string(requestJWTBytes))
+		parsed, err := verifier.VerifyAndParse(string(requestJWTBytes))
 		assert.NoError(t, err)
 
 		presDef, ok := parsed.Get(PresentationDefinitionKey)
@@ -87,7 +87,7 @@ func getDummyPresentationDefinition() PresentationDefinition {
 }
 
 // turn two objects into json and compare value equality
-func jsonEq(t *testing.T, a interface{}, b interface{}) {
+func jsonEq(t *testing.T, a any, b any) {
 	aBytes, err := json.Marshal(a)
 	assert.NoError(t, err)
 	bBytes, err := json.Marshal(b)

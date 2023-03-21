@@ -6,8 +6,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/util"
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jws"
+	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/pkg/errors"
 )
 
@@ -187,8 +186,7 @@ func (s *JSONWebKeySigner) Sign(tbs []byte) ([]byte, error) {
 	if err := headers.Set(jws.CriticalKey, []string{b64}); err != nil {
 		return nil, err
 	}
-	signOptions := []jws.SignOption{jws.WithHeaders(headers), jws.WithDetachedPayload(tbs)}
-	return jws.Sign(nil, s.SignatureAlgorithm, s.Key, signOptions...)
+	return jws.Sign(nil, jws.WithKey(s.SignatureAlgorithm, s.Key), jws.WithHeaders(headers), jws.WithDetachedPayload(tbs))
 }
 
 func (s *JSONWebKeySigner) GetKeyID() string {
@@ -200,7 +198,7 @@ func (*JSONWebKeySigner) GetSignatureType() SignatureType {
 }
 
 func (s *JSONWebKeySigner) GetSigningAlgorithm() string {
-	return s.Algorithm()
+	return s.Algorithm().String()
 }
 
 func (s *JSONWebKeySigner) SetProofPurpose(purpose ProofPurpose) {
@@ -239,8 +237,8 @@ type JSONWebKeyVerifier struct {
 
 // Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
 // and an error should it fail.
-func (v JSONWebKeyVerifier) Verify(message, signature []byte) error {
-	_, err := jws.Verify(signature, jwa.SignatureAlgorithm(v.Algorithm()), v.Key, jws.WithDetachedPayload(message))
+func (v *JSONWebKeyVerifier) Verify(message, signature []byte) error {
+	_, err := jws.Verify(signature, jws.WithKey(v.Algorithm(), v.Key), jws.WithDetachedPayload(message))
 	return err
 }
 

@@ -1,0 +1,75 @@
+{
+  "credential_issuer": "https://credential-issuer.example.com",
+  "authorization_server": "https://auth-server.example.com",
+  "credential_endpoint": "https://credential-issuer.example.com/credentials",
+  "batch_credential_endpoint": "https://credential-issuer.example.com/batch-credentials",
+  "credentials_supported": [
+    {
+      "format": "jwt_vc_json",
+      "id": "UniversityDegree_JWT",
+      "types": [
+        "VerifiableCredential",
+        "UniversityDegreeCredential"
+      ],
+      "cryptographic_binding_methods_supported": [
+        "did"
+      ],
+      "cryptographic_suites_supported": [
+        "ES256K"
+      ],
+      "display": [
+        {
+          "name": "University Credential",
+          "locale": "en-US",
+          "logo": {
+            "url": "https://exampleuniversity.com/public/logo.png",
+            "alt_text": "a square logo of a university"
+          },
+          "background_color": "#12107c",
+          "text_color": "#FFFFFF"
+        }
+      ],
+      "credentialSubject": {
+        "given_name": {
+          "display": [
+            {
+              "name": "Given Name",
+              "locale": "en-US"
+            }
+          ]
+        },
+        "last_name": {
+          "display": [
+            {
+              "name": "Surname",
+              "locale": "en-US"
+            }
+          ]
+        },
+        "degree": {},
+        "gpa": {
+          "display": [
+            {
+              "name": "GPA"
+            }
+          ]
+        }
+      },
+      "order": [
+        "GPA",
+        "Given Name",
+        "Surname"
+      ]
+    }
+  ],
+  "display": [
+    {
+      "name": "issuer boss",
+      "locale": "en-US"
+    },
+    {
+      "name": "issuer jefe",
+      "locale": "es-CO"
+    }
+  ]
+}

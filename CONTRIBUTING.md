@@ -14,7 +14,7 @@ This guide is for you.
 
 | Requirement | Tested Version | Installation Instructions                              |
 |-------------|----------------|--------------------------------------------------------|
-| Go          | 1.20.1         | [go.dev](https://go.dev/doc/tutorial/compile-install)  |
+| Go          | 1.20.2         | [go.dev](https://go.dev/doc/tutorial/compile-install)  |
 | Mage        | 1.13.0-6       | [magefile.org](https://magefile.org/)                  |
 
 ### Go
@@ -25,7 +25,7 @@ You may verify your `go` installation via the terminal:
 
 ```
 $> go version
-go version go1.20.1 darwin/amd64
+go version go1.20.2 darwin/amd64
 ```
 
 If you do not have go, we recommend installing it by:
@@ -99,6 +99,11 @@ using [GitHub Actions](https://github.com/TBD54566975/ssi-sdk/actions).
 We review contributions to the codebase via GitHub's Pull Request mechanism. We have the following guidelines to ease
 your experience and help our leads respond quickly to your valuable work:
 
+### Code
+* All new code and PRs should follow [Uber's Go Style guide](https://github.com/uber-go/guide/blob/master/style.md).
+* All new tests should follow unit test [best practices from Microsoft](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices#best-practices). 
+
+### Process
 * Start by proposing a change either in Issues (most appropriate for small change requests or bug fixes) or in
   Discussions (most appropriate for design and architecture considerations, proposing a new feature, or where you'd like
   insight and feedback)

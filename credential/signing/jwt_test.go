@@ -13,30 +13,59 @@ import (
 
 func TestVerifiableCredentialJWT(t *testing.T) {
 	testCredential := credential.VerifiableCredential{
-		Context:           []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
+		Context:           []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
 		Type:              []string{"VerifiableCredential"},
 		Issuer:            "did:example:123",
 		IssuanceDate:      "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]interface{}{},
+		CredentialSubject: map[string]any{},
 	}
-	signer := getTestVectorKey0Signer(t)
-	signed, err := SignVerifiableCredentialJWT(signer, testCredential)
-	assert.NoError(t, err)
 
-	verifier, err := signer.ToVerifier()
-	assert.NoError(t, err)
+	t.Run("Known JWK Signer", func(t *testing.T) {
+		signer := getTestVectorKey0Signer(t)
+		signed, err := SignVerifiableCredentialJWT(signer, testCredential)
+		assert.NoError(t, err)
 
-	token := string(signed)
-	err = verifier.VerifyJWT(token)
-	assert.NoError(t, err)
+		verifier, err := signer.ToVerifier()
+		assert.NoError(t, err)
 
-	parsedCred, err := ParseVerifiableCredentialFromJWT(token)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, parsedCred)
+		token := string(signed)
+		err = verifier.Verify(token)
+		assert.NoError(t, err)
 
-	cred, err := VerifyVerifiableCredentialJWT(*verifier, token)
-	assert.NoError(t, err)
-	assert.Equal(t, parsedCred, cred)
+		parsedCred, err := ParseVerifiableCredentialFromJWT(token)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, parsedCred)
+
+		cred, err := VerifyVerifiableCredentialJWT(*verifier, token)
+		assert.NoError(t, err)
+		assert.Equal(t, parsedCred, cred)
+	})
+
+	t.Run("Generated Private Key For Signer", func(tt *testing.T) {
+		_, privKey, err := crypto.GenerateEd25519Key()
+		assert.NoError(tt, err)
+
+		signer, err := crypto.NewJWTSigner("test-kid", privKey)
+		assert.NoError(tt, err)
+
+		signed, err := SignVerifiableCredentialJWT(*signer, testCredential)
+		assert.NoError(tt, err)
+
+		verifier, err := signer.ToVerifier()
+		assert.NoError(tt, err)
+
+		token := string(signed)
+		err = verifier.Verify(token)
+		assert.NoError(tt, err)
+
+		parsedCred, err := ParseVerifiableCredentialFromJWT(token)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, parsedCred)
+
+		cred, err := VerifyVerifiableCredentialJWT(*verifier, token)
+		assert.NoError(tt, err)
+		assert.Equal(tt, parsedCred, cred)
+	})
 }
 
 func TestVerifiablePresentationJWT(t *testing.T) {
@@ -55,7 +84,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 	assert.NoError(t, err)
 
 	token := string(signed)
-	err = verifier.VerifyJWT(token)
+	err = verifier.Verify(token)
 	assert.NoError(t, err)
 
 	parsedPres, err := ParseVerifiablePresentationFromJWT(token)

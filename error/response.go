@@ -38,7 +38,7 @@ func NewErrorResponse(errorType Type, errorMessage string) *Response {
 	}
 }
 
-func NewErrorResponsef(errorType Type, msg string, a ...interface{}) *Response {
+func NewErrorResponsef(errorType Type, msg string, a ...any) *Response {
 	return &Response{
 		Valid:     isApplicationErr(errorType),
 		ErrorType: errorType,
@@ -62,7 +62,7 @@ func NewErrorResponseWithErrorAndMsg(errorType Type, err error, msg string) *Res
 	}
 }
 
-func NewErrorResponseWithErrorAndMsgf(errorType Type, err error, msg string, a ...interface{}) *Response {
+func NewErrorResponseWithErrorAndMsgf(errorType Type, err error, msg string, a ...any) *Response {
 	return &Response{
 		Valid:     isApplicationErr(errorType),
 		ErrorType: errorType,

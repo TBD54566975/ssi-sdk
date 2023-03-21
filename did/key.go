@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/mr-tron/base58"
 
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
@@ -232,7 +232,7 @@ func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType
 		return nil, errors.Wrap(err, "converting bytes to public key")
 	}
 
-	standardJWK, err := jwk.New(cryptoPubKey)
+	standardJWK, err := jwk.FromRaw(cryptoPubKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not expand key of type JsonWebKey2020")
 	}

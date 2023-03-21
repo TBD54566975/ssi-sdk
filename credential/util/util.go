@@ -11,7 +11,7 @@ import (
 )
 
 // CredentialsFromInterface turn a generic cred into a known shape without maintaining the proof/signature wrapper
-func CredentialsFromInterface(genericCred interface{}) (*credential.VerifiableCredential, error) {
+func CredentialsFromInterface(genericCred any) (*credential.VerifiableCredential, error) {
 	switch genericCred.(type) {
 	case string:
 		// JWT
@@ -20,10 +20,10 @@ func CredentialsFromInterface(genericCred interface{}) (*credential.VerifiableCr
 			return nil, errors.Wrap(err, "could not parse credential from JWT")
 		}
 		return cred, nil
-	case map[string]interface{}:
+	case map[string]any:
 		// JSON
 		var cred credential.VerifiableCredential
-		credMapBytes, err := json.Marshal(genericCred.(map[string]interface{}))
+		credMapBytes, err := json.Marshal(genericCred.(map[string]any))
 		if err != nil {
 			return nil, errors.Wrap(err, "could not marshal credential map")
 		}
@@ -40,11 +40,11 @@ func CredentialsFromInterface(genericCred interface{}) (*credential.VerifiableCr
 	}
 }
 
-// ClaimAsJSON converts a claim with an unknown interface{} into the go-json representation of that credential.
+// ClaimAsJSON converts a claim with an unknown any into the go-json representation of that credential.
 // claim can only be of type {string, map[string]interface, VerifiableCredential}.
-func ClaimAsJSON(claim interface{}) (map[string]interface{}, error) {
+func ClaimAsJSON(claim any) (map[string]any, error) {
 	switch c := claim.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		return c, nil
 	default:
 	}
@@ -57,7 +57,7 @@ func ClaimAsJSON(claim interface{}) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling credential")
 	}
-	var submittedClaim map[string]interface{}
+	var submittedClaim map[string]any
 	if err := json.Unmarshal(vcData, &submittedClaim); err != nil {
 		return nil, errors.Wrap(err, "unmarshalling credential")
 	}

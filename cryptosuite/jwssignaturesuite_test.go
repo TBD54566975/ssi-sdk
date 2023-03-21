@@ -87,12 +87,12 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 
 	suite := GetJSONWebSignature2020Suite()
 	testCred := TestCredential{
-		Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+		Context: []any{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
 		Type:         []string{"VerifiableCredential"},
 		Issuer:       "did:example:123",
 		IssuanceDate: "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]interface{}{
+		CredentialSubject: map[string]any{
 			"id":        "did:example:abcd",
 			"firstName": "Satoshi",
 			"lastName":  "Nakamoto",
@@ -129,19 +129,19 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 func TestCredentialLDProof(t *testing.T) {
 	issuer := "https://example.edu/issuers/565049"
 	knownCred := TestCredential{
-		Context:      []interface{}{"https://www.w3.org/2018/credentials/v1", "https://www.w3.org/2018/credentials/examples/v1"},
+		Context:      []any{"https://www.w3.org/2018/credentials/v1", "https://www.w3.org/2018/credentials/examples/v1"},
 		ID:           "http://example.edu/credentials/1872",
-		Type:         []interface{}{"VerifiableCredential", "AlumniCredential"},
+		Type:         []any{"VerifiableCredential", "AlumniCredential"},
 		Issuer:       issuer,
 		IssuanceDate: "2010-01-01T19:23:24Z",
-		CredentialSubject: map[string]interface{}{
+		CredentialSubject: map[string]any{
 			"id": "did:example:ebfeb1f712ebc6f1c276e12ec21",
-			"alumniOf": map[string]interface{}{
+			"alumniOf": map[string]any{
 				"id": "did:example:c276e12ec21ebfeb1f712ebc6f1",
-				"name": []interface{}{
-					map[string]interface{}{"value": "Example University",
+				"name": []any{
+					map[string]any{"value": "Example University",
 						"lang": "en",
-					}, map[string]interface{}{
+					}, map[string]any{
 						"value": "Exemple d'Université",
 						"lang":  "fr",
 					},
@@ -202,11 +202,11 @@ func TestJsonWebSignature2020TestVectorCredential0(t *testing.T) {
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-0.json
 	knownCred := TestCredential{
-		Context:           []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
+		Context:           []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
 		Type:              []string{"VerifiableCredential"},
 		Issuer:            "did:example:123",
 		IssuanceDate:      "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]interface{}{},
+		CredentialSubject: map[string]any{},
 	}
 
 	suite := GetJSONWebSignature2020Suite()
@@ -243,12 +243,12 @@ func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/credentials/credential-1.json
 	knownCred := TestCredential{
-		Context:        []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1", map[string]string{"@vocab": "https://example.com/#"}},
+		Context:        []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1", map[string]string{"@vocab": "https://example.com/#"}},
 		Type:           []string{"VerifiableCredential"},
 		Issuer:         "did:example:123",
 		IssuanceDate:   "2021-01-01T19:23:24Z",
 		ExpirationDate: "2031-01-01T19:23:24Z",
-		CredentialSubject: map[string]interface{}{
+		CredentialSubject: map[string]any{
 			"id":   "did:example:456",
 			"type": "Person",
 		},
@@ -269,11 +269,11 @@ func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
 var _ Provable = (*TestVerifiablePresentation)(nil)
 
 type TestVerifiablePresentation struct {
-	Context                interface{}      `json:"@context,omitempty"`
+	Context                any              `json:"@context,omitempty"`
 	ID                     string           `json:"id,omitempty"`
 	Holder                 string           `json:"holder,omitempty"`
-	Type                   interface{}      `json:"type" validate:"required"`
-	PresentationSubmission interface{}      `json:"presentation_submission,omitempty"`
+	Type                   any              `json:"type" validate:"required"`
+	PresentationSubmission any              `json:"presentation_submission,omitempty"`
 	VerifiableCredential   []TestCredential `json:"verifiableCredential,omitempty" validate:"omitempty,dive"`
 	Proof                  *crypto.Proof    `json:"proof,omitempty"`
 }
@@ -312,7 +312,7 @@ func TestJsonWebSignature2020TestVectorPresentation0(t *testing.T) {
 
 	// verify against known working impl
 	// https://identity.foundation/JWS-Test-Suite/implementations/transmute/presentation-0--key-0-ed25519.vp.json
-	var knownProof crypto.Proof = map[string]interface{}{
+	var knownProof crypto.Proof = map[string]any{
 		"type":               "JsonWebSignature2020",
 		"proofPurpose":       "authentication",
 		"challenge":          "123",
@@ -333,7 +333,7 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 	signer, jwk := getTestVectorKey0Signer(t, Authentication)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/presentations/presentation-1.json
-	var credProof crypto.Proof = map[string]interface{}{
+	var credProof crypto.Proof = map[string]any{
 		"type":               "JsonWebSignature2020",
 		"created":            "2021-10-02T17:58:00Z",
 		"proofPurpose":       "assertionMethod",
@@ -348,19 +348,19 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 		Type:   []string{"VerifiablePresentation"},
 		VerifiableCredential: []TestCredential{
 			{
-				Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+				Context: []any{"https://www.w3.org/2018/credentials/v1",
 					"https://w3id.org/security/suites/jws-2020/v1",
-					map[string]interface{}{
+					map[string]any{
 						"@vocab": "https://example.com/#",
 					}},
 				Type:         []string{"VerifiableCredential"},
 				Issuer:       "did:example:123",
 				IssuanceDate: "2021-01-01T19:23:24Z",
-				CredentialSubject: map[string]interface{}{
+				CredentialSubject: map[string]any{
 					"id": "did:example:456",
 				},
-				Evidence: []interface{}{
-					map[string]interface{}{
+				Evidence: []any{
+					map[string]any{
 						"id":               "https://example.edu/evidence/f2aeec97-fc0d-42bf-8ca7-0548192d4231",
 						"type":             []string{"DocumentVerification"},
 						"verifier":         "https://example.edu/issuers/14",
@@ -368,7 +368,7 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 						"subjectPresence":  "Physical",
 						"documentPresence": "Physical",
 					},
-					map[string]interface{}{
+					map[string]any{
 						"id":               "https://example.edu/evidence/f2aeec97-fc0d-42bf-8ca7-0548192dxyzab",
 						"type":             []string{"SupportingActivity"},
 						"verifier":         "https://example.edu/issuers/14",
@@ -396,7 +396,7 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 
 	// verify against known working impl
 	// https://identity.foundation/JWS-Test-Suite/implementations/transmute/presentation-1--key-0-ed25519.vp.json
-	var knownProof crypto.Proof = map[string]interface{}{
+	var knownProof crypto.Proof = map[string]any{
 		"type":               "JsonWebSignature2020",
 		"created":            "2022-03-08T23:38:19Z",
 		"verificationMethod": "did:example:123#key-0",

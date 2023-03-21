@@ -23,7 +23,7 @@ func NewValidator() *validator.Validate {
 	return validator.New()
 }
 
-func IsValidStruct(data interface{}) error {
+func IsValidStruct(data any) error {
 	if t := reflect.TypeOf(data).Kind(); t != reflect.Struct {
 		return fmt.Errorf("provided data is not of Kind struct: %+v", data)
 	}
@@ -52,11 +52,11 @@ func (l LDProcessor) GetOptions() *ld.JsonLdOptions {
 	return l.JsonLdOptions
 }
 
-func (l LDProcessor) GetContextFromMap(dataMap map[string]interface{}) (*ld.Context, error) {
+func (l LDProcessor) GetContextFromMap(dataMap map[string]any) (*ld.Context, error) {
 	var activeCtx *ld.Context
 	var err error
 	ldCtx := ld.NewContext(nil, l.JsonLdOptions)
-	contextMap, ok := dataMap["@context"].(map[string]interface{})
+	contextMap, ok := dataMap["@context"].(map[string]any)
 	if !ok {
 		activeCtx, err = ldCtx.Parse(dataMap)
 	} else {
@@ -68,7 +68,7 @@ func (l LDProcessor) GetContextFromMap(dataMap map[string]interface{}) (*ld.Cont
 	return activeCtx, nil
 }
 
-func LDNormalize(document interface{}) (interface{}, error) {
+func LDNormalize(document any) (any, error) {
 	processor := NewLDProcessor()
 	return processor.Normalize(document, processor.GetOptions())
 }
@@ -122,7 +122,7 @@ func IsRFC3339Timestamp(t string) bool {
 }
 
 // Copy makes a 1:1 copy of src into dst.
-func Copy(src interface{}, dst interface{}) error {
+func Copy(src any, dst any) error {
 	if err := validateCopy(src, dst); err != nil {
 		return err
 	}
@@ -133,13 +133,13 @@ func Copy(src interface{}, dst interface{}) error {
 	return json.Unmarshal(bytes, dst)
 }
 
-func ToJSON(i interface{}) (string, error) {
+func ToJSON(i any) (string, error) {
 	b, err := json.Marshal(i)
 	return string(b), err
 }
 
-func ToJSONInterface(data string) (interface{}, error) {
-	var result interface{}
+func ToJSONInterface(data string) (any, error) {
+	var result any
 	err := json.Unmarshal([]byte(data), &result)
 	return result, err
 }
@@ -154,7 +154,7 @@ func AnyToJSONInterface(data interface{}) (interface{}, error) {
 	return result, err
 }
 
-func validateCopy(src interface{}, dst interface{}) error {
+func validateCopy(src any, dst any) error {
 	if src == nil {
 		return errors.New("src is nil")
 	}
@@ -232,7 +232,7 @@ func Contains(needle string, haystack []string) bool {
 	return false
 }
 
-func ArrayInterfaceToStr(have []interface{}) ([]string, error) {
+func ArrayInterfaceToStr(have []any) ([]string, error) {
 	var want []string
 	for _, item := range have {
 		strItem, ok := item.(string)
@@ -244,8 +244,8 @@ func ArrayInterfaceToStr(have []interface{}) ([]string, error) {
 	return want, nil
 }
 
-func ArrayStrToInterface(have []string) []interface{} {
-	var want []interface{}
+func ArrayStrToInterface(have []string) []any {
+	var want []any
 	for _, v := range have {
 		want = append(want, v)
 	}
@@ -253,17 +253,17 @@ func ArrayStrToInterface(have []string) []interface{} {
 }
 
 // InterfaceToInterfaceArray attempts to array-ify an interface type
-func InterfaceToInterfaceArray(have interface{}) ([]interface{}, error) {
+func InterfaceToInterfaceArray(have any) ([]any, error) {
 	// case 1: it's a string
 	strVal, ok := have.(string)
 	if ok {
-		return []interface{}{strVal}, nil
+		return []any{strVal}, nil
 	}
 
 	// case 2: it's an array of string types
 	strVals, ok := have.([]string)
 	if ok {
-		var want []interface{}
+		var want []any
 		for _, s := range strVals {
 			want = append(want, s)
 		}
@@ -271,18 +271,18 @@ func InterfaceToInterfaceArray(have interface{}) ([]interface{}, error) {
 	}
 
 	// case 3: it's an array of interface types
-	interVals, ok := have.([]interface{})
+	interVals, ok := have.([]any)
 	if ok {
 		return interVals, nil
 	}
 
 	// case 4: it's another interface type
-	return []interface{}{have}, nil
+	return []any{have}, nil
 }
 
-// InterfaceToStrings assumes we are given an interface of either `string`, `[]string` or `[]interface{}` types
+// InterfaceToStrings assumes we are given an interface of either `string`, `[]string` or `[]any` types
 // and attempts to flatten into an array of strings
-func InterfaceToStrings(have interface{}) ([]string, error) {
+func InterfaceToStrings(have any) ([]string, error) {
 	// case 1: it's a string
 	strVal, ok := have.(string)
 	if ok {
@@ -300,7 +300,7 @@ func InterfaceToStrings(have interface{}) ([]string, error) {
 	}
 
 	// case 3: it's an array of interface types
-	interVals, ok := have.([]interface{})
+	interVals, ok := have.([]any)
 	if ok {
 		return ArrayInterfaceToStr(interVals)
 	}
@@ -308,12 +308,12 @@ func InterfaceToStrings(have interface{}) ([]string, error) {
 	return nil, errors.New("could not turn interface into strings")
 }
 
-func ToJSONMap(data interface{}) (map[string]interface{}, error) {
+func ToJSONMap(data any) (map[string]any, error) {
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
-	var jsonMap map[string]interface{}
+	var jsonMap map[string]any
 	if err := json.Unmarshal(dataBytes, &jsonMap); err != nil {
 		return nil, err
 	}
@@ -341,6 +341,6 @@ func MergeUniqueValues(a, b []string) []string {
 }
 
 // PrettyJSON JSON-ifies data in a 'pretty-print' fashion
-func PrettyJSON(data interface{}) ([]byte, error) {
+func PrettyJSON(data any) ([]byte, error) {
 	return json.MarshalIndent(data, "", "  ")
 }

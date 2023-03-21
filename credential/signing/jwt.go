@@ -9,8 +9,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/pkg/errors"
 )
 
@@ -67,17 +66,17 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 	subVal := cred.CredentialSubject.GetID()
 	if subVal != "" {
 		if err := t.Set(jwt.SubjectKey, subVal); err != nil {
-			return nil, errors.Wrap(err, "could not set subject value")
+			return nil, errors.Wrap(err, "setting subject value")
 		}
 	}
 
 	if err := t.Set(VCJWTProperty, cred); err != nil {
-		return nil, errors.New("could not set credential value")
+		return nil, errors.New("setting credential value")
 	}
 
-	signed, err := jwt.Sign(t, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key)
+	signed, err := jwt.Sign(t, jwt.WithKey(signer.SignatureAlgorithm, signer.Key))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not sign JWT credential")
+		return nil, errors.Wrap(err, "signing JWT credential")
 	}
 	return signed, nil
 }
@@ -85,8 +84,8 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 // VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
 // the token in a verifiable credential.
 func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (*credential.VerifiableCredential, error) {
-	if err := verifier.VerifyJWT(token); err != nil {
-		return nil, errors.Wrap(err, "could not verify JWT and its signature")
+	if err := verifier.Verify(token); err != nil {
+		return nil, errors.Wrap(err, "verifying JWT")
 	}
 	return ParseVerifiableCredentialFromJWT(token)
 }
@@ -96,9 +95,9 @@ func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (*
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiableCredential object is returned.
 func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCredential, error) {
-	parsed, err := jwt.Parse([]byte(token))
+	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse credential token")
+		return nil, errors.Wrap(err, "parsing credential token")
 	}
 	vcClaim, ok := parsed.Get(VCJWTProperty)
 	if !ok {
@@ -106,11 +105,11 @@ func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCrede
 	}
 	vcBytes, err := json.Marshal(vcClaim)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal credential claim")
+		return nil, errors.Wrap(err, "marshalling credential claim")
 	}
 	var cred credential.VerifiableCredential
 	if err = json.Unmarshal(vcBytes, &cred); err != nil {
-		return nil, errors.Wrap(err, "could not reconstruct Verifiable Credential")
+		return nil, errors.Wrap(err, "reconstructing Verifiable Credential")
 	}
 
 	// parse remaining JWT properties and set in the credential
@@ -138,7 +137,7 @@ func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCrede
 	subStr, ok := sub.(string)
 	if hasSub && ok && subStr != "" {
 		if cred.CredentialSubject == nil {
-			cred.CredentialSubject = make(map[string]interface{})
+			cred.CredentialSubject = make(map[string]any)
 		}
 		cred.CredentialSubject[credential.VerifiableCredentialIDProperty] = subStr
 	}
@@ -162,28 +161,28 @@ func SignVerifiablePresentationJWT(signer crypto.JWTSigner, pres credential.Veri
 	idVal := pres.ID
 	if idVal != "" {
 		if err := t.Set(jwt.JwtIDKey, idVal); err != nil {
-			return nil, errors.Wrap(err, "could not set jti value")
+			return nil, errors.Wrap(err, "setting jti value")
 		}
 	}
 
 	subVal := pres.Holder
 	if subVal != "" {
 		if err := t.Set(jwt.SubjectKey, pres.Holder); err != nil {
-			return nil, errors.New("could not set subject value")
+			return nil, errors.New("setting subject value")
 		}
 	}
 
 	if err := t.Set(VPJWTProperty, pres); err != nil {
-		return nil, errors.Wrap(err, "could not set vp value")
+		return nil, errors.Wrap(err, "setting vp value")
 	}
 
 	if err := t.Set(NonceProperty, uuid.NewString()); err != nil {
-		return nil, errors.Wrap(err, "could not set nonce value")
+		return nil, errors.Wrap(err, "setting nonce value")
 	}
 
-	signed, err := jwt.Sign(t, jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key)
+	signed, err := jwt.Sign(t, jwt.WithKey(signer.SignatureAlgorithm, signer.Key))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not sign JWT presentation")
+		return nil, errors.Wrap(err, "signing JWT presentation")
 	}
 	return signed, nil
 }
@@ -194,8 +193,8 @@ func SignVerifiablePresentationJWT(signer crypto.JWTSigner, pres credential.Veri
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
 func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) (*credential.VerifiablePresentation, error) {
-	if err := verifier.VerifyJWT(token); err != nil {
-		return nil, errors.Wrap(err, "could not verify JWT and its signature")
+	if err := verifier.Verify(token); err != nil {
+		return nil, errors.Wrap(err, "verifying JWT and its signature")
 	}
 	return ParseVerifiablePresentationFromJWT(token)
 }
@@ -205,9 +204,9 @@ func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) 
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
 func ParseVerifiablePresentationFromJWT(token string) (*credential.VerifiablePresentation, error) {
-	parsed, err := jwt.Parse([]byte(token))
+	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse vp token")
+		return nil, errors.Wrap(err, "parsing vp token")
 	}
 	vpClaim, ok := parsed.Get(VPJWTProperty)
 	if !ok {
@@ -215,11 +214,11 @@ func ParseVerifiablePresentationFromJWT(token string) (*credential.VerifiablePre
 	}
 	vpBytes, err := json.Marshal(vpClaim)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal vp claim")
+		return nil, errors.Wrap(err, "could not marshalling vp claim")
 	}
 	var pres credential.VerifiablePresentation
 	if err = json.Unmarshal(vpBytes, &pres); err != nil {
-		return nil, errors.Wrap(err, "could not reconstruct Verifiable Presentation")
+		return nil, errors.Wrap(err, "reconstructing Verifiable Presentation")
 	}
 
 	// parse remaining JWT properties and set in the presentation

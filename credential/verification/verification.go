@@ -25,11 +25,11 @@ type (
 // VerificationOption represents a single option that may be required for a verifier
 type VerificationOption struct {
 	ID     OptionKey
-	Option interface{}
+	Option any
 }
 
 // GetVerificationOption returns a verification option given an ID
-func GetVerificationOption(opts []VerificationOption, id OptionKey) (interface{}, error) {
+func GetVerificationOption(opts []VerificationOption, id OptionKey) (any, error) {
 	for _, opt := range opts {
 		if opt.ID == id {
 			return opt.Option, nil

@@ -14,9 +14,11 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		os.Exit(1)
 	}
-	if _, err = schema.NewCachingLoader(localSchemas); err != nil {
+	loader, err := schema.NewCachingLoader(localSchemas)
+	if err != nil {
 		os.Exit(1)
 	}
+	loader.EnableHTTPCache()
 	os.Exit(m.Run())
 }
 
