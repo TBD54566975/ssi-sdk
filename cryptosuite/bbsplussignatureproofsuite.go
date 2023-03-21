@@ -51,7 +51,7 @@ func (BBSPlusSignatureProofSuite) RequiredContexts() []string {
 	return []string{BBSSecurityContext}
 }
 
-// SelectivelyDisclose takes in a credential and  a map of fields to disclose as an LD frame
+// SelectivelyDisclose takes in a credential (parameter `p` that's Provable) and a map of fields to disclose as an LD frame, and produces a map of the JSON representation of the derived credential. The derived credential only contains the information that was specified in the LD frame, and a proof that's derived from the original credential. Note that a requirement for `p` is that the property `"proof"` must be present when it's marshaled to JSON, and it's value MUST be an object that conforms to a `BBSPlusProof`.
 func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]interface{}, nonce []byte) (map[string]interface{}, error) {
 	// first compact the document with the security context
 	compactProvable, compactProof, err := b.compactProvable(p)
