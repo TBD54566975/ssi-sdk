@@ -195,8 +195,8 @@ type DeriveProofResult struct {
 	RevealedDocument             map[string]interface{}
 }
 
-// CreateDeriveProof https://w3c-ccg.github.io/ldp-bbs2020/#create-derive-proof-data-algorithm
-func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument Provable, revealDocument map[string]interface{}) (*DeriveProofResult, error) {
+// CreateDeriveProof https://w3c-ccg.github.io/vc-di-bbs/#create-derive-proof-data-algorithm
+func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument any, revealDocument map[string]any) (*DeriveProofResult, error) {
 	// 1. Apply the canonicalization algorithm to the input proof document to obtain a set of statements represented
 	// as n-quads. Let this set be known as the input proof document statements.
 	marshaledInputProofDoc, err := b.Marshal(inputProofDocument)

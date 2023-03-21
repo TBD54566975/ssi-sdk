@@ -27,7 +27,7 @@ func TestBBSPlusSignatureSuite(t *testing.T) {
 		},
 	}
 
-	key, err := GenerateBLSKey2020()
+	key, err := GenerateBLSKey2020(BLS12381G2Key2020)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, key)
 

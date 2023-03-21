@@ -40,7 +40,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 				"id": "did:example:abcd",
 			},
 		}
-		key, err := GenerateBLSKey2020()
+		key, err := GenerateBLSKey2020(BLS12381G2Key2020)
 		assert.NoError(t, err)
 		privKey, err := key.GetPrivateKey()
 		assert.NoError(t, err)

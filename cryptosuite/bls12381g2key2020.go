@@ -45,8 +45,8 @@ func (b BLSKey2020) GetPrivateKey() (*bbs.PrivateKey, error) {
 	return privateKey, nil
 }
 
-// GenerateBLSKey2020 https://w3c-ccg.github.io/ldp-bbs2020/#bls-12-381-g2-public-key
-func GenerateBLSKey2020() (*BLSKey2020, error) {
+// GenerateBLSKey2020 https://w3c-ccg.github.io/vc-di-bbs/#bls12-381
+func GenerateBLSKey2020(keyType LDKeyType) (*BLSKey2020, error) {
 	pubKey, privKey, err := crypto.GenerateBBSKeyPair()
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func GenerateBLSKey2020() (*BLSKey2020, error) {
 		return nil, err
 	}
 	return &BLSKey2020{
-		Type:             BLS12381G2Key2020,
+		Type:             keyType,
 		PublicKeyBase58:  base58.Encode(pubKeyBytes),
 		PrivateKeyBase58: base58.Encode(privKeyBytes),
 	}, nil
