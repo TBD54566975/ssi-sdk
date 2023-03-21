@@ -331,46 +331,10 @@ func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, e
 	if err != nil {
 		return nil, err
 	}
-	var generic map[string]interface{}
-	if err = json.Unmarshal(proofBytes, &generic); err != nil {
+	var result BBSPlusSignature2020Proof
+	if err = json.Unmarshal(proofBytes, &result); err != nil {
 		return nil, err
 	}
-
-	typeValue, ok := generic["type"].(string)
-	if !ok {
-		typeValue = ""
-	}
-	createdValue, ok := generic["created"].(string)
-	if !ok {
-		createdValue = ""
-	}
-	methodValue, ok := generic["verificationMethod"].(string)
-	if !ok {
-		methodValue = ""
-	}
-	purposeValue, ok := generic["proofPurpose"].(string)
-	if !ok {
-		purposeValue = ""
-	}
-	proofValue, ok := generic["proofValue"].(string)
-	if !ok {
-		proofValue = ""
-	}
-	nonce, ok := generic["nonce"].(string)
-	if !ok {
-		nonce = ""
-	}
-	requiredRevealStatements, ok := generic["requiredRevealStatements"].([]int)
-	if !ok {
-		requiredRevealStatements = nil
-	}
-	return &BBSPlusSignature2020Proof{
-		Type:                     SignatureType(typeValue),
-		Created:                  createdValue,
-		VerificationMethod:       methodValue,
-		ProofPurpose:             ProofPurpose(purposeValue),
-		ProofValue:               proofValue,
-		Nonce:                    nonce,
-		RequiredRevealStatements: requiredRevealStatements,
-	}, nil
+	
+	return &result, nil
 }
