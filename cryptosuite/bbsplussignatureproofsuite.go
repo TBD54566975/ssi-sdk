@@ -260,7 +260,7 @@ func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument Provabl
 	}, nil
 }
 
-// Verify verifies a BBS Plus derived proof. Bug here: https://github.com/w3c-ccg/ldp-bbs2020/issues/62
+// Verify verifies a BBS Plus derived proof. Note that the underlying value for `v` must be of type `*BBSPlusVerifier`. Bug here: https://github.com/w3c-ccg/ldp-bbs2020/issues/62
 func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 	proof := p.GetProof()
 	gotProof, err := BBSPlusProofFromGenericProof(*proof)
