@@ -283,42 +283,11 @@ func JSONWebSignatureProofFromGenericProof(p crypto.Proof) (*JSONWebSignature202
 	if err != nil {
 		return nil, err
 	}
-	var generic map[string]any
-	if err = json.Unmarshal(proofBytes, &generic); err != nil {
+	var result JSONWebSignature2020Proof
+	if err = json.Unmarshal(proofBytes, &result); err != nil {
 		return nil, err
 	}
-	typeValue, ok := generic["type"].(string)
-	if !ok {
-		typeValue = ""
-	}
-	createdValue, ok := generic["created"].(string)
-	if !ok {
-		createdValue = ""
-	}
-	jwsValue, ok := generic["jws"].(string)
-	if !ok {
-		jwsValue = ""
-	}
-	purposeValue, ok := generic["proofPurpose"].(string)
-	if !ok {
-		purposeValue = ""
-	}
-	challengeValue, ok := generic["challenge"].(string)
-	if !ok {
-		challengeValue = ""
-	}
-	methodValue, ok := generic["verificationMethod"].(string)
-	if !ok {
-		methodValue = ""
-	}
-	return &JSONWebSignature2020Proof{
-		Type:               SignatureType(typeValue),
-		Created:            createdValue,
-		JWS:                jwsValue,
-		ProofPurpose:       ProofPurpose(purposeValue),
-		Challenge:          challengeValue,
-		VerificationMethod: methodValue,
-	}, nil
+	return &result, nil
 }
 
 func (j *JSONWebSignature2020Proof) ToGenericProof() crypto.Proof {
