@@ -2,9 +2,10 @@ package did
 
 import (
 	"embed"
-	"encoding/json"
 	"testing"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
