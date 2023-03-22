@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 )
 
@@ -63,4 +64,24 @@ func GetMethodForDID(did string) (Method, error) {
 		return "", fmt.Errorf("not a valid did: %s", did)
 	}
 	return Method(split[1]), nil
+}
+
+// ParseDIDResolution attempts to parse a DID Resolution Result or a DID Document
+func ParseDIDResolution(resolvedDID []byte) (*DIDResolutionResult, error) {
+	// first try to parse as a DID Resolution Result
+	var result DIDResolutionResult
+	if err := json.Unmarshal(resolvedDID, &result); err == nil {
+		return &result, err
+	}
+
+	// next try to parse as a DID Document
+	var didDoc DIDDocument
+	if err := json.Unmarshal(resolvedDID, &didDoc); err == nil {
+		return &DIDResolutionResult{
+			DIDDocument: didDoc,
+		}, nil
+	}
+
+	// if that fails we don't know what it is!
+	return nil, errors.New("could not parse DID Resolution Result or DID Document")
 }
