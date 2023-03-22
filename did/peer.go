@@ -15,10 +15,11 @@ package did
 import (
 	gocrypto "crypto"
 	b64 "encoding/base64"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/util"

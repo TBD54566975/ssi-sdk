@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"encoding/json"
+	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
