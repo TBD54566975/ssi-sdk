@@ -40,7 +40,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
-		requestJWTBytes, err := BuildPresentationRequest(*signer, JWTRequest, testDef, "did:test")
+		requestJWTBytes, err := BuildPresentationRequest(*signer, JWTRequest, testDef)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, requestJWTBytes)
 
@@ -63,7 +63,10 @@ func TestBuildPresentationRequest(t *testing.T) {
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
-		_, err = BuildPresentationRequest(*signer, "bad", testDef, "did:test")
+		_, err = BuildPresentationRequest(*signer, "bad", testDef, PresentationRequestOption{
+			Type:  TargetOption,
+			Value: "did:test:abcd",
+		})
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "unsupported presentation request type")
 	})
