@@ -28,9 +28,7 @@ const (
 	JWSSignatureSuiteProofAlgorithm = JSONWebSignature2020
 )
 
-type JWSSignatureSuite struct {
-	CryptoSuiteProofType
-}
+type JWSSignatureSuite struct{}
 
 func GetJSONWebSignature2020Suite() CryptoSuite {
 	return new(JWSSignatureSuite)
@@ -79,7 +77,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	opts := &ProofOptions{Contexts: contexts}
 
 	// 3. tbs value as a result of create verify hash
-	var genericProvable map[string]interface{}
+	var genericProvable map[string]any
 	pBytes, err := json.Marshal(p)
 	if err != nil {
 		return errors.Wrap(err, "marshaling provable")
@@ -133,7 +131,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	opts := &ProofOptions{Contexts: contexts}
 
 	// run the create verify hash algorithm on both provable and the proof
-	var genericProvable map[string]interface{}
+	var genericProvable map[string]any
 	pBytes, err := json.Marshal(p)
 	if err != nil {
 		return errors.Wrap(err, "marshaling provable")
@@ -179,7 +177,7 @@ func (JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	return &canonicalString, nil
 }
 
-func (j JWSSignatureSuite) CreateVerifyHash(doc map[string]interface{}, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
+func (j JWSSignatureSuite) CreateVerifyHash(doc map[string]any, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := j.prepareProof(proof, opts)
 	if err != nil {

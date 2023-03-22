@@ -31,12 +31,12 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		// generate a test credential to selectively disclosure just the issuer
 		suite := GetBBSPlusSignatureSuite()
 		testCred := TestCredential{
-			Context: []interface{}{"https://www.w3.org/2018/credentials/v1",
+			Context: []any{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/bbs/v1"},
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       "did:example:123",
 			IssuanceDate: "2021-01-01T19:23:24Z",
-			CredentialSubject: map[string]interface{}{
+			CredentialSubject: map[string]any{
 				"id": "did:example:abcd",
 			},
 		}
@@ -49,10 +49,10 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(t, err)
 
 		proofSuite := GetBBSPlusSignatureProofSuite()
-		revealDoc := map[string]interface{}{
-			"@context": []interface{}{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/bbs/v1"},
+		revealDoc := map[string]any{
+			"@context": []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/bbs/v1"},
 			"type":     "VerifiableCredential",
-			"issuer":   map[string]interface{}{},
+			"issuer":   map[string]any{},
 		}
 		verifier := NewBBSPlusVerifier("test-key-1", privKey.PublicKey())
 
@@ -98,7 +98,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, case16RevealDoc)
 
-		var revealDoc map[string]interface{}
+		var revealDoc map[string]any
 		err = json.Unmarshal([]byte(case16RevealDoc), &revealDoc)
 		assert.NoError(tt, err)
 
@@ -172,7 +172,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, case18RevealDoc)
 
-		var revealDoc map[string]interface{}
+		var revealDoc map[string]any
 		err = json.Unmarshal([]byte(case18RevealDoc), &revealDoc)
 		assert.NoError(tt, err)
 

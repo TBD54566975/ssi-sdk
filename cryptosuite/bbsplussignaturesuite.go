@@ -18,12 +18,9 @@ const (
 	BBSPlusSignatureSuiteCanonicalizationAlgorithm string        = "https://w3id.org/security#URDNA2015"
 	// BBSPlusSignatureSuiteDigestAlgorithm uses https://www.rfc-editor.org/rfc/rfc4634
 	BBSPlusSignatureSuiteDigestAlgorithm gocrypto.Hash = gocrypto.BLAKE2b_384
-	// BBSPlusSignatureSuiteProofAlgorithm  uses https://www.rfc-editor.org/rfc/rfc7797
 )
 
-type BBSPlusSignatureSuite struct {
-	CryptoSuiteProofType
-}
+type BBSPlusSignatureSuite struct{}
 
 func GetBBSPlusSignatureSuite() CryptoSuite {
 	return new(BBSPlusSignatureSuite)
@@ -73,7 +70,7 @@ func (b BBSPlusSignatureSuite) Sign(s Signer, p Provable) error {
 	opts := &ProofOptions{Contexts: contexts}
 
 	// 3. tbs value as a result of create verify hash
-	var genericProvable map[string]interface{}
+	var genericProvable map[string]any
 	pBytes, err := json.Marshal(p)
 	if err != nil {
 		return errors.Wrap(err, "marshaling provable")
@@ -105,7 +102,7 @@ func (b BBSPlusSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptio
 		return nil, err
 	}
 
-	var genericProof map[string]interface{}
+	var genericProof map[string]any
 	if err = json.Unmarshal(proofBytes, &genericProof); err != nil {
 		return nil, err
 	}
@@ -119,7 +116,7 @@ func (b BBSPlusSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptio
 		genericProof["created"] = GetRFC3339Timestamp()
 	}
 
-	var contexts []interface{}
+	var contexts []any
 	if opts != nil {
 		contexts = opts.Contexts
 	} else {
@@ -162,7 +159,7 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 	opts := &ProofOptions{Contexts: contexts}
 
 	// run the create verify hash algorithm on both provable and the proof
-	var genericProvable map[string]interface{}
+	var genericProvable map[string]any
 	pBytes, err := json.Marshal(p)
 	if err != nil {
 		return errors.Wrap(err, "marshaling provable")
@@ -199,7 +196,7 @@ func decodeProofValue(proofValue string) ([]byte, error) {
 
 var _ CryptoSuiteProofType = (*BBSPlusSignatureSuite)(nil)
 
-func (BBSPlusSignatureSuite) Marshal(data interface{}) ([]byte, error) {
+func (BBSPlusSignatureSuite) Marshal(data any) ([]byte, error) {
 	// JSONify the provable object
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
@@ -210,7 +207,7 @@ func (BBSPlusSignatureSuite) Marshal(data interface{}) ([]byte, error) {
 
 func (BBSPlusSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	// the LD library anticipates a generic golang json object to normalize
-	var generic map[string]interface{}
+	var generic map[string]any
 	if err := json.Unmarshal(marshaled, &generic); err != nil {
 		return nil, err
 	}
@@ -224,7 +221,7 @@ func (BBSPlusSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 
 // CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
 // augmented by https://w3c-ccg.github.io/ldp-bbs2020/#create-verify-data-algorithm
-func (b BBSPlusSignatureSuite) CreateVerifyHash(doc map[string]interface{}, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
+func (b BBSPlusSignatureSuite) CreateVerifyHash(doc map[string]any, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := b.prepareProof(proof, opts)
 	if err != nil {
@@ -307,7 +304,7 @@ func (b *BBSPlusSignature2020Proof) SetProofValue(proofValue string) {
 // BBSPlusProofFromGenericProof by unmarshaling the JSON marshaled representation of the element found in `p`.
 func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, error) {
 	// check if the proof is an array
-	if proofArray, ok := p.([]interface{}); ok {
+	if proofArray, ok := p.([]any); ok {
 		if len(proofArray) == 0 {
 			return nil, errors.New("expected at least one proof")
 		}
@@ -325,6 +322,6 @@ func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, e
 	if err = json.Unmarshal(proofBytes, &result); err != nil {
 		return nil, err
 	}
-	
+
 	return &result, nil
 }

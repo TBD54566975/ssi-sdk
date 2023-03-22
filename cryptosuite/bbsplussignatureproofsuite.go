@@ -52,7 +52,7 @@ func (BBSPlusSignatureProofSuite) RequiredContexts() []string {
 }
 
 // SelectivelyDisclose takes in a credential (parameter `p` that's Provable) and a map of fields to disclose as an LD frame, and produces a map of the JSON representation of the derived credential. The derived credential only contains the information that was specified in the LD frame, and a proof that's derived from the original credential. Note that a requirement for `p` is that the property `"proof"` must be present when it's marshaled to JSON, and it's value MUST be an object that conforms to a `BBSPlusProof`.
-func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]interface{}, nonce []byte) (map[string]interface{}, error) {
+func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]any, nonce []byte) (map[string]any, error) {
 	// first compact the document with the security context
 	compactProvable, compactProof, err := b.compactProvable(p)
 	if err != nil {
@@ -102,7 +102,7 @@ func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Pro
 }
 
 func (BBSPlusSignatureProofSuite) compactProvable(p Provable) (Provable, *crypto.Proof, error) {
-	var genericProvable map[string]interface{}
+	var genericProvable map[string]any
 	provableBytes, err := json.Marshal(p)
 	if err != nil {
 		return nil, nil, err
@@ -171,7 +171,7 @@ func (b BBSPlusSignatureProofSuite) prepareBLSProof(bbsPlusProof BBSPlusSignatur
 	}
 
 	// add the security context before canonicalization
-	var genericProof map[string]interface{}
+	var genericProof map[string]any
 	if err = json.Unmarshal(marshaledProof, &genericProof); err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func (b BBSPlusSignatureProofSuite) prepareBLSProof(bbsPlusProof BBSPlusSignatur
 type DeriveProofResult struct {
 	RevealedIndicies             []int
 	InputProofDocumentStatements []string
-	RevealedDocument             map[string]interface{}
+	RevealedDocument             map[string]any
 }
 
 // CreateDeriveProof https://w3c-ccg.github.io/vc-di-bbs/#create-derive-proof-data-algorithm
@@ -256,7 +256,7 @@ func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument any, re
 	return &DeriveProofResult{
 		RevealedIndicies:             revealedIndicies,
 		InputProofDocumentStatements: statements,
-		RevealedDocument:             revealedDocument.(map[string]interface{}),
+		RevealedDocument:             revealedDocument.(map[string]any),
 	}, nil
 }
 
@@ -292,7 +292,7 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 	opts := &ProofOptions{Contexts: contexts}
 
 	// run the create verify hash algorithm on both provable and the proof
-	var genericProvable map[string]interface{}
+	var genericProvable map[string]any
 	pBytes, err := json.Marshal(p)
 	if err != nil {
 		return errors.Wrap(err, "marshaling provable")
@@ -324,7 +324,7 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 
 var _ CryptoSuiteProofType = (*BBSPlusSignatureProofSuite)(nil)
 
-func (BBSPlusSignatureProofSuite) Marshal(data interface{}) ([]byte, error) {
+func (BBSPlusSignatureProofSuite) Marshal(data any) ([]byte, error) {
 	// JSONify the provable object
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
@@ -335,7 +335,7 @@ func (BBSPlusSignatureProofSuite) Marshal(data interface{}) ([]byte, error) {
 
 func (BBSPlusSignatureProofSuite) Canonicalize(marshaled []byte) (*string, error) {
 	// the LD library anticipates a generic golang json object to normalize
-	var generic map[string]interface{}
+	var generic map[string]any
 	if err := json.Unmarshal(marshaled, &generic); err != nil {
 		return nil, err
 	}
@@ -360,7 +360,7 @@ func canonicalizedLDToStatements(canonicalized string) []string {
 
 // CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
 // augmented by https://w3c-ccg.github.io/ldp-bbs2020/#create-verify-data-algorithm
-func (b BBSPlusSignatureProofSuite) CreateVerifyHash(doc map[string]interface{}, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
+func (b BBSPlusSignatureProofSuite) CreateVerifyHash(doc map[string]any, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := b.prepareProof(proof, opts)
 	if err != nil {
@@ -416,7 +416,7 @@ func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *Proof
 		return nil, err
 	}
 
-	var genericProof map[string]interface{}
+	var genericProof map[string]any
 	if err = json.Unmarshal(proofBytes, &genericProof); err != nil {
 		return nil, err
 	}
@@ -434,7 +434,7 @@ func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *Proof
 	// for verification, we must replace the BBS ProofType with the Signature Type
 	genericProof["type"] = BBSPlusSignature2020
 
-	var contexts []interface{}
+	var contexts []any
 	if opts != nil {
 		contexts = opts.Contexts
 	} else {
