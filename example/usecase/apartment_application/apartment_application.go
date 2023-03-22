@@ -117,7 +117,10 @@ func main() {
 	example.HandleExampleError(err, "Failed to make presentation definition")
 	example.HandleExampleError(presentationDefinition.IsValid(), "Presentation definition is not valid")
 
-	presentationRequestBytes, err := exchange.BuildPresentationRequest(*aptSigner, exchange.JWTRequest, *presentationDefinition, string(*holderDIDKey))
+	presentationRequestBytes, err := exchange.BuildPresentationRequest(*aptSigner, exchange.JWTRequest, *presentationDefinition, exchange.PresentationRequestOption{
+		Type:  exchange.TargetOption,
+		Value: holderDIDKey.String(),
+	})
 	example.HandleExampleError(err, "Failed to make presentation request")
 
 	_, _ = fmt.Print("\n\nStep 3: The apartment creates a presentation request that confirms which information is required from the tenant\n\n")

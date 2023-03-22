@@ -1,8 +1,9 @@
 package exchange
 
 import (
-	"encoding/json"
 	"testing"
+
+	"github.com/goccy/go-json"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
