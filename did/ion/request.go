@@ -132,31 +132,6 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	}, nil
 }
 
-// NewDeactivateRequest creates a new deactivate request https://identity.foundation/sidetree/spec/#deactivate
-func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, signer BTCSignerVerifier) (*DeactivateRequest, error) {
-	// prepare reveal value
-	revealValue, _, err := Commit(recoveryKey)
-	if err != nil {
-		return nil, err
-	}
-
-	// prepare signed data
-	toBeSigned := DeactivateSignedDataObject{
-		DIDSuffix:   didSuffix,
-		RecoveryKey: recoveryKey,
-	}
-	signedJWT, err := signer.SignJWT(toBeSigned)
-	if err != nil {
-		return nil, errors.Wrap(err, "signing JWT")
-	}
-	return &DeactivateRequest{
-		Type:        Deactivate,
-		DIDSuffix:   didSuffix,
-		RevealValue: revealValue,
-		SignedData:  signedJWT,
-	}, nil
-}
-
 // NewRecoverRequest creates a new recover request https://identity.foundation/sidetree/spec/#recover
 func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer BTCSignerVerifier) (*RecoverRequest, error) { //revive:disable-line:argument-limit
 	// prepare reveal value
@@ -207,6 +182,31 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 		DIDSuffix:   didSuffix,
 		RevealValue: revealValue,
 		Delta:       delta,
+		SignedData:  signedJWT,
+	}, nil
+}
+
+// NewDeactivateRequest creates a new deactivate request https://identity.foundation/sidetree/spec/#deactivate
+func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, signer BTCSignerVerifier) (*DeactivateRequest, error) {
+	// prepare reveal value
+	revealValue, _, err := Commit(recoveryKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// prepare signed data
+	toBeSigned := DeactivateSignedDataObject{
+		DIDSuffix:   didSuffix,
+		RecoveryKey: recoveryKey,
+	}
+	signedJWT, err := signer.SignJWT(toBeSigned)
+	if err != nil {
+		return nil, errors.Wrap(err, "signing JWT")
+	}
+	return &DeactivateRequest{
+		Type:        Deactivate,
+		DIDSuffix:   didSuffix,
+		RevealValue: revealValue,
 		SignedData:  signedJWT,
 	}, nil
 }

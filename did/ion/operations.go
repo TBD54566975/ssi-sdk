@@ -204,9 +204,14 @@ func (d *DID) Update(stateChange StateChange) (*UpdateRequest, error) {
 	// update the DID object with the new update key
 	d.updatePrivateKey = *nextUpdatePrivKeyJWK
 
+	// add op to ops store
+	d.operations = append(d.operations, updateRequest)
+
 	return updateRequest, nil
 }
 
+// Recover recovers the DID object's state with a provided document object. The result is a new recover request
+// to be submitted to an anchor service.
 func (d *DID) Recover(doc Document) (*RecoverRequest, error) {
 	// generate next recovery key pair
 	_, nextRecoveryPrivateKey, err := crypto.GenerateSECP256k1Key()
@@ -243,9 +248,28 @@ func (d *DID) Recover(doc Document) (*RecoverRequest, error) {
 	d.recoveryPrivateKey = *nextRecoveryPrivKeyJWK
 	d.updatePrivateKey = *nextUpdatePrivKeyJWK
 
+	// add op to ops store
+	d.operations = append(d.operations, recoverRequest)
+
 	return recoverRequest, nil
 }
 
-func (d *DID) Deactivate() {
+// Deactivate deactivates the DID object's state. The result is a new deactivate request
+// to be submitted to an anchor service.
+func (d *DID) Deactivate() (*DeactivateRequest, error) {
+	// create a signer with the current update key
+	signer, err := NewBTCSignerVerifier(d.updatePrivateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating signer")
+	}
 
+	deactivateRequest, err := NewDeactivateRequest(d.suffix, d.updatePrivateKey.ToPublicKeyJWK(), *signer)
+	if err != nil {
+		return nil, errors.Wrap(err, "generating deactivate request")
+	}
+
+	// add op to ops store
+	d.operations = append(d.operations, deactivateRequest)
+
+	return deactivateRequest, nil
 }
