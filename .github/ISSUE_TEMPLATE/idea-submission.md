@@ -3,7 +3,7 @@ name: Idea Submission
 about: Suggest an idea for this project
 title: "[Idea] <Idea Title Here>"
 labels: enhancement
-assignees: decentralgabe, nitro-neal
+assignees: decentralgabe, nitro-neal, andresuribe87
 
 ---
 

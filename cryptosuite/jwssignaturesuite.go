@@ -28,15 +28,15 @@ const (
 	JWSSignatureSuiteProofAlgorithm = JSONWebSignature2020
 )
 
-type JWSSignatureSuite struct {
-	CryptoSuiteProofType
-}
+type JWSSignatureSuite struct{}
 
 func GetJSONWebSignature2020Suite() CryptoSuite {
-	return &JWSSignatureSuite{}
+	return new(JWSSignatureSuite)
 }
 
 // CryptoSuiteInfo interface
+
+var _ CryptoSuiteInfo = (*JWSSignatureSuite)(nil)
 
 func (JWSSignatureSuite) ID() string {
 	return JWSSignatureSuiteID
@@ -63,7 +63,7 @@ func (JWSSignatureSuite) RequiredContexts() []string {
 }
 
 func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
-	// create proof before CVH
+	// create proof before running the create verify hash algorithm
 	proof := j.createProof(s.GetKeyID(), s.GetProofPurpose())
 
 	// prepare proof options
@@ -76,8 +76,16 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	contexts = ensureRequiredContexts(contexts, j.RequiredContexts())
 	opts := &ProofOptions{Contexts: contexts}
 
-	// 3. tbs value as a result of cvh
-	tbs, err := j.CreateVerifyHash(p, proof, opts)
+	// 3. tbs value as a result of create verify hash
+	var genericProvable map[string]any
+	pBytes, err := json.Marshal(p)
+	if err != nil {
+		return errors.Wrap(err, "marshaling provable")
+	}
+	if err = json.Unmarshal(pBytes, &genericProvable); err != nil {
+		return errors.Wrap(err, "unmarshaling provable")
+	}
+	tbs, err := j.CreateVerifyHash(genericProvable, proof, opts)
 	if err != nil {
 		return errors.Wrap(err, "create verify hash algorithm failed")
 	}
@@ -97,7 +105,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 
 func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	proof := p.GetProof()
-	gotProof, err := FromGenericProof(*proof)
+	gotProof, err := JSONWebSignatureProofFromGenericProof(*proof)
 	if err != nil {
 		return errors.Wrap(err, "could not prepare proof for verification; error coercing proof into JsonWebSignature2020 proof")
 	}
@@ -122,8 +130,16 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	contexts = ensureRequiredContexts(contexts, j.RequiredContexts())
 	opts := &ProofOptions{Contexts: contexts}
 
-	// run CVH on both provable and the proof
-	tbv, err := j.CreateVerifyHash(p, gotProof, opts)
+	// run the create verify hash algorithm on both provable and the proof
+	var genericProvable map[string]any
+	pBytes, err := json.Marshal(p)
+	if err != nil {
+		return errors.Wrap(err, "marshaling provable")
+	}
+	if err = json.Unmarshal(pBytes, &genericProvable); err != nil {
+		return errors.Wrap(err, "unmarshaling provable")
+	}
+	tbv, err := j.CreateVerifyHash(genericProvable, gotProof, opts)
 	if err != nil {
 		return errors.Wrap(err, "create verify hash algorithm failed")
 	}
@@ -135,6 +151,8 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 }
 
 // CryptoSuiteProofType interface
+
+var _ CryptoSuiteProofType = (*JWSSignatureSuite)(nil)
 
 func (JWSSignatureSuite) Marshal(data any) ([]byte, error) {
 	// JSONify the provable object
@@ -159,23 +177,23 @@ func (JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	return &canonicalString, nil
 }
 
-func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
+func (j JWSSignatureSuite) CreateVerifyHash(doc map[string]any, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := j.prepareProof(proof, opts)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not prepare proof for the create verify hash algorithm")
 	}
 
-	// marshal provable to prepare for canonicalizaiton
-	marshaledProvable, err := j.Marshal(provable)
+	// marshal doc to prepare for canonicalizaiton
+	marshaledProvable, err := j.Marshal(doc)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal provable")
+		return nil, errors.Wrap(err, "could not marshal doc")
 	}
 
-	// canonicalize provable using the suite's method
+	// canonicalize doc using the suite's method
 	canonicalProvable, err := j.Canonicalize(marshaledProvable)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not canonicalize provable")
+		return nil, errors.Wrap(err, "could not canonicalize doc")
 	}
 
 	// marshal proof to prepare for canonicalizaiton
@@ -201,7 +219,7 @@ func (j JWSSignatureSuite) CreateVerifyHash(provable Provable, proof crypto.Proo
 	canonicalDoc := []byte(*canonicalProvable)
 	documentDigest, err := j.Digest(canonicalDoc)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not take digest of provable")
+		return nil, errors.Wrap(err, "could not take digest of doc")
 	}
 
 	// 5. return the output
@@ -238,7 +256,7 @@ func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) 
 	}
 
 	var contexts []any
-	if opts != nil {
+	if opts != nil && len(opts.Contexts) > 0 {
 		contexts = opts.Contexts
 	} else {
 		// if none provided, make sure the proof has a context value for this suite
@@ -258,47 +276,16 @@ type JSONWebSignature2020Proof struct {
 	VerificationMethod string        `json:"verificationMethod,omitempty"`
 }
 
-func FromGenericProof(p crypto.Proof) (*JSONWebSignature2020Proof, error) {
+func JSONWebSignatureProofFromGenericProof(p crypto.Proof) (*JSONWebSignature2020Proof, error) {
 	proofBytes, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
 	}
-	var generic map[string]any
-	if err = json.Unmarshal(proofBytes, &generic); err != nil {
+	var result JSONWebSignature2020Proof
+	if err = json.Unmarshal(proofBytes, &result); err != nil {
 		return nil, err
 	}
-	typeValue, ok := generic["type"].(string)
-	if !ok {
-		typeValue = ""
-	}
-	createdValue, ok := generic["created"].(string)
-	if !ok {
-		createdValue = ""
-	}
-	jwsValue, ok := generic["jws"].(string)
-	if !ok {
-		jwsValue = ""
-	}
-	purposeValue, ok := generic["proofPurpose"].(string)
-	if !ok {
-		purposeValue = ""
-	}
-	challengeValue, ok := generic["challenge"].(string)
-	if !ok {
-		challengeValue = ""
-	}
-	methodValue, ok := generic["verificationMethod"].(string)
-	if !ok {
-		methodValue = ""
-	}
-	return &JSONWebSignature2020Proof{
-		Type:               SignatureType(typeValue),
-		Created:            createdValue,
-		JWS:                jwsValue,
-		ProofPurpose:       ProofPurpose(purposeValue),
-		Challenge:          challengeValue,
-		VerificationMethod: methodValue,
-	}, nil
+	return &result, nil
 }
 
 func (j *JSONWebSignature2020Proof) ToGenericProof() crypto.Proof {

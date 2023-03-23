@@ -7,8 +7,7 @@ type (
 )
 
 const (
-	W3CSecurityContext       string = "https://w3id.org/security/v1"
-	JWS2020LinkedDataContext string = "https://w3id.org/security/suites/jws-2020/v1"
+	W3CSecurityContext string = "https://w3id.org/security/v2"
 
 	AssertionMethod ProofPurpose = "assertionMethod"
 	Authentication  ProofPurpose = "authentication"
@@ -24,5 +23,5 @@ const (
 	Ed25519VerificationKey2020        LDKeyType = "Ed25519VerificationKey2020"
 	X25519KeyAgreementKey2019         LDKeyType = "X25519KeyAgreementKey2019"
 	Ed25519VerificationKey2018        LDKeyType = "Ed25519VerificationKey2018"
-	EcdsaSecp256k1VerificationKey2019 LDKeyType = "EcdsaSecp256k1VerificationKey2019"
+	ECDSASECP256k1VerificationKey2019 LDKeyType = "EcdsaSecp256k1VerificationKey2019"
 )

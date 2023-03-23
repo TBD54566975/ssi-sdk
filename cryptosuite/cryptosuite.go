@@ -38,12 +38,15 @@ type CryptoSuiteInfo interface {
 
 // CryptoSuiteProofType is an interface that defines functionality needed to sign and verify data
 // It encapsulates the functionality defined by the data integrity proof type specification
-// https://w3c-ccg.github.io/data-integrity-spec/#creating-new-proof-types
+// https://www.w3.org/community/reports/credentials/CG-FINAL-data-integrity-20220722/#creating-new-proof-types
 type CryptoSuiteProofType interface {
 	Marshal(data any) ([]byte, error)
 	Canonicalize(marshaled []byte) (*string, error)
-	// CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
-	CreateVerifyHash(provable Provable, proof crypto.Proof, proofOptions *ProofOptions) ([]byte, error)
+	// CreateVerifyHash https://www.w3.org/community/reports/credentials/CG-FINAL-data-integrity-20220722/#create-verify-hash-algorithm
+	CreateVerifyHash(doc map[string]any, proof crypto.Proof, proofOptions *ProofOptions) ([]byte, error)
+	// Digest runs a given digest algorithm https://www.w3.org/community/reports/credentials/CG-FINAL-data-integrity-20220722/#dfn-message-digest-algorithm
+	// on a canonizliaed document prior to signing. Sometimes implementations will be a no-op as digesting is handled
+	// by the signature algorithm itself.
 	Digest(tbd []byte) ([]byte, error)
 }
 
@@ -56,7 +59,6 @@ type Signer interface {
 	Sign(tbs []byte) ([]byte, error)
 
 	GetKeyID() string
-	GetKeyType() string
 	GetSignatureType() SignatureType
 	GetSigningAlgorithm() string
 
@@ -69,14 +71,40 @@ type Signer interface {
 
 type Verifier interface {
 	Verify(message, signature []byte) error
-
 	GetKeyID() string
-	GetKeyType() string
 }
 
 type ProofOptions struct {
 	// JSON-LD contexts to add to the proof
 	Contexts []any
+
+	// Indexes of the credential subject to require be revealed in BBS+ signatures
+	RevealIndexes []int
+}
+
+// GenericProvable represents a provable that is not constrained by a specific type
+type GenericProvable map[string]any
+
+func (g *GenericProvable) GetProof() *crypto.Proof {
+	if g == nil {
+		return nil
+	}
+	provable := *g
+	proof, gotProof := provable["proof"]
+	if !gotProof {
+		return nil
+	}
+	p := crypto.Proof(proof)
+	return &p
+}
+
+func (g *GenericProvable) SetProof(p *crypto.Proof) {
+	if g == nil {
+		return
+	}
+	provable := *g
+	provable["proof"] = p
+	*g = provable
 }
 
 // GetContextsFromProvable searches from a Linked Data `@context` property in the document and returns the value

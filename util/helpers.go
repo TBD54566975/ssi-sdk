@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
-
+	"github.com/hyperledger/aries-framework-go/pkg/doc/signature/jsonld"
 	"github.com/piprate/json-gold/ld"
 
 	"github.com/go-playground/validator/v10"
@@ -73,6 +73,39 @@ func LDNormalize(document any) (any, error) {
 	return processor.Normalize(document, processor.GetOptions())
 }
 
+// LDFrame runs https://www.w3.org/TR/json-ld11-framing/ to transform the data in a document according to its frame
+func LDFrame(document any, frame any) (any, error) {
+	docAny := document
+	var err error
+	if _, ok := document.(map[string]any); !ok {
+		docAny, err = AnyToJSONInterface(document)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	frameAny := frame
+	if _, ok := frame.(map[string]any); !ok {
+		frameAny, err = AnyToJSONInterface(frame)
+		if err != nil {
+			return nil, err
+		}
+	}
+	docLoader := ld.NewRFC7324CachingDocumentLoader(nil)
+	// use the aries processor for special framing logic necessary for blank nodes
+	return jsonld.Default().Frame(docAny.(map[string]any),
+		frameAny.(map[string]any), jsonld.WithDocumentLoader(docLoader), jsonld.WithFrameBlankNodes())
+}
+
+// LDCompact runs https://www.w3.org/TR/json-ld-api/#compaction-algorithms which shortens IRIs in the document
+func LDCompact(document any, context string) (map[string]any, error) {
+	processor := NewLDProcessor()
+	contextsMap := map[string]any{
+		"@context": context,
+	}
+	return processor.Compact(document, contextsMap, processor.GetOptions())
+}
+
 func GetRFC3339Timestamp() string {
 	return AsRFC3339Timestamp(time.Now())
 }
@@ -108,6 +141,16 @@ func ToJSON(i any) (string, error) {
 func ToJSONInterface(data string) (any, error) {
 	var result any
 	err := json.Unmarshal([]byte(data), &result)
+	return result, err
+}
+
+func AnyToJSONInterface(data any) (any, error) {
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	var result any
+	err = json.Unmarshal(dataBytes, &result)
 	return result, err
 }
 

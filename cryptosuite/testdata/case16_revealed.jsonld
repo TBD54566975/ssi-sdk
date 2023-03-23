@@ -1,0 +1,37 @@
+{
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://w3id.org/citizenship/v1",
+    "https://w3id.org/security/bbs/v1"
+  ],
+  "credentialSubject": {
+    "familyName": "SMITH",
+    "gender": "Male",
+    "givenName": "JOHN",
+    "id": "did:example:b34ca6cd37bbf23",
+    "type": [
+      "Person",
+      "PermanentResident"
+    ]
+  },
+  "description": "Government of Example Permanent Resident Card.",
+  "expirationDate": "2029-12-03T12:19:52Z",
+  "id": "https://issuer.oidp.uscis.gov/credentials/83627465",
+  "issuanceDate": "2019-12-03T12:19:52Z",
+  "issuer": "did:key:zUC724vuGvHpnCGFG1qqpXb81SiBLu3KLSqVzenwEZNPoY35i2Bscb8DLaVwHvRFs6F2NkNNXRcPWvqnPDUd9ukdjLkjZd3u9zzL4wDZDUpkPAatLDGLEYVo8kkAzuAKJQMr7N2",
+  "name": "Permanent Resident Card",
+  "proof": [
+    {
+      "created": "2021-02-23T19:31:12Z",
+      "nonce": "G/hn9Ca9bIWZpJGlhnr/41r8RB0OO0TLChZASr3QJVztdri/JzS8Zf/xWJT5jW78zlM=",
+      "proofPurpose": "assertionMethod",
+      "proofValue": "ABgA/wbvuYCqTkiaV00RSvo8XyW2R5HH0xXLKpJNz5GFanD88MZc14a9BibPX+1AMiQfKxmSq+EL5ORRRHmTqPrs1Z6pCPfa0mUeJkHc42UQIaRAzpAMehMQSBjshQ5x0wpiP0Kcs/ulp9QCY4TCYAeh7BwRc/8IOX+Rt7EJKs1esMHYpDYZ+eEKhEyKzmSTaZ2bi6wQAAAAdLZt0Iq88XHUuEBIUYLLCDVjFENiSnLoyzhk9qd7y2v7ddtQDeKHCSoBE1765VtaTwAAAAIW+/pxhFUkeytoonbuWdl/+SorHd8KlWVd90mpx8Ypfwy06rNGEpus/LAMe/nBcG9Ll9poXyT2BarA+fhgOoZukvY96oSYMh0KPpNA5QIdI8WBrTaba5mnosN7SRMFf4MTwXLaeY3dN1p5ZqMBPw3XAAAACR4dArA234aVMXK4ORN47wY65cRhBaO+LRYeIZAAg0bMMPtl/RGeyi/Ot6FFfDROlMlTYnWChMr3o3xkhywh/kNxt0F/bYh0NtDSMbdZhgIUCn6j1d9dvcfbFdefw9IhZhCbMcD9Guu8UVp02eL4rNbrxWnezdrhqxwc0zdLvzzBIBOzOvrtbHJ5A0mKZV+ZIfsbjtJRa8Vp4+q6xiNxA59aGpwtuO3IMqN7LIKiyZtiWvGAvosWDfXY+yOovYxwnyVEyKCvmELzbIVqAvzAhsA3Hm0WgcW8HukmR9R9+4/wUlWytrm7xquqCYtr7n93fuLCQ4XqCdZOEu41gjZ5qwI10IZelB0ota7283gQrVw8m6IE9k2Mi7J+jCMLXFppTQ==",
+      "type": "BbsBlsSignatureProof2020",
+      "verificationMethod": "did:key:zUC724vuGvHpnCGFG1qqpXb81SiBLu3KLSqVzenwEZNPoY35i2Bscb8DLaVwHvRFs6F2NkNNXRcPWvqnPDUd9ukdjLkjZd3u9zzL4wDZDUpkPAatLDGLEYVo8kkAzuAKJQMr7N2#zUC724vuGvHpnCGFG1qqpXb81SiBLu3KLSqVzenwEZNPoY35i2Bscb8DLaVwHvRFs6F2NkNNXRcPWvqnPDUd9ukdjLkjZd3u9zzL4wDZDUpkPAatLDGLEYVo8kkAzuAKJQMr7N2"
+    }
+  ],
+  "type": [
+    "PermanentResidentCard",
+    "VerifiableCredential"
+  ]
+}
