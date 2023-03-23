@@ -26,7 +26,7 @@ import (
 func makePresentationData() exchange.PresentationDefinition {
 	// Input Descriptors: Describe the information the verifier requires of the holder
 	// https://identity.foundation/presentation-exchange/#input-descriptor
-	// Required fields: id and Input Descriptors
+	// Required fields: ID and Input Descriptors
 	return exchange.PresentationDefinition{
 		ID: "test-id",
 		InputDescriptors: []exchange.InputDescriptor{

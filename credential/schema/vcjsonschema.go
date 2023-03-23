@@ -55,7 +55,7 @@ func IsCredentialValidForVCJSONSchema(cred credential.VerifiableCredential, vcJS
 // IsCredentialValidForSchema determines whether a given Verifiable Credential is valid against
 // a specified credential schema
 func IsCredentialValidForSchema(cred credential.VerifiableCredential, s string) error {
-	// First pull out credential subject and remove the id property
+	// First pull out credential subject and remove the ID property
 	credSubjectMap := cred.CredentialSubject
 
 	gotID, _ := credSubjectMap[credential.VerifiableCredentialIDProperty]

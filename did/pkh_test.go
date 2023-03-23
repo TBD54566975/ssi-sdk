@@ -43,7 +43,7 @@ func TestDIDPKHVectors(t *testing.T) {
 		assert.NoError(t, err)
 		assert.JSONEqf(t, string(gotTestVector), string(knownDIDBytes), "Known DID Serializtion Error")
 
-		// Test Create DIDPKH With same id as KnownDIDPKH
+		// Test Create DIDPKH With same ID as KnownDIDPKH
 		split := strings.Split(knownDIDPKH.ID, ":")
 		address := split[len(split)-1]
 		testDIDPKH, err := CreateDIDPKHFromNetwork(network, address)

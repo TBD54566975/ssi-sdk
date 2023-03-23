@@ -174,7 +174,7 @@ func TestCredentialBuilder(t *testing.T) {
 	}
 	err = builder.SetCredentialSubject(badSubject)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "credential subject must have an id property")
+	assert.Contains(t, err.Error(), "credential subject must have an ID property")
 
 	// good subject
 	subject := CredentialSubject{
