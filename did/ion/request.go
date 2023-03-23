@@ -218,7 +218,18 @@ type StateChange struct {
 	PublicKeyIDsToRemove []string
 }
 
+func (s StateChange) IsEmpty() bool {
+	return len(s.ServicesToAdd) == 0 &&
+		len(s.ServiceIDsToRemove) == 0 &&
+		len(s.PublicKeysToAdd) == 0 &&
+		len(s.PublicKeyIDsToRemove) == 0
+}
+
 func (s StateChange) IsValid() error {
+	if s.IsEmpty() {
+		return errors.New("state change is empty")
+	}
+
 	// check if services are valid
 	// build index of services to make sure IDs are unique
 	services := make(map[string]Service, len(s.ServicesToAdd))

@@ -131,19 +131,195 @@ func TestResolver(t *testing.T) {
 }
 
 func TestRequests(t *testing.T) {
-	t.Run("create request", func(tt *testing.T) {
-
+	t.Run("bad create request", func(tt *testing.T) {
+		did, createOp, err := NewIONDID(Document{})
+		assert.Error(tt, err)
+		assert.Empty(tt, did)
+		assert.Empty(tt, createOp)
+		assert.Contains(tt, err.Error(), "document is empty")
 	})
 
-	t.Run("update request", func(tt *testing.T) {
+	t.Run("good create request", func(tt *testing.T) {
+		did, createOp, err := NewIONDID(Document{
+			Services: []Service{
+				{
+					ID:   "serviceID",
+					Type: "serviceType",
+				},
+			},
+		})
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, did)
+		assert.NotEmpty(tt, createOp)
 
+		// check DID object
+		assert.NotEmpty(tt, did.ID())
+		assert.Contains(tt, did.ID(), "did:ion:")
+		assert.Len(tt, did.Operations(), 1)
+		assert.NotEmpty(tt, did.updatePrivateKey)
+		assert.NotEmpty(tt, did.recoveryPrivateKey)
+		assert.NotEqual(tt, did.updatePrivateKey, did.recoveryPrivateKey)
+
+		// try to decode long form DID
+		decoded, initialState, err := DecodeLongFormDID(did.LongForm())
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, decoded)
+		assert.NotEmpty(tt, initialState)
+		assert.Equal(tt, did.ID(), decoded)
+
+		// check create op
+		assert.Equal(tt, Create, createOp.Type)
+		assert.NotEmpty(tt, createOp.SuffixData)
+		assert.NotEmpty(tt, createOp.Delta)
 	})
 
-	t.Run("revoke request", func(tt *testing.T) {
+	t.Run("bad update request", func(tt *testing.T) {
+		did, createOp, err := NewIONDID(Document{
+			Services: []Service{
+				{
+					ID:   "serviceID",
+					Type: "serviceType",
+				},
+			},
+		})
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, did)
+		assert.NotEmpty(tt, createOp)
 
+		badStateChange := StateChange{}
+		updateOp, err := did.Update(badStateChange)
+		assert.Error(tt, err)
+		assert.Empty(tt, updateOp)
+		assert.Contains(tt, err.Error(), "state change is empty")
 	})
 
-	t.Run("recover request", func(tt *testing.T) {
+	t.Run("good update request", func(tt *testing.T) {
+		did, createOp, err := NewIONDID(Document{
+			Services: []Service{
+				{
+					ID:   "serviceID",
+					Type: "serviceType",
+				},
+			},
+		})
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, did)
+		assert.NotEmpty(tt, createOp)
 
+		// note original update key
+		originalUpdateKey := did.updatePrivateKey
+
+		stateChange := StateChange{
+			ServicesToAdd: []Service{
+				{
+					ID:   "serviceID2",
+					Type: "serviceType2",
+				},
+			},
+		}
+		updateOp, err := did.Update(stateChange)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, updateOp)
+
+		// check update op
+		assert.Equal(tt, Update, updateOp.Type)
+		assert.NotEmpty(tt, updateOp.DIDSuffix)
+		assert.Contains(tt, did.ID(), updateOp.DIDSuffix)
+		assert.NotEmpty(tt, updateOp.RevealValue)
+		assert.NotEmpty(tt, updateOp.Delta)
+		assert.NotEmpty(tt, updateOp.SignedData)
+
+		// make sure keys are different and op is added
+		assert.NotEqual(tt, did.updatePrivateKey, originalUpdateKey)
+		assert.Len(tt, did.Operations(), 2)
+	})
+
+	t.Run("bad recover request", func(tt *testing.T) {
+		did, createOp, err := NewIONDID(Document{
+			Services: []Service{
+				{
+					ID:   "serviceID",
+					Type: "serviceType",
+				},
+			},
+		})
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, did)
+		assert.NotEmpty(tt, createOp)
+
+		recoverOp, err := did.Recover(Document{})
+		assert.Error(tt, err)
+		assert.Empty(tt, recoverOp)
+		assert.Contains(tt, err.Error(), "document is empty")
+	})
+
+	t.Run("good recover request", func(tt *testing.T) {
+		document := Document{
+			Services: []Service{
+				{
+					ID:   "serviceID",
+					Type: "serviceType",
+				},
+			},
+		}
+		did, createOp, err := NewIONDID(document)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, did)
+		assert.NotEmpty(tt, createOp)
+
+		// note original update and recovery keys
+		originalUpdateKey := did.updatePrivateKey
+		originalRecoveryKey := did.recoveryPrivateKey
+
+		recoverOp, err := did.Recover(document)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, recoverOp)
+
+		assert.Equal(tt, Recover, recoverOp.Type)
+		assert.NotEmpty(tt, recoverOp.DIDSuffix)
+		assert.Contains(tt, did.ID(), recoverOp.DIDSuffix)
+		assert.NotEmpty(tt, recoverOp.RevealValue)
+		assert.NotEmpty(tt, recoverOp.Delta)
+		assert.NotEmpty(tt, recoverOp.SignedData)
+
+		// make sure keys are different and op is added
+		assert.NotEqual(tt, did.updatePrivateKey, originalUpdateKey)
+		assert.NotEqual(tt, did.recoveryPrivateKey, originalRecoveryKey)
+		assert.Len(tt, did.Operations(), 2)
+	})
+
+	t.Run("bad deactivate request", func(tt *testing.T) {
+		emptyDID := DID{}
+		deactivateOp, err := emptyDID.Deactivate()
+		assert.Error(tt, err)
+		assert.Empty(tt, deactivateOp)
+		assert.Contains(tt, err.Error(), "DID is empty")
+	})
+
+	t.Run("good deactivate request", func(tt *testing.T) {
+		document := Document{
+			Services: []Service{
+				{
+					ID:   "serviceID",
+					Type: "serviceType",
+				},
+			},
+		}
+		did, createOp, err := NewIONDID(document)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, did)
+		assert.NotEmpty(tt, createOp)
+
+		deactivateOp, err := did.Deactivate()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, deactivateOp)
+
+		assert.Equal(tt, Deactivate, deactivateOp.Type)
+		assert.NotEmpty(tt, deactivateOp.DIDSuffix)
+		assert.Contains(tt, did.ID(), deactivateOp.DIDSuffix)
+		assert.NotEmpty(tt, deactivateOp.RevealValue)
+		assert.NotEmpty(tt, deactivateOp.SignedData)
+
+		assert.Len(tt, did.Operations(), 2)
 	})
 }

@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -125,11 +126,18 @@ type DID struct {
 	recoveryPrivateKey crypto.PrivateKeyJWK
 }
 
+func (d *DID) IsEmpty() bool {
+	if d == nil {
+		return true
+	}
+	return reflect.DeepEqual(d, &DID{})
+}
+
 func (d *DID) ID() string {
 	return d.id
 }
 
-func (d *DID) LongFormDID() string {
+func (d *DID) LongForm() string {
 	return d.longFormDID
 }
 
@@ -197,6 +205,14 @@ func NewIONDID(doc Document) (*DID, *CreateRequest, error) {
 // Update updates the DID object's state with a provided state change object. The result is a new
 // update key pair and an update operation to be submitted to an anchor service.
 func (d *DID) Update(stateChange StateChange) (*UpdateRequest, error) {
+	if d.IsEmpty() {
+		return nil, errors.New("DID is empty")
+	}
+
+	if err := stateChange.IsValid(); err != nil {
+		return nil, errors.Wrap(err, "invalid state change")
+	}
+
 	// generate next update key pair
 	_, nextUpdatePrivateKey, err := crypto.GenerateSECP256k1Key()
 	if err != nil {
@@ -230,6 +246,14 @@ func (d *DID) Update(stateChange StateChange) (*UpdateRequest, error) {
 // Recover recovers the DID object's state with a provided document object. The result is a new recover request
 // to be submitted to an anchor service.
 func (d *DID) Recover(doc Document) (*RecoverRequest, error) {
+	if d.IsEmpty() {
+		return nil, errors.New("DID is empty")
+	}
+
+	if doc.IsEmpty() {
+		return nil, errors.New("document is empty")
+	}
+
 	// generate next recovery key pair
 	_, nextRecoveryPrivateKey, err := crypto.GenerateSECP256k1Key()
 	if err != nil {
@@ -274,6 +298,10 @@ func (d *DID) Recover(doc Document) (*RecoverRequest, error) {
 // Deactivate deactivates the DID object's state. The result is a new deactivate request
 // to be submitted to an anchor service.
 func (d *DID) Deactivate() (*DeactivateRequest, error) {
+	if d.IsEmpty() {
+		return nil, errors.New("DID is empty")
+	}
+	
 	// create a signer with the current update key
 	signer, err := NewBTCSignerVerifier(d.updatePrivateKey)
 	if err != nil {
