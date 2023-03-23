@@ -59,10 +59,18 @@ type ReplaceAction struct {
 
 // request models
 
+type AnchorOperation interface {
+	GetType() OperationType
+}
+
 type CreateRequest struct {
 	Type       OperationType `json:"type,omitempty"`
 	SuffixData SuffixData    `json:"suffixData,omitempty"`
 	Delta      Delta         `json:"delta,omitempty"`
+}
+
+func (CreateRequest) GetType() OperationType {
+	return Create
 }
 
 type SuffixData struct {
@@ -76,6 +84,10 @@ type UpdateRequest struct {
 	RevealValue string        `json:"revealValue,omitempty"`
 	Delta       Delta         `json:"delta,omitempty"`
 	SignedData  string        `json:"signedData,omitempty"`
+}
+
+func (UpdateRequest) GetType() OperationType {
+	return Update
 }
 
 // UpdateSignedDataObject https://identity.foundation/sidetree/spec/#update-signed-data-object
@@ -127,6 +139,10 @@ type DeactivateRequest struct {
 	SignedData  string        `json:"signedData,omitempty"`
 }
 
+func (DeactivateRequest) GetType() OperationType {
+	return Deactivate
+}
+
 // DeactivateSignedDataObject https://identity.foundation/sidetree/spec/#deactivate-signed-data-object
 type DeactivateSignedDataObject struct {
 	DIDSuffix   string              `json:"didSuffix,omitempty"`
@@ -139,6 +155,10 @@ type RecoverRequest struct {
 	RevealValue string        `json:"revealValue,omitempty"`
 	Delta       Delta         `json:"delta,omitempty"`
 	SignedData  string        `json:"signedData,omitempty"`
+}
+
+func (RecoverRequest) GetType() OperationType {
+	return Recover
 }
 
 // RecoverySignedDataObject https://identity.foundation/sidetree/spec/#recovery-signed-data-object

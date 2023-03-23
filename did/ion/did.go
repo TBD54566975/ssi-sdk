@@ -25,41 +25,20 @@ func CreateLongFormDID(recoveryKey, updateKey crypto.PublicKeyJWK, document Docu
 	if err != nil {
 		return "", err
 	}
-
 	shortFormDID, err := CreateShortFormDID(createRequest.SuffixData)
 	if err != nil {
 		return "", err
 	}
-
-	b, _ := json.Marshal(createRequest.SuffixData)
-	println(string(b))
-
 	is := InitialState{
 		Delta:      createRequest.Delta,
 		SuffixData: createRequest.SuffixData,
 	}
-
 	initialStateBytesCanonical, err := CanonicalizeAny(is)
 	if err != nil {
 		return "", errors.Wrap(err, "canonicalizing long form DID suffix data")
 	}
 	encoded := Encode(initialStateBytesCanonical)
 	return strings.Join([]string{shortFormDID, encoded}, ":"), nil
-}
-
-// CreateShortFormDID follows the process on did uri composition from the spec:
-// https://identity.foundation/sidetree/spec/#did-uri-composition, used to generate a short form DID URI,
-// which is most frequently used in the protocol and when sharing out ION DIDs.
-func CreateShortFormDID(suffixData any) (string, error) {
-	createOpSuffixDataCanonical, err := CanonicalizeAny(suffixData)
-	if err != nil {
-		return "", errors.Wrap(err, "canonicalizing suffix data")
-	}
-	hash, err := HashEncode(createOpSuffixDataCanonical)
-	if err != nil {
-		return "", errors.Wrap(err, "generating multihash for DID URI")
-	}
-	return strings.Join([]string{"did", did.IONMethod.String(), hash}, ":"), nil
 }
 
 // DecodeLongFormDID decodes a long form DID into a short form DID and
@@ -81,4 +60,28 @@ func DecodeLongFormDID(longFormDID string) (string, *InitialState, error) {
 		return "", nil, errors.Wrap(err, "unmarshalling long form URI")
 	}
 	return strings.Join(split[0:3], ":"), &initialState, nil
+}
+
+// CreateShortFormDID follows the process on did uri composition from the spec:
+// https://identity.foundation/sidetree/spec/#did-uri-composition, used to generate a short form DID URI,
+// which is most frequently used in the protocol and when sharing out ION DIDs.
+func CreateShortFormDID(suffixData any) (string, error) {
+	createOpSuffixDataCanonical, err := CanonicalizeAny(suffixData)
+	if err != nil {
+		return "", errors.Wrap(err, "canonicalizing suffix data")
+	}
+	hash, err := HashEncode(createOpSuffixDataCanonical)
+	if err != nil {
+		return "", errors.Wrap(err, "generating multihash for DID URI")
+	}
+	return strings.Join([]string{"did", did.IONMethod.String(), hash}, ":"), nil
+}
+
+// GetShortFormDIDFromLongFormDID returns the short form DID from a long form DID
+func GetShortFormDIDFromLongFormDID(longFormDID string) (string, error) {
+	shortFormDID, _, err := DecodeLongFormDID(longFormDID)
+	if err != nil {
+		return "", errors.Wrap(err, "decoding long form DID")
+	}
+	return shortFormDID, nil
 }
