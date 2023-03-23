@@ -38,7 +38,7 @@ const (
 	EthereumNetworkPrefix = "eip155:1"
 	PolygonNetworkPrefix  = "eip155:137"
 
-	EcdsaSecp256k1RecoveryMethod2020 = "EcdsaSecp256k1RecoveryMethod2020"
+	ECDSASECP256k1RecoveryMethod2020 = "EcdsaSecp256k1RecoveryMethod2020"
 )
 
 // GetDIDPKHContext returns a context which should be manually inserted into each did:pkh document. This will likely
@@ -132,7 +132,7 @@ func GetDIDPKHNetworkForDID(did string) (Network, error) {
 func GetVerificationTypeForNetwork(n Network) (string, error) {
 	switch n {
 	case Bitcoin, Ethereum, Polygon:
-		return EcdsaSecp256k1RecoveryMethod2020, nil
+		return ECDSASECP256k1RecoveryMethod2020, nil
 	}
 	return "", fmt.Errorf("unsupported did:pkh network: %s", n)
 }

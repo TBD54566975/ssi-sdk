@@ -9,30 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type TestCredential struct {
-	Context           any           `json:"@context" validate:"required"`
-	ID                string        `json:"id,omitempty"`
-	Type              any           `json:"type" validate:"required"`
-	Issuer            any           `json:"issuer" validate:"required"`
-	IssuanceDate      string        `json:"issuanceDate" validate:"required"`
-	ExpirationDate    string        `json:"expirationDate,omitempty"`
-	CredentialStatus  any           `json:"credentialStatus,omitempty" validate:"omitempty,dive"`
-	CredentialSubject any           `json:"credentialSubject" validate:"required"`
-	CredentialSchema  any           `json:"credentialSchema,omitempty" validate:"omitempty,dive"`
-	RefreshService    any           `json:"refreshService,omitempty" validate:"omitempty,dive"`
-	TermsOfUse        []any         `json:"termsOfUse,omitempty" validate:"omitempty,dive"`
-	Evidence          []any         `json:"evidence,omitempty" validate:"omitempty,dive"`
-	Proof             *crypto.Proof `json:"proof,omitempty"`
-}
-
-func (t *TestCredential) GetProof() *crypto.Proof {
-	return t.Proof
-}
-
-func (t *TestCredential) SetProof(p *crypto.Proof) {
-	t.Proof = p
-}
-
 func TestJSONWebKey2020ToJWK(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	signer, jwk := getTestVectorKey0Signer(t, AssertionMethod)
@@ -289,6 +265,8 @@ func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
 	err = suite.Verify(verifier, &knownCred)
 	assert.NoError(t, err)
 }
+
+var _ Provable = (*TestVerifiablePresentation)(nil)
 
 type TestVerifiablePresentation struct {
 	Context                any              `json:"@context,omitempty"`

@@ -104,7 +104,7 @@ func decodePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyType, error)
 	case SHA256MultiCodec:
 		return pubKeyBytes, cryptosuite.Ed25519VerificationKey2020, nil
 	case Secp256k1MultiCodec:
-		return pubKeyBytes, cryptosuite.EcdsaSecp256k1VerificationKey2019, nil
+		return pubKeyBytes, cryptosuite.ECDSASECP256k1VerificationKey2019, nil
 	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
 		return pubKeyBytes, cryptosuite.JSONWebKey2020Type, nil
 	default:
