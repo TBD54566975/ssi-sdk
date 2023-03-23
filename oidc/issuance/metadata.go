@@ -98,10 +98,10 @@ type IssuerMetadata struct {
 	// Must use the `https` scheme.
 	BatchCredentialEndpoint *util.URL `json:"batch_credential_endpoint,omitempty"`
 
-	// Credentials supported indexes by the ID field.
+	// Credentials supported indexes by the id field.
 	CredentialsSupported map[string]CredentialSupported
 
-	// Credentials supported that did not have an ID field.
+	// Credentials supported that did not have an id field.
 	OtherCredentialsSupported []CredentialSupported
 
 	Display []Display `json:"display,omitempty"`

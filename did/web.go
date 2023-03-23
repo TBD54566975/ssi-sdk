@@ -147,7 +147,7 @@ func (d DIDWeb) Resolve() (*DIDDocument, error) {
 		return nil, errors.Wrapf(err, "resolving did:web DID<%s>", d)
 	}
 	if resolutionResult.ID != d.String() {
-		return nil, fmt.Errorf("doc.ID<%s> does not match did:web value<%s>", resolutionResult.ID, d)
+		return nil, fmt.Errorf("doc.id<%s> does not match did:web value<%s>", resolutionResult.ID, d)
 	}
 	return &resolutionResult.DIDDocument, nil
 }

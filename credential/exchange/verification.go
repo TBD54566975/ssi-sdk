@@ -56,7 +56,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		return errors.Wrap(err, "invalid presentation submission in provided verifiable presentation")
 	}
 	if submission.DefinitionID != def.ID {
-		return fmt.Errorf("mismatched between presentation definition ID<%s> and submission's definition ID<%s>",
+		return fmt.Errorf("mismatched between presentation definition id<%s> and submission's definition id<%s>",
 			def.ID, submission.DefinitionID)
 	}
 

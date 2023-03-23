@@ -48,7 +48,7 @@ func TestCredentialManifestBuilder(t *testing.T) {
 		{
 			ID:          "id1",
 			Schema:      "schema1",
-			Name:        "good ID",
+			Name:        "good id",
 			Description: "it's all good",
 		},
 		{
@@ -64,13 +64,13 @@ func TestCredentialManifestBuilder(t *testing.T) {
 		{
 			ID:          "id1",
 			Schema:      "https://test.com/schema",
-			Name:        "good ID",
+			Name:        "good id",
 			Description: "it's all good",
 		},
 		{
 			ID:          "id2",
 			Schema:      "https://test.com/schema",
-			Name:        "good ID",
+			Name:        "good id",
 			Description: "it's all good",
 		},
 	}

@@ -28,7 +28,7 @@ type VerificationOption struct {
 	Option any
 }
 
-// GetVerificationOption returns a verification option given an ID
+// GetVerificationOption returns a verification option given an id
 func GetVerificationOption(opts []VerificationOption, id OptionKey) (any, error) {
 	for _, opt := range opts {
 		if opt.ID == id {

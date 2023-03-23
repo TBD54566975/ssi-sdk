@@ -88,7 +88,7 @@ func TestDIDWebResolve(t *testing.T) {
 
 		_, err := didWebCannotBeResolved.Resolve()
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "doc.ID<did:web:demo.ssi-sdk.com> does not match did:web value<did:web:doesnotexist.com>")
+		assert.Contains(tt, err.Error(), "doc.id<did:web:demo.ssi-sdk.com> does not match did:web value<did:web:doesnotexist.com>")
 	})
 
 	t.Run("Unhappy Path - Unknown DID", func(t *testing.T) {

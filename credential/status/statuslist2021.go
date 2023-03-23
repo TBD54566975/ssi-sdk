@@ -52,7 +52,7 @@ type StatusList2021Credential struct {
 	EncodedList   string        `json:"encodedList"  validate:"required"`
 }
 
-// GenerateStatusList2021Credential generates a status list credential given an ID (the URI where this entity will
+// GenerateStatusList2021Credential generates a status list credential given an id (the URI where this entity will
 // be hosted), the issuer DID, the purpose of the list, and a set of credentials to include in the list.
 // https://w3c-ccg.github.io/vc-status-list-2021/#generate-algorithm
 func GenerateStatusList2021Credential(id string, issuer string, purpose StatusPurpose, issuedCredentials []credential.VerifiableCredential) (*credential.VerifiableCredential, error) {
