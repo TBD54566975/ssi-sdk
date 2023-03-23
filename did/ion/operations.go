@@ -301,7 +301,7 @@ func (d *DID) Deactivate() (*DeactivateRequest, error) {
 	if d.IsEmpty() {
 		return nil, errors.New("DID is empty")
 	}
-	
+
 	// create a signer with the current update key
 	signer, err := NewBTCSignerVerifier(d.updatePrivateKey)
 	if err != nil {
