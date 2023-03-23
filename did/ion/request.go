@@ -49,6 +49,89 @@ func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Docum
 	}, nil
 }
 
+// NewUpdateRequest creates a new update request https://identity.foundation/sidetree/spec/#update
+func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKeyJWK, signer BTCSignerVerifier, stateChange StateChange) (*UpdateRequest, error) {
+	if err := stateChange.IsValid(); err != nil {
+		return nil, errors.Wrap(err, "invalid state change")
+	}
+
+	// prepare reveal value
+	revealValue, _, err := Commit(updateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "generating commitment for update key")
+	}
+
+	// prepare delta
+	_, nextUpdateCommitment, err := Commit(nextUpdateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "generating commitment for next update key")
+	}
+
+	delta := NewDelta(nextUpdateCommitment)
+
+	// services to add
+	if len(stateChange.ServicesToAdd) > 0 {
+		addServicesPatch := AddServicesAction{
+			Action:   AddServices,
+			Services: stateChange.ServicesToAdd,
+		}
+		delta.AddAddServicesAction(addServicesPatch)
+	}
+
+	// services to remove
+	if len(stateChange.ServiceIDsToRemove) > 0 {
+		removeServicesPatch := RemoveServicesAction{
+			Action: RemoveServices,
+			IDs:    stateChange.ServiceIDsToRemove,
+		}
+		delta.AddRemoveServicesAction(removeServicesPatch)
+	}
+
+	// public keys to add
+	if len(stateChange.PublicKeysToAdd) > 0 {
+		addPublicKeysPatch := AddPublicKeysAction{
+			Action:     AddPublicKeys,
+			PublicKeys: stateChange.PublicKeysToAdd,
+		}
+		delta.AddAddPublicKeysAction(addPublicKeysPatch)
+	}
+
+	// public keys to remove
+	if len(stateChange.PublicKeyIDsToRemove) > 0 {
+		removePublicKeysPatch := RemovePublicKeysAction{
+			Action: RemovePublicKeys,
+			IDs:    stateChange.PublicKeyIDsToRemove,
+		}
+		delta.AddRemovePublicKeysAction(removePublicKeysPatch)
+	}
+
+	deltaCanonical, err := CanonicalizeAny(delta)
+	if err != nil {
+		return nil, errors.Wrap(err, "canonicalizing delta")
+	}
+	deltaHash, err := HashEncode(deltaCanonical)
+	if err != nil {
+		return nil, errors.Wrap(err, "hash-encoding delta")
+	}
+
+	// prepare signed data
+	toBeSigned := UpdateSignedDataObject{
+		UpdateKey: updateKey,
+		DeltaHash: deltaHash,
+	}
+	signedJWT, err := signer.SignJWT(toBeSigned)
+	if err != nil {
+		return nil, errors.Wrap(err, "signing update request")
+	}
+	return &UpdateRequest{
+		Type:        Update,
+		DIDSuffix:   didSuffix,
+		RevealValue: revealValue,
+		Delta:       delta,
+		SignedData:  signedJWT,
+	}, nil
+}
+
 // NewDeactivateRequest creates a new deactivate request https://identity.foundation/sidetree/spec/#deactivate
 func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, signer BTCSignerVerifier) (*DeactivateRequest, error) {
 	// prepare reveal value
@@ -193,87 +276,4 @@ func (s StateChange) IsValid() error {
 		}
 	}
 	return nil
-}
-
-// NewUpdateRequest creates a new update request https://identity.foundation/sidetree/spec/#update
-func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKeyJWK, signer BTCSignerVerifier, stateChange StateChange) (*UpdateRequest, error) {
-	if err := stateChange.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "invalid state change")
-	}
-
-	// prepare reveal value
-	revealValue, _, err := Commit(updateKey)
-	if err != nil {
-		return nil, errors.Wrap(err, "generating commitment for update key")
-	}
-
-	// prepare delta
-	_, nextUpdateCommitment, err := Commit(nextUpdateKey)
-	if err != nil {
-		return nil, errors.Wrap(err, "generating commitment for next update key")
-	}
-
-	delta := NewDelta(nextUpdateCommitment)
-
-	// services to add
-	if len(stateChange.ServicesToAdd) > 0 {
-		addServicesPatch := AddServicesAction{
-			Action:   AddServices,
-			Services: stateChange.ServicesToAdd,
-		}
-		delta.AddAddServicesAction(addServicesPatch)
-	}
-
-	// services to remove
-	if len(stateChange.ServiceIDsToRemove) > 0 {
-		removeServicesPatch := RemoveServicesAction{
-			Action: RemoveServices,
-			IDs:    stateChange.ServiceIDsToRemove,
-		}
-		delta.AddRemoveServicesAction(removeServicesPatch)
-	}
-
-	// public keys to add
-	if len(stateChange.PublicKeysToAdd) > 0 {
-		addPublicKeysPatch := AddPublicKeysAction{
-			Action:     AddPublicKeys,
-			PublicKeys: stateChange.PublicKeysToAdd,
-		}
-		delta.AddAddPublicKeysAction(addPublicKeysPatch)
-	}
-
-	// public keys to remove
-	if len(stateChange.PublicKeyIDsToRemove) > 0 {
-		removePublicKeysPatch := RemovePublicKeysAction{
-			Action: RemovePublicKeys,
-			IDs:    stateChange.PublicKeyIDsToRemove,
-		}
-		delta.AddRemovePublicKeysAction(removePublicKeysPatch)
-	}
-
-	deltaCanonical, err := CanonicalizeAny(delta)
-	if err != nil {
-		return nil, errors.Wrap(err, "canonicalizing delta")
-	}
-	deltaHash, err := HashEncode(deltaCanonical)
-	if err != nil {
-		return nil, errors.Wrap(err, "hash-encoding delta")
-	}
-
-	// prepare signed data
-	toBeSigned := UpdateSignedDataObject{
-		UpdateKey: updateKey,
-		DeltaHash: deltaHash,
-	}
-	signedJWT, err := signer.SignJWT(toBeSigned)
-	if err != nil {
-		return nil, errors.Wrap(err, "signing update request")
-	}
-	return &UpdateRequest{
-		Type:        Update,
-		DIDSuffix:   didSuffix,
-		RevealValue: revealValue,
-		Delta:       delta,
-		SignedData:  signedJWT,
-	}, nil
 }

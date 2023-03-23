@@ -180,7 +180,7 @@ func BuildPresentationSubmission(presentationRequest []byte, signer crypto.JWTSi
 func MakePresentationData(id string, inputID string) (exchange.PresentationDefinition, error) {
 	// Input Descriptors: Describe the information the verifier requires of the holder
 	// https://identity.foundation/presentation-exchange/#input-descriptor
-	// Required fields: id and Input Descriptors
+	// Required fields: ID and Input Descriptors
 	def := exchange.PresentationDefinition{
 		ID: id,
 		InputDescriptors: []exchange.InputDescriptor{

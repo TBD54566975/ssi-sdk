@@ -35,6 +35,22 @@ type PrivateKeyJWK struct {
 	QI     string `json:"qi,omitempty"`
 }
 
+// ToPublicKeyJWK converts a PrivateKeyJWK to a PublicKeyJWK
+func (k PrivateKeyJWK) ToPublicKeyJWK() PublicKeyJWK {
+	return PublicKeyJWK{
+		KTY:    k.KTY,
+		CRV:    k.CRV,
+		X:      k.X,
+		Y:      k.Y,
+		N:      k.N,
+		E:      k.E,
+		Use:    k.Use,
+		KeyOps: k.KeyOps,
+		Alg:    k.Alg,
+		KID:    k.KID,
+	}
+}
+
 // PublicKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
 type PublicKeyJWK struct {
 	KTY    string `json:"kty,omitempty" validate:"required"`

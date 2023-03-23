@@ -105,25 +105,26 @@ func (i Resolver) Anchor(op AnchorOperation) error {
 
 type DID struct {
 	id                 string
+	suffix             string
 	longFormDID        string
 	operations         []any
 	updatePrivateKey   crypto.PrivateKeyJWK
 	recoveryPrivateKey crypto.PrivateKeyJWK
 }
 
-func (d DID) ID() string {
+func (d *DID) ID() string {
 	return d.id
 }
 
-func (d DID) LongFormDID() string {
+func (d *DID) LongFormDID() string {
 	return d.longFormDID
 }
 
-func (d DID) Operations() []any {
+func (d *DID) Operations() []any {
 	return d.operations
 }
 
-func (d DID) Operation(index int) any {
+func (d *DID) Operation(index int) any {
 	return d.operations[index]
 }
 
@@ -164,12 +165,87 @@ func NewIONDID(doc Document) (*DID, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "generating short form DID")
 	}
+	suffix := strings.Split(shortFormDID, ":")[2]
 
 	return &DID{
 		id:                 shortFormDID,
+		suffix:             suffix,
 		longFormDID:        longFormDID,
 		operations:         []any{createRequest},
 		updatePrivateKey:   *updatePrivKeyJWK,
 		recoveryPrivateKey: *recoveryPrivKeyJWK,
 	}, nil
+}
+
+// Update updates the DID object's state with a provided state change object. The result is a new
+// update key pair and an update operation to be submitted to an anchor service.
+func (d *DID) Update(stateChange StateChange) (*UpdateRequest, error) {
+	// generate next update key pair
+	_, nextUpdatePrivateKey, err := crypto.GenerateSECP256k1Key()
+	if err != nil {
+		return nil, errors.Wrap(err, "generating next update keypair")
+	}
+	nextUpdatePubKeyJWK, nextUpdatePrivKeyJWK, err := crypto.PrivateKeyToPrivateKeyJWK(nextUpdatePrivateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "converting next update key pair to JWK")
+	}
+
+	// create a signer with the current update key
+	signer, err := NewBTCSignerVerifier(d.updatePrivateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating signer")
+	}
+
+	updateRequest, err := NewUpdateRequest(d.suffix, d.updatePrivateKey.ToPublicKeyJWK(), *nextUpdatePubKeyJWK, *signer, stateChange)
+	if err != nil {
+		return nil, errors.Wrap(err, "generating update request")
+	}
+
+	// update the DID object with the new update key
+	d.updatePrivateKey = *nextUpdatePrivKeyJWK
+
+	return updateRequest, nil
+}
+
+func (d *DID) Recover(doc Document) (*RecoverRequest, error) {
+	// generate next recovery key pair
+	_, nextRecoveryPrivateKey, err := crypto.GenerateSECP256k1Key()
+	if err != nil {
+		return nil, errors.Wrap(err, "generating nest recovery keypair")
+	}
+	nextRecoveryPubKeyJWK, nextRecoveryPrivKeyJWK, err := crypto.PrivateKeyToPrivateKeyJWK(nextRecoveryPrivateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "converting next recovery key pair to JWK")
+	}
+
+	// generate next update key pair
+	_, nextUpdatePrivateKey, err := crypto.GenerateSECP256k1Key()
+	if err != nil {
+		return nil, errors.Wrap(err, "generating next update keypair")
+	}
+	nextUpdatePubKeyJWK, nextUpdatePrivKeyJWK, err := crypto.PrivateKeyToPrivateKeyJWK(nextUpdatePrivateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "converting next update key pair to JWK")
+	}
+
+	// create a signer with the current update key
+	signer, err := NewBTCSignerVerifier(d.updatePrivateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating signer")
+	}
+
+	recoverRequest, err := NewRecoverRequest(d.suffix, d.recoveryPrivateKey.ToPublicKeyJWK(), *nextRecoveryPubKeyJWK, *nextUpdatePubKeyJWK, doc, *signer)
+	if err != nil {
+		return nil, errors.Wrap(err, "generating recover request")
+	}
+
+	// update the DID object with the new recovery and update keys
+	d.recoveryPrivateKey = *nextRecoveryPrivKeyJWK
+	d.updatePrivateKey = *nextUpdatePrivKeyJWK
+
+	return recoverRequest, nil
+}
+
+func (d *DID) Deactivate() {
+
 }
