@@ -47,7 +47,7 @@ type Resolver struct {
 }
 
 func NewIONResolver(resolverURL string) (*Resolver, error) {
-	if _, err := url.Parse(resolverURL); err != nil {
+	if _, err := url.ParseRequestURI(resolverURL); err != nil {
 		return nil, errors.Wrap(err, "invalid resolver URL")
 	}
 	return &Resolver{resolverURL: resolverURL}, nil
