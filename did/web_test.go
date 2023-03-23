@@ -60,7 +60,7 @@ func TestDIDWebResolveDocBytes(t *testing.T) {
 	})
 
 	t.Run("Unresolvable Path", func(tt *testing.T) {
-		_, err := didWebNotADomain.Resolve()
+		_, err := didWebNotADomain.resolveDocBytes()
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "did:web: is missing the required domain")
 	})
@@ -80,7 +80,7 @@ func TestDIDWebResolve(t *testing.T) {
 	})
 
 	t.Run("Unhappy Path - Mismatched DID", func(tt *testing.T) {
-		gock.New("https://demo.ssi-sdk.com").
+		gock.New("https://doesnotexist.com").
 			Get("/.well-known/did.json").
 			Reply(200).
 			BodyString(`{"id":"did:web:demo.ssi-sdk.com"}`)
@@ -88,7 +88,7 @@ func TestDIDWebResolve(t *testing.T) {
 
 		_, err := didWebCannotBeResolved.Resolve()
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "could not resolve did:web DID: did:web:doesnotexist.com")
+		assert.Contains(tt, err.Error(), "doc.ID<did:web:demo.ssi-sdk.com> does not match did:web value<did:web:doesnotexist.com>")
 	})
 
 	t.Run("Unhappy Path - Unknown DID", func(t *testing.T) {

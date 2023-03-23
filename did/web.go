@@ -140,14 +140,14 @@ func (d DIDWeb) GetDocURL() (string, error) {
 func (d DIDWeb) Resolve() (*DIDDocument, error) {
 	docBytes, err := d.resolveDocBytes()
 	if err != nil {
-		return nil, errors.Wrapf(err, "resolving did:web DID: %s", d)
+		return nil, errors.Wrapf(err, "resolving did:web DID<%s>", d)
 	}
 	resolutionResult, err := ParseDIDResolution(docBytes)
 	if err != nil {
-		return nil, errors.Wrapf(err, "resolving did:web DID: %s", d)
+		return nil, errors.Wrapf(err, "resolving did:web DID<%s>", d)
 	}
 	if resolutionResult.ID != d.String() {
-		return nil, fmt.Errorf("doc.ID %s does not match did:web value: %s", resolutionResult.ID, d)
+		return nil, fmt.Errorf("doc.ID<%s> does not match did:web value<%s>", resolutionResult.ID, d)
 	}
 	return &resolutionResult.DIDDocument, nil
 }
@@ -157,19 +157,19 @@ func (d DIDWeb) Resolve() (*DIDDocument, error) {
 func (d DIDWeb) resolveDocBytes() ([]byte, error) {
 	docURL, err := d.GetDocURL()
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not resolve DIDWeb %+v", d)
+		return nil, errors.Wrapf(err, "getting doc url %+v", d)
 	}
 	// Specification https://w3c-ccg.github.io/did-method-web/#read-resolve
 	// 6. Perform an HTTP GET request to the URL using an agent that can successfully negotiate a secure HTTPS
 	// connection, which enforces the security requirements as described in 2.5 Security and privacy considerations.
 	resp, err := http.Get(docURL) // #nosec
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not resolve with docURL %+v", docURL)
+		return nil, errors.Wrapf(err, "getting doc %+v", docURL)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not resolve with response %+v", resp)
+		return nil, errors.Wrapf(err, "reading response %+v", resp)
 	}
 	return body, nil
 }
