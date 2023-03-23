@@ -15,9 +15,7 @@ const (
 	BBSPlusSignatureProof2020 SignatureType = "BbsBlsSignatureProof2020"
 )
 
-type BBSPlusSignatureProofSuite struct {
-	CryptoSuiteProofType
-}
+type BBSPlusSignatureProofSuite struct{}
 
 func GetBBSPlusSignatureProofSuite() *BBSPlusSignatureProofSuite {
 	return new(BBSPlusSignatureProofSuite)
