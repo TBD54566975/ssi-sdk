@@ -2,6 +2,7 @@ package ion
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -72,16 +73,20 @@ func (i Resolver) Resolve(id string, _ did.ResolutionOptions) (*did.DIDResolutio
 	}
 	resp, err := http.Get(strings.Join([]string{i.baseURL, "identifiers", id}, "/"))
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not resolve with docURL %+v", i.baseURL)
+		return nil, errors.Wrapf(err, "could not resolve with URL: %s", i.baseURL)
 	}
+
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not resolve with response %+v", resp)
 	}
+	if !is2xxStatusCode(resp.StatusCode) {
+		return nil, fmt.Errorf("could not resolve DID: %s", string(body))
+	}
 	resolutionResult, err := did.ParseDIDResolution(body)
 	if err != nil {
-		return nil, errors.Wrapf(err, "resolving did:ion DID: %s", id)
+		return nil, errors.Wrapf(err, "resolving did:ion DID<%s>", id)
 	}
 	return resolutionResult, nil
 }
@@ -96,9 +101,17 @@ func (i Resolver) Anchor(op AnchorOperation) error {
 	if err != nil {
 		return errors.Wrapf(err, "marshaling anchor operation %+v", op)
 	}
-	_, err = http.Post(strings.Join([]string{i.baseURL, "operations"}, "/"), "application/json", bytes.NewReader(jsonOpBytes))
+	resp, err := http.Post(strings.Join([]string{i.baseURL, "operations"}, "/"), "application/json", bytes.NewReader(jsonOpBytes))
 	if err != nil {
 		return errors.Wrapf(err, "posting anchor operation %+v", op)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return errors.Wrapf(err, "could not resolve with response %+v", resp)
+	}
+	if !is2xxStatusCode(resp.StatusCode) {
+		return fmt.Errorf("anchor operation failed: %s", string(body))
 	}
 	return nil
 }
@@ -128,42 +141,46 @@ func (d *DID) Operation(index int) any {
 	return d.operations[index]
 }
 
-// NewIONDID creates a new ION DID with a new recovery and update key pair  in addition to any content
-// passed into in the document parameter. The document parameter is optional and can be nil. The result
-// is a DID object that contains the long form DID, and operations to be submitted to an anchor service.
-func NewIONDID(doc Document) (*DID, error) {
+// NewIONDID creates a new ION DID with a new recovery and update key pair in addition to any content
+// passed into in the document parameter. The document parameter is optional and can be nil.
+// The result is a DID object that contains the long form DID, and operations to be submitted to an anchor service.
+func NewIONDID(doc Document) (*DID, *CreateRequest, error) {
+	if doc.IsEmpty() {
+		return nil, nil, errors.New("document is empty")
+	}
+
 	// generate update key pair
 	_, updatePrivateKey, err := crypto.GenerateSECP256k1Key()
 	if err != nil {
-		return nil, errors.Wrap(err, "generating update keypair")
+		return nil, nil, errors.Wrap(err, "generating update keypair")
 	}
 	updatePubKeyJWK, updatePrivKeyJWK, err := crypto.PrivateKeyToPrivateKeyJWK(updatePrivateKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "converting update key pair to JWK")
+		return nil, nil, errors.Wrap(err, "converting update key pair to JWK")
 	}
 
 	// generate recovery key pair
 	_, recoveryPrivateKey, err := crypto.GenerateSECP256k1Key()
 	if err != nil {
-		return nil, errors.Wrap(err, "generating recovery keypair")
+		return nil, nil, errors.Wrap(err, "generating recovery keypair")
 	}
 	recoveryPubKeyJWK, recoveryPrivKeyJWK, err := crypto.PrivateKeyToPrivateKeyJWK(recoveryPrivateKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "converting recovery keypair to JWK")
+		return nil, nil, errors.Wrap(err, "converting recovery keypair to JWK")
 	}
 
 	createRequest, err := NewCreateRequest(*recoveryPubKeyJWK, *updatePubKeyJWK, doc)
 	if err != nil {
-		return nil, errors.Wrap(err, "generating create request")
+		return nil, nil, errors.Wrap(err, "generating create request")
 	}
 
 	longFormDID, err := CreateLongFormDID(*recoveryPubKeyJWK, *updatePubKeyJWK, doc)
 	if err != nil {
-		return nil, errors.Wrap(err, "generating long form DID")
+		return nil, nil, errors.Wrap(err, "generating long form DID")
 	}
 	shortFormDID, err := GetShortFormDIDFromLongFormDID(longFormDID)
 	if err != nil {
-		return nil, errors.Wrap(err, "generating short form DID")
+		return nil, nil, errors.Wrap(err, "generating short form DID")
 	}
 	suffix := strings.Split(shortFormDID, ":")[2]
 
@@ -174,7 +191,7 @@ func NewIONDID(doc Document) (*DID, error) {
 		operations:         []any{createRequest},
 		updatePrivateKey:   *updatePrivKeyJWK,
 		recoveryPrivateKey: *recoveryPrivKeyJWK,
-	}, nil
+	}, createRequest, nil
 }
 
 // Update updates the DID object's state with a provided state change object. The result is a new
@@ -272,4 +289,8 @@ func (d *DID) Deactivate() (*DeactivateRequest, error) {
 	d.operations = append(d.operations, deactivateRequest)
 
 	return deactivateRequest, nil
+}
+
+func is2xxStatusCode(statusCode int) bool {
+	return statusCode >= 200 && statusCode < 300
 }

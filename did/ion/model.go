@@ -11,6 +11,10 @@ type Document struct {
 	Services   []Service   `json:"services,omitempty"`
 }
 
+func (d Document) IsEmpty() bool {
+	return len(d.PublicKeys) == 0 && len(d.Services) == 0
+}
+
 // Service declaration in a DID Document
 type Service struct {
 	ID              string `json:"id,omitempty"`
