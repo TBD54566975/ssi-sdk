@@ -1,3 +1,36 @@
+// Package ion provides all the functionality you need to interact with an ION service and manage your ION DID.
+// To start, create a new ION resolver object using the NewResolver function. This will create a new resolver
+// that can resolve and anchor ION DIDs. Next, create a new ION DID using the NewIONDID function. This will
+// create a new ION DID object with a set of receiver methods that can be used to generate operations to submit
+// to the ION service.
+// For example:
+// // Create a new ION resolver
+// resolver, err := ion.NewResolver(http.DefaultClient, "https://ion.tbd.network")
+//
+//	if err != nil {
+//		panic(err)
+//	}
+//
+// // Create a new ION DID
+// did, createOp, err := ion.NewIONDID(Document{[]Services: []Service{Service{ID: "serviceID", Type: "serviceType"}}})
+//
+//	if err != nil {
+//		panic(err)
+//	}
+//
+// // Submit the create operation to the ION service
+// err = resolver.Anchor(ctx, createOp)
+//
+//	if err != nil {
+//		panic(err)
+//	}
+//
+// // Resolve the DID
+// result, err := resolver.Resolve(ctx, did, nil)
+//
+//	if err != nil {
+//		panic(err)
+//	}
 package ion
 
 import (
