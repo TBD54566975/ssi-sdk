@@ -1,6 +1,8 @@
 package ion
 
 import (
+	"context"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,19 +11,29 @@ import (
 
 func TestResolver(t *testing.T) {
 	t.Run("bad resolver", func(tt *testing.T) {
-		emptyResolver, err := NewIONResolver("")
+		emptyResolver, err := NewIONResolver(nil, "")
+		assert.Error(tt, err)
+		assert.Empty(tt, emptyResolver)
+		assert.Contains(tt, err.Error(), "client cannot be nil")
+
+		emptyResolver, err = NewIONResolver(http.DefaultClient, "")
 		assert.Error(tt, err)
 		assert.Empty(tt, emptyResolver)
 		assert.Contains(tt, err.Error(), "empty url")
 
-		resolver, err := NewIONResolver("badurl")
+		resolver, err := NewIONResolver(http.DefaultClient, "badurl")
 		assert.Error(tt, err)
 		assert.Empty(tt, resolver)
 		assert.Contains(tt, err.Error(), "invalid resolver URL")
+
+		httpResolver, err := NewIONResolver(http.DefaultClient, "http://badurl")
+		assert.Error(tt, err)
+		assert.Empty(tt, httpResolver)
+		assert.Contains(tt, err.Error(), "invalid resolver URL scheme; must use https")
 	})
 
 	t.Run("good resolver", func(tt *testing.T) {
-		resolver, err := NewIONResolver("https://www.realurl.com")
+		resolver, err := NewIONResolver(http.DefaultClient, "https://www.realurl.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 	})
@@ -32,11 +44,11 @@ func TestResolver(t *testing.T) {
 			Reply(404)
 		defer gock.Off()
 
-		resolver, err := NewIONResolver("https://test-ion-resolver.com")
+		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolver.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
-		result, err := resolver.Resolve("bad", nil)
+		result, err := resolver.Resolve(context.TODO(), "bad", nil)
 		assert.Error(tt, err)
 		assert.Empty(tt, result)
 		assert.Contains(tt, err.Error(), "could not resolve DID")
@@ -49,11 +61,11 @@ func TestResolver(t *testing.T) {
 			BodyString("bad response")
 		defer gock.Off()
 
-		resolver, err := NewIONResolver("https://test-ion-resolver.com")
+		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolver.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
-		result, err := resolver.Resolve("did:ion:test", nil)
+		result, err := resolver.Resolve(context.TODO(), "did:ion:test", nil)
 		assert.Error(tt, err)
 		assert.Empty(tt, result)
 		assert.Contains(tt, err.Error(), "could not parse DID Resolution Result or DID Document")
@@ -63,17 +75,17 @@ func TestResolver(t *testing.T) {
 		gock.New("https://test-ion-resolver.com").
 			Get("/did:ion:test").
 			Reply(200).
-			BodyString(`{"id":"did:ion:test"}`)
+			BodyString(`{"didDocument": {"id": "did:ion:test"}}`)
 		defer gock.Off()
 
-		resolver, err := NewIONResolver("https://test-ion-resolver.com")
+		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolver.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
-		result, err := resolver.Resolve("did:ion:test", nil)
+		result, err := resolver.Resolve(context.TODO(), "did:ion:test", nil)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, result)
-		assert.Equal(tt, "did:ion:test", result.DIDDocument.ID)
+		assert.Equal(tt, "did:ion:test", result.Document.ID)
 	})
 
 	t.Run("bad anchor", func(tt *testing.T) {
@@ -82,11 +94,11 @@ func TestResolver(t *testing.T) {
 			Reply(400)
 		defer gock.Off()
 
-		resolver, err := NewIONResolver("https://test-ion-resolver.com")
+		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolver.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
-		err = resolver.Anchor(nil)
+		err = resolver.Anchor(context.TODO(), nil)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "anchor operation failed")
 	})
@@ -97,7 +109,7 @@ func TestResolver(t *testing.T) {
 			Reply(200)
 		defer gock.Off()
 
-		resolver, err := NewIONResolver("https://test-ion-resolver.com")
+		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolver.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
@@ -115,7 +127,7 @@ func TestResolver(t *testing.T) {
 		assert.NotEmpty(tt, did)
 		assert.NotEmpty(tt, createOp)
 
-		err = resolver.Anchor(CreateRequest{
+		err = resolver.Anchor(context.TODO(), CreateRequest{
 			Type: Create,
 			SuffixData: SuffixData{
 				DeltaHash:          "deltaHash",
@@ -136,7 +148,7 @@ func TestRequests(t *testing.T) {
 		assert.Error(tt, err)
 		assert.Empty(tt, did)
 		assert.Empty(tt, createOp)
-		assert.Contains(tt, err.Error(), "document is empty")
+		assert.Contains(tt, err.Error(), "document cannot be empty")
 	})
 
 	t.Run("good create request", func(tt *testing.T) {
@@ -187,10 +199,11 @@ func TestRequests(t *testing.T) {
 		assert.NotEmpty(tt, createOp)
 
 		badStateChange := StateChange{}
-		updateOp, err := did.Update(badStateChange)
+		updatedDID, updateOp, err := did.Update(badStateChange)
 		assert.Error(tt, err)
+		assert.Empty(tt, updatedDID)
 		assert.Empty(tt, updateOp)
-		assert.Contains(tt, err.Error(), "state change is empty")
+		assert.Contains(tt, err.Error(), "state change cannot be empty")
 	})
 
 	t.Run("good update request", func(tt *testing.T) {
@@ -206,9 +219,6 @@ func TestRequests(t *testing.T) {
 		assert.NotEmpty(tt, did)
 		assert.NotEmpty(tt, createOp)
 
-		// note original update key
-		originalUpdateKey := did.updatePrivateKey
-
 		stateChange := StateChange{
 			ServicesToAdd: []Service{
 				{
@@ -217,8 +227,9 @@ func TestRequests(t *testing.T) {
 				},
 			},
 		}
-		updateOp, err := did.Update(stateChange)
+		updatedDID, updateOp, err := did.Update(stateChange)
 		assert.NoError(tt, err)
+		assert.NotEmpty(tt, updatedDID)
 		assert.NotEmpty(tt, updateOp)
 
 		// check update op
@@ -230,8 +241,9 @@ func TestRequests(t *testing.T) {
 		assert.NotEmpty(tt, updateOp.SignedData)
 
 		// make sure keys are different and op is added
-		assert.NotEqual(tt, did.updatePrivateKey, originalUpdateKey)
-		assert.Len(tt, did.Operations(), 2)
+		assert.NotEqual(tt, did.updatePrivateKey, updatedDID.updatePrivateKey)
+		assert.Len(tt, did.Operations(), 1)
+		assert.Len(tt, updatedDID.Operations(), 2)
 	})
 
 	t.Run("bad recover request", func(tt *testing.T) {
@@ -247,10 +259,11 @@ func TestRequests(t *testing.T) {
 		assert.NotEmpty(tt, did)
 		assert.NotEmpty(tt, createOp)
 
-		recoverOp, err := did.Recover(Document{})
+		recoveredDID, recoverOp, err := did.Recover(Document{})
 		assert.Error(tt, err)
+		assert.Empty(tt, recoveredDID)
 		assert.Empty(tt, recoverOp)
-		assert.Contains(tt, err.Error(), "document is empty")
+		assert.Contains(tt, err.Error(), "document cannot be empty")
 	})
 
 	t.Run("good recover request", func(tt *testing.T) {
@@ -267,12 +280,9 @@ func TestRequests(t *testing.T) {
 		assert.NotEmpty(tt, did)
 		assert.NotEmpty(tt, createOp)
 
-		// note original update and recovery keys
-		originalUpdateKey := did.updatePrivateKey
-		originalRecoveryKey := did.recoveryPrivateKey
-
-		recoverOp, err := did.Recover(document)
+		recoveredDID, recoverOp, err := did.Recover(document)
 		assert.NoError(tt, err)
+		assert.NotEmpty(tt, recoveredDID)
 		assert.NotEmpty(tt, recoverOp)
 
 		assert.Equal(tt, Recover, recoverOp.Type)
@@ -283,17 +293,19 @@ func TestRequests(t *testing.T) {
 		assert.NotEmpty(tt, recoverOp.SignedData)
 
 		// make sure keys are different and op is added
-		assert.NotEqual(tt, did.updatePrivateKey, originalUpdateKey)
-		assert.NotEqual(tt, did.recoveryPrivateKey, originalRecoveryKey)
-		assert.Len(tt, did.Operations(), 2)
+		assert.NotEqual(tt, did.updatePrivateKey, recoveredDID.updatePrivateKey)
+		assert.NotEqual(tt, did.recoveryPrivateKey, recoveredDID.recoveryPrivateKey)
+		assert.Len(tt, did.Operations(), 1)
+		assert.Len(tt, recoveredDID.Operations(), 2)
 	})
 
 	t.Run("bad deactivate request", func(tt *testing.T) {
 		emptyDID := DID{}
-		deactivateOp, err := emptyDID.Deactivate()
+		deactivatedDID, deactivateOp, err := emptyDID.Deactivate()
 		assert.Error(tt, err)
+		assert.Empty(tt, deactivatedDID)
 		assert.Empty(tt, deactivateOp)
-		assert.Contains(tt, err.Error(), "DID is empty")
+		assert.Contains(tt, err.Error(), "DID cannot be empty")
 	})
 
 	t.Run("good deactivate request", func(tt *testing.T) {
@@ -310,8 +322,9 @@ func TestRequests(t *testing.T) {
 		assert.NotEmpty(tt, did)
 		assert.NotEmpty(tt, createOp)
 
-		deactivateOp, err := did.Deactivate()
+		deactivatedDID, deactivateOp, err := did.Deactivate()
 		assert.NoError(tt, err)
+		assert.NotEmpty(tt, deactivatedDID)
 		assert.NotEmpty(tt, deactivateOp)
 
 		assert.Equal(tt, Deactivate, deactivateOp.Type)
@@ -320,6 +333,7 @@ func TestRequests(t *testing.T) {
 		assert.NotEmpty(tt, deactivateOp.RevealValue)
 		assert.NotEmpty(tt, deactivateOp.SignedData)
 
-		assert.Len(tt, did.Operations(), 2)
+		assert.Len(tt, did.Operations(), 1)
+		assert.Len(tt, deactivatedDID.Operations(), 2)
 	})
 }

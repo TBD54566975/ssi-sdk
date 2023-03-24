@@ -2,6 +2,7 @@ package ion
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -48,7 +49,8 @@ func (DIDION) Method() did.Method {
 }
 
 type Resolver struct {
-	baseURL string
+	client  *http.Client
+	baseURL url.URL
 }
 
 // NewIONResolver creates a new resolver for the ION DID method with a common base URL
@@ -60,30 +62,45 @@ type Resolver struct {
 // and similarly for submitting anchor operations to the ION node...
 //
 //	https://ion.tbd.network/operations
-func NewIONResolver(baseURL string) (*Resolver, error) {
-	if _, err := url.ParseRequestURI(baseURL); err != nil {
+func NewIONResolver(client *http.Client, baseURL string) (*Resolver, error) {
+	if client == nil {
+		return nil, errors.New("client cannot be nil")
+	}
+	parsedURL, err := url.ParseRequestURI(baseURL)
+	if err != nil {
 		return nil, errors.Wrap(err, "invalid resolver URL")
 	}
-	return &Resolver{baseURL: baseURL}, nil
+	if parsedURL.Scheme != "https" {
+		return nil, errors.New("invalid resolver URL scheme; must use https")
+	}
+	return &Resolver{
+		client:  client,
+		baseURL: *parsedURL,
+	}, nil
 }
 
 // Resolve resolves a did:ion DID by appending the DID to the base URL with the identifiers path and making a GET request
-func (i Resolver) Resolve(id string, _ did.ResolutionOptions) (*did.DIDResolutionResult, error) {
-	if i.baseURL == "" {
-		return nil, errors.New("resolver URL is empty")
+func (i Resolver) Resolve(ctx context.Context, id string, _ did.ResolutionOptions) (*did.ResolutionResult, error) {
+	if i.baseURL.String() == "" {
+		return nil, errors.New("resolver URL cannot be empty")
 	}
-	resp, err := http.Get(strings.Join([]string{i.baseURL, "identifiers", id}, "/"))
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.Join([]string{i.baseURL.String(), "identifiers", id}, "/"), nil)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not resolve with URL: %s", i.baseURL)
+		return nil, errors.Wrap(err, "creating request")
+	}
+	resp, err := i.client.Do(req)
+	if err != nil {
+		return nil, errors.Wrapf(err, "resolving, with URL: %s", i.baseURL.String())
 	}
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not resolve with response %+v", resp)
+		return nil, errors.Wrapf(err, "resolving, with response %+v", resp)
 	}
 	if !is2xxStatusCode(resp.StatusCode) {
-		return nil, fmt.Errorf("could not resolve DID: %s", string(body))
+		return nil, fmt.Errorf("could not resolve DID: %q", string(body))
 	}
 	resolutionResult, err := did.ParseDIDResolution(body)
 	if err != nil {
@@ -94,18 +111,24 @@ func (i Resolver) Resolve(id string, _ did.ResolutionOptions) (*did.DIDResolutio
 
 // Anchor submits an anchor operation to the ION node by appending the operations path to the base URL
 // and making a POST request
-func (i Resolver) Anchor(op AnchorOperation) error {
-	if i.baseURL == "" {
-		return errors.New("resolver URL is empty")
+func (i Resolver) Anchor(ctx context.Context, op AnchorOperation) error {
+	if i.baseURL.String() == "" {
+		return errors.New("resolver URL cannot be empty")
 	}
 	jsonOpBytes, err := json.Marshal(op)
 	if err != nil {
-		return errors.Wrapf(err, "marshaling anchor operation %+v", op)
+		return errors.Wrapf(err, "marshalling anchor operation %+v", op)
 	}
-	resp, err := http.Post(strings.Join([]string{i.baseURL, "operations"}, "/"), "application/json", bytes.NewReader(jsonOpBytes))
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.Join([]string{i.baseURL.String(), "operations"}, "/"), bytes.NewReader(jsonOpBytes))
+	if err != nil {
+		return errors.Wrap(err, "creating request")
+	}
+	resp, err := i.client.Do(req)
 	if err != nil {
 		return errors.Wrapf(err, "posting anchor operation %+v", op)
 	}
+
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -117,6 +140,10 @@ func (i Resolver) Anchor(op AnchorOperation) error {
 	return nil
 }
 
+// DID is a representation of a did:ion DID and should be used to maintain the state of an ION
+// DID Document. It contains the DID suffix, the long form DID, the operations of the DID, and both
+// the update and recovery private keys. All receiver methods are side effect free, and return new
+// instances of DID with the updated state.
 type DID struct {
 	id                 string
 	suffix             string
@@ -126,35 +153,32 @@ type DID struct {
 	recoveryPrivateKey crypto.PrivateKeyJWK
 }
 
-func (d *DID) IsEmpty() bool {
-	if d == nil {
-		return true
-	}
-	return reflect.DeepEqual(d, &DID{})
+func (d DID) IsEmpty() bool {
+	return reflect.DeepEqual(d, DID{})
 }
 
-func (d *DID) ID() string {
+func (d DID) ID() string {
 	return d.id
 }
 
-func (d *DID) LongForm() string {
+func (d DID) LongForm() string {
 	return d.longFormDID
 }
 
-func (d *DID) Operations() []any {
+func (d DID) Operations() []any {
 	return d.operations
 }
 
-func (d *DID) Operation(index int) any {
+func (d DID) Operation(index int) any {
 	return d.operations[index]
 }
 
-// NewIONDID creates a new ION DID with a new recovery and update key pair in addition to any content
-// passed into in the document parameter. The document parameter is optional and can be nil.
-// The result is a DID object that contains the long form DID, and operations to be submitted to an anchor service.
+// NewIONDID creates a new ION DID with a new recovery and update key pairs, of type secp256k1, in addition
+// to any content passed into in the document parameter. The result is a DID object that contains the long form DID,
+// and operations to be submitted to an anchor service.
 func NewIONDID(doc Document) (*DID, *CreateRequest, error) {
 	if doc.IsEmpty() {
-		return nil, nil, errors.New("document is empty")
+		return nil, nil, errors.New("document cannot be empty")
 	}
 
 	// generate update key pair
@@ -186,11 +210,11 @@ func NewIONDID(doc Document) (*DID, *CreateRequest, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating long form DID")
 	}
-	shortFormDID, err := GetShortFormDIDFromLongFormDID(longFormDID)
+	shortFormDID, err := LongToShortFormDID(longFormDID)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating short form DID")
 	}
-	suffix := strings.Split(shortFormDID, ":")[2]
+	suffix := shortFormDID[len("did:ion:"):]
 
 	return &DID{
 		id:                 shortFormDID,
@@ -202,121 +226,129 @@ func NewIONDID(doc Document) (*DID, *CreateRequest, error) {
 	}, createRequest, nil
 }
 
-// Update updates the DID object's state with a provided state change object. The result is a new
-// update key pair and an update operation to be submitted to an anchor service.
-func (d *DID) Update(stateChange StateChange) (*UpdateRequest, error) {
+// Update updates the DID object's state with a provided state change object. The result is a new DID object
+// with the update key pair and an update operation to be submitted to an anchor service.
+func (d DID) Update(stateChange StateChange) (*DID, *UpdateRequest, error) {
 	if d.IsEmpty() {
-		return nil, errors.New("DID is empty")
+		return nil, nil, errors.New("DID cannot be empty")
 	}
 
 	if err := stateChange.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "invalid state change")
+		return nil, nil, errors.Wrap(err, "invalid state change")
 	}
 
 	// generate next update key pair
 	_, nextUpdatePrivateKey, err := crypto.GenerateSECP256k1Key()
 	if err != nil {
-		return nil, errors.Wrap(err, "generating next update keypair")
+		return nil, nil, errors.Wrap(err, "generating next update keypair")
 	}
 	nextUpdatePubKeyJWK, nextUpdatePrivKeyJWK, err := crypto.PrivateKeyToPrivateKeyJWK(nextUpdatePrivateKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "converting next update key pair to JWK")
+		return nil, nil, errors.Wrap(err, "converting next update key pair to JWK")
 	}
 
 	// create a signer with the current update key
 	signer, err := NewBTCSignerVerifier(d.updatePrivateKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating signer")
+		return nil, nil, errors.Wrap(err, "creating signer")
 	}
 
 	updateRequest, err := NewUpdateRequest(d.suffix, d.updatePrivateKey.ToPublicKeyJWK(), *nextUpdatePubKeyJWK, *signer, stateChange)
 	if err != nil {
-		return nil, errors.Wrap(err, "generating update request")
+		return nil, nil, errors.Wrap(err, "generating update request")
 	}
 
-	// update the DID object with the new update key
-	d.updatePrivateKey = *nextUpdatePrivKeyJWK
-
-	// add op to ops store
-	d.operations = append(d.operations, updateRequest)
-
-	return updateRequest, nil
+	updatedDID := DID{
+		id:                 d.id,
+		suffix:             d.suffix,
+		longFormDID:        d.longFormDID,
+		operations:         append(d.operations, updateRequest),
+		updatePrivateKey:   *nextUpdatePrivKeyJWK,
+		recoveryPrivateKey: d.recoveryPrivateKey,
+	}
+	return &updatedDID, updateRequest, nil
 }
 
-// Recover recovers the DID object's state with a provided document object. The result is a new recover request
-// to be submitted to an anchor service.
-func (d *DID) Recover(doc Document) (*RecoverRequest, error) {
+// Recover recovers the DID object's state with a provided document object, returning a new DID object and
+// recover operation to be submitted to an anchor service.
+func (d DID) Recover(doc Document) (*DID, *RecoverRequest, error) {
 	if d.IsEmpty() {
-		return nil, errors.New("DID is empty")
+		return nil, nil, errors.New("DID cannot be empty")
 	}
 
 	if doc.IsEmpty() {
-		return nil, errors.New("document is empty")
+		return nil, nil, errors.New("document cannot be empty")
 	}
 
 	// generate next recovery key pair
 	_, nextRecoveryPrivateKey, err := crypto.GenerateSECP256k1Key()
 	if err != nil {
-		return nil, errors.Wrap(err, "generating nest recovery keypair")
+		return nil, nil, errors.Wrap(err, "generating nest recovery keypair")
 	}
 	nextRecoveryPubKeyJWK, nextRecoveryPrivKeyJWK, err := crypto.PrivateKeyToPrivateKeyJWK(nextRecoveryPrivateKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "converting next recovery key pair to JWK")
+		return nil, nil, errors.Wrap(err, "converting next recovery key pair to JWK")
 	}
 
 	// generate next update key pair
 	_, nextUpdatePrivateKey, err := crypto.GenerateSECP256k1Key()
 	if err != nil {
-		return nil, errors.Wrap(err, "generating next update keypair")
+		return nil, nil, errors.Wrap(err, "generating next update keypair")
 	}
 	nextUpdatePubKeyJWK, nextUpdatePrivKeyJWK, err := crypto.PrivateKeyToPrivateKeyJWK(nextUpdatePrivateKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "converting next update key pair to JWK")
+		return nil, nil, errors.Wrap(err, "converting next update key pair to JWK")
 	}
 
 	// create a signer with the current update key
 	signer, err := NewBTCSignerVerifier(d.updatePrivateKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating signer")
+		return nil, nil, errors.Wrap(err, "creating signer")
 	}
 
 	recoverRequest, err := NewRecoverRequest(d.suffix, d.recoveryPrivateKey.ToPublicKeyJWK(), *nextRecoveryPubKeyJWK, *nextUpdatePubKeyJWK, doc, *signer)
 	if err != nil {
-		return nil, errors.Wrap(err, "generating recover request")
+		return nil, nil, errors.Wrap(err, "generating recover request")
 	}
 
-	// update the DID object with the new recovery and update keys
-	d.recoveryPrivateKey = *nextRecoveryPrivKeyJWK
-	d.updatePrivateKey = *nextUpdatePrivKeyJWK
-
-	// add op to ops store
-	d.operations = append(d.operations, recoverRequest)
-
-	return recoverRequest, nil
+	recoveredDID := DID{
+		id:                 d.id,
+		suffix:             d.suffix,
+		longFormDID:        d.longFormDID,
+		operations:         append(d.operations, recoverRequest),
+		updatePrivateKey:   *nextUpdatePrivKeyJWK,
+		recoveryPrivateKey: *nextRecoveryPrivKeyJWK,
+	}
+	return &recoveredDID, recoverRequest, nil
 }
 
-// Deactivate deactivates the DID object's state. The result is a new deactivate request
-// to be submitted to an anchor service.
-func (d *DID) Deactivate() (*DeactivateRequest, error) {
+// Deactivate creates a terminal state DID and the corresponding anchor operation to submit to the anchor service.
+func (d DID) Deactivate() (*DID, *DeactivateRequest, error) {
 	if d.IsEmpty() {
-		return nil, errors.New("DID is empty")
+		return nil, nil, errors.New("DID cannot be empty")
 	}
 
 	// create a signer with the current update key
 	signer, err := NewBTCSignerVerifier(d.updatePrivateKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating signer")
+		return nil, nil, errors.Wrap(err, "creating signer")
 	}
 
 	deactivateRequest, err := NewDeactivateRequest(d.suffix, d.updatePrivateKey.ToPublicKeyJWK(), *signer)
 	if err != nil {
-		return nil, errors.Wrap(err, "generating deactivate request")
+		return nil, nil, errors.Wrap(err, "generating deactivate request")
 	}
 
-	// add op to ops store
-	d.operations = append(d.operations, deactivateRequest)
+	deactivatedDID := DID{
+		id:                 d.id,
+		suffix:             d.suffix,
+		longFormDID:        d.longFormDID,
+		operations:         append(d.operations, deactivateRequest),
+		updatePrivateKey:   d.updatePrivateKey,
+		recoveryPrivateKey: d.recoveryPrivateKey,
+	}
 
-	return deactivateRequest, nil
+	return &deactivatedDID, deactivateRequest, nil
 }
 
 func is2xxStatusCode(statusCode int) bool {

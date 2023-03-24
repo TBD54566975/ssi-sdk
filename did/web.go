@@ -48,11 +48,11 @@ func (DIDWeb) Method() Method {
 	return WebMethod
 }
 
-// CreateDoc constructs a did:web DIDDocument from a specific key type and its corresponding public key. This method
-// does not attempt to validate that the provided public key is of the specified key type. The returned DIDDocument is
+// CreateDoc constructs a did:web Document from a specific key type and its corresponding public key. This method
+// does not attempt to validate that the provided public key is of the specified key type. The returned Document is
 // expected further turned into a JSON file named did.json and stored under the expected path of the target web domain
 // specification: https://w3c-ccg.github.io/did-method-web/#create-register
-func (d DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*DIDDocument, error) {
+func (d DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*Document, error) {
 	ldKeyType, err := KeyTypeToLDKeyType(kt)
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func (d DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*DIDDocument, er
 		[]string{keyReference},
 	}
 
-	return &DIDDocument{
+	return &Document{
 		Context:            KnownDIDContext,
 		ID:                 didWebStr,
 		VerificationMethod: []VerificationMethod{*verificationMethod},
@@ -137,7 +137,7 @@ func (d DIDWeb) GetDocURL() (string, error) {
 	return sb.String(), nil
 }
 
-func (d DIDWeb) Resolve() (*DIDDocument, error) {
+func (d DIDWeb) Resolve() (*Document, error) {
 	docBytes, err := d.resolveDocBytes()
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolving did:web DID<%s>", d)
@@ -149,7 +149,7 @@ func (d DIDWeb) Resolve() (*DIDDocument, error) {
 	if resolutionResult.ID != d.String() {
 		return nil, fmt.Errorf("doc.id<%s> does not match did:web value<%s>", resolutionResult.ID, d)
 	}
-	return &resolutionResult.DIDDocument, nil
+	return &resolutionResult.Document, nil
 }
 
 // resolveDocBytes simply performs a http.Get on the expected URL of the DID Document from GetDocURL
@@ -180,16 +180,16 @@ func (WebResolver) Method() Method {
 	return WebMethod
 }
 
-// Resolve fetches and returns the DIDDocument from the expected URL
+// Resolve fetches and returns the Document from the expected URL
 // specification: https://w3c-ccg.github.io/did-method-web/#read-resolve
-func (WebResolver) Resolve(did string, _ ResolutionOptions) (*DIDResolutionResult, error) {
+func (WebResolver) Resolve(did string, _ ResolutionOptions) (*ResolutionResult, error) {
 	if !strings.HasPrefix(did, WebPrefix) {
 		return nil, fmt.Errorf("not a did:web DID: %s", did)
 	}
 	didWeb := DIDWeb(did)
 	doc, err := didWeb.Resolve()
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not resolve did:web DID: %s", did)
+		return nil, errors.Wrapf(err, "cresolving did:web DID: %s", did)
 	}
-	return &DIDResolutionResult{DIDDocument: *doc}, nil
+	return &ResolutionResult{Document: *doc}, nil
 }

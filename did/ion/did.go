@@ -77,8 +77,8 @@ func CreateShortFormDID(suffixData any) (string, error) {
 	return strings.Join([]string{"did", did.IONMethod.String(), hash}, ":"), nil
 }
 
-// GetShortFormDIDFromLongFormDID returns the short form DID from a long form DID
-func GetShortFormDIDFromLongFormDID(longFormDID string) (string, error) {
+// LongToShortFormDID returns the short form DID from a long form DID
+func LongToShortFormDID(longFormDID string) (string, error) {
 	shortFormDID, _, err := DecodeLongFormDID(longFormDID)
 	if err != nil {
 		return "", errors.Wrap(err, "decoding long form DID")

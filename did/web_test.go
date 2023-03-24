@@ -51,7 +51,7 @@ func TestDIDWebResolveDocBytes(t *testing.T) {
 		gock.New("https://demo.ssi-sdk.com").
 			Get("/.well-known/did.json").
 			Reply(200).
-			BodyString(`{"id":"did:web:demo.ssi-sdk.com"}`)
+			BodyString(`{"didDocument": {"id": "did:web:demo.ssi-sdk.com"}}`)
 		defer gock.Off()
 
 		docBytes, err := didWebToBeResolved.resolveDocBytes()
@@ -71,7 +71,7 @@ func TestDIDWebResolve(t *testing.T) {
 		gock.New("https://demo.ssi-sdk.com").
 			Get("/.well-known/did.json").
 			Reply(200).
-			BodyString(`{"id":"did:web:demo.ssi-sdk.com"}`)
+			BodyString(`{"didDocument": {"id": "did:web:demo.ssi-sdk.com"}}`)
 		defer gock.Off()
 
 		doc, err := didWebToBeResolved.Resolve()
@@ -83,7 +83,7 @@ func TestDIDWebResolve(t *testing.T) {
 		gock.New("https://doesnotexist.com").
 			Get("/.well-known/did.json").
 			Reply(200).
-			BodyString(`{"id":"did:web:demo.ssi-sdk.com"}`)
+			BodyString(`{"didDocument": {"id": "did:web:demo.ssi-sdk.com"}}`)
 		defer gock.Off()
 
 		_, err := didWebCannotBeResolved.Resolve()

@@ -227,7 +227,7 @@ func (s StateChange) IsEmpty() bool {
 
 func (s StateChange) IsValid() error {
 	if s.IsEmpty() {
-		return errors.New("state change is empty")
+		return errors.New("state change cannot be empty")
 	}
 
 	// check if services are valid
