@@ -1,0 +1,23 @@
+name: Push File
+
+on: push
+
+jobs:
+  copy-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Pushes test file
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          source_file: './wasm/static/main.wasm'
+          destination_repo: 'TBD54566975/ssi-sdk-wasm/'
+          destination_folder: 'dist/main.wasm'
+          user_email: 'tbd-developer@squareup.com'
+          user_name: 'TBD54566975'
+          destination_branch: 'wasm-update'
+          commit_message: 'New wasm build'
