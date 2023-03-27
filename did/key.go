@@ -160,7 +160,7 @@ func codecToLDKeyType(codec multicodec.Code) (cryptosuite.LDKeyType, error) {
 }
 
 // Expand turns the DID key into a compliant DID Document
-func (d DIDKey) Expand() (*DIDDocument, error) {
+func (d DIDKey) Expand() (*Document, error) {
 	parsed, err := d.Suffix()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse did:key")
@@ -183,7 +183,7 @@ func (d DIDKey) Expand() (*DIDDocument, error) {
 		[]string{keyReference},
 	}
 
-	return &DIDDocument{
+	return &Document{
 		Context:              KnownDIDContext,
 		ID:                   id,
 		VerificationMethod:   []VerificationMethod{*verificationMethod},
@@ -266,7 +266,7 @@ func GetSupportedDIDKeyTypes() []crypto.KeyType {
 
 type KeyResolver struct{}
 
-func (KeyResolver) Resolve(did string, _ ResolutionOptions) (*DIDResolutionResult, error) {
+func (KeyResolver) Resolve(did string, _ ResolutionOptions) (*ResolutionResult, error) {
 	if !strings.HasPrefix(did, DIDKeyPrefix) {
 		return nil, fmt.Errorf("not a did:key DID: %s", did)
 	}
@@ -276,7 +276,7 @@ func (KeyResolver) Resolve(did string, _ ResolutionOptions) (*DIDResolutionResul
 		return nil, errors.Wrapf(err, "could not expand did:key DID: %s", did)
 	}
 	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
-	return &DIDResolutionResult{DIDDocument: *doc}, nil
+	return &ResolutionResult{Document: *doc}, nil
 }
 
 func (KeyResolver) Method() Method {

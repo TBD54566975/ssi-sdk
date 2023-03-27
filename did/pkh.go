@@ -146,7 +146,7 @@ func GetDIDPKHNetworkPrefixes() []string {
 }
 
 // Expand turns the DID key into a complaint DID Document
-func (d DIDPKH) Expand() (*DIDDocument, error) {
+func (d DIDPKH) Expand() (*Document, error) {
 	verificationMethod, err := constructPKHVerificationMethod(d)
 
 	if err != nil {
@@ -167,7 +167,7 @@ func (d DIDPKH) Expand() (*DIDDocument, error) {
 		string(d) + "#blockchainAccountId",
 	}
 
-	return &DIDDocument{
+	return &Document{
 		Context:              contextJSON,
 		ID:                   string(d),
 		VerificationMethod:   []VerificationMethod{*verificationMethod},
@@ -246,7 +246,7 @@ func IsValidPKH(did DIDPKH) bool {
 
 type PKHResolver struct{}
 
-func (PKHResolver) Resolve(did string, _ ResolutionOptions) (*DIDResolutionResult, error) {
+func (PKHResolver) Resolve(did string, _ ResolutionOptions) (*ResolutionResult, error) {
 	if !strings.HasPrefix(did, DIDPKHPrefix) {
 		return nil, fmt.Errorf("not a did:pkh DID: %s", did)
 	}
@@ -256,7 +256,7 @@ func (PKHResolver) Resolve(did string, _ ResolutionOptions) (*DIDResolutionResul
 		return nil, errors.Wrapf(err, "could not expand did:pkh DID: %s", did)
 	}
 	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
-	return &DIDResolutionResult{DIDDocument: *doc}, nil
+	return &ResolutionResult{Document: *doc}, nil
 }
 
 func (PKHResolver) Method() Method {

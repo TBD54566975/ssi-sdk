@@ -152,8 +152,8 @@ func TestDIDPeerDeltaError(t *testing.T) {
 	assert.Contains(t, err.Error(), "not implemented")
 }
 
-func makeSamplePeerDIDDocument1() *DIDDocument {
-	return &DIDDocument{
+func makeSamplePeerDIDDocument1() *Document {
+	return &Document{
 		Context: "https://www.w3.org/ns/did/v1",
 		ID:      "did:peer:0z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs",
 		Authentication: []VerificationMethodSet{
@@ -191,7 +191,7 @@ func TestPeerMethod0(t *testing.T) {
 	assert.NoError(t, err)
 	testDoc := makeSamplePeerDIDDocument1()
 
-	assert.Equal(t, testDoc.Context, resolved.Context)
+	assert.Equal(t, testDoc.Context, resolved.Document.Context)
 }
 
 func TestPeerMethod2(t *testing.T) {
@@ -223,8 +223,8 @@ func TestPeerMethod1(t *testing.T) {
 	assert.Contains(t, "not implemented", err.Error())
 }
 
-func makeSamplePeerDIDDocument() *DIDDocument {
-	return &DIDDocument{
+func makeSamplePeerDIDDocument() *Document {
+	return &Document{
 		Context: "https://w3id.org/did/v1",
 		ID:      "did:peer:2.Ez6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc.Vz6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V.Vz6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0",
 		Authentication: []VerificationMethodSet{
@@ -259,8 +259,8 @@ func makeSamplePeerDIDDocument() *DIDDocument {
 	}
 }
 
-func getSampleDIDDocumentMethod0() *DIDDocument {
-	return &DIDDocument{
+func getSampleDIDDocumentMethod0() *Document {
+	return &Document{
 		Context: "https://www.w3.org/ns/did/v1",
 		ID:      "did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH",
 	}
@@ -271,7 +271,7 @@ func TestPeerResolveMethod0(t *testing.T) {
 	resolved, err := PeerMethod0{}.resolve(did, nil)
 	assert.NoError(t, err)
 	gtestDoc := getSampleDIDDocumentMethod0()
-	assert.Equal(t, gtestDoc.Context, resolved.Context)
+	assert.Equal(t, gtestDoc.Context, resolved.Document.Context)
 	assert.Equal(t, gtestDoc.ID, resolved.ID)
 }
 
@@ -297,7 +297,7 @@ func TestPeerResolveMethod2(t *testing.T) {
 	resolved, err := PeerMethod2{}.resolve(did, nil)
 	assert.NoError(t, err)
 
-	assert.Equal(t, testDoc.Context, resolved.Context)
+	assert.Equal(t, testDoc.Context, resolved.Document.Context)
 	assert.Equal(t, testDoc.ID, resolved.ID)
 
 	assert.Equal(t, testDoc.Services[0].ID, resolved.Services[0].ID)

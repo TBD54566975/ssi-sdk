@@ -11,6 +11,10 @@ type Document struct {
 	Services   []Service   `json:"services,omitempty"`
 }
 
+func (d Document) IsEmpty() bool {
+	return len(d.PublicKeys) == 0 && len(d.Services) == 0
+}
+
 // Service declaration in a DID Document
 type Service struct {
 	ID              string `json:"id,omitempty"`
@@ -59,10 +63,18 @@ type ReplaceAction struct {
 
 // request models
 
+type AnchorOperation interface {
+	GetType() OperationType
+}
+
 type CreateRequest struct {
 	Type       OperationType `json:"type,omitempty"`
 	SuffixData SuffixData    `json:"suffixData,omitempty"`
 	Delta      Delta         `json:"delta,omitempty"`
+}
+
+func (CreateRequest) GetType() OperationType {
+	return Create
 }
 
 type SuffixData struct {
@@ -76,6 +88,10 @@ type UpdateRequest struct {
 	RevealValue string        `json:"revealValue,omitempty"`
 	Delta       Delta         `json:"delta,omitempty"`
 	SignedData  string        `json:"signedData,omitempty"`
+}
+
+func (UpdateRequest) GetType() OperationType {
+	return Update
 }
 
 // UpdateSignedDataObject https://identity.foundation/sidetree/spec/#update-signed-data-object
@@ -127,6 +143,10 @@ type DeactivateRequest struct {
 	SignedData  string        `json:"signedData,omitempty"`
 }
 
+func (DeactivateRequest) GetType() OperationType {
+	return Deactivate
+}
+
 // DeactivateSignedDataObject https://identity.foundation/sidetree/spec/#deactivate-signed-data-object
 type DeactivateSignedDataObject struct {
 	DIDSuffix   string              `json:"didSuffix,omitempty"`
@@ -139,6 +159,10 @@ type RecoverRequest struct {
 	RevealValue string        `json:"revealValue,omitempty"`
 	Delta       Delta         `json:"delta,omitempty"`
 	SignedData  string        `json:"signedData,omitempty"`
+}
+
+func (RecoverRequest) GetType() OperationType {
+	return Recover
 }
 
 // RecoverySignedDataObject https://identity.foundation/sidetree/spec/#recovery-signed-data-object

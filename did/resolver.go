@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 )
 
@@ -13,7 +14,7 @@ type ResolutionOptions any
 // Resolution provides an interface for resolving DIDs as per the spec https://www.w3.org/TR/did-core/#did-resolution
 type Resolution interface {
 	// Resolve Attempts to resolve a DID for a given method
-	Resolve(did string, opts ResolutionOptions) (*DIDResolutionResult, error)
+	Resolve(did string, opts ResolutionOptions) (*ResolutionResult, error)
 	// Method provides the method for the given resolution implementation
 	Method() Method
 }
@@ -41,7 +42,7 @@ func NewResolver(resolvers ...Resolution) (*Resolver, error) {
 }
 
 // Resolve attempts to resolve a DID for a given method
-func (dr Resolver) Resolve(did string, opts ...ResolutionOptions) (*DIDResolutionResult, error) {
+func (dr Resolver) Resolve(did string, opts ...ResolutionOptions) (*ResolutionResult, error) {
 	method, err := GetMethodForDID(did)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get method for DID before resolving")
@@ -63,4 +64,34 @@ func GetMethodForDID(did string) (Method, error) {
 		return "", fmt.Errorf("not a valid did: %s", did)
 	}
 	return Method(split[1]), nil
+}
+
+// ParseDIDResolution attempts to parse a DID Resolution Result or a DID Document
+func ParseDIDResolution(resolvedDID []byte) (*ResolutionResult, error) {
+	if len(resolvedDID) == 0 {
+		return nil, errors.New("cannot parse empty resolved DID")
+	}
+
+	// first try to parse as a DID Resolution Result
+	var result ResolutionResult
+	if err := json.Unmarshal(resolvedDID, &result); err == nil {
+		if result.IsEmpty() {
+			return nil, errors.New("empty DID Resolution Result")
+		}
+		return &result, err
+	}
+
+	// next try to parse as a DID Document
+	var didDoc Document
+	if err := json.Unmarshal(resolvedDID, &didDoc); err == nil {
+		if didDoc.IsEmpty() {
+			return nil, errors.New("empty DID Document")
+		}
+		return &ResolutionResult{
+			Document: didDoc,
+		}, nil
+	}
+
+	// if that fails we don't know what it is!
+	return nil, errors.New("could not parse DID Resolution Result or DID Document")
 }

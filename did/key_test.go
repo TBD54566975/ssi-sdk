@@ -223,7 +223,7 @@ func TestGenerateAndResolve(t *testing.T) {
 		doc, err := resolver.Resolve(didKey.String())
 		assert.NoError(t, err)
 		assert.NotEmpty(t, doc)
-		assert.Equal(t, didKey.String(), doc.DIDDocument.ID)
+		assert.Equal(t, didKey.String(), doc.Document.ID)
 	}
 }
 

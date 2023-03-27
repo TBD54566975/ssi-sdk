@@ -51,6 +51,6 @@ func FuzzCreateAndResolve(f *testing.F) {
 			t.Skip()
 		}
 		assert.NotEmpty(t, doc)
-		assert.Equal(t, didKey.String(), doc.DIDDocument.ID)
+		assert.Equal(t, didKey.String(), doc.Document.ID)
 	})
 }

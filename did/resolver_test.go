@@ -47,10 +47,33 @@ func TestResolveDID(t *testing.T) {
 	gock.New("https://demo.ssi-sdk.com").
 		Get("/.well-known/did.json").
 		Reply(200).
-		BodyString(`{"id":"did:web:demo.ssi-sdk.com"}`)
+		BodyString(`{"didDocument": {"id": "did:web:demo.ssi-sdk.com"}}`)
 	defer gock.Off()
 	didWeb := "did:web:demo.ssi-sdk.com"
 	doc, err = resolver.Resolve(didWeb)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, doc)
+}
+
+func TestParseDIDResolution(t *testing.T) {
+	t.Run("bad response", func(tt *testing.T) {
+		_, err := ParseDIDResolution([]byte("bad response"))
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "could not parse DID Resolution Result or DID Document")
+	})
+
+	t.Run("bad did document", func(tt *testing.T) {
+		resolutionResult, err := ParseDIDResolution([]byte(`{"didDocument": "bad document"}`))
+		assert.Error(tt, err)
+		assert.Empty(tt, resolutionResult)
+		assert.Contains(tt, err.Error(), "empty DID Document")
+	})
+
+	t.Run("good response", func(tt *testing.T) {
+		resolutionResult, err := ParseDIDResolution([]byte(`{"didDocument": {"id": "did:ion:test"}}`))
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, resolutionResult)
+		assert.False(tt, resolutionResult.Document.IsEmpty())
+		assert.Equal(tt, "did:ion:test", resolutionResult.Document.ID)
+	})
 }

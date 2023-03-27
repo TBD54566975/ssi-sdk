@@ -59,3 +59,36 @@ func TestCreateShortFormDID(t *testing.T) {
 
 	assert.Equal(t, shortFormDID, "did:ion:EiDyOQbbZAa3aiRzeCkV7LOx3SERjjH93EXoIM3UoN4oWg")
 }
+
+func TestGetShortFormDIDFromLongFormDID(t *testing.T) {
+	var recoveryKey crypto.PublicKeyJWK
+	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
+
+	var updateKey crypto.PublicKeyJWK
+	RetrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
+
+	var publicKey PublicKey
+	RetrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
+
+	var service Service
+	RetrieveTestVectorAs(t, "service1.json", &service)
+
+	document := Document{
+		PublicKeys: []PublicKey{
+			publicKey,
+		},
+		Services: []Service{
+			service,
+		},
+	}
+
+	longFormDID, err := CreateLongFormDID(recoveryKey, updateKey, document)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, longFormDID)
+
+	shortFormDID, err := LongToShortFormDID(longFormDID)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, shortFormDID)
+
+	assert.Equal(t, shortFormDID, "did:ion:EiDyOQbbZAa3aiRzeCkV7LOx3SERjjH93EXoIM3UoN4oWg")
+}

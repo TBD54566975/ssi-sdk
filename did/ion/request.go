@@ -49,152 +49,6 @@ func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Docum
 	}, nil
 }
 
-// NewDeactivateRequest creates a new deactivate request https://identity.foundation/sidetree/spec/#deactivate
-func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, signer BTCSignerVerifier) (*DeactivateRequest, error) {
-	// prepare reveal value
-	revealValue, _, err := Commit(recoveryKey)
-	if err != nil {
-		return nil, err
-	}
-
-	// prepare signed data
-	toBeSigned := DeactivateSignedDataObject{
-		DIDSuffix:   didSuffix,
-		RecoveryKey: recoveryKey,
-	}
-	signedJWT, err := signer.SignJWT(toBeSigned)
-	if err != nil {
-		return nil, errors.Wrap(err, "signing JWT")
-	}
-	return &DeactivateRequest{
-		Type:        Deactivate,
-		DIDSuffix:   didSuffix,
-		RevealValue: revealValue,
-		SignedData:  signedJWT,
-	}, nil
-}
-
-// NewRecoverRequest creates a new recover request https://identity.foundation/sidetree/spec/#recover
-func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer BTCSignerVerifier) (*RecoverRequest, error) { //revive:disable-line:argument-limit
-	// prepare reveal value
-	revealValue, _, err := Commit(recoveryKey)
-	if err != nil {
-		return nil, err
-	}
-
-	// prepare delta
-	replaceAction := ReplaceAction{
-		Action:   Replace,
-		Document: document,
-	}
-
-	_, updateCommitment, err := Commit(nextUpdateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	delta := NewDelta(updateCommitment)
-	delta.AddReplaceAction(replaceAction)
-
-	// prepare signed data
-	deltaCanonical, err := CanonicalizeAny(delta)
-	if err != nil {
-		return nil, err
-	}
-	deltaHash, err := HashEncode(deltaCanonical)
-	if err != nil {
-		return nil, err
-	}
-	_, recoveryCommitment, err := Commit(nextRecoveryKey)
-	if err != nil {
-		return nil, err
-	}
-
-	toBeSigned := RecoverySignedDataObject{
-		RecoveryCommitment: recoveryCommitment,
-		RecoveryKey:        recoveryKey,
-		DeltaHash:          deltaHash,
-	}
-	signedJWT, err := signer.SignJWT(toBeSigned)
-	if err != nil {
-		return nil, err
-	}
-	return &RecoverRequest{
-		Type:        Recover,
-		DIDSuffix:   didSuffix,
-		RevealValue: revealValue,
-		Delta:       delta,
-		SignedData:  signedJWT,
-	}, nil
-}
-
-type StateChange struct {
-	ServicesToAdd        []Service
-	ServiceIDsToRemove   []string
-	PublicKeysToAdd      []PublicKey
-	PublicKeyIDsToRemove []string
-}
-
-func (s StateChange) IsValid() error {
-	// check if services are valid
-	// build index of services to make sure IDs are unique
-	services := make(map[string]Service, len(s.ServicesToAdd))
-	for _, service := range s.ServicesToAdd {
-		if _, ok := services[service.ID]; ok {
-			return errors.Errorf("service %s duplicated", service.ID)
-		}
-
-		if len(service.ID) > maxIDLength {
-			return errors.Errorf("service<%s> id is too long", service.ID)
-		}
-
-		// make sure service is valid if it's not a dupe
-		if len(service.Type) > maxServiceTypeLength {
-			return errors.Errorf("service<%s> type %s is too long", service.ID, service.Type)
-		}
-
-		services[service.ID] = service
-	}
-
-	// check if public keys are valid
-	// build index of public keys to add
-	publicKeys := make(map[string]PublicKey, len(s.PublicKeysToAdd))
-	for _, publicKey := range s.PublicKeysToAdd {
-		if _, ok := publicKeys[publicKey.ID]; ok {
-			return errors.Errorf("public key<%s> is duplicated", publicKey.ID)
-		}
-
-		if len(publicKey.ID) > maxIDLength {
-			return errors.Errorf("public key<%s> id is too long", publicKey.ID)
-		}
-
-		publicKeys[publicKey.ID] = publicKey
-	}
-
-	// check if services to remove are valid
-	for _, serviceID := range s.ServiceIDsToRemove {
-		if _, ok := services[serviceID]; ok {
-			return errors.Errorf("service<%s> added and removed in same request", serviceID)
-		}
-
-		if len(serviceID) > maxIDLength {
-			return errors.Errorf("service<%s> id is too long", serviceID)
-		}
-	}
-
-	// check if public keys to remove are valid
-	for _, publicKeyID := range s.PublicKeyIDsToRemove {
-		if _, ok := publicKeys[publicKeyID]; ok {
-			return errors.Errorf("public key<%s> added and removed in same request", publicKeyID)
-		}
-
-		if len(publicKeyID) > maxIDLength {
-			return errors.Errorf("public key<%s> id is too long", publicKeyID)
-		}
-	}
-	return nil
-}
-
 // NewUpdateRequest creates a new update request https://identity.foundation/sidetree/spec/#update
 func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKeyJWK, signer BTCSignerVerifier, stateChange StateChange) (*UpdateRequest, error) {
 	if err := stateChange.IsValid(); err != nil {
@@ -276,4 +130,161 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 		Delta:       delta,
 		SignedData:  signedJWT,
 	}, nil
+}
+
+// NewRecoverRequest creates a new recover request https://identity.foundation/sidetree/spec/#recover
+func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer BTCSignerVerifier) (*RecoverRequest, error) { //revive:disable-line:argument-limit
+	// prepare reveal value
+	revealValue, _, err := Commit(recoveryKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// prepare delta
+	replaceAction := ReplaceAction{
+		Action:   Replace,
+		Document: document,
+	}
+
+	_, updateCommitment, err := Commit(nextUpdateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	delta := NewDelta(updateCommitment)
+	delta.AddReplaceAction(replaceAction)
+
+	// prepare signed data
+	deltaCanonical, err := CanonicalizeAny(delta)
+	if err != nil {
+		return nil, err
+	}
+	deltaHash, err := HashEncode(deltaCanonical)
+	if err != nil {
+		return nil, err
+	}
+	_, recoveryCommitment, err := Commit(nextRecoveryKey)
+	if err != nil {
+		return nil, err
+	}
+
+	toBeSigned := RecoverySignedDataObject{
+		RecoveryCommitment: recoveryCommitment,
+		RecoveryKey:        recoveryKey,
+		DeltaHash:          deltaHash,
+	}
+	signedJWT, err := signer.SignJWT(toBeSigned)
+	if err != nil {
+		return nil, err
+	}
+	return &RecoverRequest{
+		Type:        Recover,
+		DIDSuffix:   didSuffix,
+		RevealValue: revealValue,
+		Delta:       delta,
+		SignedData:  signedJWT,
+	}, nil
+}
+
+// NewDeactivateRequest creates a new deactivate request https://identity.foundation/sidetree/spec/#deactivate
+func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, signer BTCSignerVerifier) (*DeactivateRequest, error) {
+	// prepare reveal value
+	revealValue, _, err := Commit(recoveryKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// prepare signed data
+	toBeSigned := DeactivateSignedDataObject{
+		DIDSuffix:   didSuffix,
+		RecoveryKey: recoveryKey,
+	}
+	signedJWT, err := signer.SignJWT(toBeSigned)
+	if err != nil {
+		return nil, errors.Wrap(err, "signing JWT")
+	}
+	return &DeactivateRequest{
+		Type:        Deactivate,
+		DIDSuffix:   didSuffix,
+		RevealValue: revealValue,
+		SignedData:  signedJWT,
+	}, nil
+}
+
+type StateChange struct {
+	ServicesToAdd        []Service
+	ServiceIDsToRemove   []string
+	PublicKeysToAdd      []PublicKey
+	PublicKeyIDsToRemove []string
+}
+
+func (s StateChange) IsEmpty() bool {
+	return len(s.ServicesToAdd) == 0 &&
+		len(s.ServiceIDsToRemove) == 0 &&
+		len(s.PublicKeysToAdd) == 0 &&
+		len(s.PublicKeyIDsToRemove) == 0
+}
+
+func (s StateChange) IsValid() error {
+	if s.IsEmpty() {
+		return errors.New("state change cannot be empty")
+	}
+
+	// check if services are valid
+	// build index of services to make sure IDs are unique
+	services := make(map[string]Service, len(s.ServicesToAdd))
+	for _, service := range s.ServicesToAdd {
+		if _, ok := services[service.ID]; ok {
+			return errors.Errorf("service %s duplicated", service.ID)
+		}
+
+		if len(service.ID) > maxIDLength {
+			return errors.Errorf("service<%s> id is too long", service.ID)
+		}
+
+		// make sure service is valid if it's not a dupe
+		if len(service.Type) > maxServiceTypeLength {
+			return errors.Errorf("service<%s> type %s is too long", service.ID, service.Type)
+		}
+
+		services[service.ID] = service
+	}
+
+	// check if public keys are valid
+	// build index of public keys to add
+	publicKeys := make(map[string]PublicKey, len(s.PublicKeysToAdd))
+	for _, publicKey := range s.PublicKeysToAdd {
+		if _, ok := publicKeys[publicKey.ID]; ok {
+			return errors.Errorf("public key<%s> is duplicated", publicKey.ID)
+		}
+
+		if len(publicKey.ID) > maxIDLength {
+			return errors.Errorf("public key<%s> id is too long", publicKey.ID)
+		}
+
+		publicKeys[publicKey.ID] = publicKey
+	}
+
+	// check if services to remove are valid
+	for _, serviceID := range s.ServiceIDsToRemove {
+		if _, ok := services[serviceID]; ok {
+			return errors.Errorf("service<%s> added and removed in same request", serviceID)
+		}
+
+		if len(serviceID) > maxIDLength {
+			return errors.Errorf("service<%s> id is too long", serviceID)
+		}
+	}
+
+	// check if public keys to remove are valid
+	for _, publicKeyID := range s.PublicKeyIDsToRemove {
+		if _, ok := publicKeys[publicKeyID]; ok {
+			return errors.Errorf("public key<%s> added and removed in same request", publicKeyID)
+		}
+
+		if len(publicKeyID) > maxIDLength {
+			return errors.Errorf("public key<%s> id is too long", publicKeyID)
+		}
+	}
+	return nil
 }

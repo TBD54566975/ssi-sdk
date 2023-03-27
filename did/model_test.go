@@ -32,7 +32,7 @@ func TestDIDVectors(t *testing.T) {
 		gotTestVector, err := getTestVector(tv)
 		assert.NoError(t, err)
 
-		var did DIDDocument
+		var did Document
 		err = json.Unmarshal([]byte(gotTestVector), &did)
 		assert.NoError(t, err)
 
@@ -47,15 +47,15 @@ func TestDIDVectors(t *testing.T) {
 
 func TestDIDDocument(t *testing.T) {
 	// empty
-	emptyDoc := DIDDocument{}
+	emptyDoc := Document{}
 	assert.True(t, emptyDoc.IsEmpty())
 
-	var nilDID *DIDDocument
+	var nilDID *Document
 	nilDID = nil
 	assert.True(t, nilDID.IsEmpty())
 
 	// not empty
-	did := DIDDocument{
+	did := Document{
 		ID: "did:test:123",
 	}
 	assert.False(t, did.IsEmpty())
@@ -63,11 +63,11 @@ func TestDIDDocument(t *testing.T) {
 
 func TestDIDDocumentMetadata(t *testing.T) {
 	// good
-	metadata := DIDDocumentMetadata{}
+	metadata := DocumentMetadata{}
 	assert.True(t, metadata.IsValid())
 
 	// bad
-	badMetadata := DIDDocumentMetadata{
+	badMetadata := DocumentMetadata{
 		Created: "bad",
 		Updated: time.Now().UTC().Format(time.RFC3339),
 	}
