@@ -25,14 +25,12 @@ import (
 )
 
 const (
-	Go       = "go"
-	gomobile = "gomobile"
+	Go = "go"
 )
 
 // Build builds the library.
 func Build() error {
-
-	fmt.Println("Building...")
+	println("Building...")
 	if err := sh.Run(Go, "build", "-tags", "jwx_es256k", "./..."); err != nil {
 		return err
 	}
@@ -40,8 +38,7 @@ func Build() error {
 }
 
 func BuildWasm() error {
-
-	fmt.Println("Building wasm...")
+	println("Building wasm...")
 	env := map[string]string{
 		"GOOS":   "js",
 		"GOARCH": "wasm",
@@ -305,68 +302,6 @@ func runCITests(extraTestArgs ...string) error {
 	fmt.Printf("%+v", args)
 	_, err := sh.Exec(testEnv, writer, os.Stderr, Go, args...)
 	return err
-}
-
-func installGoMobileIfNotPresent() error {
-	return installIfNotPresent(gomobile, "golang.org/x/mobile/cmd/gomobile@latest")
-}
-
-// Mobile runs gomobile commands on specified packages for both Android and iOS
-func Mobile() {
-	pkgs := []string{"crypto", "did", "cryptosuite"}
-	if err := IOS(pkgs...); err != nil {
-		logrus.WithError(err).Error("Error building iOS")
-		return
-	}
-	if err := Android(pkgs...); err != nil {
-		logrus.WithError(err).Error("Error building Android")
-		return
-	}
-}
-
-// IOS Generates the iOS packages
-// Note: this command also installs "gomobile" if not present
-func IOS(pkgs ...string) error {
-	if err := installGoMobileIfNotPresent(); err != nil {
-		logrus.WithError(err).Fatal("Error installing gomobile")
-		return err
-	}
-
-	fmt.Println("Building iOS...")
-	bindIOS := sh.RunCmd(gomobile, "bind", "-target", "ios")
-
-	for _, pkg := range pkgs {
-		fmt.Printf("Building [%s] package...\n", pkg)
-		if err := bindIOS(pkg); err != nil {
-			logrus.WithError(err).Fatalf("Error building iOS pkg: %s", pkg)
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Android Generates the Android packages
-// Note: this command also installs "gomobile" if not present
-func Android(pkgs ...string) error {
-	if err := installGoMobileIfNotPresent(); err != nil {
-		logrus.WithError(err).Fatal("Error installing gomobile")
-		return err
-	}
-
-	apiLevel := "23"
-	println("Building Android - API Level: " + apiLevel + "...")
-	bindAndroid := sh.RunCmd("gomobile", "bind", "-target", "android", "-androidapi", "23")
-
-	for _, pkg := range pkgs {
-		fmt.Printf("Building [%s] package...\n", pkg)
-		if err := bindAndroid(pkg); err != nil {
-			logrus.WithError(err).Fatalf("Error building iOS pkg: %s", pkg)
-			return err
-		}
-	}
-
-	return nil
 }
 
 // Vuln downloads and runs govulncheck https://go.dev/blog/vuln
