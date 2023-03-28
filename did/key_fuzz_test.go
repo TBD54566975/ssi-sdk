@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,7 +47,7 @@ func FuzzCreateAndResolve(f *testing.F) {
 		didKey, err := CreateDIDKey(kt, pubKey)
 		assert.NoError(t, err)
 
-		doc, err := resolver.Resolve(didKey.String())
+		doc, err := resolver.Resolve(context.TODO(), didKey.String())
 		if err != nil {
 			t.Skip()
 		}

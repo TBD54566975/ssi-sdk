@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"crypto/ed25519"
 	"encoding/base64"
 	"log"
@@ -84,7 +85,7 @@ func resolveDid(_ js.Value, args []js.Value) any {
 		return err
 	}
 
-	doc, err := resolver.Resolve(didString)
+	doc, err := resolver.Resolve(context.Background(), didString)
 	if err != nil {
 		return err
 	}

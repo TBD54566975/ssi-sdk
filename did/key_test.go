@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	gocrypto "crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
@@ -220,7 +221,7 @@ func TestGenerateAndResolve(t *testing.T) {
 		_, didKey, err := GenerateDIDKey(kt)
 		assert.NoError(t, err)
 
-		doc, err := resolver.Resolve(didKey.String())
+		doc, err := resolver.Resolve(context.TODO(), didKey.String())
 		assert.NoError(t, err)
 		assert.NotEmpty(t, doc)
 		assert.Equal(t, didKey.String(), doc.Document.ID)

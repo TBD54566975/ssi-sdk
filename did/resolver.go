@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -8,13 +9,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ResolutionOptions https://www.w3.org/TR/did-spec-registries/#did-resolution-options
-type ResolutionOptions any
+// ResolutionOption https://www.w3.org/TR/did-spec-registries/#did-resolution-options
+type ResolutionOption any
 
 // Resolution provides an interface for resolving DIDs as per the spec https://www.w3.org/TR/did-core/#did-resolution
 type Resolution interface {
 	// Resolve Attempts to resolve a DID for a given method
-	Resolve(did string, opts ResolutionOptions) (*ResolutionResult, error)
+	Resolve(ctx context.Context, did string, opts ...ResolutionOption) (*ResolutionResult, error)
 	// Method provides the method for the given resolution implementation
 	Method() Method
 }
@@ -42,13 +43,13 @@ func NewResolver(resolvers ...Resolution) (*Resolver, error) {
 }
 
 // Resolve attempts to resolve a DID for a given method
-func (dr Resolver) Resolve(did string, opts ...ResolutionOptions) (*ResolutionResult, error) {
+func (dr Resolver) Resolve(ctx context.Context, did string, opts ...ResolutionOption) (*ResolutionResult, error) {
 	method, err := GetMethodForDID(did)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get method for DID before resolving")
 	}
 	if resolver, ok := dr.resolvers[method]; ok {
-		return resolver.Resolve(did, opts)
+		return resolver.Resolve(ctx, did, opts)
 	}
 	return nil, fmt.Errorf("unsupported method: %s", method)
 }
