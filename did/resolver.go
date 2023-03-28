@@ -16,8 +16,8 @@ type ResolutionOption any
 type Resolver interface {
 	// Resolve Attempts to resolve a DID for a given method
 	Resolve(ctx context.Context, did string, opts ...ResolutionOption) (*ResolutionResult, error)
-	// Method provides the method for the given resolution implementation
-	Method() Method
+	// Methods returns all methods that can be resolved by this resolver.
+	Methods() []Method
 }
 
 // MultiMethodResolver resolves a DID. The current implementation ssk-sdk does not have a universal resolver:
@@ -28,16 +28,20 @@ type MultiMethodResolver struct {
 	methods   []Method
 }
 
+var _ Resolver = (*MultiMethodResolver)(nil)
+
 func NewResolver(resolvers ...Resolver) (*MultiMethodResolver, error) {
 	r := make(map[Method]Resolver)
 	var methods []Method
 	for _, resolver := range resolvers {
-		method := resolver.Method()
-		if _, ok := r[method]; ok {
-			return nil, fmt.Errorf("duplicate resolver for method: %s", method)
+		method := resolver.Methods()
+		for _, m := range method {
+			if _, ok := r[m]; ok {
+				return nil, fmt.Errorf("duplicate resolver for method: %s", m)
+			}
+			r[m] = resolver
+			methods = append(methods, m)
 		}
-		r[method] = resolver
-		methods = append(methods, method)
 	}
 	return &MultiMethodResolver{resolvers: r, methods: methods}, nil
 }
@@ -54,7 +58,7 @@ func (dr MultiMethodResolver) Resolve(ctx context.Context, did string, opts ...R
 	return nil, fmt.Errorf("unsupported method: %s", method)
 }
 
-func (dr MultiMethodResolver) SupportedMethods() []Method {
+func (dr MultiMethodResolver) Methods() []Method {
 	return dr.methods
 }
 

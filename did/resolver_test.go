@@ -14,7 +14,7 @@ func TestResolveDID(t *testing.T) {
 	resolver, err := NewResolver(resolvers...)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resolver)
-	assert.Equal(t, len(resolvers), len(resolver.SupportedMethods()))
+	assert.Equal(t, len(resolvers), len(resolver.Methods()))
 
 	// unsupported type
 	_, err = resolver.Resolve(context.Background(), "did:unsupported:123")
