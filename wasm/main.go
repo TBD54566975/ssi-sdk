@@ -79,7 +79,7 @@ func makeDid(_ js.Value, args []js.Value) any {
 func resolveDid(_ js.Value, args []js.Value) any {
 
 	didString := args[0].String()
-	resolvers := []did.Resolution{did.KeyResolver{}, did.WebResolver{}, did.PKHResolver{}, did.PeerResolver{}}
+	resolvers := []did.Resolver{did.KeyResolver{}, did.WebResolver{}, did.PKHResolver{}, did.PeerResolver{}}
 	resolver, err := did.NewResolver(resolvers...)
 	if err != nil {
 		return err

@@ -34,7 +34,7 @@ func FuzzCreateAndResolve(f *testing.F) {
 	keytypes := GetSupportedDIDKeyTypes()
 	ktLen := len(keytypes)
 
-	resolvers := []Resolution{KeyResolver{}, WebResolver{}, PKHResolver{}, PeerResolver{}}
+	resolvers := []Resolver{KeyResolver{}, WebResolver{}, PKHResolver{}, PeerResolver{}}
 	resolver, _ := NewResolver(resolvers...)
 
 	for i, pk := range mockPubKeys {
@@ -47,7 +47,7 @@ func FuzzCreateAndResolve(f *testing.F) {
 		didKey, err := CreateDIDKey(kt, pubKey)
 		assert.NoError(t, err)
 
-		doc, err := resolver.Resolve(context.TODO(), didKey.String())
+		doc, err := resolver.Resolve(context.Background(), didKey.String())
 		if err != nil {
 			t.Skip()
 		}

@@ -48,7 +48,7 @@ func TestResolver(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
-		result, err := resolver.Resolve(context.TODO(), "bad", nil)
+		result, err := resolver.Resolve(context.Background(), "bad", nil)
 		assert.Error(tt, err)
 		assert.Empty(tt, result)
 		assert.Contains(tt, err.Error(), "could not resolve DID")
@@ -65,7 +65,7 @@ func TestResolver(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
-		result, err := resolver.Resolve(context.TODO(), "did:ion:test", nil)
+		result, err := resolver.Resolve(context.Background(), "did:ion:test", nil)
 		assert.Error(tt, err)
 		assert.Empty(tt, result)
 		assert.Contains(tt, err.Error(), "could not parse DID Resolution Result or DID Document")
@@ -82,7 +82,7 @@ func TestResolver(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
-		result, err := resolver.Resolve(context.TODO(), "did:ion:test", nil)
+		result, err := resolver.Resolve(context.Background(), "did:ion:test", nil)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, result)
 		assert.Equal(tt, "did:ion:test", result.Document.ID)
@@ -98,7 +98,7 @@ func TestResolver(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
-		err = resolver.Anchor(context.TODO(), nil)
+		err = resolver.Anchor(context.Background(), nil)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "anchor operation failed")
 	})
@@ -127,7 +127,7 @@ func TestResolver(t *testing.T) {
 		assert.NotEmpty(tt, did)
 		assert.NotEmpty(tt, createOp)
 
-		err = resolver.Anchor(context.TODO(), CreateRequest{
+		err = resolver.Anchor(context.Background(), CreateRequest{
 			Type: Create,
 			SuffixData: SuffixData{
 				DeltaHash:          "deltaHash",
