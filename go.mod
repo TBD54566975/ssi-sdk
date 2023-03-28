@@ -12,7 +12,7 @@ require (
 	github.com/gowebpki/jcs v1.0.0
 	github.com/hyperledger/aries-framework-go v0.1.9-0.20230217102417-a948231f8452
 	github.com/jarcoal/httpmock v1.3.0
-	github.com/lestrrat-go/jwx/v2 v2.0.8
+	github.com/lestrrat-go/jwx/v2 v2.0.9
 	github.com/magefile/mage v1.14.0
 	github.com/mr-tron/base58 v1.2.0
 	github.com/multiformats/go-multibase v0.2.0
@@ -43,7 +43,7 @@ require (
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.4 // indirect
 	github.com/lestrrat-go/iter v1.0.2 // indirect
-	github.com/lestrrat-go/option v1.0.0 // indirect
+	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1 // indirect
 	github.com/minio/sha256-simd v0.1.1 // indirect
 	github.com/multiformats/go-base32 v0.1.0 // indirect
