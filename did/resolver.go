@@ -16,7 +16,7 @@ type ResolutionOption any
 type Resolver interface {
 	// Resolve Attempts to resolve a DID for a given method
 	Resolve(ctx context.Context, did string, opts ...ResolutionOption) (*ResolutionResult, error)
-	// Methods provides the method(s) for the given resolution implementation
+	// Methods returns all methods that can be resolved by this resolver.
 	Methods() []Method
 }
 
