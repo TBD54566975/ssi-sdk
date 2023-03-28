@@ -55,7 +55,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		jsonEq(t, testDef, presDef)
 	})
 
-	t.Run("Unsupported Request Methods", func(t *testing.T) {
+	t.Run("Unsupported Request Method", func(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
