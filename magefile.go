@@ -31,9 +31,7 @@ const (
 // Build builds the library.
 func Build() error {
 	println("Building...")
-	if err := sh.Run(Go, "build", "-tags", "jwx_es256k", "./..."); err != nil {
-		return err
-	}
+	return sh.Run(Go, "build", "-tags", "jwx_es256k", "./...")
 }
 
 // Clean deletes any build artifacts.
