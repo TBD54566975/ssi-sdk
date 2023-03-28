@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	gocrypto "crypto"
 	"fmt"
 	"strings"
@@ -24,8 +25,8 @@ type (
 )
 
 const (
-	// DIDKeyPrefix did:key prefix
-	DIDKeyPrefix = "did:key"
+	// KeyPrefix did:key prefix
+	KeyPrefix = "did:key"
 )
 
 func (d DIDKey) IsValid() bool {
@@ -39,7 +40,7 @@ func (d DIDKey) String() string {
 
 // Suffix returns the value without the `did:key` prefix
 func (d DIDKey) Suffix() (string, error) {
-	split := strings.Split(string(d), DIDKeyPrefix+":")
+	split := strings.Split(string(d), KeyPrefix+":")
 	if len(split) != 2 {
 		return "", fmt.Errorf("invalid did:key: %s", d)
 	}
@@ -100,7 +101,7 @@ func CreateDIDKey(kt crypto.KeyType, publicKey []byte) (*DIDKey, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not encode did:key")
 	}
-	did := DIDKey(fmt.Sprintf("%s:%s", DIDKeyPrefix, encoded))
+	did := DIDKey(fmt.Sprintf("%s:%s", KeyPrefix, encoded))
 	return &did, nil
 }
 
@@ -160,7 +161,7 @@ func codecToLDKeyType(codec multicodec.Code) (cryptosuite.LDKeyType, error) {
 }
 
 // Expand turns the DID key into a compliant DID Document
-func (d DIDKey) Expand() (*DIDDocument, error) {
+func (d DIDKey) Expand() (*Document, error) {
 	parsed, err := d.Suffix()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parse did:key")
@@ -183,7 +184,7 @@ func (d DIDKey) Expand() (*DIDDocument, error) {
 		[]string{keyReference},
 	}
 
-	return &DIDDocument{
+	return &Document{
 		Context:              KnownDIDContext,
 		ID:                   id,
 		VerificationMethod:   []VerificationMethod{*verificationMethod},
@@ -266,8 +267,10 @@ func GetSupportedDIDKeyTypes() []crypto.KeyType {
 
 type KeyResolver struct{}
 
-func (KeyResolver) Resolve(did string, _ ResolutionOptions) (*DIDResolutionResult, error) {
-	if !strings.HasPrefix(did, DIDKeyPrefix) {
+var _ Resolver = (*KeyResolver)(nil)
+
+func (KeyResolver) Resolve(_ context.Context, did string, _ ...ResolutionOption) (*ResolutionResult, error) {
+	if !strings.HasPrefix(did, KeyPrefix) {
 		return nil, fmt.Errorf("not a did:key DID: %s", did)
 	}
 	didKey := DIDKey(did)
@@ -275,10 +278,9 @@ func (KeyResolver) Resolve(did string, _ ResolutionOptions) (*DIDResolutionResul
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not expand did:key DID: %s", did)
 	}
-	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
-	return &DIDResolutionResult{DIDDocument: *doc}, nil
+	return &ResolutionResult{Document: *doc}, nil
 }
 
-func (KeyResolver) Method() Method {
-	return KeyMethod
+func (KeyResolver) Methods() []Method {
+	return []Method{KeyMethod}
 }
