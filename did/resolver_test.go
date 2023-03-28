@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -9,14 +10,14 @@ import (
 )
 
 func TestResolveDID(t *testing.T) {
-	resolvers := []Resolution{KeyResolver{}, WebResolver{}, PKHResolver{}, PeerResolver{}}
+	resolvers := []Resolver{KeyResolver{}, WebResolver{}, PKHResolver{}, PeerResolver{}}
 	resolver, err := NewResolver(resolvers...)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resolver)
 	assert.Equal(t, len(resolvers), len(resolver.SupportedMethods()))
 
 	// unsupported type
-	_, err = resolver.Resolve("did:unsupported:123")
+	_, err = resolver.Resolve(context.Background(), "did:unsupported:123")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unsupported method: unsupported")
 
@@ -24,7 +25,7 @@ func TestResolveDID(t *testing.T) {
 	_, didKey, err := GenerateDIDKey(crypto.Ed25519)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, didKey)
-	doc, err := resolver.Resolve(didKey.String())
+	doc, err := resolver.Resolve(context.Background(), didKey.String())
 	assert.NoError(t, err)
 	assert.NotEmpty(t, doc)
 
@@ -33,13 +34,13 @@ func TestResolveDID(t *testing.T) {
 	didPKH, err := CreateDIDPKHFromNetwork(Ethereum, address)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, didPKH)
-	doc, err = resolver.Resolve(didPKH.String())
+	doc, err = resolver.Resolve(context.Background(), didPKH.String())
 	assert.NoError(t, err)
 	assert.NotEmpty(t, doc)
 
 	// did peer
 	didPeer := "did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
-	doc, err = resolver.Resolve(didPeer)
+	doc, err = resolver.Resolve(context.Background(), didPeer)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, doc)
 
@@ -50,7 +51,7 @@ func TestResolveDID(t *testing.T) {
 		BodyString(`{"didDocument": {"id": "did:web:demo.ssi-sdk.com"}}`)
 	defer gock.Off()
 	didWeb := "did:web:demo.ssi-sdk.com"
-	doc, err = resolver.Resolve(didWeb)
+	doc, err = resolver.Resolve(context.Background(), didWeb)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, doc)
 }

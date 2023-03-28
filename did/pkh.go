@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"regexp"
@@ -246,7 +247,7 @@ func IsValidPKH(did DIDPKH) bool {
 
 type PKHResolver struct{}
 
-func (PKHResolver) Resolve(did string, _ ResolutionOptions) (*ResolutionResult, error) {
+func (PKHResolver) Resolve(_ context.Context, did string, _ ...ResolutionOption) (*ResolutionResult, error) {
 	if !strings.HasPrefix(did, DIDPKHPrefix) {
 		return nil, fmt.Errorf("not a did:pkh DID: %s", did)
 	}
@@ -255,7 +256,6 @@ func (PKHResolver) Resolve(did string, _ ResolutionOptions) (*ResolutionResult, 
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not expand did:pkh DID: %s", did)
 	}
-	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
 	return &ResolutionResult{Document: *doc}, nil
 }
 

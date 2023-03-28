@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -118,30 +119,30 @@ func TestDIDPeerUtilities(t *testing.T) {
 func TestPeerResolver(t *testing.T) {
 	bad := "asdf"
 	var r PeerResolver
-	_, err := r.Resolve(bad, nil)
+	_, err := r.Resolve(context.Background(), bad, nil)
 	assert.Error(t, err)
 
 	m0 := "did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
-	_, err = r.Resolve(m0, nil)
+	_, err = r.Resolve(context.Background(), m0, nil)
 	assert.NoError(t, err)
 
 	mbad := "did:peer:4z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
-	_, err = r.Resolve(mbad, nil)
+	_, err = r.Resolve(context.Background(), mbad, nil)
 	assert.Error(t, err)
 
 	// https://identity.foundation/peer-did-method-spec/#multi-key-creation - key agreement
 	m2 := "did:peer:2.Ez6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0="
-	_, err = r.Resolve(m2, nil)
+	_, err = r.Resolve(context.Background(), m2, nil)
 	assert.NoError(t, err)
 
 	// https://identity.foundation/peer-did-method-spec/#multi-key-creation w/ key agreement
 	// We currently don't support key agreement, so should throw error
 	m2 = "did:peer:2.Ez6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH.VzXwpBnMdCm1cLmKuzgESn29nqnonp1ioqrQMRHNsmjMyppzx8xB2pv7cw8q1PdDacSrdWE3dtB9f7Nxk886mdzNFoPtY.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0="
-	_, err = r.Resolve(m2, nil)
+	_, err = r.Resolve(context.Background(), m2, nil)
 	assert.NoError(t, err)
 
 	m1 := "did:peer:1z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
-	_, err = r.Resolve(m1, nil)
+	_, err = r.Resolve(context.Background(), m1, nil)
 	assert.Error(t, err)
 }
 

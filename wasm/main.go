@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"crypto/ed25519"
 	"encoding/base64"
 	"log"
@@ -78,13 +79,13 @@ func makeDid(_ js.Value, args []js.Value) any {
 func resolveDid(_ js.Value, args []js.Value) any {
 
 	didString := args[0].String()
-	resolvers := []did.Resolution{did.KeyResolver{}, did.WebResolver{}, did.PKHResolver{}, did.PeerResolver{}}
+	resolvers := []did.Resolver{did.KeyResolver{}, did.WebResolver{}, did.PKHResolver{}, did.PeerResolver{}}
 	resolver, err := did.NewResolver(resolvers...)
 	if err != nil {
 		return err
 	}
 
-	doc, err := resolver.Resolve(didString)
+	doc, err := resolver.Resolve(context.Background(), didString)
 	if err != nil {
 		return err
 	}
