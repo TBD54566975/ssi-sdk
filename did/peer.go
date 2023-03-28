@@ -426,7 +426,7 @@ func (DIDPeer) encodeService(p Service) (string, error) {
 
 // Checks if the service block is valid
 func (DIDPeer) checkValidPeerServiceBlock(s string) bool {
-	if string(s[:2]) != "."+string(PeerPurposeCapabilityServiceCode) {
+	if s[:2] != "."+string(PeerPurposeCapabilityServiceCode) {
 		return false
 	}
 	return true
@@ -513,6 +513,8 @@ func peerMethodAvailable(m string) bool {
 
 type PeerResolver struct{}
 
+var _ Resolver = (*PeerResolver)(nil)
+
 func (PeerResolver) Resolve(_ context.Context, did string, opts ...ResolutionOption) (*ResolutionResult, error) {
 	if !strings.HasPrefix(did, DIDPeerPrefix) {
 		return nil, fmt.Errorf("not a did:peer DID: %s", did)
@@ -536,10 +538,9 @@ func (PeerResolver) Resolve(_ context.Context, did string, opts ...ResolutionOpt
 			return nil, fmt.Errorf("%s method not supported", m)
 		}
 	}
-	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
 	return nil, fmt.Errorf("could not resolve peer DID: %s", did)
 }
 
-func (PeerResolver) Method() Method {
-	return PeerMethod
+func (PeerResolver) Methods() []Method {
+	return []Method{PeerMethod}
 }

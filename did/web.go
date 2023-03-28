@@ -177,8 +177,10 @@ func (d DIDWeb) resolveDocBytes() ([]byte, error) {
 
 type WebResolver struct{}
 
-func (WebResolver) Method() Method {
-	return WebMethod
+var _ Resolver = (*WebResolver)(nil)
+
+func (WebResolver) Methods() []Method {
+	return []Method{WebMethod}
 }
 
 // Resolve fetches and returns the Document from the expected URL
