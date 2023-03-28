@@ -513,7 +513,7 @@ func peerMethodAvailable(m string) bool {
 
 type PeerResolver struct{}
 
-func (PeerResolver) Resolve(ctx context.Context, did string, opts ...ResolutionOption) (*ResolutionResult, error) {
+func (PeerResolver) Resolve(_ context.Context, did string, opts ...ResolutionOption) (*ResolutionResult, error) {
 	if !strings.HasPrefix(did, DIDPeerPrefix) {
 		return nil, fmt.Errorf("not a did:peer DID: %s", did)
 	}

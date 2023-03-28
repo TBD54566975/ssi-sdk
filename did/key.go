@@ -267,7 +267,7 @@ func GetSupportedDIDKeyTypes() []crypto.KeyType {
 
 type KeyResolver struct{}
 
-func (KeyResolver) Resolve(ctx context.Context, did string, _ ...ResolutionOption) (*ResolutionResult, error) {
+func (KeyResolver) Resolve(_ context.Context, did string, _ ...ResolutionOption) (*ResolutionResult, error) {
 	if !strings.HasPrefix(did, KeyPrefix) {
 		return nil, fmt.Errorf("not a did:key DID: %s", did)
 	}

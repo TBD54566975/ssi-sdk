@@ -247,7 +247,7 @@ func IsValidPKH(did DIDPKH) bool {
 
 type PKHResolver struct{}
 
-func (PKHResolver) Resolve(ctx context.Context, did string, _ ...ResolutionOption) (*ResolutionResult, error) {
+func (PKHResolver) Resolve(_ context.Context, did string, _ ...ResolutionOption) (*ResolutionResult, error) {
 	if !strings.HasPrefix(did, DIDPKHPrefix) {
 		return nil, fmt.Errorf("not a did:pkh DID: %s", did)
 	}
