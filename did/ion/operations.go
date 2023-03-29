@@ -113,7 +113,7 @@ func NewIONResolver(client *http.Client, baseURL string) (*Resolver, error) {
 }
 
 // Resolve resolves a did:ion DID by appending the DID to the base URL with the identifiers path and making a GET request
-func (i Resolver) Resolve(ctx context.Context, id string, _ did.ResolutionOptions) (*did.ResolutionResult, error) {
+func (i Resolver) Resolve(ctx context.Context, id string, _ did.ResolutionOption) (*did.ResolutionResult, error) {
 	if i.baseURL.String() == "" {
 		return nil, errors.New("resolver URL cannot be empty")
 	}

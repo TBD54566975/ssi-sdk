@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -8,52 +9,56 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ResolutionOptions https://www.w3.org/TR/did-spec-registries/#did-resolution-options
-type ResolutionOptions any
+// ResolutionOption https://www.w3.org/TR/did-spec-registries/#did-resolution-options
+type ResolutionOption any
 
-// Resolution provides an interface for resolving DIDs as per the spec https://www.w3.org/TR/did-core/#did-resolution
-type Resolution interface {
+// Resolver provides an interface for resolving DIDs as per the spec https://www.w3.org/TR/did-core/#did-resolution
+type Resolver interface {
 	// Resolve Attempts to resolve a DID for a given method
-	Resolve(did string, opts ResolutionOptions) (*ResolutionResult, error)
-	// Method provides the method for the given resolution implementation
-	Method() Method
+	Resolve(ctx context.Context, did string, opts ...ResolutionOption) (*ResolutionResult, error)
+	// Methods returns all methods that can be resolved by this resolver.
+	Methods() []Method
 }
 
-// Resolver resolves a DID. The current implementation ssk-sdk does not have a universal resolver:
+// MultiMethodResolver resolves a DID. The current implementation ssk-sdk does not have a universal resolver:
 // https://github.com/decentralized-identity/universal-resolver
 // In its place, this method attempts to resolve DID methods that can be resolved without relying on additional services.
-type Resolver struct {
-	resolvers map[Method]Resolution
+type MultiMethodResolver struct {
+	resolvers map[Method]Resolver
 	methods   []Method
 }
 
-func NewResolver(resolvers ...Resolution) (*Resolver, error) {
-	r := make(map[Method]Resolution)
+var _ Resolver = (*MultiMethodResolver)(nil)
+
+func NewResolver(resolvers ...Resolver) (*MultiMethodResolver, error) {
+	r := make(map[Method]Resolver)
 	var methods []Method
 	for _, resolver := range resolvers {
-		method := resolver.Method()
-		if _, ok := r[method]; ok {
-			return nil, fmt.Errorf("duplicate resolver for method: %s", method)
+		method := resolver.Methods()
+		for _, m := range method {
+			if _, ok := r[m]; ok {
+				return nil, fmt.Errorf("duplicate resolver for method: %s", m)
+			}
+			r[m] = resolver
+			methods = append(methods, m)
 		}
-		r[method] = resolver
-		methods = append(methods, method)
 	}
-	return &Resolver{resolvers: r, methods: methods}, nil
+	return &MultiMethodResolver{resolvers: r, methods: methods}, nil
 }
 
 // Resolve attempts to resolve a DID for a given method
-func (dr Resolver) Resolve(did string, opts ...ResolutionOptions) (*ResolutionResult, error) {
+func (dr MultiMethodResolver) Resolve(ctx context.Context, did string, opts ...ResolutionOption) (*ResolutionResult, error) {
 	method, err := GetMethodForDID(did)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get method for DID before resolving")
 	}
 	if resolver, ok := dr.resolvers[method]; ok {
-		return resolver.Resolve(did, opts)
+		return resolver.Resolve(ctx, did, opts)
 	}
 	return nil, fmt.Errorf("unsupported method: %s", method)
 }
 
-func (dr Resolver) SupportedMethods() []Method {
+func (dr MultiMethodResolver) Methods() []Method {
 	return dr.methods
 }
 
@@ -72,7 +77,7 @@ func ParseDIDResolution(resolvedDID []byte) (*ResolutionResult, error) {
 		return nil, errors.New("cannot parse empty resolved DID")
 	}
 
-	// first try to parse as a DID Resolution Result
+	// first try to parse as a DID Resolver Result
 	var result ResolutionResult
 	if err := json.Unmarshal(resolvedDID, &result); err == nil {
 		if result.IsEmpty() {

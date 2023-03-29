@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	gocrypto "crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
@@ -213,14 +214,14 @@ func TestGenerateAndDecode(t *testing.T) {
 }
 
 func TestGenerateAndResolve(t *testing.T) {
-	resolvers := []Resolution{KeyResolver{}, WebResolver{}, PKHResolver{}, PeerResolver{}}
+	resolvers := []Resolver{KeyResolver{}, WebResolver{}, PKHResolver{}, PeerResolver{}}
 	resolver, _ := NewResolver(resolvers...)
 
 	for _, kt := range GetSupportedDIDKeyTypes() {
 		_, didKey, err := GenerateDIDKey(kt)
 		assert.NoError(t, err)
 
-		doc, err := resolver.Resolve(didKey.String())
+		doc, err := resolver.Resolve(context.Background(), didKey.String())
 		assert.NoError(t, err)
 		assert.NotEmpty(t, doc)
 		assert.Equal(t, didKey.String(), doc.Document.ID)

@@ -13,6 +13,7 @@
 package did
 
 import (
+	"context"
 	gocrypto "crypto"
 	b64 "encoding/base64"
 	"fmt"
@@ -190,8 +191,8 @@ func (DIDPeer) IsValidPurpose(p PurposeType) bool {
 
 // Resolve resolves a did:peer into a DID Document
 // To do so, it decodes the key, constructs a verification  method, and returns a DID Document .This allows PeerMethod0
-// to implement the DID Resolution interface and be used to expand the did into the DID Document.
-func (PeerMethod0) resolve(did DID, _ ResolutionOptions) (*ResolutionResult, error) {
+// to implement the DID Resolver interface and be used to expand the did into the DID Document.
+func (PeerMethod0) resolve(did DID, _ ResolutionOption) (*ResolutionResult, error) {
 	d, ok := did.(DIDPeer)
 	if !ok {
 		return nil, errors.Wrap(util.CastingError, "did:peer")
@@ -231,7 +232,7 @@ func (PeerMethod0) resolve(did DID, _ ResolutionOptions) (*ResolutionResult, err
 	return &ResolutionResult{Document: document}, nil
 }
 
-func (PeerMethod1) resolve(d DID, _ ResolutionOptions) (*ResolutionResult, error) {
+func (PeerMethod1) resolve(d DID, _ ResolutionOption) (*ResolutionResult, error) {
 	if _, ok := d.(DIDPeer); !ok {
 		return nil, errors.Wrap(util.CastingError, DIDPeerPrefix)
 	}
@@ -256,7 +257,7 @@ func (DIDPeer) buildVerificationMethod(data, did string) (*VerificationMethod, e
 // Resolve Splits the DID string into element.
 // Extract element purpose and decode each key or service.
 // Insert each key or service into the document according to the designated pu
-func (PeerMethod2) resolve(did DID, _ ResolutionOptions) (*ResolutionResult, error) {
+func (PeerMethod2) resolve(did DID, _ ResolutionOption) (*ResolutionResult, error) {
 	d, ok := did.(DIDPeer)
 	if !ok {
 		return nil, errors.Wrap(util.CastingError, "did:peer")
@@ -425,7 +426,7 @@ func (DIDPeer) encodeService(p Service) (string, error) {
 
 // Checks if the service block is valid
 func (DIDPeer) checkValidPeerServiceBlock(s string) bool {
-	if string(s[:2]) != "."+string(PeerPurposeCapabilityServiceCode) {
+	if s[:2] != "."+string(PeerPurposeCapabilityServiceCode) {
 		return false
 	}
 	return true
@@ -512,7 +513,9 @@ func peerMethodAvailable(m string) bool {
 
 type PeerResolver struct{}
 
-func (PeerResolver) Resolve(did string, opts ResolutionOptions) (*ResolutionResult, error) {
+var _ Resolver = (*PeerResolver)(nil)
+
+func (PeerResolver) Resolve(_ context.Context, did string, opts ...ResolutionOption) (*ResolutionResult, error) {
 	if !strings.HasPrefix(did, DIDPeerPrefix) {
 		return nil, fmt.Errorf("not a did:peer DID: %s", did)
 	}
@@ -535,10 +538,9 @@ func (PeerResolver) Resolve(did string, opts ResolutionOptions) (*ResolutionResu
 			return nil, fmt.Errorf("%s method not supported", m)
 		}
 	}
-	// TODO(gabe) full resolution support to be added in https://github.com/TBD54566975/ssi-sdk/issues/38
 	return nil, fmt.Errorf("could not resolve peer DID: %s", did)
 }
 
-func (PeerResolver) Method() Method {
-	return PeerMethod
+func (PeerResolver) Methods() []Method {
+	return []Method{PeerMethod}
 }
