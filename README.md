@@ -87,6 +87,10 @@ A utility is provided to run _clean, build, and test_ in sequence with:
 mage cbt
 ```
 
+# WASM
+The ssi-sdk-wasm is a library that provides a WebAssembly (WASM) implementation for Self-Sovereign Identity (SSI) SDK. It enables SSI functionality in the browser and other JavaScript environments by compiling the SDK to a WASM file. This repository is responsible for building the main.wasm file and making it available as an npm package.
+
+The wasm implemetation for this repo lives here - https://github.com/TBD54566975/ssi-sdk-wasm
 # Versioning
 
 For information on versioning refer to our [versioning guide](doc/VERSIONING.md).
