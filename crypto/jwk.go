@@ -51,6 +51,18 @@ func (k PrivateKeyJWK) ToPublicKeyJWK() PublicKeyJWK {
 	}
 }
 
+func (k PrivateKeyJWK) ToKey() (crypto.PrivateKey, error) {
+	gotJWK, err := JWKFromPrivateKeyJWK(k)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating JWK from private key")
+	}
+	var goKey crypto.PrivateKey
+	if err = gotJWK.Raw(&goKey); err != nil {
+		return nil, errors.Wrap(err, "converting JWK to go key")
+	}
+	return goKey, nil
+}
+
 // PublicKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
 type PublicKeyJWK struct {
 	KTY    string `json:"kty,omitempty" validate:"required"`
@@ -63,6 +75,18 @@ type PublicKeyJWK struct {
 	KeyOps string `json:"key_ops,omitempty"`
 	Alg    string `json:"alg,omitempty"`
 	KID    string `json:"kid,omitempty"`
+}
+
+func (k PublicKeyJWK) ToKey() (crypto.PublicKey, error) {
+	gotJWK, err := JWKFromPublicKeyJWK(k)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating JWK from public key")
+	}
+	var goKey crypto.PublicKey
+	if err = gotJWK.Raw(&goKey); err != nil {
+		return nil, errors.Wrap(err, "converting JWK to go key")
+	}
+	return goKey, nil
 }
 
 // JWKToPrivateKeyJWK converts a JWK to a PrivateKeyJWK

@@ -12,7 +12,7 @@
 //	}
 //
 // // Create a new ION DID
-// did, createOp, err := ion.NewIONDID(Document{[]Services: []Service{Service{ID: "serviceID", Type: "serviceType"}}})
+// did, createOp, err := ion.NewIONDID(Document{[]Service{Service{ID: "serviceID", Type: "serviceType"}}})
 //
 //	if err != nil {
 //		panic(err)
@@ -204,6 +204,14 @@ func (d DID) Operations() []any {
 
 func (d DID) Operation(index int) any {
 	return d.operations[index]
+}
+
+func (d DID) GetUpdatePrivateKey() crypto.PrivateKeyJWK {
+	return d.updatePrivateKey
+}
+
+func (d DID) GetRecoveryPrivateKey() crypto.PrivateKeyJWK {
+	return d.recoveryPrivateKey
 }
 
 // NewIONDID creates a new ION DID with a new recovery and update key pairs, of type secp256k1, in addition
