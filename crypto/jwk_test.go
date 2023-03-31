@@ -25,6 +25,12 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 
 	assert.Equal(t, "OKP", privKeyJWK.KTY)
 	assert.Equal(t, "Ed25519", privKeyJWK.CRV)
+
+	// convert back
+	gotPrivKey, err := privKeyJWK.ToKey()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, gotPrivKey)
+	assert.Equal(t, privateKey, gotPrivKey)
 }
 
 func TestJWKToPublicKeyJWK(t *testing.T) {
@@ -45,6 +51,12 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 
 	assert.Equal(t, "OKP", pubKeyJWK.KTY)
 	assert.Equal(t, "Ed25519", pubKeyJWK.CRV)
+
+	// convert back
+	gotPubKey, err := pubKeyJWK.ToKey()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, gotPubKey)
+	assert.Equal(t, publicKey, gotPubKey)
 }
 
 func TestJWKFromPrivateKeyJWK(t *testing.T) {
