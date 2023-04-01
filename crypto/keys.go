@@ -28,6 +28,14 @@ func GenerateKeyByKeyType(kt KeyType) (crypto.PublicKey, crypto.PrivateKey, erro
 		return GenerateX25519Key()
 	case SECP256k1:
 		return GenerateSECP256k1Key()
+	case SECP256k1ECDSA:
+		secpPub, secpPriv, err := GenerateSECP256k1Key()
+		if err == nil {
+			ecdsaPub := secpPub.ToECDSA()
+			ecdsaPriv := secpPriv.ToECDSA()
+			return *ecdsaPub, *ecdsaPriv, nil
+		}
+		return nil, nil, err
 	case P224:
 		return GenerateP224Key()
 	case P256:
@@ -65,7 +73,8 @@ func PubKeyToBytes(key crypto.PublicKey) ([]byte, error) {
 
 	ecdsaKey, ok := key.(ecdsa.PublicKey)
 	if ok {
-		return elliptic.Marshal(ecdsaKey.Curve, ecdsaKey.X, ecdsaKey.Y), nil
+		curve := ecdsaKey.Curve
+		return elliptic.Marshal(curve, ecdsaKey.X, ecdsaKey.Y), nil
 	}
 
 	rsaKey, ok := key.(rsa.PublicKey)
@@ -88,6 +97,13 @@ func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 			return nil, err
 		}
 		return *pubKey, nil
+	case SECP256k1ECDSA:
+		x, y := elliptic.Unmarshal(btcec.S256(), keyBytes)
+		return ecdsa.PublicKey{
+			Curve: btcec.S256(),
+			X:     x,
+			Y:     y,
+		}, nil
 	case P224:
 		x, y := elliptic.Unmarshal(elliptic.P224(), keyBytes)
 		return ecdsa.PublicKey{
@@ -153,7 +169,7 @@ func GetKeyTypeFromPrivateKey(key crypto.PrivateKey) (KeyType, error) {
 		case elliptic.P521():
 			return P521, nil
 		case btcec.S256():
-			return SECP256k1, nil
+			return SECP256k1ECDSA, nil
 		default:
 			return "", fmt.Errorf("unsupported curve: %s", ecdsaKey.Curve)
 		}
@@ -187,6 +203,12 @@ func PrivKeyToBytes(key crypto.PrivateKey) ([]byte, error) {
 
 	ecdsaKey, ok := key.(ecdsa.PrivateKey)
 	if ok {
+		if ecdsaKey.Curve == btcec.S256() {
+			scalar := new(btcec.ModNScalar)
+			_ = scalar.SetByteSlice(ecdsaKey.D.Bytes())
+			privKey := secp.NewPrivateKey(scalar)
+			return privKey.Serialize(), nil
+		}
 		return x509.MarshalECPrivateKey(&ecdsaKey)
 	}
 
@@ -208,6 +230,9 @@ func BytesToPrivKey(keyBytes []byte, kt KeyType) (crypto.PrivateKey, error) {
 		return x25519.PrivateKey(keyBytes), nil
 	case SECP256k1:
 		return *secp.PrivKeyFromBytes(keyBytes), nil
+	case SECP256k1ECDSA:
+		privKey, _ := btcec.PrivKeyFromBytes(keyBytes)
+		return *privKey.ToECDSA(), nil
 	case P224, P256, P384, P521:
 		privKey, err := x509.ParseECPrivateKey(keyBytes)
 		if err != nil {
