@@ -9,7 +9,9 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
+	"reflect"
 
+	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/pkg/errors"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
@@ -42,6 +44,10 @@ func GenerateKeyByKeyType(kt KeyType) (crypto.PublicKey, crypto.PrivateKey, erro
 
 // PubKeyToBytes constructs a byte representation of a public key, for a set number of supported key types
 func PubKeyToBytes(key crypto.PublicKey) ([]byte, error) {
+	// dereference the ptr
+	if reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(crypto.PublicKey)
+	}
 	ed25519Key, ok := key.(ed25519.PublicKey)
 	if ok {
 		return ed25519Key, nil
@@ -123,6 +129,10 @@ func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 
 // GetKeyTypeFromPrivateKey returns the key type of a private key for known key types
 func GetKeyTypeFromPrivateKey(key crypto.PrivateKey) (KeyType, error) {
+	// dereference the ptr
+	if reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(crypto.PrivateKey)
+	}
 	if _, ok := key.(ed25519.PrivateKey); ok {
 		return Ed25519, nil
 	}
@@ -142,6 +152,8 @@ func GetKeyTypeFromPrivateKey(key crypto.PrivateKey) (KeyType, error) {
 			return P384, nil
 		case elliptic.P521():
 			return P521, nil
+		case btcec.S256():
+			return SECP256k1, nil
 		default:
 			return "", fmt.Errorf("unsupported curve: %s", ecdsaKey.Curve)
 		}
@@ -154,6 +166,10 @@ func GetKeyTypeFromPrivateKey(key crypto.PrivateKey) (KeyType, error) {
 
 // PrivKeyToBytes constructs a byte representation of a private key, for a set number of supported key types
 func PrivKeyToBytes(key crypto.PrivateKey) ([]byte, error) {
+	// dereference the ptr
+	if reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(crypto.PrivateKey)
+	}
 	ed25519Key, ok := key.(ed25519.PrivateKey)
 	if ok {
 		return ed25519Key, nil
