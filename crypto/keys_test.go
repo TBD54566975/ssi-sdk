@@ -38,4 +38,36 @@ func TestKeyToBytes(t *testing.T) {
 			assert.Equal(tt, keyType, kt)
 		})
 	}
+
+	for _, keyType := range GetSupportedKeyTypes() {
+		t.Run(string(keyType)+" with pointers", func(tt *testing.T) {
+			pub, priv, err := GenerateKeyByKeyType(keyType)
+
+			assert.NoError(tt, err)
+			assert.NotEmpty(tt, pub)
+			assert.NotEmpty(tt, priv)
+
+			pubKeyBytes, err := PubKeyToBytes(&pub)
+			assert.NoError(tt, err)
+			assert.NotEmpty(tt, pubKeyBytes)
+
+			reconstructedPub, err := BytesToPubKey(pubKeyBytes, keyType)
+			assert.NoError(tt, err)
+			assert.NotEmpty(tt, reconstructedPub)
+			assert.EqualValues(tt, pub, reconstructedPub)
+
+			privKeyBytes, err := PrivKeyToBytes(&priv)
+			assert.NoError(tt, err)
+			assert.NotEmpty(tt, privKeyBytes)
+
+			reconstructedPriv, err := BytesToPrivKey(privKeyBytes, keyType)
+			assert.NoError(tt, err)
+			assert.NotEmpty(tt, reconstructedPriv)
+			assert.EqualValues(tt, priv, reconstructedPriv)
+
+			kt, err := GetKeyTypeFromPrivateKey(&priv)
+			assert.NoError(tt, err)
+			assert.Equal(tt, keyType, kt)
+		})
+	}
 }

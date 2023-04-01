@@ -5,8 +5,8 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
-	"encoding/base64"
 	"fmt"
+	"reflect"
 
 	secp256k1 "github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/goccy/go-json"
@@ -51,7 +51,7 @@ func (k PrivateKeyJWK) ToPublicKeyJWK() PublicKeyJWK {
 	}
 }
 
-func (k PrivateKeyJWK) ToKey() (crypto.PrivateKey, error) {
+func (k PrivateKeyJWK) ToPrivateKey() (crypto.PrivateKey, error) {
 	gotJWK, err := JWKFromPrivateKeyJWK(k)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating JWK from private key")
@@ -59,6 +59,10 @@ func (k PrivateKeyJWK) ToKey() (crypto.PrivateKey, error) {
 	var goKey crypto.PrivateKey
 	if err = gotJWK.Raw(&goKey); err != nil {
 		return nil, errors.Wrap(err, "converting JWK to go key")
+	}
+	// dereference the ptr
+	if reflect.ValueOf(goKey).Kind() == reflect.Ptr {
+		goKey = reflect.ValueOf(goKey).Elem().Interface().(crypto.PrivateKey)
 	}
 	return goKey, nil
 }
@@ -77,7 +81,7 @@ type PublicKeyJWK struct {
 	KID    string `json:"kid,omitempty"`
 }
 
-func (k PublicKeyJWK) ToKey() (crypto.PublicKey, error) {
+func (k PublicKeyJWK) ToPublicKey() (crypto.PublicKey, error) {
 	gotJWK, err := JWKFromPublicKeyJWK(k)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating JWK from public key")
@@ -85,6 +89,10 @@ func (k PublicKeyJWK) ToKey() (crypto.PublicKey, error) {
 	var goKey crypto.PublicKey
 	if err = gotJWK.Raw(&goKey); err != nil {
 		return nil, errors.Wrap(err, "converting JWK to go key")
+	}
+	// dereference the ptr
+	if reflect.ValueOf(goKey).Kind() == reflect.Ptr {
+		goKey = reflect.ValueOf(goKey).Elem().Interface().(crypto.PublicKey)
 	}
 	return goKey, nil
 }
@@ -135,27 +143,21 @@ func JWKFromPrivateKeyJWK(key PrivateKeyJWK) (jwk.Key, error) {
 
 // PublicKeyToJWK converts a public key to a JWK
 func PublicKeyToJWK(key crypto.PublicKey) (jwk.Key, error) {
+	// dereference the ptr
+	if reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(crypto.PublicKey)
+	}
 	switch k := key.(type) {
 	case rsa.PublicKey:
 		return jwkKeyFromRSAPublicKey(k)
-	case *rsa.PublicKey:
-		return jwkKeyFromRSAPublicKey(*k)
 	case ed25519.PublicKey:
 		return jwkKeyFromEd25519PublicKey(k)
-	case *ed25519.PublicKey:
-		return jwkKeyFromEd25519PublicKey(*k)
 	case x25519.PublicKey:
 		return jwkKeyFromX25519PublicKey(k)
-	case *x25519.PublicKey:
-		return jwkKeyFromX25519PublicKey(*k)
 	case secp256k1.PublicKey:
 		return jwkKeyFromSECP256k1PublicKey(k)
-	case *secp256k1.PublicKey:
-		return jwkKeyFromSECP256k1PublicKey(*k)
 	case ecdsa.PublicKey:
 		return jwkKeyFromECDSAPublicKey(k)
-	case *ecdsa.PublicKey:
-		return jwkKeyFromECDSAPublicKey(*k)
 	default:
 		return nil, fmt.Errorf("unsupported public key type: %T", k)
 	}
@@ -163,27 +165,21 @@ func PublicKeyToJWK(key crypto.PublicKey) (jwk.Key, error) {
 
 // PublicKeyToPublicKeyJWK converts a public key to a PublicKeyJWK
 func PublicKeyToPublicKeyJWK(key crypto.PublicKey) (*PublicKeyJWK, error) {
+	// dereference the ptr
+	if reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(crypto.PublicKey)
+	}
 	switch k := key.(type) {
 	case rsa.PublicKey:
 		return jwkFromRSAPublicKey(k)
-	case *rsa.PublicKey:
-		return jwkFromRSAPublicKey(*k)
 	case ed25519.PublicKey:
 		return jwkFromEd25519PublicKey(k)
-	case *ed25519.PublicKey:
-		return jwkFromEd25519PublicKey(*k)
 	case x25519.PublicKey:
 		return jwkFromX25519PublicKey(k)
-	case *x25519.PublicKey:
-		return jwkFromX25519PublicKey(*k)
 	case secp256k1.PublicKey:
 		return jwkFromSECP256k1PublicKey(k)
-	case *secp256k1.PublicKey:
-		return jwkFromSECP256k1PublicKey(*k)
 	case ecdsa.PublicKey:
 		return jwkFromECDSAPublicKey(k)
-	case *ecdsa.PublicKey:
-		return jwkFromECDSAPublicKey(*k)
 	default:
 		return nil, fmt.Errorf("unsupported public key type: %T", k)
 	}
@@ -191,27 +187,21 @@ func PublicKeyToPublicKeyJWK(key crypto.PublicKey) (*PublicKeyJWK, error) {
 
 // PrivateKeyToJWK converts a private key to a JWK
 func PrivateKeyToJWK(key crypto.PrivateKey) (jwk.Key, error) {
+	// dereference the ptr
+	if reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(crypto.PrivateKey)
+	}
 	switch k := key.(type) {
 	case rsa.PrivateKey:
 		return jwkKeyFromRSAPrivateKey(k)
-	case *rsa.PrivateKey:
-		return jwkKeyFromRSAPrivateKey(*k)
 	case ed25519.PrivateKey:
 		return jwkKeyFromEd25519PrivateKey(k)
-	case *ed25519.PrivateKey:
-		return jwkKeyFromEd25519PrivateKey(*k)
 	case x25519.PrivateKey:
 		return jwkKeyFromX25519PrivateKey(k)
-	case *x25519.PrivateKey:
-		return jwkKeyFromX25519PrivateKey(*k)
 	case secp256k1.PrivateKey:
 		return jwkKeyFromSECP256k1PrivateKey(k)
-	case *secp256k1.PrivateKey:
-		return jwkKeyFromSECP256k1PrivateKey(*k)
 	case ecdsa.PrivateKey:
 		return jwkKeyFromECDSAPrivateKey(k)
-	case *ecdsa.PrivateKey:
-		return jwkKeyFromECDSAPrivateKey(*k)
 	default:
 		return nil, fmt.Errorf("unsupported private key type: %T", k)
 	}
@@ -219,6 +209,10 @@ func PrivateKeyToJWK(key crypto.PrivateKey) (jwk.Key, error) {
 
 // PrivateKeyToPrivateKeyJWK converts a private key to a PrivateKeyJWK
 func PrivateKeyToPrivateKeyJWK(key crypto.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
+	// dereference the ptr
+	if reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(crypto.PrivateKey)
+	}
 	switch k := key.(type) {
 	case rsa.PrivateKey:
 		return jwkFromRSAPrivateKey(k)
@@ -550,8 +544,4 @@ func jwkFromECDSAPublicKey(key ecdsa.PublicKey) (*PublicKeyJWK, error) {
 		return nil, errors.Wrap(err, "unmarshalling ecdsa jwk")
 	}
 	return &publicKeyJWK, nil
-}
-
-func encodeToBase64RawURL(data []byte) string {
-	return base64.RawURLEncoding.EncodeToString(data)
 }

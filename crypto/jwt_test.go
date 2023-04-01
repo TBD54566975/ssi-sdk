@@ -60,6 +60,9 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 			kt: SECP256k1,
 		},
 		{
+			kt: SECP256k1ECDSA,
+		},
+		{
 			kt: P256,
 		},
 		{

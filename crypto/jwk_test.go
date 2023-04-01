@@ -3,6 +3,7 @@ package crypto
 import (
 	"testing"
 
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,7 +28,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 	assert.Equal(t, "Ed25519", privKeyJWK.CRV)
 
 	// convert back
-	gotPrivKey, err := privKeyJWK.ToKey()
+	gotPrivKey, err := privKeyJWK.ToPrivateKey()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, gotPrivKey)
 	assert.Equal(t, privateKey, gotPrivKey)
@@ -53,7 +54,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 	assert.Equal(t, "Ed25519", pubKeyJWK.CRV)
 
 	// convert back
-	gotPubKey, err := pubKeyJWK.ToKey()
+	gotPubKey, err := pubKeyJWK.ToPublicKey()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, gotPubKey)
 	assert.Equal(t, publicKey, gotPubKey)
@@ -109,6 +110,104 @@ func TestJWKFromPublicKeyJWK(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, gotJWK)
 	assert.Equal(t, key, gotJWK)
+}
+
+func TestPublicKeyToJWK(t *testing.T) {
+	t.Run("RSA", func(tt *testing.T) {
+		pubKey, _, err := GenerateRSA2048Key()
+		assert.NoError(t, err)
+
+		jwk, err := PublicKeyToJWK(pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, jwa.RSA, jwk.KeyType())
+
+		jwk2, err := PublicKeyToJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, jwa.RSA, jwk2.KeyType())
+	})
+
+	t.Run("Ed25519", func(tt *testing.T) {
+		pubKey, _, err := GenerateEd25519Key()
+		assert.NoError(t, err)
+
+		jwk, err := PublicKeyToJWK(pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, jwa.OKP, jwk.KeyType())
+
+		jwk2, err := PublicKeyToJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, jwa.OKP, jwk2.KeyType())
+	})
+
+	t.Run("X25519", func(tt *testing.T) {
+		pubKey, _, err := GenerateX25519Key()
+		assert.NoError(t, err)
+
+		jwk, err := PublicKeyToJWK(pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, jwa.OKP, jwk.KeyType())
+
+		jwk2, err := PublicKeyToJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, jwa.OKP, jwk2.KeyType())
+	})
+
+	t.Run("secp256k1", func(tt *testing.T) {
+		pubKey, _, err := GenerateSECP256k1Key()
+		assert.NoError(t, err)
+
+		jwk, err := PublicKeyToJWK(pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, jwa.EC, jwk.KeyType())
+
+		jwk2, err := PublicKeyToJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, jwa.EC, jwk2.KeyType())
+	})
+
+	t.Run("ecdsa P-256", func(tt *testing.T) {
+		pubKey, _, err := GenerateP256Key()
+		assert.NoError(t, err)
+
+		jwk, err := PublicKeyToJWK(pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, jwa.EC, jwk.KeyType())
+
+		jwk2, err := PublicKeyToJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, jwa.EC, jwk.KeyType())
+	})
+
+	t.Run("ecdsa P-384", func(tt *testing.T) {
+		pubKey, _, err := GenerateP384Key()
+		assert.NoError(t, err)
+
+		jwk, err := PublicKeyToJWK(pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, jwa.EC, jwk.KeyType())
+
+		jwk2, err := PublicKeyToJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, jwa.EC, jwk2.KeyType())
+	})
+
+	t.Run("unsupported", func(tt *testing.T) {
+		jwk, err := PublicKeyToJWK(nil)
+		assert.Error(tt, err)
+		assert.Empty(tt, jwk)
+	})
 }
 
 func TestPublicKeyToPublicKeyJWK(t *testing.T) {

@@ -8,14 +8,15 @@ type (
 )
 
 const (
-	Ed25519   KeyType = "Ed25519"
-	X25519    KeyType = "X25519"
-	SECP256k1 KeyType = "secp256k1"
-	P224      KeyType = "P-224"
-	P256      KeyType = "P-256"
-	P384      KeyType = "P-384"
-	P521      KeyType = "P-521"
-	RSA       KeyType = "RSA"
+	Ed25519        KeyType = "Ed25519"
+	X25519         KeyType = "X25519"
+	SECP256k1      KeyType = "secp256k1"
+	SECP256k1ECDSA KeyType = "secp256k1-ECDSA"
+	P224           KeyType = "P-224"
+	P256           KeyType = "P-256"
+	P384           KeyType = "P-384"
+	P521           KeyType = "P-521"
+	RSA            KeyType = "RSA"
 
 	RSAKeySize int = 2048
 )
@@ -52,7 +53,7 @@ func IsSupportedKeyType(kt KeyType) bool {
 }
 
 func GetSupportedKeyTypes() []KeyType {
-	return []KeyType{Ed25519, X25519, SECP256k1, P224, P256, P384, P521, RSA}
+	return []KeyType{Ed25519, X25519, SECP256k1, SECP256k1ECDSA, P224, P256, P384, P521, RSA}
 }
 
 func IsSupportedSignatureAlg(sa SignatureAlgorithm) bool {
