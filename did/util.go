@@ -35,17 +35,22 @@ func GetKeyFromVerificationInformation(did Document, kid string) (gocrypto.Publi
 	}
 
 	for _, method := range verificationMethods {
-		methodID := method.ID
-		maybeKID1 := kid                               // the kid == the kid
-		maybeKID2 := fmt.Sprintf("#%s", kid)           // the kid == the fragment with a #
-		maybeKID3 := fmt.Sprintf("%s#%s", did.ID, kid) // the kid == the DID ID + the fragment with a #
-		maybeKID4 := fmt.Sprintf("%s%s", did.ID, kid)  // the kid == the DID ID + the fragment without a #
-		if methodID == maybeKID1 || methodID == maybeKID2 || methodID == maybeKID3 || methodID == maybeKID4 {
+		// make sure the kid matches the verification method
+		if matchesKIDConstruction(did.ID, kid, method.ID) {
 			return extractKeyFromVerificationMethod(method)
 		}
 	}
 
 	return nil, errors.Errorf("did<%s> has no verification methods with kid: %s", did.ID, kid)
+}
+
+// matchesKIDConstruction checks if the targetID matches possible combinations of the did and kid
+func matchesKIDConstruction(did, kid, targetID string) bool {
+	maybeKID1 := kid                            // the kid == the kid
+	maybeKID2 := fmt.Sprintf("#%s", kid)        // the kid == the fragment with a #
+	maybeKID3 := fmt.Sprintf("%s#%s", did, kid) // the kid == the DID ID + the fragment with a #
+	maybeKID4 := fmt.Sprintf("%s%s", did, kid)  // the kid == the DID ID + the fragment without a #
+	return targetID == maybeKID1 || targetID == maybeKID2 || targetID == maybeKID3 || targetID == maybeKID4
 }
 
 func extractKeyFromVerificationMethod(method VerificationMethod) (gocrypto.PublicKey, error) {
@@ -83,6 +88,7 @@ func extractKeyFromVerificationMethod(method VerificationMethod) (gocrypto.Publi
 // multibaseToPubKey converts a multibase encoded public key to public key bytes for known multibase encodings
 func multibaseToPubKeyBytes(mb string) ([]byte, error) {
 	if mb == "" {
+		return nil, errors.New("multibase key cannot be empty")
 	}
 
 	encoding, decoded, err := multibase.Decode(mb)
