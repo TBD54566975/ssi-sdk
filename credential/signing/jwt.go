@@ -128,7 +128,6 @@ func ParseVerifiableCredentialFromJWT(token string) (jwt.Token, *credential.Veri
 	iatTime, ok := iat.(time.Time)
 	if hasIAT && ok {
 		cred.IssuanceDate = iatTime.Format(time.RFC3339)
-
 	}
 
 	exp, hasExp := parsed.Get(jwt.ExpirationKey)
