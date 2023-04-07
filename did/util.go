@@ -14,7 +14,6 @@ import (
 	"github.com/multiformats/go-multicodec"
 	"github.com/multiformats/go-varint"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // GetKeyFromVerificationInformation resolves a DID and provides a kid and public key needed for data verification
@@ -84,26 +83,20 @@ func extractKeyFromVerificationMethod(method VerificationMethod) (gocrypto.Publi
 // multibaseToPubKey converts a multibase encoded public key to public key bytes for known multibase encodings
 func multibaseToPubKeyBytes(mb string) ([]byte, error) {
 	if mb == "" {
-		err := fmt.Errorf("could not decode value: %s", mb)
-		logrus.WithError(err).Error()
-		return nil, err
 	}
 
 	encoding, decoded, err := multibase.Decode(mb)
 	if err != nil {
-		logrus.WithError(err).Error("could not decode multibase key")
-		return nil, err
+		return nil, errors.Wrap(err, "decoding multibase key")
 	}
 	if encoding != Base58BTCMultiBase {
-		err = fmt.Errorf("expected %d encoding but found %d", Base58BTCMultiBase, encoding)
-		logrus.WithError(err).Error()
-		return nil, err
+		return nil, fmt.Errorf("expected %d encoding but found %d", Base58BTCMultiBase, encoding)
 	}
 
 	// n = # bytes for the int, which we expect to be two from our multicodec
 	_, n, err := varint.FromUvarint(decoded)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "error parsing multibase varint")
 	}
 	if n != 2 {
 		return nil, errors.New("error parsing multibase varint")
@@ -146,8 +139,7 @@ func decodeEncodedKey(d string) ([]byte, cryptosuite.LDKeyType, crypto.KeyType, 
 	}
 
 	if encoding != Base58BTCMultiBase {
-		err := fmt.Errorf("expected %d encoding but found %d", Base58BTCMultiBase, encoding)
-		return nil, "", "", err
+		return nil, "", "", fmt.Errorf("expected %d encoding but found %d", Base58BTCMultiBase, encoding)
 	}
 
 	// n = # bytes for the int, which we expect to be two from our multicodec
@@ -156,8 +148,7 @@ func decodeEncodedKey(d string) ([]byte, cryptosuite.LDKeyType, crypto.KeyType, 
 		return nil, "", "", err
 	}
 	if n != 2 {
-		errMsg := "Error parsing did:key varint"
-		return nil, "", "", errors.New(errMsg)
+		return nil, "", "", errors.New("error parsing did:key varint")
 	}
 
 	pubKeyBytes := decoded[n:]
@@ -190,7 +181,7 @@ func decodePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyType, error)
 	// n = # bytes for the int, which we expect to be two from our multicodec
 	multiCodec, n, err := varint.FromUvarint(decoded)
 	if err != nil {
-		return nil, "", err
+		return nil, "", errors.Wrap(err, "failed to decode public key from varint")
 	}
 
 	pubKeyBytes := decoded[n:]
@@ -207,8 +198,7 @@ func decodePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyType, error)
 	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
 		return pubKeyBytes, cryptosuite.JSONWebKey2020Type, nil
 	default:
-		err := fmt.Errorf("unknown multicodec for did:peer: %d", multiCodecValue)
-		return nil, "", err
+		return nil, "", fmt.Errorf("unknown multicodec for did:peer: %d", multiCodecValue)
 	}
 }
 
