@@ -11,20 +11,20 @@ import (
 
 func TestGetKeyFromVerificationInformation(t *testing.T) {
 	t.Run("empty doc", func(tt *testing.T) {
-		_, err := GetKeyFromVerificationInformation(Document{}, "test-kid")
+		_, err := GetKeyFromVerificationMethod(Document{}, "test-kid")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "did doc cannot be empty")
 	})
 
 	t.Run("no kid", func(tt *testing.T) {
-		_, err := GetKeyFromVerificationInformation(Document{ID: "id"}, "")
+		_, err := GetKeyFromVerificationMethod(Document{ID: "id"}, "")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "kid is required")
 	})
 
 	t.Run("doc with no verification methods", func(t *testing.T) {
 		doc := Document{ID: "test-did"}
-		_, err := GetKeyFromVerificationInformation(doc, "test-kid")
+		_, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "has no verification methods")
 	})
@@ -40,7 +40,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 				},
 			},
 		}
-		_, err := GetKeyFromVerificationInformation(doc, "test-kid")
+		_, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "no verification methods with kid: test-kid")
 	})
@@ -56,7 +56,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 				},
 			},
 		}
-		_, err := GetKeyFromVerificationInformation(doc, "test-kid")
+		_, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "converting multibase key")
 	})
@@ -72,7 +72,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 				},
 			},
 		}
-		_, err := GetKeyFromVerificationInformation(doc, "test-kid")
+		_, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "decoding base58 key")
 	})
@@ -90,7 +90,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 				},
 			},
 		}
-		_, err := GetKeyFromVerificationInformation(doc, "test-kid")
+		_, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "parsing jwk")
 	})
@@ -105,7 +105,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 				},
 			},
 		}
-		_, err := GetKeyFromVerificationInformation(doc, "test-kid")
+		_, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "no public key found in verification method")
 	})
@@ -124,7 +124,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 				},
 			},
 		}
-		key, err := GetKeyFromVerificationInformation(doc, "test-kid")
+		key, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.NoError(t, err)
 		assert.Equal(t, pubKey, key)
 	})
@@ -143,11 +143,11 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 				},
 			},
 		}
-		key, err := GetKeyFromVerificationInformation(doc, "#test-kid")
+		key, err := GetKeyFromVerificationMethod(doc, "#test-kid")
 		assert.NoError(t, err)
 		assert.Equal(t, pubKey, key)
 
-		key, err = GetKeyFromVerificationInformation(doc, "test-kid")
+		key, err = GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.NoError(t, err)
 		assert.Equal(t, pubKey, key)
 	})
@@ -166,15 +166,15 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 				},
 			},
 		}
-		key, err := GetKeyFromVerificationInformation(doc, "test-kid")
+		key, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.NoError(t, err)
 		assert.Equal(t, pubKey, key)
 
-		key, err = GetKeyFromVerificationInformation(doc, "#test-kid")
+		key, err = GetKeyFromVerificationMethod(doc, "#test-kid")
 		assert.NoError(t, err)
 		assert.Equal(t, pubKey, key)
 
-		key, err = GetKeyFromVerificationInformation(doc, "test-did#test-kid")
+		key, err = GetKeyFromVerificationMethod(doc, "test-did#test-kid")
 		assert.NoError(t, err)
 		assert.Equal(t, pubKey, key)
 	})
@@ -188,7 +188,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, doc)
 
-		key, err := GetKeyFromVerificationInformation(*doc, doc.VerificationMethod[0].ID)
+		key, err := GetKeyFromVerificationMethod(*doc, doc.VerificationMethod[0].ID)
 		assert.NoError(t, err)
 		assert.Equal(t, pubKey, key)
 	})
@@ -208,15 +208,15 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 				},
 			},
 		}
-		key, err := GetKeyFromVerificationInformation(doc, "test-kid")
+		key, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, key)
 
-		key, err = GetKeyFromVerificationInformation(doc, "#test-kid")
+		key, err = GetKeyFromVerificationMethod(doc, "#test-kid")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, key)
 
-		key, err = GetKeyFromVerificationInformation(doc, "did:example:123#test-kid")
+		key, err = GetKeyFromVerificationMethod(doc, "did:example:123#test-kid")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, key)
 	})

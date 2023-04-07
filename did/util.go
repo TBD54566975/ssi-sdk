@@ -16,12 +16,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GetKeyFromVerificationInformation resolves a DID and provides a kid and public key needed for data verification
+// GetKeyFromVerificationMethod resolves a DID and provides a kid and public key needed for data verification
 // it is possible that a DID has multiple verification methods, in which case a kid must be provided, otherwise
 // resolution will fail.
 // A KID can be fully qualified (e.g. did:example:123#key-1) or just the fragment (e.g. key-1, #key-1)
 // Some DIDs, like did:key, use the entire DID as the KID, so we need to handle all three cases.
-func GetKeyFromVerificationInformation(did Document, kid string) (gocrypto.PublicKey, error) {
+func GetKeyFromVerificationMethod(did Document, kid string) (gocrypto.PublicKey, error) {
 	if did.IsEmpty() {
 		return nil, errors.New("did doc cannot be empty")
 	}
