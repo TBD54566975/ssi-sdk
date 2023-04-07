@@ -23,8 +23,9 @@ func TestVerifiableCredentialJWS(t *testing.T) {
 		assert.NoError(t, err)
 
 		token := string(signedJWT)
-		parsedCred, err := ParseVerifiableCredentialFromJWS(token)
+		jws, parsedCred, err := ParseVerifiableCredentialFromJWS(token)
 		assert.NoError(t, err)
+		assert.NotEmpty(t, jws)
 		assert.Equal(t, &testCredential, parsedCred)
 	})
 
@@ -58,8 +59,9 @@ func TestVerifiableCredentialJWS(t *testing.T) {
 		assert.NoError(t, err)
 
 		token := string(signed)
-		cred, err := VerifyVerifiableCredentialJWS(*verifier, token)
+		jws, cred, err := VerifyVerifiableCredentialJWS(*verifier, token)
 		assert.NoError(t, err)
+		assert.NotEmpty(t, jws)
 		assert.Equal(t, &testCredential, cred)
 	})
 
@@ -68,8 +70,9 @@ func TestVerifiableCredentialJWS(t *testing.T) {
 		assert.NoError(t, err)
 
 		token := string(signedJWT)
-		parsedCred, err := ParseVerifiableCredentialFromJWS(token)
+		jws, parsedCred, err := ParseVerifiableCredentialFromJWS(token)
 		assert.NoError(t, err)
+		assert.NotEmpty(t, jws)
 		assert.Equal(t, &testCredential, parsedCred)
 	})
 }

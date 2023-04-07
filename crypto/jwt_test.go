@@ -45,6 +45,7 @@ func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 }
 
 func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
+	testID := "test-id"
 	testKID := "test-kid"
 	testData := map[string]any{
 		"test": "data",
@@ -83,7 +84,7 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 			assert.NotEmpty(t, privKey)
 
 			// create key access with the key
-			signer, err := NewJWTSigner(testKID, privKey)
+			signer, err := NewJWTSigner(testID, testKID, privKey)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, signer)
 
@@ -97,7 +98,7 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, verifier)
 
-			sameVerifier, err := NewJWTVerifier(testKID, pubKey)
+			sameVerifier, err := NewJWTVerifier(testID, testKID, pubKey)
 			assert.NoError(t, err)
 			assert.Equal(t, verifier, sameVerifier)
 
@@ -172,7 +173,7 @@ func getTestVectorKey0Signer(t *testing.T) JWTSigner {
 		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 	}
 
-	signer, err := NewJWTSignerFromJWK(knownJWK.KID, knownJWK)
+	signer, err := NewJWTSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
 	assert.NoError(t, err)
 	return *signer
 }

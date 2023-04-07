@@ -78,7 +78,7 @@ func BuildPresentationRequest(signer any, pt PresentationRequestType, def Presen
 func BuildJWTPresentationRequest(signer crypto.JWTSigner, def PresentationDefinition, target string) ([]byte, error) {
 	jwtValues := map[string]any{
 		jwt.JwtIDKey:              uuid.NewString(),
-		jwt.IssuerKey:             signer.KeyID(),
+		jwt.IssuerKey:             signer.ID,
 		jwt.AudienceKey:           target,
 		PresentationDefinitionKey: def,
 	}

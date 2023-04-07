@@ -15,20 +15,21 @@ import (
 
 // JWTSigner is a struct that contains the key and algorithm used to sign JWTs
 type JWTSigner struct {
+	ID string
 	jwa.SignatureAlgorithm
 	jwk.Key
 }
 
-func NewJWTSigner(kid string, key crypto.PrivateKey) (*JWTSigner, error) {
+func NewJWTSigner(id, kid string, key crypto.PrivateKey) (*JWTSigner, error) {
 	privateKeyJWK, err := PrivateKeyToJWK(key)
 	if err != nil {
 		return nil, err
 	}
-	return NewJWTSignerFromKey(kid, privateKeyJWK)
+	return NewJWTSignerFromKey(id, kid, privateKeyJWK)
 }
 
-func NewJWTSignerFromJWK(kid string, key PrivateKeyJWK) (*JWTSigner, error) {
-	gotJWK, alg, err := jwtSigner(kid, key)
+func NewJWTSignerFromJWK(id, kid string, key PrivateKeyJWK) (*JWTSigner, error) {
+	gotJWK, alg, err := jwtSigner(id, kid, key)
 	if err != nil {
 		return nil, err
 	}
@@ -36,20 +37,21 @@ func NewJWTSignerFromJWK(kid string, key PrivateKeyJWK) (*JWTSigner, error) {
 		return nil, fmt.Errorf("unsupported signing algorithm: %s", alg)
 	}
 	return &JWTSigner{
+		ID:                 id,
 		SignatureAlgorithm: *alg,
 		Key:                gotJWK,
 	}, nil
 }
 
-func NewJWTSignerFromKey(kid string, key jwk.Key) (*JWTSigner, error) {
-	gotJWK, alg, err := jwtSignerFromKey(kid, key)
+func NewJWTSignerFromKey(id, kid string, key jwk.Key) (*JWTSigner, error) {
+	gotJWK, alg, err := jwtSignerFromKey(id, kid, key)
 	if err != nil {
 		return nil, err
 	}
 	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
 		return nil, fmt.Errorf("unsupported signing algorithm: %s", alg)
 	}
-	return &JWTSigner{SignatureAlgorithm: *alg, Key: gotJWK}, nil
+	return &JWTSigner{ID: id, SignatureAlgorithm: *alg, Key: gotJWK}, nil
 }
 
 func (s *JWTSigner) ToVerifier() (*JWTVerifier, error) {
@@ -57,61 +59,62 @@ func (s *JWTSigner) ToVerifier() (*JWTVerifier, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewJWTVerifierFromKey(s.KeyID(), key)
+	return NewJWTVerifierFromKey(s.ID, s.KeyID(), key)
 }
 
 // JWTVerifier is a struct that contains the key and algorithm used to verify JWTs
 type JWTVerifier struct {
+	ID string
 	jwk.Key
 }
 
-func NewJWTVerifier(kid string, key crypto.PublicKey) (*JWTVerifier, error) {
+func NewJWTVerifier(id, kid string, key crypto.PublicKey) (*JWTVerifier, error) {
 	privateKeyJWK, err := PublicKeyToJWK(key)
 	if err != nil {
 		return nil, err
 	}
-	return NewJWTVerifierFromKey(kid, privateKeyJWK)
+	return NewJWTVerifierFromKey(id, kid, privateKeyJWK)
 }
 
-func NewJWTVerifierFromJWK(kid string, key PublicKeyJWK) (*JWTVerifier, error) {
-	gotJWK, alg, err := jwtVerifier(kid, key)
+func NewJWTVerifierFromJWK(id, kid string, key PublicKeyJWK) (*JWTVerifier, error) {
+	gotJWK, alg, err := jwtVerifier(id, kid, key)
 	if err != nil {
 		return nil, err
 	}
 	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
 		return nil, fmt.Errorf("unsupported signing/verification algorithm: %s", alg)
 	}
-	return &JWTVerifier{Key: gotJWK}, nil
+	return &JWTVerifier{ID: id, Key: gotJWK}, nil
 }
 
-func NewJWTVerifierFromKey(kid string, key jwk.Key) (*JWTVerifier, error) {
-	gotJWK, alg, err := jwkVerifierFromKey(kid, key)
+func NewJWTVerifierFromKey(id, kid string, key jwk.Key) (*JWTVerifier, error) {
+	gotJWK, alg, err := jwkVerifierFromKey(id, kid, key)
 	if err != nil {
 		return nil, err
 	}
 	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
 		return nil, fmt.Errorf("unsupported signing algorithm: %s", alg)
 	}
-	return &JWTVerifier{Key: gotJWK}, nil
+	return &JWTVerifier{ID: id, Key: gotJWK}, nil
 }
 
-func jwtSigner(kid string, key PrivateKeyJWK) (jwk.Key, *jwa.SignatureAlgorithm, error) {
-	return jwtSignerVerifier(kid, key)
+func jwtSigner(id, kid string, key PrivateKeyJWK) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+	return jwtSignerVerifier(id, kid, key)
 }
 
-func jwtSignerFromKey(kid string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgorithm, error) {
-	return jwtSignerVerifier(kid, key)
+func jwtSignerFromKey(id, kid string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+	return jwtSignerVerifier(id, kid, key)
 }
 
-func jwtVerifier(kid string, key PublicKeyJWK) (jwk.Key, *jwa.SignatureAlgorithm, error) {
-	return jwtSignerVerifier(kid, key)
+func jwtVerifier(id, kid string, key PublicKeyJWK) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+	return jwtSignerVerifier(id, kid, key)
 }
 
-func jwkVerifierFromKey(kid string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgorithm, error) {
-	return jwtSignerVerifier(kid, key)
+func jwkVerifierFromKey(id, kid string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+	return jwtSignerVerifier(id, kid, key)
 }
 
-func jwtSignerVerifier(kid string, key any) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+func jwtSignerVerifier(id, kid string, key any) (jwk.Key, *jwa.SignatureAlgorithm, error) {
 	jwkBytes, err := json.Marshal(key)
 	if err != nil {
 		return nil, nil, err
@@ -128,12 +131,11 @@ func jwtSignerVerifier(kid string, key any) (jwk.Key, *jwa.SignatureAlgorithm, e
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not get verification alg from jwk")
 	}
-	// TODO(gabe) distinguish between issuer and KID
-	if err = parsedKey.Set(jwt.IssuerKey, kid); err != nil {
-		return nil, nil, fmt.Errorf("could not set KID with provided value: %s", kid)
+	if err = parsedKey.Set(jwt.IssuerKey, id); err != nil {
+		return nil, nil, fmt.Errorf("could not set iss with provided value: %s", kid)
 	}
 	if err = parsedKey.Set(jwk.KeyIDKey, kid); err != nil {
-		return nil, nil, fmt.Errorf("could not set KID with provided value: %s", kid)
+		return nil, nil, fmt.Errorf("could not set kid with provided value: %s", kid)
 	}
 	if err = parsedKey.Set(jwk.AlgorithmKey, alg); err != nil {
 		return nil, nil, fmt.Errorf("could not set alg with value: %s", alg)

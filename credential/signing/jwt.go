@@ -2,7 +2,6 @@ package signing
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -19,48 +18,52 @@ const (
 	NonceProperty string = "nonce"
 )
 
-// SignVerifiableCredentialJWT is prepared according to https://www.w3.org/TR/vc-data-model/#jwt-encoding
+// SignVerifiableCredentialJWT is prepared according to https://w3c.github.io/vc-jwt/#version-1.1
 // which will soon be deprecated by https://w3c.github.io/vc-jwt/ see: https://github.com/TBD54566975/ssi-sdk/issues/191
 func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.VerifiableCredential) ([]byte, error) {
 	if cred.IsEmpty() {
 		return nil, errors.New("credential cannot be empty")
 	}
+	if cred.Proof != nil {
+		return nil, errors.New("credential cannot already have a proof")
+	}
 
 	t := jwt.New()
-	expirationVal := cred.ExpirationDate
-	if expirationVal != "" {
-		var expirationDate = expirationVal
-		unixTime, err := rfc3339ToUnix(expirationVal)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not convert expiration date to unix time")
-		}
-		expirationDate = string(unixTime)
-		if err := t.Set(jwt.ExpirationKey, expirationDate); err != nil {
+	if cred.ExpirationDate != "" {
+		if err := t.Set(jwt.ExpirationKey, cred.ExpirationDate); err != nil {
 			return nil, errors.Wrap(err, "could not set exp value")
 		}
+
+		// remove the expiration date from the credential
+		cred.ExpirationDate = ""
+	}
+
+	if err := t.Set(NonceProperty, uuid.New().String()); err != nil {
+		return nil, errors.Wrap(err, "setting nonce value")
 	}
 
 	if err := t.Set(jwt.IssuerKey, cred.Issuer); err != nil {
 		return nil, errors.Wrap(err, "could not set exp value")
 	}
+	// remove the issuer from the credential
+	cred.Issuer = ""
 
-	var issuanceDate = cred.IssuanceDate
-	if unixTime, err := rfc3339ToUnix(cred.IssuanceDate); err == nil {
-		issuanceDate = string(unixTime)
-	} else {
-		// could not convert iat to unix time; setting to present moment
-		issuanceDate = strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	if err := t.Set(jwt.IssuedAtKey, cred.IssuanceDate); err != nil {
+		return nil, errors.Wrap(err, "could not set iat value")
 	}
-
-	if err := t.Set(jwt.NotBeforeKey, issuanceDate); err != nil {
+	if err := t.Set(jwt.NotBeforeKey, cred.IssuanceDate); err != nil {
 		return nil, errors.Wrap(err, "could not set nbf value")
 	}
+	// remove the issuance date from the credential
+	cred.IssuanceDate = ""
 
 	idVal := cred.ID
 	if idVal != "" {
 		if err := t.Set(jwt.JwtIDKey, idVal); err != nil {
 			return nil, errors.Wrap(err, "could not set jti value")
 		}
+		// remove the id from the credential
+		cred.ID = ""
 	}
 
 	subVal := cred.CredentialSubject.GetID()
@@ -68,6 +71,8 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 		if err := t.Set(jwt.SubjectKey, subVal); err != nil {
 			return nil, errors.Wrap(err, "setting subject value")
 		}
+		// remove the id from the credential subject
+		delete(cred.CredentialSubject, "id")
 	}
 
 	if err := t.Set(VCJWTProperty, cred); err != nil {
@@ -83,9 +88,9 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 
 // VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
 // the token in a verifiable credential.
-func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (*credential.VerifiableCredential, error) {
+func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (jwt.Token, *credential.VerifiableCredential, error) {
 	if err := verifier.Verify(token); err != nil {
-		return nil, errors.Wrap(err, "verifying JWT")
+		return nil, nil, errors.Wrap(err, "verifying JWT")
 	}
 	return ParseVerifiableCredentialFromJWT(token)
 }
@@ -94,30 +99,41 @@ func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (*
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiableCredential object is returned.
-func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCredential, error) {
+func ParseVerifiableCredentialFromJWT(token string) (jwt.Token, *credential.VerifiableCredential, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
-		return nil, errors.Wrap(err, "parsing credential token")
+		return nil, nil, errors.Wrap(err, "parsing credential token")
 	}
 	vcClaim, ok := parsed.Get(VCJWTProperty)
 	if !ok {
-		return nil, fmt.Errorf("did not find %s property in token", VCJWTProperty)
+		return nil, nil, fmt.Errorf("did not find %s property in token", VCJWTProperty)
 	}
 	vcBytes, err := json.Marshal(vcClaim)
 	if err != nil {
-		return nil, errors.Wrap(err, "marshalling credential claim")
+		return nil, nil, errors.Wrap(err, "marshalling credential claim")
 	}
 	var cred credential.VerifiableCredential
 	if err = json.Unmarshal(vcBytes, &cred); err != nil {
-		return nil, errors.Wrap(err, "reconstructing Verifiable Credential")
+		return nil, nil, errors.Wrap(err, "reconstructing Verifiable Credential")
 	}
 
 	// parse remaining JWT properties and set in the credential
+	jti, hasJTI := parsed.Get(jwt.JwtIDKey)
+	jtiStr, ok := jti.(string)
+	if hasJTI && ok && jtiStr != "" {
+		cred.ID = jtiStr
+	}
+
+	iat, hasIAT := parsed.Get(jwt.IssuedAtKey)
+	iatTime, ok := iat.(time.Time)
+	if hasIAT && ok {
+		cred.IssuanceDate = iatTime.Format(time.RFC3339)
+	}
 
 	exp, hasExp := parsed.Get(jwt.ExpirationKey)
-	expStr, ok := exp.(string)
-	if hasExp && ok && expStr != "" {
-		cred.ExpirationDate = expStr
+	expTime, ok := exp.(time.Time)
+	if hasExp && ok {
+		cred.ExpirationDate = expTime.Format(time.RFC3339)
 	}
 
 	// Note: we only handle string issuer values, not objects for JWTs
@@ -125,12 +141,6 @@ func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCrede
 	issStr, ok := iss.(string)
 	if hasIss && ok && issStr != "" {
 		cred.Issuer = issStr
-	}
-
-	nbf, hasNbf := parsed.Get(jwt.NotBeforeKey)
-	nbfStr, ok := nbf.(string)
-	if hasNbf && ok && nbfStr != "" {
-		cred.IssuanceDate = nbfStr
 	}
 
 	sub, hasSub := parsed.Get(jwt.SubjectKey)
@@ -142,42 +152,71 @@ func ParseVerifiableCredentialFromJWT(token string) (*credential.VerifiableCrede
 		cred.CredentialSubject[credential.VerifiableCredentialIDProperty] = subStr
 	}
 
-	jti, hasJti := parsed.Get(jwt.NotBeforeKey)
-	jtiStr, ok := jti.(string)
-	if hasJti && ok && jtiStr != "" {
-		cred.ID = jtiStr
-	}
-
-	return &cred, nil
+	return parsed, &cred, nil
 }
 
-// SignVerifiablePresentationJWT is prepared according to https://www.w3.org/TR/vc-data-model/#jwt-encoding
-func SignVerifiablePresentationJWT(signer crypto.JWTSigner, pres credential.VerifiablePresentation) ([]byte, error) {
-	if pres.IsEmpty() {
+// JWTVVPParameters represents additional parameters needed when constructing a JWT VP as opposed to a VP
+type JWTVVPParameters struct {
+	// Audience is a required intended audience of the JWT.
+	Audience string `validate:"required"`
+	// Expiration is an optional expiration time of the JWT using the `exp` property.
+	Expiration int
+}
+
+// SignVerifiablePresentationJWT transforms a VP into a VP JWT and signs it
+// According to https://w3c.github.io/vc-jwt/#version-1.1
+func SignVerifiablePresentationJWT(signer crypto.JWTSigner, parameters JWTVVPParameters, presentation credential.VerifiablePresentation) ([]byte, error) {
+	if parameters.Audience == "" {
+		return nil, errors.New("audience cannot be empty")
+	}
+	if presentation.IsEmpty() {
 		return nil, errors.New("presentation cannot be empty")
+	}
+	if presentation.Proof != nil {
+		return nil, errors.New("presentation cannot have a proof")
 	}
 
 	t := jwt.New()
-	idVal := pres.ID
-	if idVal != "" {
-		if err := t.Set(jwt.JwtIDKey, idVal); err != nil {
+	// set JWT-VP specific parameters
+	if err := t.Set(jwt.AudienceKey, parameters.Audience); err != nil {
+		return nil, errors.Wrap(err, "setting audience value")
+	}
+	iatAndNBF := time.Now().Unix()
+	if err := t.Set(jwt.IssuedAtKey, iatAndNBF); err != nil {
+		return nil, errors.Wrap(err, "setting iat value")
+	}
+	if err := t.Set(jwt.NotBeforeKey, iatAndNBF); err != nil {
+		return nil, errors.Wrap(err, "setting nbf value")
+	}
+
+	if err := t.Set(NonceProperty, uuid.New().String()); err != nil {
+		return nil, errors.Wrap(err, "setting nonce value")
+	}
+
+	if parameters.Expiration > 0 {
+		if err := t.Set(jwt.ExpirationKey, parameters.Expiration); err != nil {
+			return nil, errors.Wrap(err, "setting exp value")
+		}
+	}
+
+	// map the VP properties to JWT properties, and remove from the VP
+	if presentation.ID != "" {
+		if err := t.Set(jwt.JwtIDKey, presentation.ID); err != nil {
 			return nil, errors.Wrap(err, "setting jti value")
 		}
+		// remove from VP
+		presentation.ID = ""
 	}
-
-	subVal := pres.Holder
-	if subVal != "" {
-		if err := t.Set(jwt.SubjectKey, pres.Holder); err != nil {
+	if presentation.Holder != "" {
+		if err := t.Set(jwt.IssuerKey, presentation.Holder); err != nil {
 			return nil, errors.New("setting subject value")
 		}
+		// remove from VP
+		presentation.Holder = ""
 	}
 
-	if err := t.Set(VPJWTProperty, pres); err != nil {
+	if err := t.Set(VPJWTProperty, presentation); err != nil {
 		return nil, errors.Wrap(err, "setting vp value")
-	}
-
-	if err := t.Set(NonceProperty, uuid.NewString()); err != nil {
-		return nil, errors.Wrap(err, "setting nonce value")
 	}
 
 	signed, err := jwt.Sign(t, jwt.WithKey(signer.SignatureAlgorithm, signer.Key))
@@ -192,9 +231,9 @@ func SignVerifiablePresentationJWT(signer crypto.JWTSigner, pres credential.Veri
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
-func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) (*credential.VerifiablePresentation, error) {
+func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) (jwt.Token, *credential.VerifiablePresentation, error) {
 	if err := verifier.Verify(token); err != nil {
-		return nil, errors.Wrap(err, "verifying JWT and its signature")
+		return nil, nil, errors.Wrap(err, "verifying JWT and its signature")
 	}
 	return ParseVerifiablePresentationFromJWT(token)
 }
@@ -203,43 +242,40 @@ func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) 
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
-func ParseVerifiablePresentationFromJWT(token string) (*credential.VerifiablePresentation, error) {
+func ParseVerifiablePresentationFromJWT(token string) (jwt.Token, *credential.VerifiablePresentation, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
-		return nil, errors.Wrap(err, "parsing vp token")
+		return nil, nil, errors.Wrap(err, "parsing vp token")
 	}
 	vpClaim, ok := parsed.Get(VPJWTProperty)
 	if !ok {
-		return nil, fmt.Errorf("did not find %s property in token", VPJWTProperty)
+		return nil, nil, fmt.Errorf("did not find %s property in token", VPJWTProperty)
 	}
 	vpBytes, err := json.Marshal(vpClaim)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshalling vp claim")
+		return nil, nil, errors.Wrap(err, "could not marshalling vp claim")
 	}
 	var pres credential.VerifiablePresentation
 	if err = json.Unmarshal(vpBytes, &pres); err != nil {
-		return nil, errors.Wrap(err, "reconstructing Verifiable Presentation")
+		return nil, nil, errors.Wrap(err, "reconstructing Verifiable Presentation")
 	}
 
 	// parse remaining JWT properties and set in the presentation
+	iss, ok := parsed.Get(jwt.IssuerKey)
+	if !ok {
+		return nil, nil, fmt.Errorf("did not find %s property in token", jwt.IssuerKey)
+	}
+	issStr, ok := iss.(string)
+	if !ok {
+		return nil, nil, fmt.Errorf("issuer property is not a string")
+	}
+	pres.Holder = issStr
 
-	jti, hasJTI := parsed.Get(jwt.NotBeforeKey)
+	jti, hasJTI := parsed.Get(jwt.JwtIDKey)
 	jtiStr, ok := jti.(string)
 	if hasJTI && ok && jtiStr != "" {
 		pres.ID = jtiStr
 	}
 
-	return &pres, nil
-}
-
-// according to the spec the JWT timestamp must be a `NumericDate` property, which is a JSON Unix timestamp value.
-// https://www.w3.org/TR/vc-data-model/#json-web-token
-// https://datatracker.ietf.org/doc/html/rfc7519#section-2
-func rfc3339ToUnix(timestamp string) ([]byte, error) {
-	t, err := time.Parse(time.RFC3339, timestamp)
-	if err != nil {
-		return nil, err
-	}
-	unixTimestampInt := strconv.FormatInt(t.Unix(), 10)
-	return []byte(unixTimestampInt), nil
+	return parsed, &pres, nil
 }
