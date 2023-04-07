@@ -217,8 +217,8 @@ func (s *JSONWebKeySigner) GetPayloadFormat() PayloadFormat {
 	return s.format
 }
 
-func NewJSONWebKeySigner(kid string, key crypto.PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
-	signer, err := crypto.NewJWTSignerFromJWK(kid, key)
+func NewJSONWebKeySigner(id, kid string, key crypto.PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
+	signer, err := crypto.NewJWTSignerFromJWK(id, kid, key)
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +237,7 @@ type JSONWebKeyVerifier struct {
 
 // Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
 // and an error should it fail.
-func (v *JSONWebKeyVerifier) Verify(message, signature []byte) error {
+func (v JSONWebKeyVerifier) Verify(message, signature []byte) error {
 	_, err := jws.Verify(signature, jws.WithKey(v.Algorithm(), v.Key), jws.WithDetachedPayload(message))
 	return err
 }
@@ -246,8 +246,8 @@ func (v JSONWebKeyVerifier) GetKeyID() string {
 	return v.Key.KeyID()
 }
 
-func NewJSONWebKeyVerifier(kid string, key crypto.PublicKeyJWK) (*JSONWebKeyVerifier, error) {
-	verifier, err := crypto.NewJWTVerifierFromJWK(kid, key)
+func NewJSONWebKeyVerifier(id, kid string, key crypto.PublicKeyJWK) (*JSONWebKeyVerifier, error) {
+	verifier, err := crypto.NewJWTVerifierFromJWK(id, kid, key)
 	if err != nil {
 		return nil, err
 	}

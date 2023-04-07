@@ -32,12 +32,15 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 		err = verifier.Verify(token)
 		assert.NoError(t, err)
 
-		parsedCred, err := ParseVerifiableCredentialFromJWT(token)
+		parsedJWT, parsedCred, err := ParseVerifiableCredentialFromJWT(token)
 		assert.NoError(t, err)
+		assert.NotEmpty(t, parsedJWT)
 		assert.NotEmpty(t, parsedCred)
 
-		cred, err := VerifyVerifiableCredentialJWT(*verifier, token)
+		verifiedJWT, cred, err := VerifyVerifiableCredentialJWT(*verifier, token)
 		assert.NoError(t, err)
+		assert.NotEmpty(t, verifiedJWT)
+		assert.Equal(t, parsedJWT, verifiedJWT)
 		assert.Equal(t, parsedCred, cred)
 	})
 
@@ -45,7 +48,7 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(tt, err)
 
-		signer, err := crypto.NewJWTSigner("test-kid", privKey)
+		signer, err := crypto.NewJWTSigner("test-id", "test-kid", privKey)
 		assert.NoError(tt, err)
 
 		signed, err := SignVerifiableCredentialJWT(*signer, testCredential)
@@ -58,12 +61,15 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 		err = verifier.Verify(token)
 		assert.NoError(tt, err)
 
-		parsedCred, err := ParseVerifiableCredentialFromJWT(token)
+		parsedJWT, parsedCred, err := ParseVerifiableCredentialFromJWT(token)
 		assert.NoError(tt, err)
+		assert.NotEmpty(tt, parsedJWT)
 		assert.NotEmpty(tt, parsedCred)
 
-		cred, err := VerifyVerifiableCredentialJWT(*verifier, token)
+		verifiedJWT, cred, err := VerifyVerifiableCredentialJWT(*verifier, token)
 		assert.NoError(tt, err)
+		assert.NotEmpty(tt, verifiedJWT)
+		assert.Equal(tt, parsedJWT, verifiedJWT)
 		assert.Equal(tt, parsedCred, cred)
 	})
 }
@@ -77,7 +83,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 	}
 
 	signer := getTestVectorKey0Signer(t)
-	signed, err := SignVerifiablePresentationJWT(signer, testPresentation)
+	signed, err := SignVerifiablePresentationJWT(signer, JWTVVPParameters{Audience: "did:test:aud"}, testPresentation)
 	assert.NoError(t, err)
 
 	verifier, err := signer.ToVerifier()
@@ -87,12 +93,14 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 	err = verifier.Verify(token)
 	assert.NoError(t, err)
 
-	parsedPres, err := ParseVerifiablePresentationFromJWT(token)
+	parsedJWT, parsedPres, err := ParseVerifiablePresentationFromJWT(token)
 	assert.NoError(t, err)
+	assert.NotEmpty(t, parsedJWT)
 	assert.NotEmpty(t, parsedPres)
 
-	pres, err := VerifyVerifiablePresentationJWT(*verifier, token)
+	verifiedJWT, pres, err := VerifyVerifiablePresentationJWT(*verifier, token)
 	assert.NoError(t, err)
+	assert.NotEmpty(t, verifiedJWT)
 	assert.Equal(t, parsedPres, pres)
 }
 
@@ -105,7 +113,7 @@ func getTestVectorKey0Signer(t *testing.T) crypto.JWTSigner {
 		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 	}
 
-	signer, err := crypto.NewJWTSignerFromJWK(knownJWK.KID, knownJWK)
+	signer, err := crypto.NewJWTSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
 	assert.NoError(t, err)
 	return *signer
 }

@@ -32,7 +32,7 @@ func main() {
 	// User Holder
 	holderDIDPrivateKey, holderDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
-	holderSigner, err := crypto.NewJWTSigner(holderDIDKey.String(), holderDIDPrivateKey)
+	holderSigner, err := crypto.NewJWTSigner(holderDIDKey.String(), holderDIDKey.String(), holderDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 	holderVerifier, err := holderSigner.ToVerifier()
 	example.HandleExampleError(err, "Failed to generate verifier")
@@ -40,7 +40,7 @@ func main() {
 	// Apt Verifier
 	aptDIDPrivateKey, aptDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID key")
-	aptSigner, err := crypto.NewJWTSigner(aptDIDKey.String(), aptDIDPrivateKey)
+	aptSigner, err := crypto.NewJWTSigner(aptDIDKey.String(), aptDIDKey.String(), aptDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 	aptVerifier, err := aptSigner.ToVerifier()
 	example.HandleExampleError(err, "Failed to generate verifier")
@@ -48,7 +48,7 @@ func main() {
 	// Government Issuer
 	govtDIDPrivateKey, govtDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID key")
-	govtSigner, err := crypto.NewJWTSigner(govtDIDKey.String(), govtDIDPrivateKey)
+	govtSigner, err := crypto.NewJWTSigner(govtDIDKey.String(), govtDIDKey.String(), govtDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 
 	_, _ = fmt.Print("\n\nStep 1: Create new DIDs for entities\n\n")
@@ -138,7 +138,7 @@ func main() {
 
 	// TODO: (neal) (issue https://github.com/TBD54566975/ssi-sdk/issues/165)
 	// Have the presentation claim's token format support signedVCBytes for the BuildPresentationSubmission function
-	vsJSON, err := signing.ParseVerifiableCredentialFromJWT(string(signedVCBytes))
+	_, vsJSON, err := signing.ParseVerifiableCredentialFromJWT(string(signedVCBytes))
 	example.HandleExampleError(err, "Failed to parse VC")
 	vcJSONBytes, err := json.Marshal(vsJSON)
 	example.HandleExampleError(err, "Failed to marshal vc jwt")
@@ -149,7 +149,7 @@ func main() {
 		SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 	}
 
-	presentationSubmissionBytes, err := exchange.BuildPresentationSubmission(*holderSigner, *presentationDefinition, []exchange.PresentationClaim{presentationClaim}, exchange.JWTVPTarget)
+	presentationSubmissionBytes, err := exchange.BuildPresentationSubmission(*holderSigner, aptDIDKey.String(), *presentationDefinition, []exchange.PresentationClaim{presentationClaim}, exchange.JWTVPTarget)
 	example.HandleExampleError(err, "Failed to create presentation submission")
 
 	_, _ = fmt.Print("\n\nStep 4: The holder creates a presentation submission to give to the apartment\n\n")

@@ -124,7 +124,7 @@ func (pc *PresentationClaim) GetClaimJSON() (map[string]any, error) {
 // https://identity.foundation/presentation-exchange/#presentation-submission
 // Note: this method does not support LD cryptosuites, and prefers JWT representations. Future refactors
 // may include an analog method for LD suites.
-func BuildPresentationSubmission(signer crypto.JWTSigner, def PresentationDefinition, claims []PresentationClaim, et EmbedTarget) ([]byte, error) {
+func BuildPresentationSubmission(signer crypto.JWTSigner, requester string, def PresentationDefinition, claims []PresentationClaim, et EmbedTarget) ([]byte, error) {
 	if !IsSupportedEmbedTarget(et) {
 		return nil, fmt.Errorf("unsupported presentation submission embed target type: %s", et)
 	}
@@ -137,11 +137,11 @@ func BuildPresentationSubmission(signer crypto.JWTSigner, def PresentationDefini
 	}
 	switch et {
 	case JWTVPTarget:
-		vpSubmission, err := BuildPresentationSubmissionVP(def, normalizedClaims)
+		vpSubmission, err := BuildPresentationSubmissionVP(signer.ID, def, normalizedClaims)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
 		}
-		return signing.SignVerifiablePresentationJWT(signer, *vpSubmission)
+		return signing.SignVerifiablePresentationJWT(signer, signing.JWTVVPParameters{Audience: requester}, *vpSubmission)
 	default:
 		return nil, fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
 	}
@@ -203,7 +203,7 @@ type processedClaim struct {
 // BuildPresentationSubmissionVP takes a presentation definition and a set of claims. According to the presentation
 // definition, and the algorithm defined - https://identity.foundation/presentation-exchange/#input-evaluation - in
 // the specification, a presentation submission is constructed as a Verifiable Presentation.
-func BuildPresentationSubmissionVP(def PresentationDefinition, claims []NormalizedClaim) (*credential.VerifiablePresentation, error) {
+func BuildPresentationSubmissionVP(submitter string, def PresentationDefinition, claims []NormalizedClaim) (*credential.VerifiablePresentation, error) {
 	if err := canProcessDefinition(def); err != nil {
 		return nil, errors.Wrap(err, "feature not supported in processing given presentation definition")
 	}
@@ -212,6 +212,9 @@ func BuildPresentationSubmissionVP(def PresentationDefinition, claims []Normaliz
 		return nil, err
 	}
 	if err := builder.AddType(PresentationSubmissionType); err != nil {
+		return nil, err
+	}
+	if err := builder.SetHolder(submitter); err != nil {
 		return nil, err
 	}
 

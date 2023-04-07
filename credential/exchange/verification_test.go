@@ -70,7 +70,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		submissionBytes, err := BuildPresentationSubmission(*signer, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
+		submissionBytes, err := BuildPresentationSubmission(*signer, "requester", def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
@@ -107,11 +107,11 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		submissionBytes, err := BuildPresentationSubmission(*signer, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
+		submissionBytes, err := BuildPresentationSubmission(*signer, "requester", def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		verifiablePresentation, err := signing.ParseVerifiablePresentationFromJWT(string(submissionBytes))
+		_, verifiablePresentation, err := signing.ParseVerifiablePresentationFromJWT(string(submissionBytes))
 		assert.NoError(tt, err)
 
 		err = VerifyPresentationSubmissionVP(def, *verifiablePresentation)

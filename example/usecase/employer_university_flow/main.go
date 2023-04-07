@@ -150,19 +150,19 @@ func main() {
 	jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
 	example.HandleExampleError(err, "failed to generate json web key")
 
-	presentationRequest, _, err := emp.MakePresentationRequest(*jwk, presentationData, holderDID)
+	presentationRequestJWT, _, err := emp.MakePresentationRequest(*jwk, presentationData, verifierDID, holderDID)
 	example.HandleExampleError(err, "failed to make presentation request")
 
-	verifier, err := crypto.NewJWTVerifierFromJWK(jwk.ID, jwk.PublicKeyJWK)
-	example.HandleExampleError(err, "failed to build json web key verifier")
-
-	signer, err := crypto.NewJWTSignerFromJWK(jwk.ID, jwk.PrivateKeyJWK)
+	signer, err := crypto.NewJWTSignerFromJWK("student-id", jwk.ID, jwk.PrivateKeyJWK)
 	example.HandleExampleError(err, "failed to build json web key signer")
 
 	example.WriteNote("Student returns claims via a Presentation Submission")
-	submission, err := emp.BuildPresentationSubmission(presentationRequest, *signer, *verifier, *vc)
+	submission, err := emp.BuildPresentationSubmission(string(presentationRequestJWT), *signer, *vc)
 	example.HandleExampleError(err, "failed to build presentation submission")
-	vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submission))
+
+	verifier, err := signer.ToVerifier()
+	example.HandleExampleError(err, "failed to construct verifier")
+	_, vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submission))
 	example.HandleExampleError(err, "failed to verify jwt")
 
 	dat, err = json.Marshal(vp)

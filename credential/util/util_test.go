@@ -42,7 +42,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 			},
 		}
 
-		signer, err := cryptosuite.NewJSONWebKeySigner(knownJWK.ID, knownJWK.PrivateKeyJWK, cryptosuite.AssertionMethod)
+		signer, err := cryptosuite.NewJSONWebKeySigner("issuer-id", knownJWK.ID, knownJWK.PrivateKeyJWK, cryptosuite.AssertionMethod)
 		assert.NoError(t, err)
 
 		suite := cryptosuite.GetJSONWebSignature2020Suite()
@@ -65,7 +65,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 			D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 		}
 
-		signer, err := crypto.NewJWTSignerFromJWK(knownJWK.KID, knownJWK)
+		signer, err := crypto.NewJWTSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
 		assert.NoError(tt, err)
 
 		testCred := getTestCredential()

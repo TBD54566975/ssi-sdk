@@ -18,7 +18,7 @@ import (
 
 func TestBuildPresentationSubmission(t *testing.T) {
 	t.Run("Unsupported embed target", func(tt *testing.T) {
-		_, err := BuildPresentationSubmission(crypto.JWTSigner{}, PresentationDefinition{}, nil, "badEmbedTarget")
+		_, err := BuildPresentationSubmission(crypto.JWTSigner{}, "requester", PresentationDefinition{}, nil, "badEmbedTarget")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported presentation submission embed target type")
 	})
@@ -50,11 +50,11 @@ func TestBuildPresentationSubmission(t *testing.T) {
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		submissionBytes, err := BuildPresentationSubmission(*signer, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
+		submissionBytes, err := BuildPresentationSubmission(*signer, "requester", def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submissionBytes))
+		_, vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submissionBytes))
 		assert.NoError(tt, err)
 
 		assert.NoError(tt, vp.IsValid())
@@ -91,7 +91,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		}
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NoError(tt, err)
-		vp, err := BuildPresentationSubmissionVP(def, normalized)
+		vp, err := BuildPresentationSubmissionVP("submitter", def, normalized)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, vp)
 
@@ -139,7 +139,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		}
 
 		assert.NoError(tt, def.IsValid())
-		vp, err := BuildPresentationSubmissionVP(def, nil)
+		vp, err := BuildPresentationSubmissionVP("submitter", def, nil)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "no claims match the required format, and signing alg/proof type requirements for input descriptor")
 		assert.Empty(tt, vp)
@@ -185,7 +185,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		}
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NoError(tt, err)
-		vp, err := BuildPresentationSubmissionVP(def, normalized)
+		vp, err := BuildPresentationSubmissionVP("submitter", def, normalized)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, vp)
 
@@ -259,7 +259,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim, presentationClaimJWT})
 		assert.NoError(tt, err)
-		vp, err := BuildPresentationSubmissionVP(def, normalized)
+		vp, err := BuildPresentationSubmissionVP("submitter", def, normalized)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, vp)
 
@@ -801,8 +801,9 @@ func getJWKSignerVerifier(t *testing.T) (*crypto.JWTSigner, *crypto.JWTVerifier)
 	key, err := jwk.FromRaw(privKey)
 	require.NoError(t, err)
 
+	id := "test-id"
 	kid := "test-key"
-	signer, err := crypto.NewJWTSignerFromKey(kid, key)
+	signer, err := crypto.NewJWTSignerFromKey(id, kid, key)
 	require.NoError(t, err)
 
 	verifier, err := signer.ToVerifier()

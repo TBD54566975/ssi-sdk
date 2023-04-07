@@ -37,10 +37,10 @@ func SignVerifiableCredentialJWS(signer crypto.JWTSigner, cred credential.Verifi
 // ParseVerifiableCredentialFromJWS parses a JWS. Depending on the `cty` header value, it parses as a JWT or simply
 // decodes the payload.
 // This is currently an experimental. It's unstable and subject to change. Use at your own peril.
-func ParseVerifiableCredentialFromJWS(token string) (*credential.VerifiableCredential, error) {
+func ParseVerifiableCredentialFromJWS(token string) (*jws.Message, *credential.VerifiableCredential, error) {
 	parsed, err := jws.Parse([]byte(token))
 	if err != nil {
-		return nil, errors.Wrap(err, "parsing token")
+		return nil, nil, errors.Wrap(err, "parsing JWS")
 	}
 
 	var signature *jws.Signature
@@ -50,23 +50,24 @@ func ParseVerifiableCredentialFromJWS(token string) (*credential.VerifiableCrede
 		}
 	}
 	if signature == nil {
-		return ParseVerifiableCredentialFromJWT(token)
+		_, cred, err := ParseVerifiableCredentialFromJWT(token)
+		return parsed, cred, err
 	}
 
 	var cred credential.VerifiableCredential
 	if err = json.Unmarshal(parsed.Payload(), &cred); err != nil {
-		return nil, errors.Wrap(err, "reconstructing Verifiable Credential")
+		return nil, nil, errors.Wrap(err, "reconstructing Verifiable Credential")
 	}
 
-	return &cred, nil
+	return parsed, &cred, nil
 }
 
 // VerifyVerifiableCredentialJWS verifies the signature validity on the token and parses
 // the token in a verifiable credential.
 // This is currently an experimental. It's unstable and subject to change. Use at your own peril.
-func VerifyVerifiableCredentialJWS(verifier crypto.JWTVerifier, token string) (*credential.VerifiableCredential, error) {
+func VerifyVerifiableCredentialJWS(verifier crypto.JWTVerifier, token string) (*jws.Message, *credential.VerifiableCredential, error) {
 	if err := verifier.VerifyJWS(token); err != nil {
-		return nil, errors.Wrap(err, "verifying JWT")
+		return nil, nil, errors.Wrap(err, "verifying JWS")
 	}
 	return ParseVerifiableCredentialFromJWS(token)
 }

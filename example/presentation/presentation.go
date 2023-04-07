@@ -51,7 +51,7 @@ func makePresentationData() exchange.PresentationDefinition {
 // and for the source code with the sdk,
 // https://github.com/TBD54566975/ssi-sdk/blob/main/credential/exchange/request.go
 // is appropriate to start off with.
-func makePresentationRequest(presentationData exchange.PresentationDefinition) ([]byte, error) {
+func makePresentationRequest(requesterID string, presentationData exchange.PresentationDefinition) ([]byte, error) {
 	// Generate JSON Web Key
 	// The JSONWebKey2020 type specifies a number of key type and curve pairs to enable JOSE conformance
 	// https://w3c-ccg.github.io/lds-jws2020/#dfn-jsonwebkey2020
@@ -63,7 +63,7 @@ func makePresentationRequest(presentationData exchange.PresentationDefinition) (
 	// Signer:
 	// https://github.com/TBD54566975/ssi-sdk/blob/main/cryptosuite/jsonwebkey2020.go#L350
 	// Implements: https://github.com/TBD54566975/ssi-sdk/blob/main/cryptosuite/jwt.go#L12
-	signer, err := crypto.NewJWTSignerFromJWK(jwk.ID, jwk.PrivateKeyJWK)
+	signer, err := crypto.NewJWTSignerFromJWK(requesterID, jwk.ID, jwk.PrivateKeyJWK)
 	if err != nil {
 		return nil, err
 	}
@@ -71,14 +71,15 @@ func makePresentationRequest(presentationData exchange.PresentationDefinition) (
 	// Builds a presentation request
 	// Requires a signer, the presentation data, and a target
 	// Target is the Audience Key
-	requestJWTBytes, err := exchange.BuildJWTPresentationRequest(*signer, presentationData, "did:test")
+	target := "did:test"
+	requestJWTBytes, err := exchange.BuildJWTPresentationRequest(*signer, presentationData, target)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: Add better documentation on the verification process
 	// Seems like needed to know more of: https://github.com/lestrrat-go/jwx/tree/develop/v2/jwt
-	verifier, err := cryptosuite.NewJSONWebKeyVerifier(jwk.ID, jwk.PublicKeyJWK)
+	verifier, err := cryptosuite.NewJSONWebKeyVerifier(target, jwk.ID, jwk.PublicKeyJWK)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +98,7 @@ func makePresentationRequest(presentationData exchange.PresentationDefinition) (
 
 func main() {
 	data := makePresentationData()
-	pr, err := makePresentationRequest(data)
+	pr, err := makePresentationRequest("requester-id", data)
 	example.HandleExampleError(err, "failed to make presentation request")
 	dat, err := json.Marshal(pr)
 	example.HandleExampleError(err, "failed to marshal presentation request")
