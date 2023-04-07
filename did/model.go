@@ -23,7 +23,7 @@ const (
 
 	Ed25519MultiCodec   = multicodec.Ed25519Pub
 	X25519MultiCodec    = multicodec.X25519Pub
-	Secp256k1MultiCodec = multicodec.Secp256k1Pub
+	SECP256k1MultiCodec = multicodec.Secp256k1Pub
 	P256MultiCodec      = multicodec.P256Pub
 	P384MultiCodec      = multicodec.P384Pub
 	P521MultiCodec      = multicodec.P521Pub
