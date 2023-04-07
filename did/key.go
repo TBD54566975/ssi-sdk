@@ -151,7 +151,7 @@ func codecToLDKeyType(codec multicodec.Code) (cryptosuite.LDKeyType, error) {
 		return cryptosuite.Ed25519VerificationKey2018, nil
 	case X25519MultiCodec:
 		return cryptosuite.X25519KeyAgreementKey2019, nil
-	case Secp256k1MultiCodec:
+	case SECP256k1MultiCodec:
 		return cryptosuite.ECDSASECP256k1VerificationKey2019, nil
 	case P256MultiCodec, P384MultiCodec, P521MultiCodec, RSAMultiCodec:
 		return cryptosuite.JSONWebKey2020Type, nil
@@ -202,7 +202,7 @@ func codecToKeyType(codec multicodec.Code) (crypto.KeyType, error) {
 		kt = crypto.Ed25519
 	case X25519MultiCodec:
 		kt = crypto.X25519
-	case Secp256k1MultiCodec:
+	case SECP256k1MultiCodec:
 		kt = crypto.SECP256k1
 	case P256MultiCodec:
 		kt = crypto.P256
