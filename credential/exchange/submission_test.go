@@ -54,7 +54,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		_, vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submissionBytes))
+		_, _, vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submissionBytes))
 		assert.NoError(tt, err)
 
 		assert.NoError(tt, vp.IsValid())

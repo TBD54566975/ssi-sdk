@@ -44,8 +44,7 @@ func makePresentationData() exchange.PresentationDefinition {
 }
 
 // Build a presentation request (PR)
-// A PR is sent by a verifier to a holder
-// It can be sent over multiple mechanisms
+// A PR is sent by a verifier to a holder. It can be sent via multiple mechanisms
 // For more information, please go to here:
 // https://identity.foundation/presentation-exchange/#presentation-request
 // and for the source code with the sdk,
@@ -84,7 +83,7 @@ func makePresentationRequest(requesterID string, presentationData exchange.Prese
 		return nil, err
 	}
 
-	parsed, err := verifier.VerifyAndParse(string(requestJWTBytes))
+	_, parsed, err := verifier.VerifyAndParse(string(requestJWTBytes))
 	if err != nil {
 		return nil, err
 	}

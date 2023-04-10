@@ -111,7 +111,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		_, verifiablePresentation, err := signing.ParseVerifiablePresentationFromJWT(string(submissionBytes))
+		_, _, verifiablePresentation, err := signing.ParseVerifiablePresentationFromJWT(string(submissionBytes))
 		assert.NoError(tt, err)
 
 		err = VerifyPresentationSubmissionVP(def, *verifiablePresentation)

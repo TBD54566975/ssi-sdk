@@ -8,6 +8,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
+	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/pkg/errors"
 )
@@ -88,9 +89,9 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred credential.Verifi
 
 // VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
 // the token in a verifiable credential.
-func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (jwt.Token, *credential.VerifiableCredential, error) {
+func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (jws.Headers, jwt.Token, *credential.VerifiableCredential, error) {
 	if err := verifier.Verify(token); err != nil {
-		return nil, nil, errors.Wrap(err, "verifying JWT")
+		return nil, nil, nil, errors.Wrap(err, "verifying JWT")
 	}
 	return ParseVerifiableCredentialFromJWT(token)
 }
@@ -99,22 +100,28 @@ func VerifyVerifiableCredentialJWT(verifier crypto.JWTVerifier, token string) (j
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiableCredential object is returned.
-func ParseVerifiableCredentialFromJWT(token string) (jwt.Token, *credential.VerifiableCredential, error) {
+func ParseVerifiableCredentialFromJWT(token string) (jws.Headers, jwt.Token, *credential.VerifiableCredential, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "parsing credential token")
+		return nil, nil, nil, errors.Wrap(err, "parsing credential token")
 	}
 	vcClaim, ok := parsed.Get(VCJWTProperty)
 	if !ok {
-		return nil, nil, fmt.Errorf("did not find %s property in token", VCJWTProperty)
+		return nil, nil, nil, fmt.Errorf("did not find %s property in token", VCJWTProperty)
 	}
 	vcBytes, err := json.Marshal(vcClaim)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "marshalling credential claim")
+		return nil, nil, nil, errors.Wrap(err, "marshalling credential claim")
 	}
 	var cred credential.VerifiableCredential
 	if err = json.Unmarshal(vcBytes, &cred); err != nil {
-		return nil, nil, errors.Wrap(err, "reconstructing Verifiable Credential")
+		return nil, nil, nil, errors.Wrap(err, "reconstructing Verifiable Credential")
+	}
+
+	// get headers
+	headers, err := getJWTHeaders([]byte(token))
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
 
 	// parse remaining JWT properties and set in the credential
@@ -152,7 +159,7 @@ func ParseVerifiableCredentialFromJWT(token string) (jwt.Token, *credential.Veri
 		cred.CredentialSubject[credential.VerifiableCredentialIDProperty] = subStr
 	}
 
-	return parsed, &cred, nil
+	return headers, parsed, &cred, nil
 }
 
 // JWTVVPParameters represents additional parameters needed when constructing a JWT VP as opposed to a VP
@@ -231,9 +238,9 @@ func SignVerifiablePresentationJWT(signer crypto.JWTSigner, parameters JWTVVPPar
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
-func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) (jwt.Token, *credential.VerifiablePresentation, error) {
+func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) (jws.Headers, jwt.Token, *credential.VerifiablePresentation, error) {
 	if err := verifier.Verify(token); err != nil {
-		return nil, nil, errors.Wrap(err, "verifying JWT and its signature")
+		return nil, nil, nil, errors.Wrap(err, "verifying JWT and its signature")
 	}
 	return ParseVerifiablePresentationFromJWT(token)
 }
@@ -242,32 +249,38 @@ func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, token string) 
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
-func ParseVerifiablePresentationFromJWT(token string) (jwt.Token, *credential.VerifiablePresentation, error) {
+func ParseVerifiablePresentationFromJWT(token string) (jws.Headers, jwt.Token, *credential.VerifiablePresentation, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "parsing vp token")
+		return nil, nil, nil, errors.Wrap(err, "parsing vp token")
 	}
 	vpClaim, ok := parsed.Get(VPJWTProperty)
 	if !ok {
-		return nil, nil, fmt.Errorf("did not find %s property in token", VPJWTProperty)
+		return nil, nil, nil, fmt.Errorf("did not find %s property in token", VPJWTProperty)
 	}
 	vpBytes, err := json.Marshal(vpClaim)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not marshalling vp claim")
+		return nil, nil, nil, errors.Wrap(err, "could not marshalling vp claim")
 	}
 	var pres credential.VerifiablePresentation
 	if err = json.Unmarshal(vpBytes, &pres); err != nil {
-		return nil, nil, errors.Wrap(err, "reconstructing Verifiable Presentation")
+		return nil, nil, nil, errors.Wrap(err, "reconstructing Verifiable Presentation")
+	}
+
+	// get headers
+	headers, err := getJWTHeaders([]byte(token))
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
 
 	// parse remaining JWT properties and set in the presentation
 	iss, ok := parsed.Get(jwt.IssuerKey)
 	if !ok {
-		return nil, nil, fmt.Errorf("did not find %s property in token", jwt.IssuerKey)
+		return nil, nil, nil, fmt.Errorf("did not find %s property in token", jwt.IssuerKey)
 	}
 	issStr, ok := iss.(string)
 	if !ok {
-		return nil, nil, fmt.Errorf("issuer property is not a string")
+		return nil, nil, nil, fmt.Errorf("issuer property is not a string")
 	}
 	pres.Holder = issStr
 
@@ -277,5 +290,16 @@ func ParseVerifiablePresentationFromJWT(token string) (jwt.Token, *credential.Ve
 		pres.ID = jtiStr
 	}
 
-	return parsed, &pres, nil
+	return headers, parsed, &pres, nil
+}
+
+func getJWTHeaders(token []byte) (jws.Headers, error) {
+	msg, err := jws.Parse(token)
+	if err != nil {
+		return nil, err
+	}
+	if len(msg.Signatures()) != 1 {
+		return nil, fmt.Errorf("expected 1 signature, got %d", len(msg.Signatures()))
+	}
+	return msg.Signatures()[0].ProtectedHeaders(), nil
 }

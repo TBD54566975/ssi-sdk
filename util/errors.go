@@ -38,6 +38,9 @@ func LoggingNewErrorf(msg string, args ...any) error {
 // LoggingErrorMsg is a utility to combine logging an error, and returning and error with a message
 func LoggingErrorMsg(err error, msg string) error {
 	logrus.WithError(err).Error(SanitizeLog(msg))
+	if err == nil {
+		return errors.New(msg)
+	}
 	return errors.Wrap(err, msg)
 }
 

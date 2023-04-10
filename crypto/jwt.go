@@ -183,12 +183,16 @@ func (s *JWTSigner) SignJWS(payload []byte) ([]byte, error) {
 }
 
 // Parse attempts to turn a string into a jwt.Token
-func (*JWTSigner) Parse(token string) (jwt.Token, error) {
+func (*JWTSigner) Parse(token string) (jws.Headers, jwt.Token, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse JWT")
+		return nil, nil, errors.Wrap(err, "could not parse JWT")
 	}
-	return parsed, nil
+	headers, err := getJWTHeaders([]byte(token))
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "could not get JWT headers")
+	}
+	return headers, parsed, nil
 }
 
 // VerifyJWS parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success.
@@ -209,12 +213,16 @@ func (v *JWTVerifier) Verify(token string) error {
 }
 
 // Parse attempts to turn a string into a jwt.Token
-func (*JWTVerifier) Parse(token string) (jwt.Token, error) {
+func (*JWTVerifier) Parse(token string) (jws.Headers, jwt.Token, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse JWT")
+		return nil, nil, errors.Wrap(err, "could not parse JWT")
 	}
-	return parsed, nil
+	headers, err := getJWTHeaders([]byte(token))
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "could not get JWT headers")
+	}
+	return headers, parsed, nil
 }
 
 // ParseJWS attempts to pull of a single signature from a token, containing its headers
@@ -231,12 +239,16 @@ func (*JWTVerifier) ParseJWS(token string) (*jws.Signature, error) {
 }
 
 // VerifyAndParse attempts to turn a string into a jwt.Token and verify its signature using the verifier
-func (v *JWTVerifier) VerifyAndParse(token string) (jwt.Token, error) {
+func (v *JWTVerifier) VerifyAndParse(token string) (jws.Headers, jwt.Token, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithKey(v.Algorithm(), v.Key))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse and verify JWT")
+		return nil, nil, errors.Wrap(err, "could not parse and verify JWT")
 	}
-	return parsed, nil
+	headers, err := getJWTHeaders([]byte(token))
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "could not get JWT headers")
+	}
+	return headers, parsed, nil
 }
 
 func GetCRVFromJWK(key jwk.Key) (string, error) {
@@ -309,4 +321,15 @@ func GetSupportedJWTSigningVerificationAlgorithms() []jwa.SignatureAlgorithm {
 		jwa.ES512,
 		jwa.EdDSA,
 	}
+}
+
+func getJWTHeaders(token []byte) (jws.Headers, error) {
+	msg, err := jws.Parse(token)
+	if err != nil {
+		return nil, err
+	}
+	if len(msg.Signatures()) != 1 {
+		return nil, fmt.Errorf("expected 1 signature, got %d", len(msg.Signatures()))
+	}
+	return msg.Signatures()[0].ProtectedHeaders(), nil
 }

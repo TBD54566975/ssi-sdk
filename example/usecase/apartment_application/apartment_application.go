@@ -138,7 +138,7 @@ func main() {
 
 	// TODO: (neal) (issue https://github.com/TBD54566975/ssi-sdk/issues/165)
 	// Have the presentation claim's token format support signedVCBytes for the BuildPresentationSubmission function
-	_, vsJSON, err := signing.ParseVerifiableCredentialFromJWT(string(signedVCBytes))
+	_, _, vsJSON, err := signing.ParseVerifiableCredentialFromJWT(string(signedVCBytes))
 	example.HandleExampleError(err, "Failed to parse VC")
 	vcJSONBytes, err := json.Marshal(vsJSON)
 	example.HandleExampleError(err, "Failed to marshal vc jwt")

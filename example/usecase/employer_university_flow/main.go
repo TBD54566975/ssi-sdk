@@ -162,7 +162,7 @@ func main() {
 
 	verifier, err := signer.ToVerifier()
 	example.HandleExampleError(err, "failed to construct verifier")
-	_, vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submission))
+	_, _, vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submission))
 	example.HandleExampleError(err, "failed to verify jwt")
 
 	dat, err = json.Marshal(vp)
