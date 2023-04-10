@@ -154,10 +154,10 @@ func (s *JWTSigner) SignWithDefaults(kvs map[string]any) ([]byte, error) {
 	t := jwt.New()
 
 	// set known default values, which can be overridden by the kvs
-	kid := s.Key.KeyID()
-	if kid != "" {
-		if err := t.Set(jwt.IssuerKey, kid); err != nil {
-			return nil, fmt.Errorf("could not set iss with provided value: %s", kid)
+	iss := s.ID
+	if iss != "" {
+		if err := t.Set(jwt.IssuerKey, iss); err != nil {
+			return nil, fmt.Errorf("could not set iss with provided value: %s", iss)
 		}
 	}
 	iat := time.Now().Unix()
