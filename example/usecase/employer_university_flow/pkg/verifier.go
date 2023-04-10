@@ -14,7 +14,7 @@ import (
 // 1. That the VC is valid
 // 2. That the VC was issued by a trusted entity
 func ValidateAccess(verifier crypto.JWTVerifier, credBytes []byte) error {
-	_, vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(credBytes))
+	_, _, vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(credBytes))
 	if err != nil {
 		return errors.Wrap(err, "failed to validate VP signature")
 	}

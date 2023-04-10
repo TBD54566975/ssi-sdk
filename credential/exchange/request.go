@@ -106,7 +106,7 @@ func VerifyPresentationRequest(verifier crypto.JWTVerifier, pt PresentationReque
 // VerifyJWTPresentationRequest verifies the signature on a JWT-based presentation request for a given verifier
 // and then returns the parsed Presentation Definition object as a result.
 func VerifyJWTPresentationRequest(verifier crypto.JWTVerifier, request []byte) (*PresentationDefinition, error) {
-	parsed, err := verifier.VerifyAndParse(string(request))
+	_, parsed, err := verifier.VerifyAndParse(string(request))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not verify and parse jwt presentation request")
 	}

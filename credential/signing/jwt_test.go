@@ -32,16 +32,20 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 		err = verifier.Verify(token)
 		assert.NoError(t, err)
 
-		parsedJWT, parsedCred, err := ParseVerifiableCredentialFromJWT(token)
+		parsedHeaders, parsedJWT, parsedCred, err := ParseVerifiableCredentialFromJWT(token)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, parsedJWT)
 		assert.NotEmpty(t, parsedCred)
+		assert.NotEmpty(t, parsedHeaders)
 
-		verifiedJWT, cred, err := VerifyVerifiableCredentialJWT(*verifier, token)
+		headers, verifiedJWT, cred, err := VerifyVerifiableCredentialJWT(*verifier, token)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, verifiedJWT)
+		assert.NotEmpty(t, cred)
+		assert.NotEmpty(t, headers)
 		assert.Equal(t, parsedJWT, verifiedJWT)
 		assert.Equal(t, parsedCred, cred)
+		assert.Equal(t, parsedHeaders, headers)
 	})
 
 	t.Run("Generated Private Key For Signer", func(tt *testing.T) {
@@ -61,16 +65,18 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 		err = verifier.Verify(token)
 		assert.NoError(tt, err)
 
-		parsedJWT, parsedCred, err := ParseVerifiableCredentialFromJWT(token)
+		parsedHeaders, parsedJWT, parsedCred, err := ParseVerifiableCredentialFromJWT(token)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, parsedJWT)
+		assert.NotEmpty(tt, parsedHeaders)
 		assert.NotEmpty(tt, parsedCred)
 
-		verifiedJWT, cred, err := VerifyVerifiableCredentialJWT(*verifier, token)
+		verifiedHeaders, verifiedJWT, cred, err := VerifyVerifiableCredentialJWT(*verifier, token)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, verifiedJWT)
 		assert.Equal(tt, parsedJWT, verifiedJWT)
 		assert.Equal(tt, parsedCred, cred)
+		assert.Equal(tt, parsedHeaders, verifiedHeaders)
 	})
 }
 
@@ -93,14 +99,17 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 	err = verifier.Verify(token)
 	assert.NoError(t, err)
 
-	parsedJWT, parsedPres, err := ParseVerifiablePresentationFromJWT(token)
+	parsedHeaders, parsedJWT, parsedPres, err := ParseVerifiablePresentationFromJWT(token)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, parsedJWT)
+	assert.NotEmpty(t, parsedHeaders)
 	assert.NotEmpty(t, parsedPres)
 
-	verifiedJWT, pres, err := VerifyVerifiablePresentationJWT(*verifier, token)
+	parsedHeaders, verifiedJWT, pres, err := VerifyVerifiablePresentationJWT(*verifier, token)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, verifiedJWT)
+	assert.NotEmpty(t, parsedHeaders)
+	assert.Equal(t, parsedJWT, verifiedJWT)
 	assert.Equal(t, parsedPres, pres)
 }
 

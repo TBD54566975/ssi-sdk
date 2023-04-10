@@ -50,7 +50,7 @@ func ParseVerifiableCredentialFromJWS(token string) (*jws.Message, *credential.V
 		}
 	}
 	if signature == nil {
-		_, cred, err := ParseVerifiableCredentialFromJWT(token)
+		_, _, cred, err := ParseVerifiableCredentialFromJWT(token)
 		return parsed, cred, err
 	}
 

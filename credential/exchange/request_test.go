@@ -24,12 +24,16 @@ func TestBuildPresentationRequest(t *testing.T) {
 		verifier, err := signer.ToVerifier()
 		assert.NoError(t, err)
 
-		parsed, err := verifier.VerifyAndParse(string(requestJWTBytes))
+		headers, parsed, err := verifier.VerifyAndParse(string(requestJWTBytes))
 		assert.NoError(t, err)
 
 		presDef, ok := parsed.Get(PresentationDefinitionKey)
 		assert.True(t, ok)
 		jsonEq(t, testDef, presDef)
+
+		kid, ok := headers.Get("kid")
+		assert.True(t, ok)
+		assert.Equal(t, "test-kid", kid)
 	})
 
 	t.Run("Happy Path", func(t *testing.T) {
@@ -47,12 +51,16 @@ func TestBuildPresentationRequest(t *testing.T) {
 		verifier, err := signer.ToVerifier()
 		assert.NoError(t, err)
 
-		parsed, err := verifier.VerifyAndParse(string(requestJWTBytes))
+		headers, parsed, err := verifier.VerifyAndParse(string(requestJWTBytes))
 		assert.NoError(t, err)
 
 		presDef, ok := parsed.Get(PresentationDefinitionKey)
 		assert.True(t, ok)
 		jsonEq(t, testDef, presDef)
+
+		kid, ok := headers.Get("kid")
+		assert.True(t, ok)
+		assert.Equal(t, "test-kid", kid)
 	})
 
 	t.Run("Unsupported Request Method", func(t *testing.T) {

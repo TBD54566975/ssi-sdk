@@ -127,17 +127,21 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 
-	signerParsed, err := signer.Parse(string(token))
+	headers, signerParsed, err := signer.Parse(string(token))
 	assert.NoError(t, err)
 
 	gotSignerID, ok := signerParsed.Get("id")
 	assert.True(t, ok)
 	assert.EqualValues(t, "abcd", gotSignerID)
 
+	gotKID, ok := headers.Get("kid")
+	assert.True(t, ok)
+	assert.EqualValues(t, "did:example:123#key-0", gotKID)
+
 	err = verifier.Verify(string(token))
 	assert.NoError(t, err)
 
-	parsed, err := verifier.Parse(string(token))
+	headers, parsed, err := verifier.Parse(string(token))
 	assert.NoError(t, err)
 
 	gotID, ok := parsed.Get("id")
@@ -152,7 +156,11 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 	assert.True(t, ok)
 	assert.EqualValues(t, []any{"one", "two", "three"}, gotData)
 
-	_, err = verifier.VerifyAndParse(string(token))
+	kid, ok := headers.Get("kid")
+	assert.True(t, ok)
+	assert.EqualValues(t, "did:example:123#key-0", kid)
+
+	_, _, err = verifier.VerifyAndParse(string(token))
 	assert.NoError(t, err)
 
 	// parse out the headers

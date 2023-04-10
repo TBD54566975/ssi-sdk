@@ -29,7 +29,7 @@ func VerifyPresentationSubmission(verifier crypto.JWTVerifier, et EmbedTarget, d
 	}
 	switch et {
 	case JWTVPTarget:
-		_, vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(submission))
+		_, _, vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(submission))
 		if err != nil {
 			return errors.Wrap(err, "verification of the presentation submission failed")
 		}

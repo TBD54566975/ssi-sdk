@@ -15,7 +15,7 @@ func CredentialsFromInterface(genericCred any) (*credential.VerifiableCredential
 	switch genericCred.(type) {
 	case string:
 		// JWT
-		_, cred, err := signing.ParseVerifiableCredentialFromJWT(genericCred.(string))
+		_, _, cred, err := signing.ParseVerifiableCredentialFromJWT(genericCred.(string))
 		if err != nil {
 			return nil, errors.Wrap(err, "could not parse credential from JWT")
 		}

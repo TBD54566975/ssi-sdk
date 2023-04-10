@@ -68,7 +68,7 @@ func BuildPresentationSubmission(presentationRequestJWT string, signer crypto.JW
 	if err != nil {
 		return nil, errors.Wrap(err, "creating verifier from signer")
 	}
-	parsedPresentationRequest, err := verifier.VerifyAndParse(presentationRequestJWT)
+	_, parsedPresentationRequest, err := verifier.VerifyAndParse(presentationRequestJWT)
 	if err != nil {
 		return nil, err
 	}
