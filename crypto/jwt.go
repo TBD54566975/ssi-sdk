@@ -59,7 +59,7 @@ func (s *JWTSigner) ToVerifier() (*JWTVerifier, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewJWTVerifierFromKey(s.ID, s.KeyID(), key)
+	return NewJWTVerifierFromKey(s.ID, key)
 }
 
 // JWTVerifier is a struct that contains the key and algorithm used to verify JWTs
@@ -68,16 +68,16 @@ type JWTVerifier struct {
 	jwk.Key
 }
 
-func NewJWTVerifier(id, kid string, key crypto.PublicKey) (*JWTVerifier, error) {
+func NewJWTVerifier(id string, key crypto.PublicKey) (*JWTVerifier, error) {
 	privateKeyJWK, err := PublicKeyToJWK(key)
 	if err != nil {
 		return nil, err
 	}
-	return NewJWTVerifierFromKey(id, kid, privateKeyJWK)
+	return NewJWTVerifierFromKey(id, privateKeyJWK)
 }
 
-func NewJWTVerifierFromJWK(id, kid string, key PublicKeyJWK) (*JWTVerifier, error) {
-	gotJWK, alg, err := jwtVerifier(id, kid, key)
+func NewJWTVerifierFromJWK(id string, key PublicKeyJWK) (*JWTVerifier, error) {
+	gotJWK, alg, err := jwtVerifier(id, key)
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +87,8 @@ func NewJWTVerifierFromJWK(id, kid string, key PublicKeyJWK) (*JWTVerifier, erro
 	return &JWTVerifier{ID: id, Key: gotJWK}, nil
 }
 
-func NewJWTVerifierFromKey(id, kid string, key jwk.Key) (*JWTVerifier, error) {
-	gotJWK, alg, err := jwkVerifierFromKey(id, kid, key)
+func NewJWTVerifierFromKey(id string, key jwk.Key) (*JWTVerifier, error) {
+	gotJWK, alg, err := jwkVerifierFromKey(id, key)
 	if err != nil {
 		return nil, err
 	}
@@ -106,12 +106,12 @@ func jwtSignerFromKey(id, kid string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgor
 	return jwtSignerVerifier(id, kid, key)
 }
 
-func jwtVerifier(id, kid string, key PublicKeyJWK) (jwk.Key, *jwa.SignatureAlgorithm, error) {
-	return jwtSignerVerifier(id, kid, key)
+func jwtVerifier(id string, key PublicKeyJWK) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+	return jwtSignerVerifier(id, "", key)
 }
 
-func jwkVerifierFromKey(id, kid string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgorithm, error) {
-	return jwtSignerVerifier(id, kid, key)
+func jwkVerifierFromKey(id string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+	return jwtSignerVerifier(id, "", key)
 }
 
 func jwtSignerVerifier(id, kid string, key any) (jwk.Key, *jwa.SignatureAlgorithm, error) {

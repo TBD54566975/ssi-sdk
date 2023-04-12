@@ -246,8 +246,8 @@ func (v JSONWebKeyVerifier) GetKeyID() string {
 	return v.Key.KeyID()
 }
 
-func NewJSONWebKeyVerifier(id, kid string, key crypto.PublicKeyJWK) (*JSONWebKeyVerifier, error) {
-	verifier, err := crypto.NewJWTVerifierFromJWK(id, kid, key)
+func NewJSONWebKeyVerifier(id string, key crypto.PublicKeyJWK) (*JSONWebKeyVerifier, error) {
+	verifier, err := crypto.NewJWTVerifierFromJWK(id, key)
 	if err != nil {
 		return nil, err
 	}

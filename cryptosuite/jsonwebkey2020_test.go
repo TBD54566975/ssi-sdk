@@ -54,7 +54,7 @@ func TestJSONWebKey2020SignerVerifier(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, signature)
 
-			verifier, err := NewJSONWebKeyVerifier(signerID, jwk.ID, jwk.PublicKeyJWK)
+			verifier, err := NewJSONWebKeyVerifier(signerID, jwk.PublicKeyJWK)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, verifier)
 

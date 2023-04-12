@@ -98,7 +98,7 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, verifier)
 
-			sameVerifier, err := NewJWTVerifier(testID, testKID, pubKey)
+			sameVerifier, err := NewJWTVerifier(testID, pubKey)
 			assert.NoError(t, err)
 			assert.Equal(t, verifier, sameVerifier)
 

@@ -78,7 +78,7 @@ func makePresentationRequest(requesterID string, presentationData exchange.Prese
 
 	// TODO: Add better documentation on the verification process
 	// Seems like needed to know more of: https://github.com/lestrrat-go/jwx/tree/develop/v2/jwt
-	verifier, err := cryptosuite.NewJSONWebKeyVerifier(target, jwk.ID, jwk.PublicKeyJWK)
+	verifier, err := cryptosuite.NewJSONWebKeyVerifier(target, jwk.PublicKeyJWK)
 	if err != nil {
 		return nil, err
 	}

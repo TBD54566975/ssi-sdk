@@ -12,7 +12,7 @@ import (
 func TestJSONWebKey2020ToJWK(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	signer, jwk := getTestVectorKey0Signer(t, AssertionMethod)
-	verifier, err := NewJSONWebKeyVerifier("verifier-id", jwk.ID, jwk.PublicKeyJWK)
+	verifier, err := NewJSONWebKeyVerifier("verifier-id", jwk.PublicKeyJWK)
 	assert.NoError(t, err)
 
 	msg := []byte("hello")
@@ -113,7 +113,7 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 				err = suite.Sign(signer, &credPtr)
 				assert.NoError(tt, err)
 
-				verifier, err := NewJSONWebKeyVerifier(issuerID, jwk.ID, jwk.PublicKeyJWK)
+				verifier, err := NewJSONWebKeyVerifier(issuerID, jwk.PublicKeyJWK)
 				assert.NoError(tt, err)
 
 				// pin to avoid ptr shadowing
@@ -170,7 +170,7 @@ func TestCredentialLDProof(t *testing.T) {
 	err = suite.Sign(signer, &knownCred)
 	assert.NoError(t, err)
 
-	verifier, err := NewJSONWebKeyVerifier(issuer, jwk.ID, jwk.PublicKeyJWK)
+	verifier, err := NewJSONWebKeyVerifier(issuer, jwk.PublicKeyJWK)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, verifier)
 
@@ -215,7 +215,7 @@ func TestJSONWebSignature2020TestVectorCredential0(t *testing.T) {
 	err := suite.Sign(&signer, &knownCred)
 	assert.NoError(t, err)
 
-	verifier, err := NewJSONWebKeyVerifier("verifier-id", jwk.ID, jwk.PublicKeyJWK)
+	verifier, err := NewJSONWebKeyVerifier("verifier-id", jwk.PublicKeyJWK)
 	assert.NoError(t, err)
 
 	// first verify our credential
@@ -260,7 +260,7 @@ func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
 	err := suite.Sign(&signer, &knownCred)
 	assert.NoError(t, err)
 
-	verifier, err := NewJSONWebKeyVerifier("verifier-id", jwk.ID, jwk.PublicKeyJWK)
+	verifier, err := NewJSONWebKeyVerifier("verifier-id", jwk.PublicKeyJWK)
 	assert.NoError(t, err)
 
 	// verify our credential
@@ -305,7 +305,7 @@ func TestJsonWebSignature2020TestVectorPresentation0(t *testing.T) {
 	err := suite.Sign(&signer, &knownPres)
 	assert.NoError(t, err)
 
-	verifier, err := NewJSONWebKeyVerifier("verifier-id", jwk.ID, jwk.PublicKeyJWK)
+	verifier, err := NewJSONWebKeyVerifier("verifier-id", jwk.PublicKeyJWK)
 	assert.NoError(t, err)
 
 	// verify our presentation
@@ -389,7 +389,7 @@ func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
 	err := suite.Sign(&signer, &knownPres)
 	assert.NoError(t, err)
 
-	verifier, err := NewJSONWebKeyVerifier("verifier-id", jwk.ID, jwk.PublicKeyJWK)
+	verifier, err := NewJSONWebKeyVerifier("verifier-id", jwk.PublicKeyJWK)
 	assert.NoError(t, err)
 
 	// verify our presentation
