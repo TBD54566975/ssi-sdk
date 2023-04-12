@@ -10,7 +10,7 @@ require (
 	github.com/goccy/go-json v0.10.2
 	github.com/google/uuid v1.3.0
 	github.com/gowebpki/jcs v1.0.0
-	github.com/hyperledger/aries-framework-go v0.1.9
+	github.com/hyperledger/aries-framework-go v0.2.0
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/lestrrat-go/jwx/v2 v2.0.9
 	github.com/magefile/mage v1.14.0
