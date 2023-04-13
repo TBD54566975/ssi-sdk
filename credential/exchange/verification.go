@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	credutil "github.com/TBD54566975/ssi-sdk/credential/util"
+	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/schema"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -21,7 +22,7 @@ import (
 // presentation definition, and has access to the public key of the signer.
 // Note: this method does not support LD cryptosuites, and prefers JWT representations. Future refactors
 // may include an analog method for LD suites.
-func VerifyPresentationSubmission(verifier crypto.JWTVerifier, et EmbedTarget, def PresentationDefinition, submission []byte) error {
+func VerifyPresentationSubmission(verifier any, et EmbedTarget, def PresentationDefinition, submission []byte) error {
 	if err := canProcessDefinition(def); err != nil {
 		return errors.Wrap(err, "not able to verify submission; feature not supported")
 	}
@@ -30,7 +31,11 @@ func VerifyPresentationSubmission(verifier crypto.JWTVerifier, et EmbedTarget, d
 	}
 	switch et {
 	case JWTVPTarget:
-		_, _, vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(submission))
+		jwtVerifier, ok := verifier.(crypto.JWTVerifier)
+		if !ok {
+			return fmt.Errorf("verifier<%T> is not a JWT verifier", verifier)
+		}
+		_, _, vp, err := signing.VerifyVerifiablePresentationJWT(jwtVerifier, string(submission))
 		if err != nil {
 			return errors.Wrap(err, "verification of the presentation submission failed")
 		}
@@ -38,6 +43,10 @@ func VerifyPresentationSubmission(verifier crypto.JWTVerifier, et EmbedTarget, d
 	default:
 		return fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
 	}
+}
+
+func VerifyCredentialsInVP(vp credential.VerifiablePresentation, resolver did.Resolver) (bool, error) {
+	return false, nil
 }
 
 // VerifyPresentationSubmissionVP verifies whether a verifiable presentation is a valid presentation submission

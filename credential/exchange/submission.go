@@ -130,7 +130,7 @@ func (pc *PresentationClaim) GetClaimJSON() (map[string]any, error) {
 // https://identity.foundation/presentation-exchange/#presentation-submission
 // Note: this method does not support LD cryptosuites, and prefers JWT representations. Future refactors
 // may include an analog method for LD suites.
-func BuildPresentationSubmission(signer crypto.JWTSigner, requester string, def PresentationDefinition, claims []PresentationClaim, et EmbedTarget) ([]byte, error) {
+func BuildPresentationSubmission(signer any, requester string, def PresentationDefinition, claims []PresentationClaim, et EmbedTarget) ([]byte, error) {
 	if !IsSupportedEmbedTarget(et) {
 		return nil, fmt.Errorf("unsupported presentation submission embed target type: %s", et)
 	}
@@ -143,11 +143,15 @@ func BuildPresentationSubmission(signer crypto.JWTSigner, requester string, def 
 	}
 	switch et {
 	case JWTVPTarget:
-		vpSubmission, err := BuildPresentationSubmissionVP(signer.ID, def, normalizedClaims)
+		jwtSigner, ok := signer.(crypto.JWTSigner)
+		if !ok {
+			return nil, fmt.Errorf("signer<%T> is not a JWTSigner", signer)
+		}
+		vpSubmission, err := BuildPresentationSubmissionVP(jwtSigner.ID, def, normalizedClaims)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
 		}
-		return signing.SignVerifiablePresentationJWT(signer, signing.JWTVVPParameters{Audience: requester}, *vpSubmission)
+		return signing.SignVerifiablePresentationJWT(jwtSigner, signing.JWTVVPParameters{Audience: requester}, *vpSubmission)
 	default:
 		return nil, fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
 	}
