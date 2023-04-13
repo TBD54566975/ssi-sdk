@@ -13,11 +13,15 @@ import (
 
 func TestVerifiableCredentialJWT(t *testing.T) {
 	testCredential := credential.VerifiableCredential{
-		Context:           []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
-		Type:              []string{"VerifiableCredential"},
-		Issuer:            "did:example:123",
-		IssuanceDate:      "2021-01-01T19:23:24Z",
-		CredentialSubject: map[string]any{},
+		ID:           "http://example.edu/credentials/1872",
+		Context:      []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
+		Type:         []string{"VerifiableCredential"},
+		Issuer:       "did:example:123",
+		IssuanceDate: "2021-01-01T19:23:24Z",
+		CredentialSubject: map[string]any{
+			"id":   "did:example:456",
+			"name": "JimBobertson",
+		},
 	}
 
 	t.Run("Known JWK Signer", func(t *testing.T) {

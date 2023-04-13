@@ -1,7 +1,6 @@
 package exchange
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/goccy/go-json"
@@ -233,9 +232,13 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 					Constraints: &Constraints{
 						Fields: []Field{
 							{
-								Path:    []string{"$.vc.credentialSubject.color"},
-								ID:      "color-input-descriptor",
-								Purpose: "need to check the color",
+								Path:    []string{"$.vc.credentialSubject.name"},
+								ID:      "name-input-descriptor",
+								Purpose: "need to check the name contains Jim",
+								Filter: &Filter{
+									Type:    "string",
+									Pattern: "Jim*",
+								},
 							},
 						},
 					},
@@ -252,7 +255,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		}
 		testVCJWT := getTestJWTVerifiableCredential()
 		presentationClaimJWT := PresentationClaim{
-			TokenJSON:                     &testVCJWT,
+			TokenBytes:                    testVCJWT,
 			JWTFormat:                     JWTVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 		}
@@ -293,7 +296,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		assert.NotEmpty(tt, asVCJWT)
 
 		assert.Equal(tt, "did:example:456", asVCJWT["sub"])
-		assert.Equal(tt, "yellow", asVCJWT["vc"].(map[string]any)["credentialSubject"].(map[string]any)["color"])
+		assert.Equal(tt, "JimBobertson", asVCJWT["vc"].(map[string]any)["credentialSubject"].(map[string]any)["name"])
 	})
 }
 
@@ -487,7 +490,7 @@ func TestCanProcessDefinition(tt *testing.T) {
 		}
 		err := canProcessDefinition(def)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "predicate and filter features not supported")
+		assert.Contains(tt, err.Error(), "predicate feature not supported")
 	})
 
 	tt.Run("With Relational Constraint", func(tt *testing.T) {
@@ -690,7 +693,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		assert.NotEmpty(tt, jwtVC)
 
 		presentationClaim := PresentationClaim{
-			TokenJSON:                     &jwtVC,
+			TokenBytes:                    jwtVC,
 			JWTFormat:                     JWTVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 		}
@@ -743,30 +746,34 @@ func TestNormalizePresentationClaims(t *testing.T) {
 	})
 }
 
-func getTestJWTVerifiableCredential() string {
-	literalToken := `{
-		"exp": 1925061804,
-		"iss": "did:example:123",
-		"nbf": 1609529004,
-		"sub": "did:example:456",
-		"vc": {
-			"@context": [
-				"https://www.w3.org/2018/credentials/v1",
-				"https://w3id.org/security/suites/jws-2020/v1"
-			],
-			"credentialSubject": {
-				"id": "did:example:456",
-				"color": "yellow"
-			},
-			"expirationDate": "2031-01-01T19:23:24Z",
-			"issuanceDate": "2021-01-01T19:23:24Z",
-			"issuer": "did:example:123",
-			"type": ["VerifiableCredential"]
-		}
-	}`
-	noNewLines := strings.ReplaceAll(literalToken, "\n", "")
-	noTabs := strings.ReplaceAll(noNewLines, "\t", "")
-	return strings.ReplaceAll(noTabs, " ", "")
+func getTestJWTVerifiableCredential() []byte {
+	// {
+	//  "alg": "EdDSA",
+	//  "typ": "JWT"
+	// }
+	// {
+	//  "iat": 1609529004,
+	//  "iss": "did:example:123",
+	//  "jti": "http://example.edu/credentials/1872",
+	//  "nbf": 1609529004,
+	//  "nonce": "24976372-adc4-4808-90c2-d86ea805e11b",
+	//  "sub": "did:example:456",
+	//  "vc": {
+	//    "@context": [
+	//      "https://www.w3.org/2018/credentials/v1",
+	//      "https://w3id.org/security/suites/jws-2020/v1"
+	//    ],
+	//    "type": [
+	//      "VerifiableCredential"
+	//    ],
+	//    "issuer": "",
+	//    "issuanceDate": "",
+	//    "credentialSubject": {
+	//      "name": "JimBobertson"
+	//    }
+	//  }
+	// }
+	return []byte("eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2MDk1MjkwMDQsImlzcyI6ImRpZDpleGFtcGxlOjEyMyIsImp0aSI6Imh0dHA6Ly9leGFtcGxlLmVkdS9jcmVkZW50aWFscy8xODcyIiwibmJmIjoxNjA5NTI5MDA0LCJub25jZSI6IjI0OTc2MzcyLWFkYzQtNDgwOC05MGMyLWQ4NmVhODA1ZTExYiIsInN1YiI6ImRpZDpleGFtcGxlOjQ1NiIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly93M2lkLm9yZy9zZWN1cml0eS9zdWl0ZXMvandzLTIwMjAvdjEiXSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdLCJpc3N1ZXIiOiIiLCJpc3N1YW5jZURhdGUiOiIiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJuYW1lIjoiSmltQm9iZXJ0c29uIn19fQ.STf2oFVPTwEyEhCpU_u9Qy52VzAwHlWtxq2NrlXhzvh0aJIbr5astEagEY2PRZ_S6Og-7Q4sYTT7sq6HJSjLBA")
 }
 
 func getGenericTestClaim() map[string]any {

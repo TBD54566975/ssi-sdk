@@ -144,7 +144,7 @@ func main() {
 	example.HandleExampleError(err, "Failed to marshal vc jwt")
 
 	presentationClaim := exchange.PresentationClaim{
-		TokenJSON:                     util.StringPtr(string(vcJSONBytes)),
+		TokenBytes:                    vcJSONBytes,
 		JWTFormat:                     exchange.JWTVC.Ptr(),
 		SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 	}
