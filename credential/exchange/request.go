@@ -24,7 +24,7 @@ const (
 
 	// Presentation Request Option types
 
-	TargetOption PresentationRequestOptionType = "target"
+	AudienceOption PresentationRequestOptionType = "audience"
 )
 
 type PresentationRequestOptionType string
@@ -46,16 +46,16 @@ func BuildPresentationRequest(signer any, pt PresentationRequestType, def Presen
 	if len(opts) > 1 {
 		return nil, fmt.Errorf("only one option supported")
 	}
-	var target string
+	var audience string
 	if len(opts) == 1 {
 		opt := opts[0]
-		if opt.Type != TargetOption {
+		if opt.Type != AudienceOption {
 			return nil, fmt.Errorf("unsupported option type: %s", opt.Type)
 		}
 		var ok bool
-		target, ok = opt.Value.(string)
+		audience, ok = opt.Value.(string)
 		if !ok {
-			return nil, fmt.Errorf("target option value must be a string")
+			return nil, fmt.Errorf("audience option value must be a string")
 		}
 	}
 
@@ -68,7 +68,7 @@ func BuildPresentationRequest(signer any, pt PresentationRequestType, def Presen
 		if !ok {
 			return nil, errors.New("signer is not a JWTSigner")
 		}
-		return BuildJWTPresentationRequest(jwtSigner, def, target)
+		return BuildJWTPresentationRequest(jwtSigner, def, audience)
 	default:
 		return nil, fmt.Errorf("presentation request type <%s> is not implemented", pt)
 	}

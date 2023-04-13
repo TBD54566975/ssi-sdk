@@ -25,7 +25,7 @@
       "postalCode": "78724",
       "streetAddress": "7405 Janktopia Ave."
     },
-    "taxID": "123-45-6789"
+    "taxId": "123-45-6789"
   },
   "iss": "did:janky:alice",
   "sub": "did:janky:alice"

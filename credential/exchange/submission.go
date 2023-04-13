@@ -12,6 +12,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
 )
@@ -41,22 +42,22 @@ type PresentationClaim struct {
 	LDPFormat    *LinkedDataFormat
 
 	// If we have a token, we assume we have a JWT format value
-	TokenJSON *string
-	JWTFormat *JWTFormat
+	TokenBytes []byte
+	JWTFormat  *JWTFormat
 
 	// The algorithm or Linked Data proof type by which the claim was signed must be present
 	SignatureAlgorithmOrProofType string
 }
 
 func (pc *PresentationClaim) IsEmpty() bool {
-	if pc == nil || (pc.Credential == nil && pc.Presentation == nil && pc.TokenJSON == nil) {
+	if pc == nil || (pc.Credential == nil && pc.Presentation == nil && len(pc.TokenBytes) == 0) {
 		return true
 	}
 	return reflect.DeepEqual(pc, &PresentationClaim{})
 }
 
-// GetClaimValue returns the value of the claim, since PresentationClaim is a union type. An error is returned if
-// no value is present in any of the possible embedded types.
+// GetClaimValue returns the value of the claim as JSON. Since PresentationClaim is a union type. An error
+// is returned if no value is present in any of the possible embedded types.
 func (pc *PresentationClaim) GetClaimValue() (any, error) {
 	if pc.Credential != nil {
 		return *pc.Credential, nil
@@ -64,8 +65,13 @@ func (pc *PresentationClaim) GetClaimValue() (any, error) {
 	if pc.Presentation != nil {
 		return *pc.Presentation, nil
 	}
-	if pc.TokenJSON != nil {
-		return *pc.TokenJSON, nil
+	if pc.TokenBytes != nil {
+		switch pc.JWTFormat.String() {
+		case JWT.String(), JWTVC.String(), JWTVP.String():
+			return jwt.Parse(pc.TokenBytes, jwt.WithValidate(false), jwt.WithVerify(false))
+		default:
+			return nil, fmt.Errorf("unsupported JWT format: %s", pc.JWTFormat)
+		}
 	}
 	return nil, errors.New("claim is empty")
 }
@@ -86,7 +92,7 @@ func (pc *PresentationClaim) GetClaimFormat() (string, error) {
 		}
 		return string(*pc.LDPFormat), nil
 	}
-	if pc.TokenJSON != nil {
+	if pc.TokenBytes != nil {
 		if pc.JWTFormat == nil {
 			return "", errors.New("JWT claim has no JWT format set")
 		}
@@ -472,8 +478,8 @@ func canProcessDefinition(def PresentationDefinition) error {
 			}
 			if len(id.Constraints.Fields) > 0 {
 				for _, field := range id.Constraints.Fields {
-					if field.Predicate != nil || field.Filter != nil {
-						return errors.New("predicate and filter features not supported")
+					if field.Predicate != nil {
+						return errors.New("predicate feature not supported")
 					}
 				}
 			}
@@ -496,11 +502,12 @@ func canProcessDefinition(def PresentationDefinition) error {
 }
 
 // hasRelationalConstraint checks a constraint property for relational constraint field values
+// except for subject is issuer, which is supported
 func hasRelationalConstraint(constraints *Constraints) bool {
 	if constraints == nil {
 		return false
 	}
-	return constraints.IsHolder != nil || constraints.SameSubject != nil || constraints.SubjectIsIssuer != nil
+	return constraints.IsHolder != nil || constraints.SameSubject != nil
 }
 
 func IsSupportedEmbedTarget(et EmbedTarget) bool {

@@ -105,18 +105,6 @@ func ParseVerifiableCredentialFromJWT(token string) (jws.Headers, jwt.Token, *cr
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "parsing credential token")
 	}
-	vcClaim, ok := parsed.Get(VCJWTProperty)
-	if !ok {
-		return nil, nil, nil, fmt.Errorf("did not find %s property in token", VCJWTProperty)
-	}
-	vcBytes, err := json.Marshal(vcClaim)
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "marshalling credential claim")
-	}
-	var cred credential.VerifiableCredential
-	if err = json.Unmarshal(vcBytes, &cred); err != nil {
-		return nil, nil, nil, errors.Wrap(err, "reconstructing Verifiable Credential")
-	}
 
 	// get headers
 	headers, err := getJWTHeaders([]byte(token))
@@ -125,32 +113,56 @@ func ParseVerifiableCredentialFromJWT(token string) (jws.Headers, jwt.Token, *cr
 	}
 
 	// parse remaining JWT properties and set in the credential
-	jti, hasJTI := parsed.Get(jwt.JwtIDKey)
+	cred, err := ParseVerifiableCredentialFromToken(parsed)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "parsing credential from token")
+	}
+
+	return headers, parsed, cred, nil
+}
+
+// ParseVerifiableCredentialFromToken takes a JWT object and parses it into a VerifiableCredential
+func ParseVerifiableCredentialFromToken(token jwt.Token) (*credential.VerifiableCredential, error) {
+	// parse remaining JWT properties and set in the credential
+	vcClaim, ok := token.Get(VCJWTProperty)
+	if !ok {
+		return nil, fmt.Errorf("did not find %s property in token", VCJWTProperty)
+	}
+	vcBytes, err := json.Marshal(vcClaim)
+	if err != nil {
+		return nil, errors.Wrap(err, "marshalling credential claim")
+	}
+	var cred credential.VerifiableCredential
+	if err = json.Unmarshal(vcBytes, &cred); err != nil {
+		return nil, errors.Wrap(err, "reconstructing Verifiable Credential")
+	}
+
+	jti, hasJTI := token.Get(jwt.JwtIDKey)
 	jtiStr, ok := jti.(string)
 	if hasJTI && ok && jtiStr != "" {
 		cred.ID = jtiStr
 	}
 
-	iat, hasIAT := parsed.Get(jwt.IssuedAtKey)
+	iat, hasIAT := token.Get(jwt.IssuedAtKey)
 	iatTime, ok := iat.(time.Time)
 	if hasIAT && ok {
 		cred.IssuanceDate = iatTime.Format(time.RFC3339)
 	}
 
-	exp, hasExp := parsed.Get(jwt.ExpirationKey)
+	exp, hasExp := token.Get(jwt.ExpirationKey)
 	expTime, ok := exp.(time.Time)
 	if hasExp && ok {
 		cred.ExpirationDate = expTime.Format(time.RFC3339)
 	}
 
 	// Note: we only handle string issuer values, not objects for JWTs
-	iss, hasIss := parsed.Get(jwt.IssuerKey)
+	iss, hasIss := token.Get(jwt.IssuerKey)
 	issStr, ok := iss.(string)
 	if hasIss && ok && issStr != "" {
 		cred.Issuer = issStr
 	}
 
-	sub, hasSub := parsed.Get(jwt.SubjectKey)
+	sub, hasSub := token.Get(jwt.SubjectKey)
 	subStr, ok := sub.(string)
 	if hasSub && ok && subStr != "" {
 		if cred.CredentialSubject == nil {
@@ -159,7 +171,7 @@ func ParseVerifiableCredentialFromJWT(token string) (jws.Headers, jwt.Token, *cr
 		cred.CredentialSubject[credential.VerifiableCredentialIDProperty] = subStr
 	}
 
-	return headers, parsed, &cred, nil
+	return &cred, nil
 }
 
 // JWTVVPParameters represents additional parameters needed when constructing a JWT VP as opposed to a VP

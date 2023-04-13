@@ -21,7 +21,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/TBD54566975/ssi-sdk/util"
-	"github.com/goccy/go-json"
 )
 
 func main() {
@@ -105,7 +104,7 @@ func main() {
 			},
 			Constraints: &exchange.Constraints{Fields: []exchange.Field{
 				{
-					Path: []string{"$.credentialSubject.birthdate"},
+					Path: []string{"$.vc.credentialSubject.birthdate"},
 					ID:   "birthdate",
 				},
 			}},
@@ -118,7 +117,7 @@ func main() {
 	example.HandleExampleError(presentationDefinition.IsValid(), "Presentation definition is not valid")
 
 	presentationRequestBytes, err := exchange.BuildPresentationRequest(*aptSigner, exchange.JWTRequest, *presentationDefinition, exchange.PresentationRequestOption{
-		Type:  exchange.TargetOption,
+		Type:  exchange.AudienceOption,
 		Value: holderDIDKey.String(),
 	})
 	example.HandleExampleError(err, "Failed to make presentation request")
@@ -136,15 +135,8 @@ func main() {
 	example.HandleExampleError(err, "Failed to verify presentation request")
 	example.HandleExampleError(verifiedPresentationDefinition.IsValid(), "Verified presentation definition is not valid")
 
-	// TODO: (neal) (issue https://github.com/TBD54566975/ssi-sdk/issues/165)
-	// Have the presentation claim's token format support signedVCBytes for the BuildPresentationSubmission function
-	_, _, vsJSON, err := signing.ParseVerifiableCredentialFromJWT(string(signedVCBytes))
-	example.HandleExampleError(err, "Failed to parse VC")
-	vcJSONBytes, err := json.Marshal(vsJSON)
-	example.HandleExampleError(err, "Failed to marshal vc jwt")
-
 	presentationClaim := exchange.PresentationClaim{
-		TokenJSON:                     util.StringPtr(string(vcJSONBytes)),
+		TokenBytes:                    signedVCBytes,
 		JWTFormat:                     exchange.JWTVC.Ptr(),
 		SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 	}

@@ -88,9 +88,9 @@
               }
             },
             {
-              "id": "taxID",
+              "id": "taxId",
               "path": [
-                "$.vc.credentialSubject.taxID"
+                "$.vc.credentialSubject.taxId"
               ],
               "filter": {
                 "type": "string"
