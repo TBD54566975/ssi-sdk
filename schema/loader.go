@@ -19,39 +19,46 @@ var (
 )
 
 type (
-	SchemaFile string
+	File string
 )
 
 const (
 	schemaDirectory = "known_schemas/"
 
 	// Presentation Exchange Schemas
-	PresentationDefinitionSchema              SchemaFile = "pe-presentation-definition.json"
-	PresentationDefinitionEnvelopeSchema      SchemaFile = "pe-presentation-definition-envelope.json"
-	PresentationSubmissionSchema              SchemaFile = "pe-presentation-submission.json"
-	PresentationClaimFormatDesignationsSchema SchemaFile = "pe-definition-claim-format-designations.json"
-	SubmissionClaimFormatDesignationsSchema   SchemaFile = "pe-submission-claim-format-designations.json"
-	SubmissionRequirementSchema               SchemaFile = "pe-submission-requirement.json"
-	SubmissionRequirementsSchema              SchemaFile = "pe-submission-requirements.json"
 
-	PresentationClaimFormatDesignationFormatDefinition SchemaFile = "pe-submission-claim-format-designations.json"
+	PresentationDefinitionSchema              File = "pe-presentation-definition.json"
+	PresentationDefinitionEnvelopeSchema      File = "pe-presentation-definition-envelope.json"
+	PresentationSubmissionSchema              File = "pe-presentation-submission.json"
+	PresentationClaimFormatDesignationsSchema File = "pe-definition-claim-format-designations.json"
+	SubmissionClaimFormatDesignationsSchema   File = "pe-submission-claim-format-designations.json"
+	SubmissionRequirementSchema               File = "pe-submission-requirement.json"
+	SubmissionRequirementsSchema              File = "pe-submission-requirements.json"
 
 	// Credential Manifest Schemas
-	CredentialManifestSchema    SchemaFile = "cm-credential-manifest.json"
-	CredentialApplicationSchema SchemaFile = "cm-credential-application.json"
-	CredentialResponseSchema    SchemaFile = "cm-credential-response.json"
-	OutputDescriptorsSchema     SchemaFile = "cm-output-descriptors.json"
+
+	CredentialManifestSchema    File = "cm-credential-manifest.json"
+	CredentialApplicationSchema File = "cm-credential-application.json"
+	CredentialResponseSchema    File = "cm-credential-response.json"
+	OutputDescriptorsSchema     File = "cm-output-descriptors.json"
 
 	// Wallet Rendering Schemas
-	DisplayMappingObjectSchema        SchemaFile = "wr-display-mapping-object.json"
-	EntityStylesSchema                SchemaFile = "wr-entity-styles.json"
-	LabeledDisplayMappingObjectSchema SchemaFile = "wr-labeled-display-mapping-object.json"
+
+	DisplayMappingObjectSchema        File = "wr-display-mapping-object.json"
+	EntityStylesSchema                File = "wr-entity-styles.json"
+	LabeledDisplayMappingObjectSchema File = "wr-labeled-display-mapping-object.json"
 
 	// VC JSON Schema Schemas
-	VerifiableCredentialJSONSchemaSchema SchemaFile = "vc-json-schema.json"
+
+	VerifiableCredentialJSONSchemaSchema File = "vc-json-schema.json"
+
+	// VC Data Model Schemas
+
+	VerifiableCredentialSchemaV2   File = "verifiable-credential-v2.json"
+	VerifiablePresentationSchemaV2 File = "verifiable-presentation-v2.json"
 )
 
-func (s SchemaFile) String() string {
+func (s File) String() string {
 	return string(s)
 }
 
@@ -120,14 +127,14 @@ func (cl *CachingLoader) GetCachedSchemas() ([]string, error) {
 }
 
 // LoadSchema loads a schema from the embedded filesystem and returns its contents as  a json string
-func LoadSchema(schemaFile SchemaFile) (string, error) {
+func LoadSchema(schemaFile File) (string, error) {
 	b, err := knownSchemas.ReadFile(schemaDirectory + schemaFile.String())
 	return string(b), err
 }
 
 // GetAllLocalSchemas returns all locally cached schemas to be added to a CachingLoader
 func GetAllLocalSchemas() (map[string]string, error) {
-	localFiles := map[string]SchemaFile{
+	localFiles := map[string]File{
 		"identity.foundation/presentation-exchange/schemas/presentation-definition.json":                           PresentationDefinitionSchema,
 		"identity.foundation/presentation-exchange/schemas/presentation-definition-envelope.json":                  PresentationDefinitionEnvelopeSchema,
 		"identity.foundation/presentation-exchange/schemas/presentation-submission.json":                           PresentationSubmissionSchema,
@@ -143,6 +150,8 @@ func GetAllLocalSchemas() (map[string]string, error) {
 		"identity.foundation/wallet-rendering/schemas/entity-styles.json":                                          EntityStylesSchema,
 		"identity.foundation/wallet-rendering/schemas/labeled-display-mapping-object.json":                         LabeledDisplayMappingObjectSchema,
 		"w3c-ccg.github.io/vc-json-schemas/credential-schema-2.0":                                                  VerifiableCredentialJSONSchemaSchema,
+		"w3.org/2022/credentials/v2/verifiable-credential-schema.json":                                             VerifiableCredentialSchemaV2,
+		"w3.org/2022/credentials/v2/verifiable-presentation-schema.json":                                           VerifiablePresentationSchemaV2,
 	}
 
 	localSchemas := make(map[string]string, len(localFiles))

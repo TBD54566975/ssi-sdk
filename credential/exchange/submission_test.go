@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 )
@@ -53,7 +52,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		_, _, vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submissionBytes))
+		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(*verifier, nil, string(submissionBytes))
 		assert.NoError(tt, err)
 
 		assert.NoError(tt, vp.IsValid())
@@ -140,7 +139,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		assert.NoError(tt, def.IsValid())
 		vp, err := BuildPresentationSubmissionVP("submitter", def, nil)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "no claims match the required format, and signing alg/proof type requirements for input descriptor")
+		assert.Contains(tt, err.Error(), "no claims match the required format, and jwt alg/proof type requirements for input descriptor")
 		assert.Empty(tt, vp)
 	})
 
@@ -419,7 +418,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 		assert.NoError(tt, err)
 		_, err = processInputDescriptor(id, normalized)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "no claims match the required format, and signing alg/proof type requirements")
+		assert.Contains(tt, err.Error(), "no claims match the required format, and jwt alg/proof type requirements")
 	})
 
 	t.Run("Descriptor with matching format", func(tt *testing.T) {

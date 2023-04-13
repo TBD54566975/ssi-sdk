@@ -7,14 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 )
 
 func TestVerifyPresentationSubmission(t *testing.T) {
 	t.Run("Unsupported embed target", func(tt *testing.T) {
 		verifier := crypto.JWTVerifier{}
-		err := VerifyPresentationSubmission(verifier, "badEmbedTarget", PresentationDefinition{}, nil)
+		err := VerifyPresentationSubmission(verifier, nil, "badEmbedTarget", PresentationDefinition{}, nil)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported presentation submission embed target type")
 	})
@@ -38,7 +37,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 			},
 		}
 		_, verifier := getJWKSignerVerifier(tt)
-		err := VerifyPresentationSubmission(*verifier, JWTVPTarget, def, nil)
+		err := VerifyPresentationSubmission(*verifier, nil, JWTVPTarget, def, nil)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "verification of the presentation submission failed")
 	})
@@ -74,7 +73,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		err = VerifyPresentationSubmission(*verifier, JWTVPTarget, def, submissionBytes)
+		err = VerifyPresentationSubmission(*verifier, nil, JWTVPTarget, def, submissionBytes)
 		assert.NoError(tt, err)
 	})
 }
@@ -111,7 +110,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		_, _, verifiablePresentation, err := signing.ParseVerifiablePresentationFromJWT(string(submissionBytes))
+		_, _, verifiablePresentation, err := credential.ParseVerifiablePresentationFromJWT(string(submissionBytes))
 		assert.NoError(tt, err)
 
 		err = VerifyPresentationSubmissionVP(def, *verifiablePresentation)
@@ -438,7 +437,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		}
 		signer, _ := getJWKSignerVerifier(t)
 		testVC := getTestVerifiableCredential()
-		vcData, err := signing.SignVerifiableCredentialJWT(*signer, testVC)
+		vcData, err := credential.SignVerifiableCredentialJWT(*signer, testVC)
 		assert.NoError(t, err)
 		b := NewPresentationSubmissionBuilder(def.ID)
 		assert.NoError(t, b.SetDescriptorMap([]SubmissionDescriptor{

@@ -1,5 +1,5 @@
-// Annotated steel thread flow for calling out all signing, verification, and key management.
-// This example is focused on the signing, exchange, and verification of objects.
+// Annotated steel thread flow for calling out all jwt, verification, and key management.
+// This example is focused on the jwt, exchange, and verification of objects.
 
 // We assume there are two parties:
 //	1 . Alice, using a wallet, applying for a credential

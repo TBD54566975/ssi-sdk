@@ -98,7 +98,7 @@ func TestVerifier(t *testing.T) {
 	})
 }
 
-func NoOpVerifier(_ credential.VerifiableCredential, _ ...VerificationOption) error {
+func NoOpVerifier(_ credential.VerifiableCredential, _ ...Option) error {
 	return nil
 }
 

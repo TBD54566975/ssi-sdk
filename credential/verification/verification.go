@@ -22,14 +22,14 @@ type (
 	OptionKey string
 )
 
-// VerificationOption represents a single option that may be required for a verifier
-type VerificationOption struct {
+// Option represents a single option that may be required for a verifier
+type Option struct {
 	ID     OptionKey
 	Option any
 }
 
 // GetVerificationOption returns a verification option given an ID
-func GetVerificationOption(opts []VerificationOption, id OptionKey) (any, error) {
+func GetVerificationOption(opts []Option, id OptionKey) (any, error) {
 	for _, opt := range opts {
 		if opt.ID == id {
 			return opt.Option, nil
@@ -38,7 +38,7 @@ func GetVerificationOption(opts []VerificationOption, id OptionKey) (any, error)
 	return nil, errors.Errorf("option with id <%s> not found", id)
 }
 
-type Verify func(cred credential.VerifiableCredential, opts ...VerificationOption) error
+type Verify func(cred credential.VerifiableCredential, opts ...Option) error
 
 // NewCredentialVerifier creates a new credential verifier which executes in the order of the verifiers provided
 func NewCredentialVerifier(verifiers []Verifier) (*CredentialVerifier, error) {
@@ -58,7 +58,7 @@ func NewCredentialVerifier(verifiers []Verifier) (*CredentialVerifier, error) {
 }
 
 // VerifyCredential verifies a credential given a credential verifier
-func (cv *CredentialVerifier) VerifyCredential(cred credential.VerifiableCredential, opts ...VerificationOption) error {
+func (cv *CredentialVerifier) VerifyCredential(cred credential.VerifiableCredential, opts ...Option) error {
 	ae := util.NewAppendError()
 	for _, verifier := range cv.verifiers {
 		if err := verifier.VerifyFunc(cred, opts...); err != nil {

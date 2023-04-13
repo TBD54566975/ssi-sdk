@@ -53,13 +53,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/example"
 	emp "github.com/TBD54566975/ssi-sdk/example/usecase/employer_university_flow/pkg"
 
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/sirupsen/logrus"
 )
@@ -162,7 +162,7 @@ func main() {
 
 	verifier, err := signer.ToVerifier()
 	example.HandleExampleError(err, "failed to construct verifier")
-	_, _, vp, err := signing.VerifyVerifiablePresentationJWT(*verifier, string(submission))
+	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(*verifier, nil, string(submission))
 	example.HandleExampleError(err, "failed to verify jwt")
 
 	dat, err = json.Marshal(vp)

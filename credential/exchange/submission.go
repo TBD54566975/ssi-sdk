@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
@@ -151,7 +150,7 @@ func BuildPresentationSubmission(signer any, requester string, def PresentationD
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
 		}
-		return signing.SignVerifiablePresentationJWT(jwtSigner, signing.JWTVVPParameters{Audience: requester}, *vpSubmission)
+		return credential.SignVerifiablePresentationJWT(jwtSigner, credential.JWTVVPParameters{Audience: requester}, *vpSubmission)
 	default:
 		return nil, fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
 	}
@@ -332,7 +331,7 @@ func processInputDescriptor(id InputDescriptor, claims []NormalizedClaim) (*proc
 	// first, reduce the set of claims that conform with the format required by the input descriptor
 	filteredClaims := filterClaimsByFormat(claims, id.Format)
 	if len(filteredClaims) == 0 {
-		return nil, fmt.Errorf("no claims match the required format, and signing alg/proof type requirements "+
+		return nil, fmt.Errorf("no claims match the required format, and jwt alg/proof type requirements "+
 			"for input descriptor: %s", id.ID)
 	}
 

@@ -150,7 +150,7 @@ func (b BBSPlusSignatureProofSuite) prepareRevealData(deriveProofResult DerivePr
 		revealIndices[i+numProofStatements] = numProofStatements + deriveProofResult.RevealedIndicies[i]
 	}
 
-	// turn all statements into bytes before signing
+	// turn all statements into bytes before jwt
 	statements := append(canonicalProofStatements, deriveProofResult.InputProofDocumentStatements...)
 	statementBytesArrays = make([][]byte, len(statements))
 	for i := range statements {
@@ -419,7 +419,7 @@ func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *Proof
 		return nil, err
 	}
 
-	// must make sure the proof does not have a proof value or nonce before signing/verifying
+	// must make sure the proof does not have a proof value or nonce before jwt/verifying
 	delete(genericProof, "proofValue")
 	delete(genericProof, "nonce")
 

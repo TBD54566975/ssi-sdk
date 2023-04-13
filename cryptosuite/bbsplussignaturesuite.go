@@ -86,7 +86,7 @@ func (b BBSPlusSignatureSuite) Sign(s Signer, p Provable) error {
 	// 4 & 5. create the signature over the provable data as a BBS+ signature
 	proofValue, err := s.Sign(tbs)
 	if err != nil {
-		return errors.Wrap(err, "signing provable value")
+		return errors.Wrap(err, "jwt provable value")
 	}
 
 	// set the signature on the proof object and return
@@ -107,7 +107,7 @@ func (b BBSPlusSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptio
 		return nil, err
 	}
 
-	// must make sure there is no proof value before signing/verifying
+	// must make sure there is no proof value before jwt/verifying
 	delete(genericProof, "proofValue")
 
 	// make sure the proof has a timestamp

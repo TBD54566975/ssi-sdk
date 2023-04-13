@@ -4,7 +4,6 @@ import (
 	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/pkg/errors"
 )
@@ -14,7 +13,7 @@ import (
 // 1. That the VC is valid
 // 2. That the VC was issued by a trusted entity
 func ValidateAccess(verifier crypto.JWTVerifier, credBytes []byte) error {
-	_, _, vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(credBytes))
+	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(verifier, nil, string(credBytes))
 	if err != nil {
 		return errors.Wrap(err, "failed to validate VP signature")
 	}

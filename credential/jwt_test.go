@@ -1,18 +1,16 @@
 //go:build jwx_es256k
 
-package signing
+package credential
 
 import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/TBD54566975/ssi-sdk/credential"
 )
 
 func TestVerifiableCredentialJWT(t *testing.T) {
-	testCredential := credential.VerifiableCredential{
+	testCredential := VerifiableCredential{
 		ID:           "http://example.edu/credentials/1872",
 		Context:      []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
 		Type:         []string{"VerifiableCredential"},
@@ -85,7 +83,7 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 }
 
 func TestVerifiablePresentationJWT(t *testing.T) {
-	testPresentation := credential.VerifiablePresentation{
+	testPresentation := VerifiablePresentation{
 		Context: []string{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
 		Type:   []string{"VerifiablePresentation"},
@@ -109,7 +107,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 	assert.NotEmpty(t, parsedHeaders)
 	assert.NotEmpty(t, parsedPres)
 
-	parsedHeaders, verifiedJWT, pres, err := VerifyVerifiablePresentationJWT(*verifier, token)
+	parsedHeaders, verifiedJWT, pres, err := VerifyVerifiablePresentationJWT(*verifier, nil, token)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, verifiedJWT)
 	assert.NotEmpty(t, parsedHeaders)

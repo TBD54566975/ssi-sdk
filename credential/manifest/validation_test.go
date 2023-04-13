@@ -5,7 +5,6 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/goccy/go-json"
@@ -412,7 +411,7 @@ func getValidTestCredManifestCredApplicationJWTCred(t *testing.T) (CredentialMan
 	require.NoError(t, err)
 	signer, err := crypto.NewJWTSigner("test-id", "test-kid", privKey)
 	require.NoError(t, err)
-	jwt, err := signing.SignVerifiableCredentialJWT(*signer, vc)
+	jwt, err := credential.SignVerifiableCredentialJWT(*signer, vc)
 	require.NoError(t, err)
 	require.NotEmpty(t, jwt)
 

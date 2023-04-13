@@ -145,7 +145,7 @@ func (*BTCSignerVerifier) GetJWSHeader() map[string]any {
 	}
 }
 
-// Sign signs the given data according to Bitcoin's signing process
+// Sign signs the given data according to Bitcoin's jwt process
 func (sv *BTCSignerVerifier) Sign(dataHash []byte) ([]byte, error) {
 	signature, err := ecdsa.SignCompact(sv.privateKey, dataHash, false)
 	if err != nil {
@@ -176,7 +176,7 @@ func (sv *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
 	return reconstructedSignature.Verify(data, sv.publicKey), nil
 }
 
-// SignJWT signs the given data according to the protocol's JWT signing process,
+// SignJWT signs the given data according to the protocol's JWT jwt process,
 // creating a compact JWS in a JWT
 func (sv *BTCSignerVerifier) SignJWT(data any) (string, error) {
 	encodedHeader, err := EncodeAny(sv.GetJWSHeader())

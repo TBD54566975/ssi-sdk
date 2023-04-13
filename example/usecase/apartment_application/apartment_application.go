@@ -16,7 +16,6 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/example"
@@ -79,7 +78,7 @@ func main() {
 	example.HandleExampleError(err, "Failed to make verifiable credential")
 	example.HandleExampleError(vc.IsValid(), "Verifiable credential is not valid")
 
-	signedVCBytes, err := signing.SignVerifiableCredentialJWT(*govtSigner, *vc)
+	signedVCBytes, err := credential.SignVerifiableCredentialJWT(*govtSigner, *vc)
 
 	example.HandleExampleError(err, "Failed to sign vc")
 
@@ -153,7 +152,7 @@ func main() {
 		Step 5: The apartment will verify the presentation submission. This is done to make sure the presentation is in compliance with the definition.
 	**/
 
-	err = exchange.VerifyPresentationSubmission(*holderVerifier, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
+	err = exchange.VerifyPresentationSubmission(*holderVerifier, nil, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
 	example.HandleExampleError(err, "Failed to verify presentation submission")
 
 	_, _ = fmt.Print("\n\nStep 5: The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic\n\n")

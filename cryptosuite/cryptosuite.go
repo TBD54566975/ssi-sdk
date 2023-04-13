@@ -45,7 +45,7 @@ type CryptoSuiteProofType interface {
 	// CreateVerifyHash https://www.w3.org/community/reports/credentials/CG-FINAL-data-integrity-20220722/#create-verify-hash-algorithm
 	CreateVerifyHash(doc map[string]any, proof crypto.Proof, proofOptions *ProofOptions) ([]byte, error)
 	// Digest runs a given digest algorithm https://www.w3.org/community/reports/credentials/CG-FINAL-data-integrity-20220722/#dfn-message-digest-algorithm
-	// on a canonizliaed document prior to signing. Sometimes implementations will be a no-op as digesting is handled
+	// on a canonizliaed document prior to jwt. Sometimes implementations will be a no-op as digesting is handled
 	// by the signature algorithm itself.
 	Digest(tbd []byte) ([]byte, error)
 }
