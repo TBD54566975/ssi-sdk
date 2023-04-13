@@ -177,7 +177,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 		}
 
 		// convert submitted claim vc to map[string]any
-		cred, credErr := credutil.CredentialsFromInterface(submittedClaim)
+		cred, credErr := credutil.ToCredential(submittedClaim)
 		if credErr != nil {
 			unfulfilledInputDescriptors[inputDescriptor.ID] = "failed to extract credential from json"
 			continue
@@ -196,18 +196,13 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 
 		// TODO(gabe) consider enforcing limited disclosure if present
 		// for each field we need to verify at least one path matches
-		credMap := make(map[string]any)
-		claimBytes, jsonErr := json.Marshal(cred)
-		if jsonErr != nil {
-			err = errresp.NewErrorResponseWithErrorAndMsg(errresp.CriticalError, err, "failed to marshal vc")
-			return unfulfilledInputDescriptors, err
-		}
-		if err = json.Unmarshal(claimBytes, &credMap); err != nil {
-			err = errresp.NewErrorResponseWithErrorAndMsg(errresp.CriticalError, err, "problem in unmarshalling credential")
-			return unfulfilledInputDescriptors, err
+		credJSON, err := credutil.ToCredentialJSONMap(submittedClaim)
+		if err != nil {
+			unfulfilledInputDescriptors[inputDescriptor.ID] = "failed to extract credential from json"
+			continue
 		}
 		for _, field := range inputDescriptor.Constraints.Fields {
-			if err = findMatchingPath(credMap, field.Path); err != nil {
+			if err = findMatchingPath(credJSON, field.Path); err != nil {
 				errMsg := fmt.Sprintf("input descriptor not fulfilled for field: %s", field.ID)
 				unfulfilledInputDescriptors[inputDescriptor.ID] = errMsg
 				continue

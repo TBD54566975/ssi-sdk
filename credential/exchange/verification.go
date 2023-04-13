@@ -102,7 +102,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		}
 
 		// TODO(gabe) add in signature verification of claims here https://github.com/TBD54566975/ssi-sdk/issues/71
-		vc, vcJSON, err := credutil.ExtractVCAndJSON(claim)
+		cred, err := credutil.ToCredential(claim)
 		if err != nil {
 			return errors.Wrapf(err, "getting claim as json: <%s>", claim)
 		}
@@ -117,10 +117,13 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 
 		// TODO(gabe) consider enforcing limited disclosure if present
 		// for each field we need to verify at least one path matches
-
+		credJSON, err := credutil.ToCredentialJSONMap(claim)
+		if err != nil {
+			return errors.Wrapf(err, "getting credential as json: %v", cred)
+		}
 		for _, field := range constraints.Fields {
 			// get data from path
-			pathedDataJSON, err := getJSONDataFromPath(vcJSON, field.Path)
+			pathedDataJSON, err := getJSONDataFromPath(credJSON, field.Path)
 			if err != nil && !field.Optional {
 				return errors.Wrapf(err, "input descriptor<%s> not fulfilled for non-optional field: %s", inputDescriptor.ID, field.ID)
 			}
@@ -140,13 +143,13 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		// check relational constraints if present
 		subjectIsIssuerConstraint := constraints.SubjectIsIssuer
 		if subjectIsIssuerConstraint != nil && *subjectIsIssuerConstraint == Required {
-			issuer, ok := vc.Issuer.(string)
+			issuer, ok := cred.Issuer.(string)
 			if !ok {
-				return fmt.Errorf("unable to get issuer from vc: %s", vc.Issuer)
+				return fmt.Errorf("unable to get issuer from cred: %s", cred.Issuer)
 			}
-			subject, ok := vc.CredentialSubject[credential.VerifiableCredentialIDProperty]
+			subject, ok := cred.CredentialSubject[credential.VerifiableCredentialIDProperty]
 			if !ok {
-				return fmt.Errorf("unable to get subject from vc: %s", vc.CredentialSubject)
+				return fmt.Errorf("unable to get subject from cred: %s", cred.CredentialSubject)
 			}
 			if issuer != subject {
 				return fmt.Errorf("subject<%s> is not the same as issuer<%s>", subject, issuer)

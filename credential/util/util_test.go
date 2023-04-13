@@ -12,7 +12,7 @@ import (
 
 func TestCredentialsFromInterface(t *testing.T) {
 	t.Run("Bad Cred", func(tt *testing.T) {
-		parsedCred, err := CredentialsFromInterface("bad")
+		parsedCred, err := ToCredential("bad")
 		assert.Error(tt, err)
 		assert.Empty(tt, parsedCred)
 	})
@@ -20,7 +20,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 	t.Run("Unsigned Cred", func(tt *testing.T) {
 		testCred := getTestCredential()
 
-		parsedCred, err := CredentialsFromInterface(testCred)
+		parsedCred, err := ToCredential(testCred)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, parsedCred)
 		assert.True(tt, parsedCred.Issuer == testCred.Issuer)
@@ -51,7 +51,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 		err = suite.Sign(signer, &testCred)
 		assert.NoError(t, err)
 
-		parsedCred, err := CredentialsFromInterface(testCred)
+		parsedCred, err := ToCredential(testCred)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, parsedCred)
 		assert.True(tt, parsedCred.Issuer == testCred.Issuer)
@@ -73,7 +73,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, signed)
 
-		parsedCred, err := CredentialsFromInterface(string(signed))
+		parsedCred, err := ToCredential(string(signed))
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, parsedCred)
 		assert.True(tt, parsedCred.Issuer == testCred.Issuer)
