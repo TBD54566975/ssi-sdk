@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 func TestPresentationDefinitionBuilder(t *testing.T) {
@@ -425,5 +424,5 @@ func TestPE(t *testing.T) {
 	assert.NoError(t, err)
 	definition, err := builder.Build()
 	assert.NoError(t, err)
-	println(util.PrettyJSON(definition))
+	assert.NotEmpty(t, definition)
 }

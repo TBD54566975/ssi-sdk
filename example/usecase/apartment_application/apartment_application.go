@@ -118,7 +118,7 @@ func main() {
 	example.HandleExampleError(presentationDefinition.IsValid(), "Presentation definition is not valid")
 
 	presentationRequestBytes, err := exchange.BuildPresentationRequest(*aptSigner, exchange.JWTRequest, *presentationDefinition, exchange.PresentationRequestOption{
-		Type:  exchange.TargetOption,
+		Type:  exchange.AudienceOption,
 		Value: holderDIDKey.String(),
 	})
 	example.HandleExampleError(err, "Failed to make presentation request")

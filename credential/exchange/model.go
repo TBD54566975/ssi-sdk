@@ -3,6 +3,7 @@ package exchange
 import (
 	"reflect"
 
+	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -269,12 +270,13 @@ type Constraints struct {
 }
 
 type Field struct {
-	ID             string   `json:"id,omitempty"`
-	Name           string   `json:"name,omitempty"`
-	Path           []string `json:"path,omitempty" validate:"required"`
-	Purpose        string   `json:"purpose,omitempty"`
-	Optional       bool     `json:"optional,omitempty"`
-	IntentToRetain bool     `json:"intent_to_retain,omitempty"`
+	ID       string   `json:"id,omitempty"`
+	Name     string   `json:"name,omitempty"`
+	Path     []string `json:"path,omitempty" validate:"required"`
+	Purpose  string   `json:"purpose,omitempty"`
+	Optional bool     `json:"optional,omitempty"`
+	// https://identity.foundation/presentation-exchange/spec/v2.0.0/#retention-feature
+	IntentToRetain bool `json:"intent_to_retain,omitempty"`
 	// If a predicate property is present, filter must be too
 	// https://identity.foundation/presentation-exchange/#predicate-feature
 	Predicate *Preference `json:"predicate,omitempty"`
@@ -304,6 +306,14 @@ type Filter struct {
 	Not                  any      `json:"not,omitempty"`
 	AllOf                any      `json:"allOf,omitempty"`
 	OneOf                any      `json:"oneOf,omitempty"`
+}
+
+func (f Filter) ToJSON() (string, error) {
+	jsonBytes, err := json.Marshal(f)
+	if err != nil {
+		return "", err
+	}
+	return string(jsonBytes), nil
 }
 
 // CredentialStatus https://identity.foundation/presentation-exchange/#credential-status-constraint-feature

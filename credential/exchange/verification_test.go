@@ -250,6 +250,117 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		assert.Contains(tt, err.Error(), "matching path for claim could not be found")
 	})
 
+	t.Run("Input Descriptor with invalid and valid optional filter (test issuer)", func(tt *testing.T) {
+		def := PresentationDefinition{
+			ID: "test-id",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-1",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								ID:   "issuer-input-descriptor",
+								Path: []string{"$.issuer"},
+								Filter: &Filter{
+									Type:    "string",
+									Pattern: "not-test-issuer",
+								},
+								Optional: true,
+							},
+						},
+					},
+				},
+			},
+		}
+		assert.NoError(tt, def.IsValid())
+
+		presentation := credential.VerifiablePresentation{
+			Context: []string{"https://www.w3.org/2018/credentials/v1",
+				"https://identity.foundation/presentation-exchange/submission/v1"},
+			ID:   "55da1f5c-e2b3-443a-b687-0434712c5469",
+			Type: []string{"VerifiablePresentation", "PresentationSubmission"},
+			PresentationSubmission: PresentationSubmission{
+				ID:           "45da2588-3637-45b0-84f1-17e97945ac09",
+				DefinitionID: "test-id",
+				DescriptorMap: []SubmissionDescriptor{
+					{
+						Format: "ldp_vc",
+						ID:     "id-1",
+						Path:   "$.verifiableCredential[0]",
+					},
+				},
+			},
+			VerifiableCredential: []any{
+				getTestVerifiableCredential(),
+			},
+		}
+
+		err := VerifyPresentationSubmissionVP(def, presentation)
+		assert.NoError(tt, err)
+
+		// set optional flag to false and re-verify
+		def.InputDescriptors[0].Constraints.Fields[0].Optional = false
+		err = VerifyPresentationSubmissionVP(def, presentation)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "unable to apply filter")
+	})
+
+	t.Run("Input Descriptor with valid filter (credential properties)", func(tt *testing.T) {
+		def := PresentationDefinition{
+			ID: "test-id",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-1",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								ID:   "issuer-input-descriptor",
+								Path: []string{"$.issuer"},
+								Filter: &Filter{
+									Type:    "string",
+									Pattern: "test-issuer",
+								},
+							},
+							{
+								ID:   "company-input-descriptor",
+								Path: []string{"$.credentialSubject.company"},
+								Filter: &Filter{
+									Type:    "string",
+									Pattern: "Block",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		assert.NoError(tt, def.IsValid())
+
+		presentation := credential.VerifiablePresentation{
+			Context: []string{"https://www.w3.org/2018/credentials/v1",
+				"https://identity.foundation/presentation-exchange/submission/v1"},
+			ID:   "55da1f5c-e2b3-443a-b687-0434712c5469",
+			Type: []string{"VerifiablePresentation", "PresentationSubmission"},
+			PresentationSubmission: PresentationSubmission{
+				ID:           "45da2588-3637-45b0-84f1-17e97945ac09",
+				DefinitionID: "test-id",
+				DescriptorMap: []SubmissionDescriptor{
+					{
+						Format: "ldp_vc",
+						ID:     "id-1",
+						Path:   "$.verifiableCredential[0]",
+					},
+				},
+			},
+			VerifiableCredential: []any{
+				getTestVerifiableCredential(),
+			},
+		}
+
+		err := VerifyPresentationSubmissionVP(def, presentation)
+		assert.NoError(tt, err)
+	})
+
 	t.Run("Verification with JWT credential", func(t *testing.T) {
 		def := PresentationDefinition{
 			ID: "test-id",

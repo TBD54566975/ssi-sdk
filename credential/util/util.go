@@ -40,13 +40,12 @@ func CredentialsFromInterface(genericCred any) (*credential.VerifiableCredential
 	}
 }
 
-// ClaimAsJSON converts a claim with an unknown any into the go-json representation of that credential.
+// ClaimAsJSON converts a claim with an unknown any into a JSON representation of that credential.
 // claim can only be of type {string, map[string]interface, VerifiableCredential}.
 func ClaimAsJSON(claim any) (map[string]any, error) {
 	switch c := claim.(type) {
 	case map[string]any:
 		return c, nil
-	default:
 	}
 
 	vc, err := CredentialsFromInterface(claim)
@@ -58,7 +57,7 @@ func ClaimAsJSON(claim any) (map[string]any, error) {
 		return nil, errors.Wrap(err, "marshalling credential")
 	}
 	var submittedClaim map[string]any
-	if err := json.Unmarshal(vcData, &submittedClaim); err != nil {
+	if err = json.Unmarshal(vcData, &submittedClaim); err != nil {
 		return nil, errors.Wrap(err, "unmarshalling credential")
 	}
 	return submittedClaim, nil

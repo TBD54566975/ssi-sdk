@@ -72,7 +72,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 
 		testDef := getDummyPresentationDefinition()
 		_, err = BuildPresentationRequest(*signer, "bad", testDef, PresentationRequestOption{
-			Type:  TargetOption,
+			Type:  AudienceOption,
 			Value: "did:test:abcd",
 		})
 		assert.Error(t, err)

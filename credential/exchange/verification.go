@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	credutil "github.com/TBD54566975/ssi-sdk/credential/util"
+	"github.com/TBD54566975/ssi-sdk/schema"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/signing"
@@ -86,8 +87,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 				strings.Join(inputDescriptor.Format.FormatValues(), ", "))
 		}
 
-		// TODO(gabe) support nested paths in presentation submissions
-		// https://github.com/TBD54566975/ssi-sdk/issues/73
+		// TODO(gabe) support nested paths in presentation submissions https://github.com/TBD54566975/ssi-sdk/issues/73
 		if submissionDescriptor.PathNested != nil {
 			return fmt.Errorf("submission with nested paths not supported: %s", submissionDescriptor.ID)
 		}
@@ -98,9 +98,11 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 			return errors.Wrapf(err, "could not resolve claim from submission descriptor<%s> with path: %s",
 				submissionDescriptor.ID, submissionDescriptor.Path)
 		}
+
+		// TODO(gabe) add in signature verification of claims here https://github.com/TBD54566975/ssi-sdk/issues/71
 		submittedClaim, err := credutil.ClaimAsJSON(claim)
 		if err != nil {
-			return errors.Wrapf(err, "getting claim as go-json: <%s>", claim)
+			return errors.Wrapf(err, "getting claim as json: <%s>", claim)
 		}
 
 		// verify the submitted claim complies with the input descriptor
@@ -113,9 +115,25 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		// TODO(gabe) consider enforcing limited disclosure if present
 		// for each field we need to verify at least one path matches
 		for _, field := range inputDescriptor.Constraints.Fields {
-			if err = findMatchingPath(submittedClaim, field.Path); err != nil {
-				return errors.Wrapf(err, "input descriptor<%s> not fulfilled for field: %s", inputDescriptor.ID, field.ID)
+			// get data from path
+			pathedDataJSON, err := getJSONDataFromPath(submittedClaim, field.Path)
+			if err != nil && !field.Optional {
+				return errors.Wrapf(err, "input descriptor<%s> not fulfilled for non-optional field: %s", inputDescriptor.ID, field.ID)
 			}
+
+			// apply json schema filter if present
+			if field.Filter != nil {
+				filterJSON, err := field.Filter.ToJSON()
+				if err != nil && !field.Optional {
+					return errors.Wrapf(err, "turning filter into JSON schema")
+				}
+				if err = schema.IsJSONValidAgainstSchema(pathedDataJSON, filterJSON); err != nil && !field.Optional {
+					return errors.Wrapf(err, "unable to apply filter<%s> to data from path: %s", filterJSON, field.Path)
+				}
+			}
+
+			// TODO(gabe) check relational constraints https://github.com/TBD54566975/ssi-sdk/issues/64
+			// TODO(gabe) check credential status https://github.com/TBD54566975/ssi-sdk/issues/65
 		}
 	}
 	return nil
@@ -133,11 +151,15 @@ func toPresentationSubmission(maybePresentationSubmission any) (*PresentationSub
 	return &submission, nil
 }
 
-func findMatchingPath(claim any, paths []string) error {
+func getJSONDataFromPath(claim any, paths []string) (string, error) {
 	for _, path := range paths {
-		if _, err := jsonpath.JsonPathLookup(claim, path); err == nil {
-			return nil
+		if pathedData, err := jsonpath.JsonPathLookup(claim, path); err == nil {
+			pathedDataBytes, err := json.Marshal(pathedData)
+			if err != nil {
+				return "", errors.Wrapf(err, "marshalling pathed data<%s> to bytes", pathedData)
+			}
+			return string(pathedDataBytes), nil
 		}
 	}
-	return errors.New("matching path for claim could not be found")
+	return "", errors.New("matching path for claim could not be found")
 }
