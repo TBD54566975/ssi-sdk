@@ -15,6 +15,10 @@ func TestCredentialsFromInterface(t *testing.T) {
 		parsedCred, err := ToCredential("bad")
 		assert.Error(tt, err)
 		assert.Empty(tt, parsedCred)
+
+		genericCred, err := ToCredentialJSONMap("bad")
+		assert.Error(tt, err)
+		assert.Empty(tt, genericCred)
 	})
 
 	t.Run("Unsigned Cred", func(tt *testing.T) {
@@ -23,7 +27,12 @@ func TestCredentialsFromInterface(t *testing.T) {
 		parsedCred, err := ToCredential(testCred)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, parsedCred)
-		assert.True(tt, parsedCred.Issuer == testCred.Issuer)
+		assert.Equal(tt, testCred.Issuer, parsedCred.Issuer)
+
+		genericCred, err := ToCredentialJSONMap(testCred)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, genericCred)
+		assert.Equal(tt, testCred.Issuer, genericCred["issuer"])
 	})
 
 	t.Run("Data Integrity Cred", func(tt *testing.T) {
@@ -54,7 +63,12 @@ func TestCredentialsFromInterface(t *testing.T) {
 		parsedCred, err := ToCredential(testCred)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, parsedCred)
-		assert.True(tt, parsedCred.Issuer == testCred.Issuer)
+		assert.Equal(tt, testCred.Issuer, parsedCred.Issuer)
+
+		genericCred, err := ToCredentialJSONMap(testCred)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, genericCred)
+		assert.Equal(tt, parsedCred.Issuer, genericCred["issuer"])
 	})
 
 	t.Run("JWT Cred", func(tt *testing.T) {
@@ -76,7 +90,12 @@ func TestCredentialsFromInterface(t *testing.T) {
 		parsedCred, err := ToCredential(string(signed))
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, parsedCred)
-		assert.True(tt, parsedCred.Issuer == testCred.Issuer)
+		assert.Equal(tt, parsedCred.Issuer, testCred.Issuer)
+
+		genericCred, err := ToCredentialJSONMap(string(signed))
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, genericCred)
+		assert.Equal(tt, parsedCred.Issuer, genericCred["iss"])
 	})
 }
 
