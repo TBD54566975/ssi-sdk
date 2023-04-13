@@ -497,9 +497,11 @@ func TestCanProcessDefinition(tt *testing.T) {
 				{
 					ID: "id-with-relational-constraint",
 					Constraints: &Constraints{
-						IsHolder: &RelationalConstraint{
-							FieldID:   "field-id",
-							Directive: Allowed.Ptr(),
+						IsHolder: []RelationalConstraint{
+							{
+								FieldID:   []string{"field-id"},
+								Directive: Allowed.Ptr(),
+							},
 						},
 					},
 				},

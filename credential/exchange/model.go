@@ -261,9 +261,9 @@ type Constraints struct {
 	LimitDisclosure *Preference `json:"limit_disclosure,omitempty"`
 
 	// https://identity.foundation/presentation-exchange/#relational-constraint-feature
-	SubjectIsIssuer *Preference           `json:"subject_is_issuer,omitempty"`
-	IsHolder        *RelationalConstraint `json:"is_holder,omitempty" validate:"omitempty,dive"`
-	SameSubject     *RelationalConstraint `json:"same_subject,omitempty"`
+	SubjectIsIssuer *Preference            `json:"subject_is_issuer,omitempty"`
+	IsHolder        []RelationalConstraint `json:"is_holder,omitempty" validate:"omitempty,dive"`
+	SameSubject     []RelationalConstraint `json:"same_subject,omitempty"`
 
 	// https://identity.foundation/presentation-exchange/#credential-status-constraint-feature
 	Statuses *CredentialStatus `json:"statuses,omitempty"`
@@ -284,7 +284,7 @@ type Field struct {
 }
 
 type RelationalConstraint struct {
-	FieldID   string      `json:"field_id" validate:"required"`
+	FieldID   []string    `json:"field_id" validate:"required"`
 	Directive *Preference `json:"directive" validate:"required"`
 }
 

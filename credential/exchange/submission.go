@@ -496,11 +496,12 @@ func canProcessDefinition(def PresentationDefinition) error {
 }
 
 // hasRelationalConstraint checks a constraint property for relational constraint field values
+// except for subject is issuer, which is supported
 func hasRelationalConstraint(constraints *Constraints) bool {
 	if constraints == nil {
 		return false
 	}
-	return constraints.IsHolder != nil || constraints.SameSubject != nil || constraints.SubjectIsIssuer != nil
+	return constraints.IsHolder != nil || constraints.SameSubject != nil
 }
 
 func IsSupportedEmbedTarget(et EmbedTarget) bool {

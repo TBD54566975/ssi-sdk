@@ -305,6 +305,63 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		assert.Contains(tt, err.Error(), "unable to apply filter")
 	})
 
+	t.Run("Input Descriptor with subject == issuer constraint", func(tt *testing.T) {
+		def := PresentationDefinition{
+			ID: "test-id",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-1",
+					Constraints: &Constraints{
+						SubjectIsIssuer: Required.Ptr(),
+						Fields: []Field{
+							{
+								ID:   "issuer-input-descriptor",
+								Path: []string{"$.issuer"},
+								Filter: &Filter{
+									Type:    "string",
+									Pattern: "test-issuer",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		assert.NoError(tt, def.IsValid())
+
+		presentation := credential.VerifiablePresentation{
+			Context: []string{"https://www.w3.org/2018/credentials/v1",
+				"https://identity.foundation/presentation-exchange/submission/v1"},
+			ID:   "55da1f5c-e2b3-443a-b687-0434712c5469",
+			Type: []string{"VerifiablePresentation", "PresentationSubmission"},
+			PresentationSubmission: PresentationSubmission{
+				ID:           "45da2588-3637-45b0-84f1-17e97945ac09",
+				DefinitionID: "test-id",
+				DescriptorMap: []SubmissionDescriptor{
+					{
+						Format: "ldp_vc",
+						ID:     "id-1",
+						Path:   "$.verifiableCredential[0]",
+					},
+				},
+			},
+			VerifiableCredential: []any{
+				getTestVerifiableCredential(),
+			},
+		}
+
+		err := VerifyPresentationSubmissionVP(def, presentation)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "subject<test-vc-id> is not the same as issuer<test-issuer>")
+
+		// modify the VC to have the same issuer and subject
+		testVC := getTestVerifiableCredential()
+		testVC.CredentialSubject[credential.VerifiableCredentialIDProperty] = "test-issuer"
+		presentation.VerifiableCredential = []any{testVC}
+		err = VerifyPresentationSubmissionVP(def, presentation)
+		assert.NoError(tt, err)
+	})
+
 	t.Run("Input Descriptor with valid filter (credential properties)", func(tt *testing.T) {
 		def := PresentationDefinition{
 			ID: "test-id",

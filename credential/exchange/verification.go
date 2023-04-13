@@ -74,7 +74,9 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 	}
 
 	// validate each input descriptor is fulfilled
+	inputDescriptorLookup := make(map[string]InputDescriptor)
 	for _, inputDescriptor := range def.InputDescriptors {
+		inputDescriptorLookup[inputDescriptor.ID] = inputDescriptor
 		submissionDescriptor, ok := submissionDescriptorLookup[inputDescriptor.ID]
 		if !ok {
 			return fmt.Errorf("unfulfilled input descriptor<%s>; submission not valid", inputDescriptor.ID)
@@ -100,7 +102,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		}
 
 		// TODO(gabe) add in signature verification of claims here https://github.com/TBD54566975/ssi-sdk/issues/71
-		submittedClaim, err := credutil.ClaimAsJSON(claim)
+		vc, vcJSON, err := credutil.ExtractVCAndJSON(claim)
 		if err != nil {
 			return errors.Wrapf(err, "getting claim as json: <%s>", claim)
 		}
@@ -108,15 +110,17 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		// verify the submitted claim complies with the input descriptor
 
 		// if there are no constraints, we are done checking for validity
-		if inputDescriptor.Constraints == nil {
+		constraints := inputDescriptor.Constraints
+		if constraints == nil {
 			continue
 		}
 
 		// TODO(gabe) consider enforcing limited disclosure if present
 		// for each field we need to verify at least one path matches
-		for _, field := range inputDescriptor.Constraints.Fields {
+
+		for _, field := range constraints.Fields {
 			// get data from path
-			pathedDataJSON, err := getJSONDataFromPath(submittedClaim, field.Path)
+			pathedDataJSON, err := getJSONDataFromPath(vcJSON, field.Path)
 			if err != nil && !field.Optional {
 				return errors.Wrapf(err, "input descriptor<%s> not fulfilled for non-optional field: %s", inputDescriptor.ID, field.ID)
 			}
@@ -131,10 +135,26 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 					return errors.Wrapf(err, "unable to apply filter<%s> to data from path: %s", filterJSON, field.Path)
 				}
 			}
-
-			// TODO(gabe) check relational constraints https://github.com/TBD54566975/ssi-sdk/issues/64
-			// TODO(gabe) check credential status https://github.com/TBD54566975/ssi-sdk/issues/65
 		}
+
+		// check relational constraints if present
+		subjectIsIssuerConstraint := constraints.SubjectIsIssuer
+		if subjectIsIssuerConstraint != nil && *subjectIsIssuerConstraint == Required {
+			issuer, ok := vc.Issuer.(string)
+			if !ok {
+				return fmt.Errorf("unable to get issuer from vc: %s", vc.Issuer)
+			}
+			subject, ok := vc.CredentialSubject[credential.VerifiableCredentialIDProperty]
+			if !ok {
+				return fmt.Errorf("unable to get subject from vc: %s", vc.CredentialSubject)
+			}
+			if issuer != subject {
+				return fmt.Errorf("subject<%s> is not the same as issuer<%s>", subject, issuer)
+			}
+		}
+
+		// TODO(gabe) is_holder and same_subject cannot yet be implemented https://github.com/TBD54566975/ssi-sdk/issues/64
+		// TODO(gabe) check credential status https://github.com/TBD54566975/ssi-sdk/issues/65
 	}
 	return nil
 }
