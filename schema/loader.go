@@ -51,11 +51,6 @@ const (
 	// VC JSON Schema Schemas
 
 	VerifiableCredentialJSONSchemaSchema File = "vc-json-schema.json"
-
-	// VC Data Model Schemas
-
-	VerifiableCredentialSchemaV2   File = "verifiable-credential-v2.json"
-	VerifiablePresentationSchemaV2 File = "verifiable-presentation-v2.json"
 )
 
 func (s File) String() string {
@@ -150,8 +145,6 @@ func GetAllLocalSchemas() (map[string]string, error) {
 		"identity.foundation/wallet-rendering/schemas/entity-styles.json":                                          EntityStylesSchema,
 		"identity.foundation/wallet-rendering/schemas/labeled-display-mapping-object.json":                         LabeledDisplayMappingObjectSchema,
 		"w3c-ccg.github.io/vc-json-schemas/credential-schema-2.0":                                                  VerifiableCredentialJSONSchemaSchema,
-		"w3.org/2022/credentials/v2/verifiable-credential-schema.json":                                             VerifiableCredentialSchemaV2,
-		"w3.org/2022/credentials/v2/verifiable-presentation-schema.json":                                           VerifiablePresentationSchemaV2,
 	}
 
 	localSchemas := make(map[string]string, len(localFiles))
