@@ -33,13 +33,13 @@ func NewSimpleWallet() *SimpleWallet {
 	}
 }
 
-func (s *SimpleWallet) AddDID(did string) error {
+func (s *SimpleWallet) AddDID(id string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	if _, ok := s.dids[did]; ok {
+	if _, ok := s.dids[id]; ok {
 		return errors.New("already an entry")
 	}
-	s.dids[did] = make([]WalletKeys, 0)
+	s.dids[id] = make([]WalletKeys, 0)
 	return nil
 }
 
@@ -47,19 +47,19 @@ func (s *SimpleWallet) GetDIDs() []string {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	var dids []string
-	for d, _ := range s.dids {
+	for d := range s.dids {
 		dids = append(dids, d)
 	}
 	return dids
 }
 
 // AddPrivateKey Adds a Private Key to a wallet
-func (s *SimpleWallet) AddPrivateKey(did, kid string, key gocrypto.PrivateKey) error {
+func (s *SimpleWallet) AddPrivateKey(id, kid string, key gocrypto.PrivateKey) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	walletKeys, ok := s.dids[did]
+	walletKeys, ok := s.dids[id]
 	if !ok {
-		return fmt.Errorf("did<%s> not found", did)
+		return fmt.Errorf("did<%s> not found", id)
 	}
 	for _, k := range walletKeys {
 		if k.ID == kid {
@@ -70,7 +70,7 @@ func (s *SimpleWallet) AddPrivateKey(did, kid string, key gocrypto.PrivateKey) e
 		ID:  kid,
 		Key: key,
 	})
-	s.dids[did] = walletKeys
+	s.dids[id] = walletKeys
 	return nil
 }
 

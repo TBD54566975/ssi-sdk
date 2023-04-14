@@ -4,10 +4,10 @@ import (
 	"testing"
 )
 
-func TestVerifyCredentialSignature(t *testing.T) {
+func TestVerifyCredentialSignature(_ *testing.T) {
 	// TODO(gabe) implement this test
 }
 
-func TestVerifyJWTCredential(t *testing.T) {
+func TestVerifyJWTCredential(_ *testing.T) {
 	// TODO(gabe) implement this test
 }
