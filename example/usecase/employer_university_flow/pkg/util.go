@@ -1,16 +1,14 @@
 package pkg
 
 import (
+	gocrypto "crypto"
 	"fmt"
 
-	"github.com/goccy/go-json"
-	"github.com/pkg/errors"
-
-	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/example"
+	"github.com/goccy/go-json"
 )
 
 type Entity struct {
@@ -21,12 +19,13 @@ type Entity struct {
 func (e *Entity) GetWallet() *example.SimpleWallet {
 	return e.wallet
 }
-func NewEntity(name string, keyType string) (*Entity, error) {
+
+func NewEntity(name string, didMethod did.Method) (*Entity, error) {
 	e := Entity{
 		wallet: example.NewSimpleWallet(),
 		Name:   name,
 	}
-	if err := e.wallet.Init(keyType); err != nil {
+	if err := e.wallet.Init(didMethod); err != nil {
 		return nil, err
 	}
 	return &e, nil
@@ -36,11 +35,11 @@ func NewEntity(name string, keyType string) (*Entity, error) {
 // over multiple mechanisms. For more information, please go to here:
 // https://identity.foundation/presentation-exchange/#presentation-request and for the source code with the sdk,
 // https://github.com/TBD54566975/ssi-sdk/blob/main/credential/exchange/request.go is appropriate to start off with.
-func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData exchange.PresentationDefinition, requesterID, targetID string) (pr []byte, signer *crypto.JWTSigner, err error) {
+func MakePresentationRequest(key gocrypto.PrivateKey, keyID string, presentationData exchange.PresentationDefinition, requesterID, targetID string) (pr []byte, signer *crypto.JWTSigner, err error) {
 	example.WriteNote("Presentation Request (JWT) is created")
 
-	// Signer uses a JWK
-	signer, err = crypto.NewJWTSignerFromJWK(requesterID, jwk.ID, jwk.PrivateKeyJWK)
+	// Signer uses a private key
+	signer, err = crypto.NewJWTSigner(requesterID, keyID, key)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -57,17 +56,13 @@ func MakePresentationRequest(jwk cryptosuite.JSONWebKey2020, presentationData ex
 
 // BuildPresentationSubmission builds a submission using...
 // https://github.com/TBD54566975/ssi-sdk/blob/d279ca2779361091a70b8aa3c685a388067409a9/credential/exchange/submission.go#L126
-func BuildPresentationSubmission(presentationRequestJWT string, signer crypto.JWTSigner, vc credential.VerifiableCredential) ([]byte, error) {
+func BuildPresentationSubmission(presentationRequestJWT string, verifier crypto.JWTVerifier, signer crypto.JWTSigner, vc string) ([]byte, error) {
 	presentationClaim := exchange.PresentationClaim{
-		Credential:                    &vc,
-		LDPFormat:                     exchange.LDPVC.Ptr(),
-		SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		Token:                         &vc,
+		JWTFormat:                     exchange.JWTVC.Ptr(),
+		SignatureAlgorithmOrProofType: crypto.Ed25519.String(),
 	}
 
-	verifier, err := signer.ToVerifier(signer.ID)
-	if err != nil {
-		return nil, errors.Wrap(err, "creating verifier from signer")
-	}
 	_, parsedPresentationRequest, err := verifier.VerifyAndParse(presentationRequestJWT)
 	if err != nil {
 		return nil, err
@@ -98,7 +93,7 @@ func BuildPresentationSubmission(presentationRequestJWT string, signer crypto.JW
 // MakePresentationData Makes a dummy presentation definition. These are eventually transported via Presentation Request.
 // For more information on presentation definitions view the spec here:
 // https://identity.foundation/presentation-exchange/#term:presentation-definition
-func MakePresentationData(id string, inputID string) (exchange.PresentationDefinition, error) {
+func MakePresentationData(id, inputID, trustedIssuer string) (exchange.PresentationDefinition, error) {
 	// Input Descriptors: Describe the information the verifier requires of the holder
 	// https://identity.foundation/presentation-exchange/#input-descriptor
 	// Required fields: ID and Input Descriptors
@@ -113,6 +108,10 @@ func MakePresentationData(id string, inputID string) (exchange.PresentationDefin
 							Path:    []string{"$.vc.issuer", "$.issuer"},
 							ID:      "issuer-input-descriptor",
 							Purpose: "need to check the issuer",
+							Filter: &exchange.Filter{
+								Type:    "string",
+								Pattern: trustedIssuer,
+							},
 						},
 					},
 				},

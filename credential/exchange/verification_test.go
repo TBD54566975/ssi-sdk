@@ -5,6 +5,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -48,7 +49,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		assert.Contains(tt, err.Error(), "verification of the presentation submission failed")
 	})
 
-	t.Run("Supported embed target, valid submission", func(tt *testing.T) {
+	t.Run("Supported embed target, valid submission, invalid credential format", func(tt *testing.T) {
 		def := PresentationDefinition{
 			ID: "test-id",
 			InputDescriptors: []InputDescriptor{
@@ -77,6 +78,47 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+		submissionBytes, err := BuildPresentationSubmission(*signer, verifier.ID, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, submissionBytes)
+
+		err = VerifyPresentationSubmission(*verifier, resolver, JWTVPTarget, def, submissionBytes)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "credential must have a proof")
+	})
+
+	t.Run("Supported embed target, valid submission", func(tt *testing.T) {
+		def := PresentationDefinition{
+			ID: "test-id",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-1",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								Path:    []string{"$.vc.issuer", "$.issuer"},
+								ID:      "issuer-input-descriptor",
+								Purpose: "need to check the issuer",
+							},
+						},
+					},
+				},
+			},
+		}
+		assert.NoError(tt, def.IsValid())
+
+		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		assert.NoError(tt, err)
+
+		signer, verifier := getJWKSignerVerifier(tt)
+		testVC := getTestVerifiableCredential(signer.ID, signer.ID)
+		credJWT, err := credential.SignVerifiableCredentialJWT(*signer, testVC)
+		assert.NoError(tt, err)
+		presentationClaim := PresentationClaim{
+			Token:                         util.StringPtr(string(credJWT)),
+			JWTFormat:                     JWTVC.Ptr(),
+			SignatureAlgorithmOrProofType: signer.GetSigningAlgorithm(),
 		}
 		submissionBytes, err := BuildPresentationSubmission(*signer, verifier.ID, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)
@@ -360,7 +402,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 
 		err := VerifyPresentationSubmissionVP(def, presentation)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "subject<test-vc-id> is not the same as issuer<test-issuer>")
+		assert.Contains(tt, err.Error(), "subject<test-subject> is not the same as issuer<test-issuer>")
 
 		// modify the VC to have the same issuer and subject
 		testVC := getTestVerifiableCredential("test-issuer", "test-subject")

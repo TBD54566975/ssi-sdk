@@ -135,7 +135,7 @@ func main() {
 	example.HandleExampleError(verifiedPresentationDefinition.IsValid(), "Verified presentation definition is not valid")
 
 	presentationClaim := exchange.PresentationClaim{
-		Token:                         signedVCBytes,
+		Token:                         util.StringPtr(string(signedVCBytes)),
 		JWTFormat:                     exchange.JWTVC.Ptr(),
 		SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 	}
