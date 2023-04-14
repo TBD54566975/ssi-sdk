@@ -121,7 +121,7 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 	}
 	signedJWT, err := signer.SignJWT(toBeSigned)
 	if err != nil {
-		return nil, errors.Wrap(err, "jwt update request")
+		return nil, errors.Wrap(err, "signing update request")
 	}
 	return &UpdateRequest{
 		Type:        Update,
@@ -201,7 +201,7 @@ func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, sig
 	}
 	signedJWT, err := signer.SignJWT(toBeSigned)
 	if err != nil {
-		return nil, errors.Wrap(err, "jwt JWT")
+		return nil, errors.Wrap(err, "signing JWT")
 	}
 	return &DeactivateRequest{
 		Type:        Deactivate,

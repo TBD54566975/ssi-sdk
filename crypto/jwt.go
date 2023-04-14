@@ -34,7 +34,7 @@ func NewJWTSignerFromJWK(id, kid string, key PrivateKeyJWK) (*JWTSigner, error) 
 		return nil, err
 	}
 	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
-		return nil, fmt.Errorf("unsupported jwt algorithm: %s", alg)
+		return nil, fmt.Errorf("unsupported signing algorithm: %s", alg)
 	}
 	return &JWTSigner{
 		ID:                 id,
@@ -49,7 +49,7 @@ func NewJWTSignerFromKey(id, kid string, key jwk.Key) (*JWTSigner, error) {
 		return nil, err
 	}
 	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
-		return nil, fmt.Errorf("unsupported jwt algorithm: %s", alg)
+		return nil, fmt.Errorf("unsupported signing algorithm: %s", alg)
 	}
 	return &JWTSigner{ID: id, SignatureAlgorithm: *alg, Key: gotJWK}, nil
 }
@@ -93,7 +93,7 @@ func NewJWTVerifierFromKey(id string, key jwk.Key) (*JWTVerifier, error) {
 		return nil, err
 	}
 	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
-		return nil, fmt.Errorf("unsupported jwt algorithm: %s", alg)
+		return nil, fmt.Errorf("unsupported signing algorithm: %s", alg)
 	}
 	return &JWTVerifier{ID: id, Key: gotJWK}, nil
 }
@@ -263,7 +263,7 @@ func GetCRVFromJWK(key jwk.Key) (string, error) {
 	return "", nil
 }
 
-// AlgFromKeyAndCurve returns the supported JSON Web Algorithm for jwt for a given key type and curve pair
+// AlgFromKeyAndCurve returns the supported JSON Web Algorithm for signing for a given key type and curve pair
 // The curve parameter is optional (e.g. "") as in the case of RSA.
 func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.SignatureAlgorithm, error) {
 	if kty == jwa.RSA {

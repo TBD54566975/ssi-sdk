@@ -329,7 +329,7 @@ func (PeerMethod2) resolve(did DID, _ ResolutionOption) (*ResolutionResult, erro
 
 // Generate If numalgo == 2, the generation mode is similar to Method 0 (and therefore also did:key) with the ability
 // to specify additional keys in the generated DID Document. This method is necessary when both an encryption key
-// and a jwt key are required.
+// and a signing key are required.
 // It determines the purpose implicitly by looking at the type of object:
 // 1. Start with the did prefix did:peer:2
 // 2. Construct a multibase encoded, multicodec-encoded form of each public key to be included.

@@ -150,7 +150,7 @@ func (b BBSPlusSignatureProofSuite) prepareRevealData(deriveProofResult DerivePr
 		revealIndices[i+numProofStatements] = numProofStatements + deriveProofResult.RevealedIndicies[i]
 	}
 
-	// turn all statements into bytes before jwt
+	// turn all statements into bytes before signing
 	statements := append(canonicalProofStatements, deriveProofResult.InputProofDocumentStatements...)
 	statementBytesArrays = make([][]byte, len(statements))
 	for i := range statements {
