@@ -176,7 +176,7 @@ func (sv *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
 	return reconstructedSignature.Verify(data, sv.publicKey), nil
 }
 
-// SignJWT signs the given data according to the protocol's JWT jwt process,
+// SignJWT signs the given data according to the protocol's JWT signing process,
 // creating a compact JWS in a JWT
 func (sv *BTCSignerVerifier) SignJWT(data any) (string, error) {
 	encodedHeader, err := EncodeAny(sv.GetJWSHeader())

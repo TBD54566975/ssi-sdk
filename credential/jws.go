@@ -27,7 +27,7 @@ func SignVerifiableCredentialJWS(signer crypto.JWTSigner, cred VerifiableCredent
 
 	signed, err := jws.Sign(payload, jws.WithKey(jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key, jws.WithProtectedHeaders(headers)))
 	if err != nil {
-		return nil, errors.Wrap(err, "jwt JWT credential")
+		return nil, errors.Wrap(err, "signing JWT credential")
 	}
 
 	return signed, nil

@@ -419,7 +419,7 @@ func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *Proof
 		return nil, err
 	}
 
-	// must make sure the proof does not have a proof value or nonce before jwt/verifying
+	// must make sure the proof does not have a proof value or nonce before signing/verifying
 	delete(genericProof, "proofValue")
 	delete(genericProof, "nonce")
 

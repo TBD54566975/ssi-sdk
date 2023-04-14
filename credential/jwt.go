@@ -83,7 +83,7 @@ func SignVerifiableCredentialJWT(signer crypto.JWTSigner, cred VerifiableCredent
 
 	signed, err := jwt.Sign(t, jwt.WithKey(signer.SignatureAlgorithm, signer.Key))
 	if err != nil {
-		return nil, errors.Wrap(err, "jwt JWT credential")
+		return nil, errors.Wrap(err, "signing JWT credential")
 	}
 	return signed, nil
 }
@@ -243,7 +243,7 @@ func SignVerifiablePresentationJWT(signer crypto.JWTSigner, parameters JWTVVPPar
 
 	signed, err := jwt.Sign(t, jwt.WithKey(signer.SignatureAlgorithm, signer.Key))
 	if err != nil {
-		return nil, errors.Wrap(err, "jwt JWT presentation")
+		return nil, errors.Wrap(err, "signing JWT presentation")
 	}
 	return signed, nil
 }

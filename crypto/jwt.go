@@ -82,7 +82,7 @@ func NewJWTVerifierFromJWK(id string, key PublicKeyJWK) (*JWTVerifier, error) {
 		return nil, err
 	}
 	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
-		return nil, fmt.Errorf("unsupported jwt/verification algorithm: %s", alg)
+		return nil, fmt.Errorf("unsupported signing/verification algorithm: %s", alg)
 	}
 	return &JWTVerifier{ID: id, Key: gotJWK}, nil
 }
@@ -301,7 +301,7 @@ func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.Si
 	return "", fmt.Errorf("unsupported key type: %s", kty)
 }
 
-// IsSupportedJWTSigningVerificationAlgorithm returns true if the algorithm is supported for jwt or verifying JWTs
+// IsSupportedJWTSigningVerificationAlgorithm returns true if the algorithm is supported for signing or verifying JWTs
 func IsSupportedJWTSigningVerificationAlgorithm(algorithm jwa.SignatureAlgorithm) bool {
 	for _, supported := range GetSupportedJWTSigningVerificationAlgorithms() {
 		if algorithm == supported {
@@ -311,7 +311,7 @@ func IsSupportedJWTSigningVerificationAlgorithm(algorithm jwa.SignatureAlgorithm
 	return false
 }
 
-// GetSupportedJWTSigningVerificationAlgorithms returns a list of supported jwt and verifying algorithms for JWTs
+// GetSupportedJWTSigningVerificationAlgorithms returns a list of supported signing and verifying algorithms for JWTs
 func GetSupportedJWTSigningVerificationAlgorithms() []jwa.SignatureAlgorithm {
 	return []jwa.SignatureAlgorithm{
 		jwa.PS256,

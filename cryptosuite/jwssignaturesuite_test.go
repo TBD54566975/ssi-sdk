@@ -177,7 +177,7 @@ func TestCredentialLDProof(t *testing.T) {
 	err = suite.Verify(verifier, &knownCred)
 	assert.NoError(t, err)
 
-	// make sure all values are maintained after jwt
+	// make sure all values are maintained after signing
 	assert.Equal(t, preSigned.Context, knownCred.Context)
 	assert.Equal(t, preSigned.ID, knownCred.ID)
 	assert.Equal(t, preSigned.Type, knownCred.Type)
