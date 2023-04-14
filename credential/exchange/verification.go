@@ -1,6 +1,7 @@
 package exchange
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -38,7 +39,7 @@ func VerifyPresentationSubmission(verifier any, resolver did.Resolver, et EmbedT
 			return fmt.Errorf("verifier<%T> is not a JWT verifier", verifier)
 		}
 		// verify the VP, which in turn verifies all credentials in it
-		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(jwtVerifier, resolver, string(submission))
+		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), jwtVerifier, resolver, string(submission))
 		if err != nil {
 			return errors.Wrap(err, "verification of the presentation submission failed")
 		}

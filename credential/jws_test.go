@@ -42,7 +42,7 @@ func TestVerifiableCredentialJWS(t *testing.T) {
 		signed, err := SignVerifiableCredentialJWT(signer, testCredential)
 		assert.NoError(t, err)
 
-		verifier, err := signer.ToVerifier()
+		verifier, err := signer.ToVerifier(signer.ID)
 		assert.NoError(t, err)
 
 		token := string(signed)
@@ -54,7 +54,7 @@ func TestVerifiableCredentialJWS(t *testing.T) {
 		signed, err := SignVerifiableCredentialJWS(signer, testCredential)
 		assert.NoError(t, err)
 
-		verifier, err := signer.ToVerifier()
+		verifier, err := signer.ToVerifier(signer.ID)
 		assert.NoError(t, err)
 
 		token := string(signed)

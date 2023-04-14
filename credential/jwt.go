@@ -253,7 +253,7 @@ func SignVerifiablePresentationJWT(signer crypto.JWTSigner, parameters JWTVVPPar
 // After decoding the signature of each credential in the presentation is verified. If there are any issues during
 // decoding or signature validation, an error is returned. As a result, a successfully decoded VerifiablePresentation
 // object is returned.
-func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, resolver did.Resolver, token string) (jws.Headers, jwt.Token, *VerifiablePresentation, error) {
+func VerifyVerifiablePresentationJWT(ctx context.Context, verifier crypto.JWTVerifier, resolver did.Resolver, token string) (jws.Headers, jwt.Token, *VerifiablePresentation, error) {
 	if resolver == nil {
 		return nil, nil, nil, errors.New("resolver cannot be empty")
 	}
@@ -269,44 +269,27 @@ func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, resolver did.R
 		return nil, nil, nil, errors.Wrap(err, "parsing VP from JWT")
 	}
 
+	// make sure the audience matches the verifier
+	audMatch := false
+	for _, aud := range vpToken.Audience() {
+		if aud == verifier.ID || aud == verifier.KeyID() {
+			audMatch = true
+			break
+		}
+	}
+	if !audMatch {
+		return nil, nil, nil, errors.Errorf("audience mismatch: expected [%s] or [%s], got %s", verifier.ID, verifier.KeyID(), vpToken.Audience())
+	}
+
 	// verify signature for each credential in the vp
 	for i, cred := range vp.VerifiableCredential {
 		// verify the signature on the credential
-		// TODO(gabe) generalize this to support other types of credentials and make use of the verification pkg
-		// https://github.com/TBD54566975/ssi-sdk/issues/352
-		headers, token, cred, err := ToCredential(cred)
+		verified, err := VerifyCredentialSignature(ctx, cred, resolver)
 		if err != nil {
-			return nil, nil, nil, errors.Wrapf(err, "verifying credential[%d] in VP", i)
+			return nil, nil, nil, errors.Wrapf(err, "verifying credential %d", i)
 		}
-		if headers == nil || token == nil {
-			return nil, nil, nil, errors.Errorf("failed to parse credential[%d] in VP: only JWT VCs supported", i)
-		}
-		// get key to verify the credential with
-		issuerKID := headers.KeyID()
-		if issuerKID == "" {
-			return nil, nil, nil, errors.Errorf("missing kid in header of credential[%d] in VP", i)
-		}
-		issuerDID, err := resolver.Resolve(context.Background(), cred.Issuer.(string))
-		if err != nil {
-			return nil, nil, nil, errors.Wrapf(err, "resolving issuer DID to verify credential[%d] in VP", i)
-		}
-		issuerKey, err := did.GetKeyFromVerificationMethod(issuerDID.Document, issuerKID)
-		if err != nil {
-			return nil, nil, nil, errors.Wrapf(err, "getting key to verify credential[%d] in VP", i)
-		}
-
-		// construct a verifier
-		credVerifier, err := crypto.NewJWTVerifier(issuerDID.ID, issuerKey)
-		if err != nil {
-			return nil, nil, nil, errors.Wrapf(err, "constructing verifier for credential[%d] in VP", i)
-		}
-		// verify the signature
-		tokenBytes, err := json.Marshal(token)
-		if err != nil {
-			return nil, nil, nil, errors.Wrapf(err, "marshaling token for credential[%d] in VP", i)
-		}
-		if err := credVerifier.Verify(string(tokenBytes)); err != nil {
-			return nil, nil, nil, errors.Wrapf(err, "verifying credential[%d] in VP", i)
+		if !verified {
+			return nil, nil, nil, errors.Errorf("credential %d failed signature verification", i)
 		}
 	}
 

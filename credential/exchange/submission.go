@@ -35,21 +35,36 @@ const (
 // https://identity.foundation/presentation-exchange/#claim-format-designations
 // This object must be constructed for each claim before processing of a Presentation Definition
 type PresentationClaim struct {
+	// Data Integrity Claim
 	// If we have a Credential or Presentation value, we assume we have a LDP_VC or LDP_VP respectively
 	Credential   *credential.VerifiableCredential
 	Presentation *credential.VerifiablePresentation
 	LDPFormat    *LinkedDataFormat
 
-	// If we have a token, we assume we have a JWT format value
-	TokenBytes []byte
-	JWTFormat  *JWTFormat
+	// JWT claims
+	Token     *string
+	JWTFormat *JWTFormat
+
+	// Always required
 
 	// The algorithm or Linked Data proof type by which the claim was signed must be present
 	SignatureAlgorithmOrProofType string
 }
 
+// GetClaim returns the claim value as a generic type. Since PresentationClaim is a union type, the value returned is
+// the first non-nil value in the following order: Credential, Presentation, Token
+func (pc *PresentationClaim) GetClaim() any {
+	if pc.Credential != nil {
+		return pc.Credential
+	}
+	if pc.Presentation != nil {
+		return pc.Presentation
+	}
+	return pc.Token
+}
+
 func (pc *PresentationClaim) IsEmpty() bool {
-	if pc == nil || (pc.Credential == nil && pc.Presentation == nil && len(pc.TokenBytes) == 0) {
+	if pc == nil || (pc.Credential == nil && pc.Presentation == nil && pc.Token == nil) {
 		return true
 	}
 	return reflect.DeepEqual(pc, &PresentationClaim{})
@@ -64,10 +79,10 @@ func (pc *PresentationClaim) GetClaimValue() (any, error) {
 	if pc.Presentation != nil {
 		return *pc.Presentation, nil
 	}
-	if pc.TokenBytes != nil {
+	if pc.Token != nil {
 		switch pc.JWTFormat.String() {
 		case JWT.String(), JWTVC.String(), JWTVP.String():
-			return jwt.Parse(pc.TokenBytes, jwt.WithValidate(false), jwt.WithVerify(false))
+			return jwt.Parse([]byte(*pc.Token), jwt.WithValidate(false), jwt.WithVerify(false))
 		default:
 			return nil, fmt.Errorf("unsupported JWT format: %s", pc.JWTFormat)
 		}
@@ -91,7 +106,7 @@ func (pc *PresentationClaim) GetClaimFormat() (string, error) {
 		}
 		return string(*pc.LDPFormat), nil
 	}
-	if pc.TokenBytes != nil {
+	if pc.Token != nil {
 		if pc.JWTFormat == nil {
 			return "", errors.New("JWT claim has no JWT format set")
 		}
@@ -159,8 +174,10 @@ func BuildPresentationSubmission(signer any, requester string, def PresentationD
 type NormalizedClaim struct {
 	// id for the claim
 	ID string
-	// go-json representation of the claim
+	// json representation of the claim
 	Data map[string]any
+	// claim in its original format (e.g. Verifiable Credential, token string, etc.)
+	RawClaim any
 	// JWT_VC, JWT_VP, LDP_VC, LDP_VP, etc.
 	Format string
 	// Signing algorithm used for the claim (e.g. EdDSA, ES256, PS256, etc.).
@@ -191,10 +208,13 @@ func normalizePresentationClaims(claims []PresentationClaim) ([]NormalizedClaim,
 		var id string
 		if claimID, ok := claimJSON["id"]; ok {
 			id = claimID.(string)
+		} else if claimID, ok := claimJSON["jti"]; ok {
+			id = claimID.(string)
 		}
 		normalizedClaims = append(normalizedClaims, NormalizedClaim{
 			ID:             id,
 			Data:           claimJSON,
+			RawClaim:       claim.GetClaim(),
 			Format:         claimFormat,
 			AlgOrProofType: claim.SignatureAlgorithmOrProofType,
 		})
@@ -205,7 +225,7 @@ func normalizePresentationClaims(claims []PresentationClaim) ([]NormalizedClaim,
 // processedClaim represents a claim that has been processed for an input descriptor along with relevant
 // information for building a valid descriptor_map in the resulting presentation submission
 type processedClaim struct {
-	claim map[string]any
+	claim any
 	SubmissionDescriptor
 }
 
@@ -238,31 +258,31 @@ func BuildPresentationSubmissionVP(submitter string, def PresentationDefinition,
 	// keep track of claims we've already added, to avoid duplicates
 	seenClaims := make(map[string]int)
 	for _, id := range def.InputDescriptors {
-		processedID, err := processInputDescriptor(id, claims)
+		processedDescriptor, err := processInputDescriptor(id, claims)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error processing input descriptor: %s", id.ID)
 		}
-		if processedID == nil {
+		if processedDescriptor == nil {
 			return nil, fmt.Errorf("input descrpitor<%s> could not be fulfilled; could not build a valid presentation submission", id.ID)
 		}
 
 		// check if claim already exists. if it has, we won't duplicate the claim
 		var currIndex int
-		var claim map[string]any
-		claimID := processedID.ClaimID
+		var claim any
+		claimID := processedDescriptor.ClaimID
 		if seen, ok := seenClaims[claimID]; ok {
 			currIndex = seen
 		} else {
 			currIndex = claimIndex
 			claimIndex++
-			claim = processedID.Claim
+			claim = processedDescriptor.Claim
 			seenClaims[claimID] = currIndex
 		}
 		processedClaims = append(processedClaims, processedClaim{
 			claim: claim,
 			SubmissionDescriptor: SubmissionDescriptor{
-				ID:     processedID.ID,
-				Format: processedID.Format,
+				ID:     processedDescriptor.ID,
+				Format: processedDescriptor.Format,
 				Path:   fmt.Sprintf("$.verifiableCredential[%d]", currIndex),
 			},
 		})
@@ -272,10 +292,10 @@ func BuildPresentationSubmissionVP(submitter string, def PresentationDefinition,
 	var descriptorMap []SubmissionDescriptor
 	for _, claim := range processedClaims {
 		descriptorMap = append(descriptorMap, claim.SubmissionDescriptor)
-		// on the case we've seen the claim, we need to check as to not add a nil claim value
-		if len(claim.claim) > 0 {
+		// in the case where we've seen the claim, we need to check as to not add a nil claim value
+		if claim.claim != nil {
 			if err := builder.AddVerifiableCredentials(claim.claim); err != nil {
-				return nil, errors.Wrap(err, "could not add claim value to verifiable presentation")
+				return nil, errors.Wrap(err, "could not add claim to verifiable presentation")
 			}
 		}
 	}
@@ -297,7 +317,7 @@ type processedInputDescriptor struct {
 	// ID of the claim
 	ClaimID string
 	// generic claim
-	Claim map[string]any
+	Claim any
 	// claim format
 	Format string
 }
@@ -322,10 +342,11 @@ func processInputDescriptor(id InputDescriptor, claims []NormalizedClaim) (*proc
 
 	// bookkeeping to check whether we've fulfilled all required fields, and whether we need to limit disclosure
 	fieldsToProcess := len(fields)
-	limitDisclosure := false
 	disclosure := constraints.LimitDisclosure
-	if disclosure != nil && (*disclosure == Required || *disclosure == Preferred) {
-		limitDisclosure = true
+	if disclosure != nil && *disclosure == Required {
+		// TODO(gabe) enable limiting disclosure for ZKP/SD creds https://github.com/TBD54566975/ssi-sdk/issues/354
+		// otherwise, we won't be able to send back a claim with a signature attached
+		return nil, errors.New("requiring limit disclosure is not supported")
 	}
 
 	// first, reduce the set of claims that conform with the format required by the input descriptor
@@ -340,35 +361,24 @@ func processInputDescriptor(id InputDescriptor, claims []NormalizedClaim) (*proc
 	// if we find a match for each field, we know a claim can fulfill the given input descriptor.
 	for _, claim := range filteredClaims {
 		fieldsProcessed := 0
-		var limited []limitedInputDescriptor
 		claimValue := claim.Data
 		for _, field := range fields {
 			// apply the field to the claim, and return the processed value, which we only care about for
 			// filtering and/or limit_disclosure settings
-			limitedClaim, fulfilled := processInputDescriptorField(field, claimValue)
-			if !fulfilled {
+			if _, fulfilled := processInputDescriptorField(field, claimValue); !fulfilled {
 				// we know this claim is not sufficient to fulfill the input descriptor
 				break
 			}
 			// we've fulfilled the field, so note it
 			fieldsProcessed++
-			if limitDisclosure {
-				limited = append(limited, *limitedClaim)
-			}
 		}
 
 		// if a claim has matched all fields, we can fulfill the input descriptor with this claim
 		if fieldsProcessed == fieldsToProcess {
-			// because the `limit_disclosure` property is present, we must merge the limited fields
-			resultClaim := claimValue
-			if limitDisclosure {
-				limitedClaim := constructLimitedClaim(limited)
-				resultClaim = limitedClaim
-			}
 			return &processedInputDescriptor{
 				ID:      id.ID,
 				ClaimID: claim.ID,
-				Claim:   resultClaim,
+				Claim:   claim.RawClaim,
 				Format:  claim.Format,
 			}, nil
 		}

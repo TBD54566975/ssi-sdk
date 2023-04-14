@@ -1,6 +1,9 @@
 package pkg
 
 import (
+	"context"
+
+	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -12,8 +15,8 @@ import (
 // It checks:
 // 1. That the VC is valid
 // 2. That the VC was issued by a trusted entity
-func ValidateAccess(verifier crypto.JWTVerifier, credBytes []byte) error {
-	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(verifier, nil, string(credBytes))
+func ValidateAccess(verifier crypto.JWTVerifier, resolver did.Resolver, credBytes []byte) error {
+	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), verifier, resolver, string(credBytes))
 	if err != nil {
 		return errors.Wrap(err, "failed to validate VP signature")
 	}

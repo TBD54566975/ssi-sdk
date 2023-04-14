@@ -41,6 +41,7 @@ func GetVerificationOption(opts []Option, id OptionKey) (any, error) {
 type Verify func(cred credential.VerifiableCredential, opts ...Option) error
 
 // NewCredentialVerifier creates a new credential verifier which executes in the order of the verifiers provided
+// The verifiers introspect the contents of the credential, and do not handle signature verification.
 func NewCredentialVerifier(verifiers []Verifier) (*CredentialVerifier, error) {
 	// dedupe
 	var deduplicatedVerifiers []Verifier

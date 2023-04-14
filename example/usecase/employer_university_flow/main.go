@@ -50,15 +50,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/goccy/go-json"
-
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/example"
 	emp "github.com/TBD54566975/ssi-sdk/example/usecase/employer_university_flow/pkg"
+	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/sirupsen/logrus"
@@ -160,9 +161,12 @@ func main() {
 	submission, err := emp.BuildPresentationSubmission(string(presentationRequestJWT), *signer, *vc)
 	example.HandleExampleError(err, "failed to build presentation submission")
 
-	verifier, err := signer.ToVerifier()
+	verifier, err := signer.ToVerifier(signer.ID)
 	example.HandleExampleError(err, "failed to construct verifier")
-	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(*verifier, nil, string(submission))
+
+	resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+	example.HandleExampleError(err, "failed to create DID resolver")
+	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submission))
 	example.HandleExampleError(err, "failed to verify jwt")
 
 	dat, err = json.Marshal(vp)
@@ -170,7 +174,7 @@ func main() {
 	logrus.Debugf("Submission:\n%v", string(dat))
 
 	example.WriteStep(fmt.Sprintf("Employer Attempting to Grant Access"), step)
-	if err = emp.ValidateAccess(*verifier, submission); err == nil {
+	if err = emp.ValidateAccess(*verifier, resolver, submission); err == nil {
 		example.WriteOK("Access Granted!")
 	} else {
 		example.WriteError(fmt.Sprintf("Access was not granted! Reason: %s", err))

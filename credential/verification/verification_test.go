@@ -138,10 +138,8 @@ func getVCJSONSchema() string {
 					"format": "email"
 			}
 		},
-		"required": [
-	"emailAddress"
-	],
-	"additionalProperties": false
-	}
-}`
+		"required": ["emailAddress"],
+		"additionalProperties": false
+		}
+	}`
 }

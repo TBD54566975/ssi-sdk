@@ -1,8 +1,11 @@
 package exchange
 
 import (
+	"context"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/oliveagle/jsonpath"
@@ -21,7 +24,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		assert.Contains(tt, err.Error(), "unsupported presentation submission embed target type")
 	})
 
-	t.Run("Supported embed target", func(tt *testing.T) {
+	t.Run("Supported embed target, unsigned credential", func(tt *testing.T) {
 		def := PresentationDefinition{
 			ID: "test-id",
 			InputDescriptors: []InputDescriptor{
@@ -42,17 +45,63 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, def.IsValid())
 
 		signer, verifier := getJWKSignerVerifier(tt)
-		testVC := getTestVerifiableCredential()
+		testVC := getTestVerifiableCredential(signer.ID, signer.ID)
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 		}
-		submissionBytes, err := BuildPresentationSubmission(*signer, "requester", def, []PresentationClaim{presentationClaim}, JWTVPTarget)
+		submissionBytes, err := BuildPresentationSubmission(*signer, signer.ID, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(*verifier, nil, string(submissionBytes))
+		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		assert.NoError(tt, err)
+		_, _, _, err = credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "credential must have a proof")
+	})
+
+	t.Run("Supported embed target with JWT credential", func(tt *testing.T) {
+		def := PresentationDefinition{
+			ID: "test-id",
+			InputDescriptors: []InputDescriptor{
+				{
+					ID: "id-1",
+					Constraints: &Constraints{
+						Fields: []Field{
+							{
+								Path:    []string{"$.vc.issuer", "$.issuer"},
+								ID:      "issuer-input-descriptor",
+								Purpose: "need to check the issuer",
+							},
+						},
+					},
+				},
+			},
+		}
+		assert.NoError(tt, def.IsValid())
+
+		signer, verifier := getJWKSignerVerifier(tt)
+		testVC := getTestVerifiableCredential(signer.ID, signer.ID)
+
+		credJWT, err := credential.SignVerifiableCredentialJWT(*signer, testVC)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, credJWT)
+		presentationClaim := PresentationClaim{
+			Token:                         util.StringPtr(string(credJWT)),
+			JWTFormat:                     JWTVC.Ptr(),
+			SignatureAlgorithmOrProofType: signer.GetSigningAlgorithm(),
+		}
+		submissionBytes, err := BuildPresentationSubmission(*signer, signer.ID, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, submissionBytes)
+
+		println(string(submissionBytes))
+
+		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		assert.NoError(tt, err)
+		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
 		assert.NoError(tt, err)
 
 		assert.NoError(tt, vp.IsValid())
@@ -81,7 +130,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		}
 
 		assert.NoError(tt, def.IsValid())
-		testVC := getTestVerifiableCredential()
+		testVC := getTestVerifiableCredential("test-issuer", "test-subject")
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
@@ -175,7 +224,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		}
 
 		assert.NoError(tt, def.IsValid())
-		testVC := getTestVerifiableCredential()
+		testVC := getTestVerifiableCredential("test-issuer", "test-subject")
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
@@ -246,7 +295,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		}
 
 		assert.NoError(tt, def.IsValid())
-		testVC := getTestVerifiableCredential()
+		testVC := getTestVerifiableCredential("test-issuer", "test-subject")
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
@@ -254,7 +303,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		}
 		testVCJWT := getTestJWTVerifiableCredential()
 		presentationClaimJWT := PresentationClaim{
-			TokenBytes:                    testVCJWT,
+			Token:                         util.StringPtr(string(testVCJWT)),
 			JWTFormat:                     JWTVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 		}
@@ -287,15 +336,13 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		assert.Equal(tt, "test-verifiable-credential", asVC.ID)
 		assert.Equal(tt, "Block", asVC.CredentialSubject["company"])
 
-		vcBytesJWT, err := json.Marshal(vp.VerifiableCredential[1])
+		_, vcJWTToken, asVCJWT, err := credential.ParseVerifiableCredentialFromJWT(*(vp.VerifiableCredential[1].(*string)))
 		assert.NoError(tt, err)
-		var asVCJWT map[string]any
-		err = json.Unmarshal(vcBytesJWT, &asVCJWT)
-		assert.NoError(tt, err)
+		assert.NotEmpty(tt, vcJWTToken)
 		assert.NotEmpty(tt, asVCJWT)
 
-		assert.Equal(tt, "did:example:456", asVCJWT["sub"])
-		assert.Equal(tt, "JimBobertson", asVCJWT["vc"].(map[string]any)["credentialSubject"].(map[string]any)["name"])
+		assert.Equal(tt, "did:example:456", vcJWTToken.Subject())
+		assert.Equal(tt, "JimBobertson", asVCJWT.CredentialSubject["name"])
 	})
 }
 
@@ -314,7 +361,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 				},
 			},
 		}
-		testVC := getTestVerifiableCredential()
+		testVC := getTestVerifiableCredential("test-issuer", "test-subject")
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
@@ -328,9 +375,11 @@ func TestProcessInputDescriptor(t *testing.T) {
 		assert.Equal(tt, id.ID, processed.ID)
 
 		// make sure it's not limited disclosure
-		assert.Equal(tt, "test-verifiable-credential", processed.Claim["id"])
+		vc := processed.Claim.(*credential.VerifiableCredential)
+		assert.Equal(tt, "test-verifiable-credential", vc.ID)
 	})
 
+	// TODO(gabe): update with https://github.com/TBD54566975/ssi-sdk/issues/354
 	t.Run("Simple Descriptor with One VC Claim and Limited Disclosure", func(tt *testing.T) {
 		id := InputDescriptor{
 			ID: "id-1",
@@ -345,38 +394,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 				},
 			},
 		}
-		testVC := getTestVerifiableCredential()
-		presentationClaim := PresentationClaim{
-			Credential:                    &testVC,
-			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
-		}
-		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
-		assert.NoError(tt, err)
-		processed, err := processInputDescriptor(id, normalized)
-		assert.NoError(tt, err)
-		assert.NotEmpty(tt, processed)
-		assert.Equal(tt, id.ID, processed.ID)
-
-		// make sure it's limited disclosure
-		assert.NotEqual(tt, "test-verifiable-credential", processed.Claim["id"])
-	})
-
-	t.Run("Descriptor with no matching paths", func(tt *testing.T) {
-		id := InputDescriptor{
-			ID: "id-1",
-			Constraints: &Constraints{
-				LimitDisclosure: Required.Ptr(),
-				Fields: []Field{
-					{
-						Path:    []string{"$.vc.issuer"},
-						ID:      "issuer-input-descriptor",
-						Purpose: "need to check the issuer",
-					},
-				},
-			},
-		}
-		testVC := getTestVerifiableCredential()
+		testVC := getTestVerifiableCredential("test-issuer", "test-subject")
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
@@ -386,14 +404,40 @@ func TestProcessInputDescriptor(t *testing.T) {
 		assert.NoError(tt, err)
 		_, err = processInputDescriptor(id, normalized)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "no claims could fulfill the input descriptor")
+		assert.Contains(tt, err.Error(), "requiring limit disclosure is not supported")
+	})
+
+	t.Run("Descriptor with no matching paths", func(tt *testing.T) {
+		id := InputDescriptor{
+			ID: "id-1",
+			Constraints: &Constraints{
+				LimitDisclosure: Preferred.Ptr(),
+				Fields: []Field{
+					{
+						Path:    []string{"$.vc.issuer"},
+						ID:      "issuer-input-descriptor",
+						Purpose: "need to check the issuer",
+					},
+				},
+			},
+		}
+		testVC := getTestVerifiableCredential("test-issuer", "test-subject")
+		presentationClaim := PresentationClaim{
+			Credential:                    &testVC,
+			LDPFormat:                     LDPVC.Ptr(),
+			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+		}
+		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
+		assert.NoError(tt, err)
+		_, err = processInputDescriptor(id, normalized)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "no claims could fulfill the input descriptor: id-1")
 	})
 
 	t.Run("Descriptor with no matching format", func(tt *testing.T) {
 		id := InputDescriptor{
 			ID: "id-1",
 			Constraints: &Constraints{
-				LimitDisclosure: Required.Ptr(),
 				Fields: []Field{
 					{
 						Path:    []string{"$.issuer"},
@@ -408,7 +452,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 				},
 			},
 		}
-		testVC := getTestVerifiableCredential()
+		testVC := getTestVerifiableCredential("test-issuer", "test-subject")
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
@@ -425,7 +469,6 @@ func TestProcessInputDescriptor(t *testing.T) {
 		id := InputDescriptor{
 			ID: "id-1",
 			Constraints: &Constraints{
-				LimitDisclosure: Required.Ptr(),
 				Fields: []Field{
 					{
 						Path:    []string{"$.issuer"},
@@ -440,7 +483,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 				},
 			},
 		}
-		testVC := getTestVerifiableCredential()
+		testVC := getTestVerifiableCredential("test-issuer", "test-subject")
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
@@ -647,16 +690,16 @@ func TestConstructLimitedClaim(t *testing.T) {
 	})
 }
 
-func getTestVerifiableCredential() credential.VerifiableCredential {
+func getTestVerifiableCredential(issuerDID, subjectDID string) credential.VerifiableCredential {
 	return credential.VerifiableCredential{
 		Context: []any{"https://www.w3.org/2018/credentials/v1",
 			"https://w3id.org/security/suites/jws-2020/v1"},
 		ID:           "test-verifiable-credential",
 		Type:         []string{"VerifiableCredential"},
-		Issuer:       "test-issuer",
+		Issuer:       issuerDID,
 		IssuanceDate: "2021-01-01T19:23:24Z",
 		CredentialSubject: map[string]any{
-			"id":      "test-vc-id",
+			"id":      subjectDID,
 			"company": "Block",
 			"website": "https://block.xyz",
 		},
@@ -692,7 +735,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		assert.NotEmpty(tt, jwtVC)
 
 		presentationClaim := PresentationClaim{
-			TokenBytes:                    jwtVC,
+			Token:                         util.StringPtr(string(jwtVC)),
 			JWTFormat:                     JWTVC.Ptr(),
 			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 		}
@@ -726,7 +769,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 	})
 
 	t.Run("Normalize VC Claim", func(tt *testing.T) {
-		vcClaim := getTestVerifiableCredential()
+		vcClaim := getTestVerifiableCredential("test-issuer", "test-subject")
 		assert.NotEmpty(tt, vcClaim)
 
 		presentationClaim := PresentationClaim{
@@ -803,18 +846,19 @@ func getGenericTestClaim() map[string]any {
 }
 
 func getJWKSignerVerifier(t *testing.T) (*crypto.JWTSigner, *crypto.JWTVerifier) {
-	_, privKey, err := crypto.GenerateEd25519Key()
+	privKey, didKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	require.NoError(t, err)
 
 	key, err := jwk.FromRaw(privKey)
 	require.NoError(t, err)
 
-	id := "test-id"
-	kid := "test-key"
-	signer, err := crypto.NewJWTSignerFromKey(id, kid, key)
+	expanded, err := didKey.Expand()
+	require.NoError(t, err)
+	kid := expanded.VerificationMethod[0].ID
+	signer, err := crypto.NewJWTSignerFromKey(didKey.String(), kid, key)
 	require.NoError(t, err)
 
-	verifier, err := signer.ToVerifier()
+	verifier, err := signer.ToVerifier(didKey.String())
 	require.NoError(t, err)
 
 	return signer, verifier

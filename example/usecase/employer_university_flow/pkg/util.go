@@ -64,7 +64,7 @@ func BuildPresentationSubmission(presentationRequestJWT string, signer crypto.JW
 		SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
 	}
 
-	verifier, err := signer.ToVerifier()
+	verifier, err := signer.ToVerifier(signer.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating verifier from signer")
 	}

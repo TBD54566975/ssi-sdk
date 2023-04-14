@@ -32,7 +32,7 @@ func main() {
 	example.HandleExampleError(err, "Failed to generate DID")
 	holderSigner, err := crypto.NewJWTSigner(holderDIDKey.String(), holderDIDKey.String(), holderDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
-	holderVerifier, err := holderSigner.ToVerifier()
+	holderVerifier, err := holderSigner.ToVerifier(holderSigner.ID)
 	example.HandleExampleError(err, "Failed to generate verifier")
 
 	// Apt Verifier
@@ -40,7 +40,7 @@ func main() {
 	example.HandleExampleError(err, "Failed to generate DID key")
 	aptSigner, err := crypto.NewJWTSigner(aptDIDKey.String(), aptDIDKey.String(), aptDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
-	aptVerifier, err := aptSigner.ToVerifier()
+	aptVerifier, err := aptSigner.ToVerifier(aptSigner.ID)
 	example.HandleExampleError(err, "Failed to generate verifier")
 
 	// Government Issuer
@@ -135,7 +135,7 @@ func main() {
 	example.HandleExampleError(verifiedPresentationDefinition.IsValid(), "Verified presentation definition is not valid")
 
 	presentationClaim := exchange.PresentationClaim{
-		TokenBytes:                    signedVCBytes,
+		Token:                         signedVCBytes,
 		JWTFormat:                     exchange.JWTVC.Ptr(),
 		SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 	}
