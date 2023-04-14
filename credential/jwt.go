@@ -254,6 +254,10 @@ func SignVerifiablePresentationJWT(signer crypto.JWTSigner, parameters JWTVVPPar
 // decoding or signature validation, an error is returned. As a result, a successfully decoded VerifiablePresentation
 // object is returned.
 func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, resolver did.Resolver, token string) (jws.Headers, jwt.Token, *VerifiablePresentation, error) {
+	if resolver == nil {
+		return nil, nil, nil, errors.New("resolver cannot be empty")
+	}
+
 	// verify outer signature on the token
 	if err := verifier.Verify(token); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "verifying JWT and its signature")
@@ -297,7 +301,11 @@ func VerifyVerifiablePresentationJWT(verifier crypto.JWTVerifier, resolver did.R
 			return nil, nil, nil, errors.Wrapf(err, "constructing verifier for credential[%d] in VP", i)
 		}
 		// verify the signature
-		if err := credVerifier.Verify(token); err != nil {
+		tokenBytes, err := json.Marshal(token)
+		if err != nil {
+			return nil, nil, nil, errors.Wrapf(err, "marshaling token for credential[%d] in VP", i)
+		}
+		if err := credVerifier.Verify(string(tokenBytes)); err != nil {
 			return nil, nil, nil, errors.Wrapf(err, "verifying credential[%d] in VP", i)
 		}
 	}

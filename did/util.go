@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	gocrypto "crypto"
 	"fmt"
 
@@ -15,6 +16,24 @@ import (
 	"github.com/multiformats/go-varint"
 	"github.com/pkg/errors"
 )
+
+// ResolveKeyForDID resolves a public key from a DID for a given KID.
+func ResolveKeyForDID(ctx context.Context, resolver Resolver, did, kid string) (gocrypto.PublicKey, error) {
+	if resolver == nil {
+		return nil, errors.New("resolver cannot be empty")
+	}
+	resolved, err := resolver.Resolve(ctx, did, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "resolving DID: %s", did)
+	}
+
+	// next, get the verification information (key) from the did document
+	pubKey, err := GetKeyFromVerificationMethod(resolved.Document, kid)
+	if err != nil {
+		return nil, errors.Wrapf(err, "getting verification information from DID Document: %s", did)
+	}
+	return pubKey, err
+}
 
 // GetKeyFromVerificationMethod resolves a DID and provides a kid and public key needed for data verification
 // it is possible that a DID has multiple verification methods, in which case a kid must be provided, otherwise

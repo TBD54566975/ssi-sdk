@@ -23,7 +23,7 @@ import (
 // may include an analog method for LD suites.
 func VerifyPresentationSubmission(verifier any, resolver did.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) error {
 	if resolver == nil {
-		return errors.New("resolver cannot be nil")
+		return errors.New("resolver cannot be empty")
 	}
 	if err := canProcessDefinition(def); err != nil {
 		return errors.Wrap(err, "not able to verify submission; feature not supported")
