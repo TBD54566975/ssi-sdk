@@ -33,20 +33,16 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, resolver di
 		}
 		return false, errors.New("data integrity signature verification not yet implemented")
 	case []byte:
-		// could be a JWT
-		verified, err := VerifyCredentialSignature(ctx, string(genericCred.([]byte)), resolver)
-		if err == nil {
-			return verified, err
+		// turn it into a string and try again
+		return VerifyCredentialSignature(ctx, string(genericCred.([]byte)), resolver)
+	case string:
+		// could be a Data Integrity credential
+		var cred VerifiableCredential
+		if err := json.Unmarshal([]byte(genericCred.(string)), &cred); err == nil {
+			return VerifyCredentialSignature(ctx, cred, resolver)
 		}
 
-		// could also be a vc
-		var cred VerifiableCredential
-		if err = json.Unmarshal(genericCred.([]byte), &cred); err != nil {
-			return false, errors.Wrap(err, "unmarshalling generic credential")
-		}
-		return VerifyCredentialSignature(ctx, cred, resolver)
-	case string:
-		// JWT
+		// could be a JWT
 		return VerifyJWTCredential(genericCred.(string), resolver)
 	case map[string]any:
 		// VC or JWTVC JSON
@@ -66,6 +62,8 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, resolver di
 		if _, _, _, err := VCJWTJSONToVC(credMapBytes); err == nil {
 			return false, errors.New("JWT credentials must include a signature to be verified")
 		}
+
+		return false, fmt.Errorf("not a valid credential with type: %s", reflect.TypeOf(genericCred).Kind().String())
 	}
 	return false, fmt.Errorf("invalid credential type: %s", reflect.TypeOf(genericCred).Kind().String())
 }

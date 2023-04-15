@@ -1,18 +1,116 @@
 package credential
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestVerifyCredentialSignature(_ *testing.T) {
-	// TODO(gabe) implement this test
+func TestVerifyCredentialSignature(t *testing.T) {
+	t.Run("empty credential", func(tt *testing.T) {
+		_, err := VerifyCredentialSignature(context.Background(), nil, nil)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "credential cannot be empty")
+	})
+
+	t.Run("empty resolver", func(tt *testing.T) {
+		_, err := VerifyCredentialSignature(context.Background(), "not-empty", nil)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "resolver cannot be empty")
+	})
+
+	t.Run("invalid credential type - int", func(tt *testing.T) {
+		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		assert.NoError(tt, err)
+
+		_, err = VerifyCredentialSignature(context.Background(), 5, resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "invalid credential type: int")
+	})
+
+	t.Run("empty map credential type", func(tt *testing.T) {
+		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		assert.NoError(tt, err)
+
+		_, err = VerifyCredentialSignature(context.Background(), map[string]any{"a": "test"}, resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "not a valid credential with type: map")
+	})
+
+	t.Run("data integrity map credential type missing proof", func(tt *testing.T) {
+		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		assert.NoError(tt, err)
+
+		credential := getTestCredential()
+		credMap, err := ToCredentialJSONMap(credential)
+		assert.NoError(tt, err)
+
+		_, err = VerifyCredentialSignature(context.Background(), credMap, resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "credential must have a proof")
+	})
+
+	t.Run("data integrity credential - no proof", func(tt *testing.T) {
+		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		assert.NoError(tt, err)
+
+		credential := getTestCredential()
+		_, err = VerifyCredentialSignature(context.Background(), credential, resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "credential must have a proof")
+
+		// test with a pointer
+		_, err = VerifyCredentialSignature(context.Background(), &credential, resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "credential must have a proof")
+	})
+
+	t.Run("data integrity credential - as bytes and string", func(tt *testing.T) {
+		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		assert.NoError(tt, err)
+
+		credential := getTestCredential()
+		credBytes, err := json.Marshal(credential)
+		assert.NoError(tt, err)
+		_, err = VerifyCredentialSignature(context.Background(), credBytes, resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "credential must have a proof")
+
+		// test with a string
+		_, err = VerifyCredentialSignature(context.Background(), string(credBytes), resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "credential must have a proof")
+	})
+
+	t.Run("jwt credential - as bytes and string", func(tt *testing.T) {
+		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		assert.NoError(tt, err)
+
+		privKey, didKey, err := did.GenerateDIDKey(crypto.Ed25519)
+		assert.NoError(tt, err)
+		expanded, err := didKey.Expand()
+		assert.NoError(tt, err)
+		kid := expanded.VerificationMethod[0].ID
+		signer, err := crypto.NewJWTSigner(didKey.String(), kid, privKey)
+		assert.NoError(tt, err)
+
+		jwtCred := getTestJWTCredential(tt, *signer)
+		verified, err := VerifyCredentialSignature(context.Background(), jwtCred, resolver)
+		assert.NoError(tt, err)
+		assert.True(tt, verified)
+
+		// test with bytes
+		verified, err = VerifyCredentialSignature(context.Background(), []byte(jwtCred), resolver)
+		assert.NoError(tt, err)
+		assert.True(tt, verified)
+	})
 }
 
 func TestVerifyJWTCredential(t *testing.T) {
