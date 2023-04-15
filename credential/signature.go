@@ -74,6 +74,12 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, resolver di
 // The issuer DID is resolver from the provided resolver, and used to find the issuer's public key matching
 // the KID in the JWT header.
 func VerifyJWTCredential(cred string, resolver did.Resolver) (bool, error) {
+	if cred == "" {
+		return false, errors.New("credential cannot be empty")
+	}
+	if resolver == nil {
+		return false, errors.New("resolver cannot be empty")
+	}
 	headers, token, _, err := ParseVerifiableCredentialFromJWT(cred)
 	if err != nil {
 		return false, errors.Wrap(err, "parsing JWT")
@@ -86,21 +92,21 @@ func VerifyJWTCredential(cred string, resolver did.Resolver) (bool, error) {
 	}
 	issuerDID, err := resolver.Resolve(context.Background(), token.Issuer())
 	if err != nil {
-		return false, errors.Wrapf(err, "getting issuer DID to verify credential<%s>", token.JwtID())
+		return false, errors.Wrapf(err, "error getting issuer DID<%s> to verify credential<%s>", token.Issuer(), token.JwtID())
 	}
 	issuerKey, err := did.GetKeyFromVerificationMethod(issuerDID.Document, issuerKID)
 	if err != nil {
-		return false, errors.Wrapf(err, "getting key to verify credential<%s>", token.JwtID())
+		return false, errors.Wrapf(err, "error getting key to verify credential<%s>", token.JwtID())
 	}
 
 	// construct a verifier
 	credVerifier, err := crypto.NewJWTVerifier(issuerDID.ID, issuerKey)
 	if err != nil {
-		return false, errors.Wrapf(err, "constructing verifier for credential<%s>", token.JwtID())
+		return false, errors.Wrapf(err, "error constructing verifier for credential<%s>", token.JwtID())
 	}
 	// verify the signature
 	if err = credVerifier.Verify(cred); err != nil {
-		return false, errors.Wrapf(err, "verifying credential<%s>", token.JwtID())
+		return false, errors.Wrapf(err, "error verifying credential<%s>", token.JwtID())
 	}
 	return true, nil
 }
