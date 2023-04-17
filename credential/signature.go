@@ -21,10 +21,14 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, resolver di
 		return false, errors.New("resolver cannot be empty")
 	}
 	switch genericCred.(type) {
-	case *VerifiableCredential:
-		return VerifyCredentialSignature(ctx, *genericCred.(*VerifiableCredential), resolver)
-	case VerifiableCredential:
-		cred := genericCred.(VerifiableCredential)
+	case *VerifiableCredential, VerifiableCredential, map[string]any:
+		_, token, cred, err := ToCredential(genericCred)
+		if err != nil {
+			return false, errors.Wrap(err, "error converting credential from generic type")
+		}
+		if token != nil {
+			return false, errors.New("JWT credentials must include a signature to be verified")
+		}
 		if cred.IsEmpty() {
 			return false, errors.New("credential cannot be empty")
 		}
@@ -44,26 +48,6 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, resolver di
 
 		// could be a JWT
 		return VerifyJWTCredential(genericCred.(string), resolver)
-	case map[string]any:
-		// VC or JWTVC JSON
-		credJSON := genericCred.(map[string]any)
-		credMapBytes, err := json.Marshal(credJSON)
-		if err != nil {
-			return false, errors.Wrap(err, "marshalling generic credential")
-		}
-
-		// first try as a VC object
-		var cred VerifiableCredential
-		if err = json.Unmarshal(credMapBytes, &cred); err == nil && !cred.IsEmpty() {
-			return VerifyCredentialSignature(ctx, cred, resolver)
-		}
-
-		// if that fails, try as a JWT
-		if _, _, _, err := VCJWTJSONToVC(credMapBytes); err == nil {
-			return false, errors.New("JWT credentials must include a signature to be verified")
-		}
-
-		return false, fmt.Errorf("not a valid credential with type: %s", reflect.TypeOf(genericCred).Kind().String())
 	}
 	return false, fmt.Errorf("invalid credential type: %s", reflect.TypeOf(genericCred).Kind().String())
 }

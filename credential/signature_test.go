@@ -41,7 +41,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 
 		_, err = VerifyCredentialSignature(context.Background(), map[string]any{"a": "test"}, resolver)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "not a valid credential with type: map")
+		assert.Contains(tt, err.Error(), "converting credential from generic type: parsing generic credential as either VC or JWT")
 	})
 
 	t.Run("data integrity map credential type missing proof", func(tt *testing.T) {

@@ -22,7 +22,7 @@ import (
 // the DID and keys of the signer for each credential in the presentation, whose signatures also need to be verified.
 // Note: this method does not support LD cryptosuites, and prefers JWT representations. Future refactors
 // may include an analog method for LD suites.
-func VerifyPresentationSubmission(verifier any, resolver did.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) error {
+func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver did.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) error {
 	if resolver == nil {
 		return errors.New("resolver cannot be empty")
 	}
@@ -39,7 +39,7 @@ func VerifyPresentationSubmission(verifier any, resolver did.Resolver, et EmbedT
 			return fmt.Errorf("verifier<%T> is not a JWT verifier", verifier)
 		}
 		// verify the VP, which in turn verifies all credentials in it
-		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), jwtVerifier, resolver, string(submission))
+		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(ctx, jwtVerifier, resolver, string(submission))
 		if err != nil {
 			return errors.Wrap(err, "verification of the presentation submission failed")
 		}

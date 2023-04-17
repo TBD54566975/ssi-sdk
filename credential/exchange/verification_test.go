@@ -1,6 +1,7 @@
 package exchange
 
 import (
+	"context"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -17,7 +18,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
 		assert.NoError(tt, err)
 		verifier := crypto.JWTVerifier{}
-		err = VerifyPresentationSubmission(verifier, resolver, "badEmbedTarget", PresentationDefinition{}, nil)
+		err = VerifyPresentationSubmission(context.Background(), verifier, resolver, "badEmbedTarget", PresentationDefinition{}, nil)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported presentation submission embed target type")
 	})
@@ -44,7 +45,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
 		assert.NoError(tt, err)
 		_, verifier := getJWKSignerVerifier(tt)
-		err = VerifyPresentationSubmission(*verifier, resolver, JWTVPTarget, def, nil)
+		err = VerifyPresentationSubmission(context.Background(), *verifier, resolver, JWTVPTarget, def, nil)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "verification of the presentation submission failed")
 	})
@@ -83,7 +84,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		err = VerifyPresentationSubmission(*verifier, resolver, JWTVPTarget, def, submissionBytes)
+		err = VerifyPresentationSubmission(context.Background(), *verifier, resolver, JWTVPTarget, def, submissionBytes)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "credential must have a proof")
 	})
@@ -124,7 +125,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		err = VerifyPresentationSubmission(*verifier, resolver, JWTVPTarget, def, submissionBytes)
+		err = VerifyPresentationSubmission(context.Background(), *verifier, resolver, JWTVPTarget, def, submissionBytes)
 		assert.NoError(tt, err)
 	})
 }

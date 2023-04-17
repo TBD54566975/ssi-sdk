@@ -32,7 +32,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		suite := GetBBSPlusSignatureSuite()
 		testCred := TestCredential{
 			Context: []any{"https://www.w3.org/2018/credentials/v1",
-				"https://w3id.org/security/bbs/v1"},
+				"https://w3c.github.io/vc-di-bbs/contexts/v1"},
 			Type:         []string{"VerifiableCredential"},
 			Issuer:       "did:example:123",
 			IssuanceDate: "2021-01-01T19:23:24Z",
@@ -50,7 +50,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 
 		proofSuite := GetBBSPlusSignatureProofSuite()
 		revealDoc := map[string]any{
-			"@context": []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/bbs/v1"},
+			"@context": []any{"https://www.w3.org/2018/credentials/v1", "https://w3c.github.io/vc-di-bbs/contexts/v1"},
 			"type":     "VerifiableCredential",
 			"issuer":   map[string]any{},
 		}
