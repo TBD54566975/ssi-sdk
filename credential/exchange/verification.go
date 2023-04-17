@@ -22,7 +22,8 @@ import (
 // the DID and keys of the signer for each credential in the presentation, whose signatures also need to be verified.
 // Note: this method does not support LD cryptosuites, and prefers JWT representations. Future refactors
 // may include an analog method for LD suites.
-func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver did.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) error {
+// TODO(gabe) remove embed target, have it detected from the submission
+func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver did.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) error { //revive:disable-line
 	if resolver == nil {
 		return errors.New("resolver cannot be empty")
 	}
