@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -16,17 +17,17 @@ import (
 // who issued it.  Building a VC means using the CredentialBuilder as part of the credentials package in the ssk-sdk.
 // VerifiableCredential is the verifiable credential model outlined in the vc-data-model spec:
 // https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concept
-func BuildExampleUniversityVC(universityID, recipient string) (*credential.VerifiableCredential, error) {
+func BuildExampleUniversityVC(signer crypto.JWTSigner, universityDID, recipientDID string) (credID string, cred string, err error) {
 	knownContext := []string{"https://www.w3.org/2018/credentials/v1",
 		"https://www.w3.org/2018/credentials/examples/v1"} // JSON-LD context statement
 	knownID := "http://example.edu/credentials/1872"
 	knownType := []string{"VerifiableCredential", "AlumniCredential"}
-	knownIssuer := "https://example.edu/issuers/565049"
+	knownIssuer := universityDID
 	knownIssuanceDate := time.Now().Format(time.RFC3339)
 	knownSubject := map[string]any{
-		"id": universityID, // did:<method-name>:<method-specific-id>
+		"id": recipientDID, // did:<method-name>:<method-specific-id>
 		"alumniOf": map[string]any{ // claims are here
-			"id": recipient,
+			"id": recipientDID,
 			"name": []any{
 				map[string]any{"value": "Example University",
 					"lang": "en",
@@ -37,10 +38,6 @@ func BuildExampleUniversityVC(universityID, recipient string) (*credential.Verif
 			},
 		},
 	}
-	// This is an embedded proof.
-	// For more information
-	// https://github.com/TBD54566975/ssi-sdk/blob/main/cryptosuite/jwssignaturesuite_test.go#L357
-	// https://www.w3.org/TR/vc-data-model/#proofs-signatures
 
 	// For more information on VC object, go to:
 	// https://github.com/TBD54566975/ssi-sdk/blob/main/credential/model.go
@@ -54,16 +51,28 @@ func BuildExampleUniversityVC(universityID, recipient string) (*credential.Verif
 	}
 
 	if err := knownCred.IsValid(); err != nil {
-		return nil, err
+		return "", "", err
 	}
 
 	dat, err := json.Marshal(knownCred)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 	logrus.Debug(string(dat))
 
-	example.WriteNote(fmt.Sprintf("VC issued from %s to %s", universityID, recipient))
+	// sign the credential as a JWT
+	signedCred, err := credential.SignVerifiableCredentialJWT(signer, knownCred)
+	if err != nil {
+		return "", "", err
+	}
+	cred = string(signedCred)
+	_, credToken, _, err := credential.ParseVerifiableCredentialFromJWT(string(signedCred))
+	if err != nil {
+		return "", "", err
+	}
+	credID = credToken.JwtID()
 
-	return &knownCred, nil
+	example.WriteNote(fmt.Sprintf("VC issued from %s to %s", universityDID, recipientDID))
+
+	return credID, cred, nil
 }

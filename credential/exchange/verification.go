@@ -1,14 +1,14 @@
 package exchange
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	credutil "github.com/TBD54566975/ssi-sdk/credential/util"
+	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/schema"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
@@ -18,10 +18,15 @@ import (
 
 // VerifyPresentationSubmission verifies a presentation submission for both signature validity and correctness
 // with the specification. It is assumed that the caller knows the submission embed target, and the corresponding
-// presentation definition, and has access to the public key of the signer.
+// presentation definition, and has access to the public key of the signer. A DID resolver is required to resolve
+// the DID and keys of the signer for each credential in the presentation, whose signatures also need to be verified.
 // Note: this method does not support LD cryptosuites, and prefers JWT representations. Future refactors
 // may include an analog method for LD suites.
-func VerifyPresentationSubmission(verifier crypto.JWTVerifier, et EmbedTarget, def PresentationDefinition, submission []byte) error {
+// TODO(gabe) remove embed target, have it detected from the submission
+func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver did.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) error { //revive:disable-line
+	if resolver == nil {
+		return errors.New("resolver cannot be empty")
+	}
 	if err := canProcessDefinition(def); err != nil {
 		return errors.Wrap(err, "not able to verify submission; feature not supported")
 	}
@@ -30,7 +35,12 @@ func VerifyPresentationSubmission(verifier crypto.JWTVerifier, et EmbedTarget, d
 	}
 	switch et {
 	case JWTVPTarget:
-		_, _, vp, err := signing.VerifyVerifiablePresentationJWT(verifier, string(submission))
+		jwtVerifier, ok := verifier.(crypto.JWTVerifier)
+		if !ok {
+			return fmt.Errorf("verifier<%T> is not a JWT verifier", verifier)
+		}
+		// verify the VP, which in turn verifies all credentials in it
+		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(ctx, jwtVerifier, resolver, string(submission))
 		if err != nil {
 			return errors.Wrap(err, "verification of the presentation submission failed")
 		}
@@ -41,8 +51,7 @@ func VerifyPresentationSubmission(verifier crypto.JWTVerifier, et EmbedTarget, d
 }
 
 // VerifyPresentationSubmissionVP verifies whether a verifiable presentation is a valid presentation submission
-// for a given presentation definition.
-// TODO(gabe) handle signature validation of submission claims https://github.com/TBD54566975/ssi-sdk/issues/71
+// for a given presentation definition. No signature verification happens here.
 func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.VerifiablePresentation) error {
 	if err := vp.IsValid(); err != nil {
 		return errors.Wrap(err, "presentation submission does not contain a valid VP")
@@ -102,7 +111,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		}
 
 		// TODO(gabe) add in signature verification of claims here https://github.com/TBD54566975/ssi-sdk/issues/71
-		cred, err := credutil.ToCredential(claim)
+		_, _, cred, err := credential.ToCredential(claim)
 		if err != nil {
 			return errors.Wrapf(err, "getting claim as json: <%s>", claim)
 		}
@@ -117,7 +126,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 
 		// TODO(gabe) consider enforcing limited disclosure if present
 		// for each field we need to verify at least one path matches
-		credJSON, err := credutil.ToCredentialJSONMap(claim)
+		credJSON, err := credential.ToCredentialJSONMap(claim)
 		if err != nil {
 			return errors.Wrapf(err, "getting credential as json: %v", cred)
 		}

@@ -10,7 +10,7 @@ import (
 func TestJsonWebSignature2020TestVectorJWT(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	signer := getTestVectorKey0Signer(t)
-	verifier, err := signer.ToVerifier()
+	verifier, err := signer.ToVerifier(signer.ID)
 	assert.NoError(t, err)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/implementations/spruce/credential-0--key-0-ed25519.vc-jwt.json
@@ -94,7 +94,7 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 			assert.NotEmpty(t, token)
 
 			// verify
-			verifier, err := signer.ToVerifier()
+			verifier, err := signer.ToVerifier(signer.ID)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, verifier)
 
@@ -110,7 +110,7 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 
 func TestSignVerifyGenericJWT(t *testing.T) {
 	signer := getTestVectorKey0Signer(t)
-	verifier, err := signer.ToVerifier()
+	verifier, err := signer.ToVerifier(signer.ID)
 	assert.NoError(t, err)
 
 	jwtData := map[string]any{
