@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	credutil "github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
-	credutil "github.com/TBD54566975/ssi-sdk/credential/util"
 	errresp "github.com/TBD54566975/ssi-sdk/error"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
@@ -177,7 +177,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 		}
 
 		// convert submitted claim vc to map[string]any
-		cred, credErr := credutil.ToCredential(submittedClaim)
+		_, _, cred, credErr := credutil.ToCredential(submittedClaim)
 		if credErr != nil {
 			unfulfilledInputDescriptors[inputDescriptor.ID] = "failed to extract credential from json"
 			continue

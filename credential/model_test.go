@@ -42,7 +42,7 @@ func TestVCVectors(t *testing.T) {
 
 		vcBytes, err := json.Marshal(vc)
 		assert.NoError(t, err)
-		assert.JSONEqf(t, gotTestVector, string(vcBytes), "error message %s")
+		assert.JSONEq(t, gotTestVector, string(vcBytes))
 	}
 }
 
@@ -61,7 +61,7 @@ func TestVPVectors(t *testing.T) {
 
 		vpBytes, err := json.Marshal(vp)
 		assert.NoError(t, err)
-		assert.JSONEqf(t, gotTestVector, string(vpBytes), "error message %s")
+		assert.JSONEq(t, gotTestVector, string(vpBytes))
 	}
 }
 

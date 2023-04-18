@@ -1,15 +1,14 @@
-package signing
+package credential
 
 import (
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestVerifiableCredentialJWS(t *testing.T) {
-	testCredential := credential.VerifiableCredential{
+	testCredential := VerifiableCredential{
 		Context:           []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
 		Type:              []any{"VerifiableCredential"},
 		Issuer:            "did:example:123",
@@ -43,7 +42,7 @@ func TestVerifiableCredentialJWS(t *testing.T) {
 		signed, err := SignVerifiableCredentialJWT(signer, testCredential)
 		assert.NoError(t, err)
 
-		verifier, err := signer.ToVerifier()
+		verifier, err := signer.ToVerifier(signer.ID)
 		assert.NoError(t, err)
 
 		token := string(signed)
@@ -55,7 +54,7 @@ func TestVerifiableCredentialJWS(t *testing.T) {
 		signed, err := SignVerifiableCredentialJWS(signer, testCredential)
 		assert.NoError(t, err)
 
-		verifier, err := signer.ToVerifier()
+		verifier, err := signer.ToVerifier(signer.ID)
 		assert.NoError(t, err)
 
 		token := string(signed)

@@ -54,12 +54,12 @@ func NewJWTSignerFromKey(id, kid string, key jwk.Key) (*JWTSigner, error) {
 	return &JWTSigner{ID: id, SignatureAlgorithm: *alg, Key: gotJWK}, nil
 }
 
-func (s *JWTSigner) ToVerifier() (*JWTVerifier, error) {
+func (s *JWTSigner) ToVerifier(verifierID string) (*JWTVerifier, error) {
 	key, err := s.Key.PublicKey()
 	if err != nil {
 		return nil, err
 	}
-	return NewJWTVerifierFromKey(s.ID, key)
+	return NewJWTVerifierFromKey(verifierID, key)
 }
 
 // JWTVerifier is a struct that contains the key and algorithm used to verify JWTs
@@ -280,7 +280,7 @@ func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.Si
 		case jwa.Ed25519:
 			return jwa.EdDSA, nil
 		default:
-			return "", fmt.Errorf("unsupported OKP signing curve: %s", curve)
+			return "", fmt.Errorf("unsupported OKP jwt curve: %s", curve)
 		}
 	}
 

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	BBSSecurityContext                             string        = "https://w3id.org/security/bbs/v1"
+	BBSSecurityContext                             string        = "https://w3c.github.io/vc-di-bbs/contexts/v1"
 	BBSPlusSignature2020                           SignatureType = "BbsBlsSignature2020"
 	BBSPlusSignatureSuiteID                        string        = "https://w3c-ccg.github.io/ldp-bbs2020/#the-bbs-signature-suite-2020"
 	BBSPlusSignatureSuiteType                      LDKeyType     = BLS12381G2Key2020

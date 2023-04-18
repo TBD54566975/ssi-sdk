@@ -31,18 +31,19 @@ func FuzzCreateAndDecode(f *testing.F) {
 }
 
 func FuzzCreateAndResolve(f *testing.F) {
-	keytypes := GetSupportedDIDKeyTypes()
-	ktLen := len(keytypes)
+	keyTypes := GetSupportedDIDKeyTypes()
+	ktLen := len(keyTypes)
 
 	resolvers := []Resolver{KeyResolver{}, WebResolver{}, PKHResolver{}, PeerResolver{}}
-	resolver, _ := NewResolver(resolvers...)
+	resolver, err := NewResolver(resolvers...)
+	assert.NoError(f, err)
 
 	for i, pk := range mockPubKeys {
 		f.Add(i, []byte(pk))
 	}
 
 	f.Fuzz(func(t *testing.T, ktSeed int, pubKey []byte) {
-		kt := keytypes[(ktSeed%ktLen+ktLen)%ktLen]
+		kt := keyTypes[(ktSeed%ktLen+ktLen)%ktLen]
 
 		didKey, err := CreateDIDKey(kt, pubKey)
 		assert.NoError(t, err)

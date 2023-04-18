@@ -12,11 +12,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/example"
@@ -31,23 +31,30 @@ func main() {
 	// User Holder
 	holderDIDPrivateKey, holderDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
-	holderSigner, err := crypto.NewJWTSigner(holderDIDKey.String(), holderDIDKey.String(), holderDIDPrivateKey)
+	expanded, err := holderDIDKey.Expand()
+	example.HandleExampleError(err, "Failed to expand DID")
+	holderKID := expanded.VerificationMethod[0].ID
+	holderSigner, err := crypto.NewJWTSigner(holderDIDKey.String(), holderKID, holderDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
-	holderVerifier, err := holderSigner.ToVerifier()
-	example.HandleExampleError(err, "Failed to generate verifier")
 
 	// Apt Verifier
 	aptDIDPrivateKey, aptDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID key")
-	aptSigner, err := crypto.NewJWTSigner(aptDIDKey.String(), aptDIDKey.String(), aptDIDPrivateKey)
+	expanded, err = aptDIDKey.Expand()
+	example.HandleExampleError(err, "Failed to expand DID")
+	aptKID := expanded.VerificationMethod[0].ID
+	aptSigner, err := crypto.NewJWTSigner(aptDIDKey.String(), aptKID, aptDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
-	aptVerifier, err := aptSigner.ToVerifier()
+	aptVerifier, err := aptSigner.ToVerifier(aptSigner.ID)
 	example.HandleExampleError(err, "Failed to generate verifier")
 
 	// Government Issuer
 	govtDIDPrivateKey, govtDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID key")
-	govtSigner, err := crypto.NewJWTSigner(govtDIDKey.String(), govtDIDKey.String(), govtDIDPrivateKey)
+	expanded, err = govtDIDKey.Expand()
+	example.HandleExampleError(err, "Failed to expand DID")
+	govKID := expanded.VerificationMethod[0].ID
+	govtSigner, err := crypto.NewJWTSigner(govtDIDKey.String(), govKID, govtDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 
 	_, _ = fmt.Print("\n\nStep 1: Create new DIDs for entities\n\n")
@@ -79,7 +86,7 @@ func main() {
 	example.HandleExampleError(err, "Failed to make verifiable credential")
 	example.HandleExampleError(vc.IsValid(), "Verifiable credential is not valid")
 
-	signedVCBytes, err := signing.SignVerifiableCredentialJWT(*govtSigner, *vc)
+	signedVCBytes, err := credential.SignVerifiableCredentialJWT(*govtSigner, *vc)
 
 	example.HandleExampleError(err, "Failed to sign vc")
 
@@ -136,7 +143,7 @@ func main() {
 	example.HandleExampleError(verifiedPresentationDefinition.IsValid(), "Verified presentation definition is not valid")
 
 	presentationClaim := exchange.PresentationClaim{
-		TokenBytes:                    signedVCBytes,
+		Token:                         util.StringPtr(string(signedVCBytes)),
 		JWTFormat:                     exchange.JWTVC.Ptr(),
 		SignatureAlgorithmOrProofType: string(crypto.EdDSA),
 	}
@@ -153,7 +160,14 @@ func main() {
 		Step 5: The apartment will verify the presentation submission. This is done to make sure the presentation is in compliance with the definition.
 	**/
 
-	err = exchange.VerifyPresentationSubmission(*holderVerifier, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
+	resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+	example.HandleExampleError(err, "Failed to build resolver")
+
+	// Convert the holder signer to a verifier with the audience set as the apartment DID
+	holderVerifier, err := holderSigner.ToVerifier(aptVerifier.ID)
+	example.HandleExampleError(err, "Failed to generate verifier")
+
+	err = exchange.VerifyPresentationSubmission(context.Background(), *holderVerifier, resolver, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
 	example.HandleExampleError(err, "Failed to verify presentation submission")
 
 	_, _ = fmt.Print("\n\nStep 5: The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic\n\n")
