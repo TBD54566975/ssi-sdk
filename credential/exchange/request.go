@@ -90,14 +90,18 @@ func BuildJWTPresentationRequest(signer crypto.JWTSigner, def PresentationDefini
 
 // VerifyPresentationRequest finds the correct verifier and parser for a given presentation request type,
 // verifying the signature on the request, and returning the parsed Presentation Definition object.
-func VerifyPresentationRequest(verifier crypto.JWTVerifier, pt PresentationRequestType, request []byte) (*PresentationDefinition, error) {
+func VerifyPresentationRequest(verifier any, pt PresentationRequestType, request []byte) (*PresentationDefinition, error) {
 	err := fmt.Errorf("cannot verify unsupported presentation request type: %s", pt)
 	if !IsSupportedPresentationRequestType(pt) {
 		return nil, err
 	}
 	switch pt {
 	case JWTRequest:
-		return VerifyJWTPresentationRequest(verifier, request)
+		jwtVerifier, ok := verifier.(crypto.JWTVerifier)
+		if !ok {
+			return nil, fmt.Errorf("verifier<%T> is not a JWTVerifier", verifier)
+		}
+		return VerifyJWTPresentationRequest(jwtVerifier, request)
 	default:
 		return nil, err
 	}

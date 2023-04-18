@@ -13,30 +13,14 @@ const (
 	SchemaOption OptionKey = "schema"
 )
 
-var KnownVerifiers = []Verifier{
-	{
-		ID:         "Object Validation",
-		VerifyFunc: VerifyValidCredential,
-	},
-	{
-		ID:         "Expiry Check",
-		VerifyFunc: VerifyExpiry,
-	},
-	{
-		ID:         "VC JSON Schema",
-		VerifyFunc: VerifyJSONSchema,
-	},
-}
-
 // VerifyValidCredential verifies a credential's object model depending on the struct tags used on VerifiableCredential
-// TODO(gabe) add support for JSON schema validation of the VCDM after https://github.com/w3c/vc-data-model/issues/934
-func VerifyValidCredential(cred credential.VerifiableCredential, _ ...VerificationOption) error {
+func VerifyValidCredential(cred credential.VerifiableCredential, _ ...Option) error {
 	return cred.IsValid()
 }
 
 // VerifyExpiry verifies a credential's expiry date is not in the past. We assume the date is parseable as
 // an RFC3339 date time value.
-func VerifyExpiry(cred credential.VerifiableCredential, _ ...VerificationOption) error {
+func VerifyExpiry(cred credential.VerifiableCredential, _ ...Option) error {
 	if cred.ExpirationDate == "" {
 		return nil
 	}
@@ -51,8 +35,8 @@ func VerifyExpiry(cred credential.VerifiableCredential, _ ...VerificationOption)
 }
 
 // WithSchema provides a schema as a verification option
-func WithSchema(schema string) VerificationOption {
-	return VerificationOption{
+func WithSchema(schema string) Option {
+	return Option{
 		ID:     SchemaOption,
 		Option: schema,
 	}
@@ -61,7 +45,7 @@ func WithSchema(schema string) VerificationOption {
 // VerifyJSONSchema verifies a credential's data against a Verifiable Credential JSON Schema:
 // https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
 // There is a required single option which is a string JSON value representing the Credential Schema Object
-func VerifyJSONSchema(cred credential.VerifiableCredential, opts ...VerificationOption) error {
+func VerifyJSONSchema(cred credential.VerifiableCredential, opts ...Option) error {
 	hasSchemaProperty := cred.CredentialSchema != nil
 	schema, err := GetVerificationOption(opts, SchemaOption)
 	if err != nil {
@@ -91,4 +75,21 @@ func optionToCredentialSchema(maybeSchema any) (*credschema.VCJSONSchema, error)
 		return nil, errors.Wrap(err, "credential schema is invalid")
 	}
 	return credschema.StringToVCJSONCredentialSchema(schema)
+}
+
+func GetKnownVerifiers() []Verifier {
+	return []Verifier{
+		{
+			ID:         "Object Validation",
+			VerifyFunc: VerifyValidCredential,
+		},
+		{
+			ID:         "Expiry Check",
+			VerifyFunc: VerifyExpiry,
+		},
+		{
+			ID:         "VC JSON Schema",
+			VerifyFunc: VerifyJSONSchema,
+		},
+	}
 }

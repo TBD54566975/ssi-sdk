@@ -1,10 +1,8 @@
-package util
+package credential
 
 import (
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/credential/signing"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/stretchr/testify/assert"
@@ -12,7 +10,7 @@ import (
 
 func TestCredentialsFromInterface(t *testing.T) {
 	t.Run("Bad Cred", func(tt *testing.T) {
-		parsedCred, err := ToCredential("bad")
+		_, _, parsedCred, err := ToCredential("bad")
 		assert.Error(tt, err)
 		assert.Empty(tt, parsedCred)
 
@@ -24,7 +22,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 	t.Run("Unsigned Cred", func(tt *testing.T) {
 		testCred := getTestCredential()
 
-		parsedCred, err := ToCredential(testCred)
+		_, _, parsedCred, err := ToCredential(testCred)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, parsedCred)
 		assert.Equal(tt, testCred.Issuer, parsedCred.Issuer)
@@ -60,7 +58,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 		err = suite.Sign(signer, &testCred)
 		assert.NoError(t, err)
 
-		parsedCred, err := ToCredential(testCred)
+		_, _, parsedCred, err := ToCredential(testCred)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, parsedCred)
 		assert.Equal(tt, testCred.Issuer, parsedCred.Issuer)
@@ -83,14 +81,19 @@ func TestCredentialsFromInterface(t *testing.T) {
 		assert.NoError(tt, err)
 
 		testCred := getTestCredential()
-		signed, err := signing.SignVerifiableCredentialJWT(*signer, testCred)
+		signed, err := SignVerifiableCredentialJWT(*signer, testCred)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, signed)
 
-		parsedCred, err := ToCredential(string(signed))
+		headers, token, parsedCred, err := ToCredential(string(signed))
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, parsedCred)
+		assert.NotEmpty(tt, headers)
+		assert.NotEmpty(tt, token)
 		assert.Equal(tt, parsedCred.Issuer, testCred.Issuer)
+		gotIss, ok := token.Get("iss")
+		assert.True(tt, ok)
+		assert.Equal(tt, gotIss.(string), testCred.Issuer)
 
 		genericCred, err := ToCredentialJSONMap(string(signed))
 		assert.NoError(tt, err)
@@ -99,8 +102,8 @@ func TestCredentialsFromInterface(t *testing.T) {
 	})
 }
 
-func getTestCredential() credential.VerifiableCredential {
-	return credential.VerifiableCredential{
+func getTestCredential() VerifiableCredential {
+	return VerifiableCredential{
 		Context:           []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
 		Type:              []string{"VerifiableCredential"},
 		Issuer:            "did:example:123",
