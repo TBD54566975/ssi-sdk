@@ -197,7 +197,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		jwtCred := getTestJWTCredential(tt, *signer)
 
 		// modify the signature to make it invalid
-		jwtCred = jwtCred[:len(jwtCred)-1] + "a"
+		jwtCred = jwtCred[:len(jwtCred)-5] + "baddata"
 
 		verified, err := VerifyJWTCredential(jwtCred, resolver)
 		assert.Error(tt, err)
