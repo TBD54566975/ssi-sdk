@@ -16,8 +16,8 @@ func IsValidPresentationDefinition(definition PresentationDefinition) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation definition schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
-		return errors.New("presentation definition not valid against schema")
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
+		return errors.Wrap(err, "presentation definition not valid against schema")
 	}
 	return nil
 }
@@ -32,7 +32,7 @@ func IsValidPresentationDefinitionEnvelope(definition PresentationDefinitionEnve
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation definition schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "presentation definition not valid against schema")
 	}
 	return nil
@@ -53,7 +53,7 @@ func IsValidPresentationSubmission(submission PresentationSubmission) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get presentation submission schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "submission declaration not valid against schema")
 	}
 	return nil
@@ -69,7 +69,7 @@ func IsValidDefinitionClaimFormatDesignation(format ClaimFormat) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get claim format schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "format declaration not valid against schema")
 	}
 	return nil
@@ -85,7 +85,7 @@ func IsValidSubmissionRequirement(requirement SubmissionRequirement) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get submission requirement schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "submission requirement not valid against schema")
 	}
 	return nil
@@ -106,7 +106,7 @@ func AreValidSubmissionRequirements(requirements []SubmissionRequirement) error 
 	if err != nil {
 		return errors.Wrap(err, "could not get submission requirements schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "submission requirements not valid against schema")
 	}
 	return nil

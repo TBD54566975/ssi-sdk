@@ -16,7 +16,7 @@ func IsValidEntityStyle(esd EntityStyleDescriptor) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get entity styles schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "entity style not valid against schema")
 	}
 	return nil
@@ -32,7 +32,7 @@ func IsValidDisplayMappingObject(dmo DisplayMappingObject) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get display mapping object schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "display mapping object not valid against schema")
 	}
 	return nil
@@ -48,7 +48,7 @@ func IsValidLabeledDisplayMappingObject(ldmo LabeledDisplayMappingObject) error 
 	if err != nil {
 		return errors.Wrap(err, "could not get labeled display mapping object schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "labeled display mapping object not valid against schema")
 	}
 	return nil

@@ -33,7 +33,7 @@ func IsValidCredentialSchema(maybeCredentialSchema string) error {
 		return errors.Wrap(err, "could not get known schema for VC JSON Schema")
 	}
 
-	if err = schema.IsJSONValidAgainstSchema(maybeCredentialSchema, vcJSONSchemaSchema); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(maybeCredentialSchema, vcJSONSchemaSchema); err != nil {
 		return errors.Wrap(err, "credential schema did not validate")
 	}
 
@@ -70,7 +70,7 @@ func IsCredentialValidForSchema(cred credential.VerifiableCredential, s string) 
 		return err
 	}
 	subjectJSON := string(subjectBytes)
-	if err = schema.IsJSONValidAgainstSchema(subjectJSON, s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(subjectJSON, s); err != nil {
 		return errors.Wrap(err, "credential not valid for schema")
 	}
 	return nil

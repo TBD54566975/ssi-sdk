@@ -167,7 +167,7 @@ func main() {
 	holderVerifier, err := holderSigner.ToVerifier(aptVerifier.ID)
 	example.HandleExampleError(err, "Failed to generate verifier")
 
-	err = exchange.VerifyPresentationSubmission(context.Background(), *holderVerifier, resolver, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
+	_, err = exchange.VerifyPresentationSubmission(context.Background(), *holderVerifier, resolver, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
 	example.HandleExampleError(err, "Failed to verify presentation submission")
 
 	_, _ = fmt.Print("\n\nStep 5: The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic\n\n")

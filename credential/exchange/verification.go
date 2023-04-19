@@ -16,6 +16,18 @@ import (
 	"github.com/pkg/errors"
 )
 
+// VerifiedSubmissionData is the result of a successful verification of a presentation submission
+// corresponds to the data that was verified, and the filtered data that was used to verify it for a given
+// input descriptor
+type VerifiedSubmissionData struct {
+	// The ID of the input descriptor that was verified
+	InputDescriptorID string
+	// The raw claim data that was verified – could be a JWT, or a VC, or a VP
+	Claim any
+	// The filtered data as a JSON string
+	FilteredData any
+}
+
 // VerifyPresentationSubmission verifies a presentation submission for both signature validity and correctness
 // with the specification. It is assumed that the caller knows the submission embed target, and the corresponding
 // presentation definition, and has access to the public key of the signer. A DID resolver is required to resolve
@@ -23,50 +35,53 @@ import (
 // Note: this method does not support LD cryptosuites, and prefers JWT representations. Future refactors
 // may include an analog method for LD suites.
 // TODO(gabe) remove embed target, have it detected from the submission
-func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver did.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) error { //revive:disable-line
+func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver did.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) ([]VerifiedSubmissionData, error) { //revive:disable-line
 	if resolver == nil {
-		return errors.New("resolver cannot be empty")
+		return nil, errors.New("resolver cannot be empty")
+	}
+	if len(submission) == 0 {
+		return nil, errors.New("submission cannot be empty")
 	}
 	if err := canProcessDefinition(def); err != nil {
-		return errors.Wrap(err, "not able to verify submission; feature not supported")
+		return nil, errors.Wrap(err, "not able to verify submission; feature not supported")
 	}
 	if !IsSupportedEmbedTarget(et) {
-		return fmt.Errorf("unsupported presentation submission embed target type: %s", et)
+		return nil, fmt.Errorf("unsupported presentation submission embed target type: %s", et)
 	}
 	switch et {
 	case JWTVPTarget:
 		jwtVerifier, ok := verifier.(crypto.JWTVerifier)
 		if !ok {
-			return fmt.Errorf("verifier<%T> is not a JWT verifier", verifier)
+			return nil, fmt.Errorf("verifier<%T> is not a JWT verifier", verifier)
 		}
 		// verify the VP, which in turn verifies all credentials in it
 		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(ctx, jwtVerifier, resolver, string(submission))
 		if err != nil {
-			return errors.Wrap(err, "verification of the presentation submission failed")
+			return nil, errors.Wrap(err, "verification of the presentation submission failed")
 		}
 		return VerifyPresentationSubmissionVP(def, *vp)
 	default:
-		return fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
+		return nil, fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
 	}
 }
 
 // VerifyPresentationSubmissionVP verifies whether a verifiable presentation is a valid presentation submission
 // for a given presentation definition. No signature verification happens here.
-func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.VerifiablePresentation) error {
+func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.VerifiablePresentation) ([]VerifiedSubmissionData, error) {
 	if err := vp.IsValid(); err != nil {
-		return errors.Wrap(err, "presentation submission does not contain a valid VP")
+		return nil, errors.Wrap(err, "presentation submission does not contain a valid VP")
 	}
 
 	// first, validate the presentation submission in the VP
 	submission, err := toPresentationSubmission(vp.PresentationSubmission)
 	if err != nil {
-		return errors.Wrap(err, "unable to parse presentation submission from verifiable presentation")
+		return nil, errors.Wrap(err, "unable to parse presentation submission from verifiable presentation")
 	}
 	if err = submission.IsValid(); err != nil {
-		return errors.Wrap(err, "invalid presentation submission in provided verifiable presentation")
+		return nil, errors.Wrap(err, "invalid presentation submission in provided verifiable presentation")
 	}
 	if submission.DefinitionID != def.ID {
-		return fmt.Errorf("mismatched between presentation definition ID<%s> and submission's definition ID<%s>",
+		return nil, fmt.Errorf("mismatched between presentation definition ID<%s> and submission's definition ID<%s>",
 			def.ID, submission.DefinitionID)
 	}
 
@@ -79,41 +94,49 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 	// turn the vp into JSON so we can use the paths from the submission descriptor to resolve each claim
 	vpJSON, err := util.ToJSONMap(vp)
 	if err != nil {
-		return errors.Wrap(err, "could not turn VP into JSON representation")
+		return nil, errors.Wrap(err, "could not turn VP into JSON representation")
 	}
+
+	// store results for each input descriptor
+	verifiedSubmissionData := make([]VerifiedSubmissionData, 0)
 
 	// validate each input descriptor is fulfilled
 	inputDescriptorLookup := make(map[string]InputDescriptor)
 	for _, inputDescriptor := range def.InputDescriptors {
-		inputDescriptorLookup[inputDescriptor.ID] = inputDescriptor
-		submissionDescriptor, ok := submissionDescriptorLookup[inputDescriptor.ID]
+		inputDescriptorID := inputDescriptor.ID
+
+		// build verifiedSubmissionDatum should the input descriptor be fulfilled
+		verifiedSubmissionDatum := VerifiedSubmissionData{InputDescriptorID: inputDescriptorID}
+
+		inputDescriptorLookup[inputDescriptorID] = inputDescriptor
+		submissionDescriptor, ok := submissionDescriptorLookup[inputDescriptorID]
 		if !ok {
-			return fmt.Errorf("unfulfilled input descriptor<%s>; submission not valid", inputDescriptor.ID)
+			return nil, fmt.Errorf("unfulfilled input descriptor<%s>; submission not valid", inputDescriptorID)
 		}
 
 		// if the format on the submitted claim does not match the input descriptor, we cannot process
 		if inputDescriptor.Format != nil && !util.Contains(submissionDescriptor.Format, inputDescriptor.Format.FormatValues()) {
-			return fmt.Errorf("for input descriptor<%s>, the format of submission descriptor<%s> is not one"+
-				"  of the supported formats: %s", inputDescriptor.ID, submissionDescriptor.Format,
+			return nil, fmt.Errorf("for input descriptor<%s>, the format of submission descriptor<%s> is not one"+
+				"  of the supported formats: %s", inputDescriptorID, submissionDescriptor.Format,
 				strings.Join(inputDescriptor.Format.FormatValues(), ", "))
 		}
 
 		// TODO(gabe) support nested paths in presentation submissions https://github.com/TBD54566975/ssi-sdk/issues/73
 		if submissionDescriptor.PathNested != nil {
-			return fmt.Errorf("submission with nested paths not supported: %s", submissionDescriptor.ID)
+			return nil, fmt.Errorf("submission with nested paths not supported: %s", submissionDescriptor.ID)
 		}
 
 		// resolve the claim from the JSON path expression in the submission descriptor
 		claim, err := jsonpath.JsonPathLookup(vpJSON, submissionDescriptor.Path)
 		if err != nil {
-			return errors.Wrapf(err, "could not resolve claim from submission descriptor<%s> with path: %s",
+			return nil, errors.Wrapf(err, "could not resolve claim from submission descriptor<%s> with path: %s",
 				submissionDescriptor.ID, submissionDescriptor.Path)
 		}
 
 		// TODO(gabe) add in signature verification of claims here https://github.com/TBD54566975/ssi-sdk/issues/71
 		_, _, cred, err := credential.ToCredential(claim)
 		if err != nil {
-			return errors.Wrapf(err, "getting claim as json: <%s>", claim)
+			return nil, errors.Wrapf(err, "getting claim as json: <%s>", claim)
 		}
 
 		// verify the submitted claim complies with the input descriptor
@@ -128,25 +151,29 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		// for each field we need to verify at least one path matches
 		credJSON, err := credential.ToCredentialJSONMap(claim)
 		if err != nil {
-			return errors.Wrapf(err, "getting credential as json: %v", cred)
+			return nil, errors.Wrapf(err, "getting credential as json: %v", cred)
 		}
 		for _, field := range constraints.Fields {
 			// get data from path
-			pathedDataJSON, err := getJSONDataFromPath(credJSON, field.Path)
+			pathedData, err := getDataFromJSONPath(credJSON, field.Path)
 			if err != nil && !field.Optional {
-				return errors.Wrapf(err, "input descriptor<%s> not fulfilled for non-optional field: %s", inputDescriptor.ID, field.ID)
+				return nil, errors.Wrapf(err, "input descriptor<%s> not fulfilled for non-optional field: %s", inputDescriptorID, field.ID)
 			}
 
 			// apply json schema filter if present
 			if field.Filter != nil {
 				filterJSON, err := field.Filter.ToJSON()
 				if err != nil && !field.Optional {
-					return errors.Wrapf(err, "turning filter into JSON schema")
+					return nil, errors.Wrapf(err, "turning filter into JSON schema")
 				}
-				if err = schema.IsJSONValidAgainstSchema(pathedDataJSON, filterJSON); err != nil && !field.Optional {
-					return errors.Wrapf(err, "unable to apply filter<%s> to data from path: %s", filterJSON, field.Path)
+				if err = schema.IsAnyValidAgainstJSONSchema(pathedData, filterJSON); err != nil && !field.Optional {
+					return nil, errors.Wrapf(err, "unable to apply filter<%s> to data from path: %s", filterJSON, field.Path)
 				}
 			}
+
+			// add claim and pathed data to the verifiedSubmissionDatum once we know it is valid
+			verifiedSubmissionDatum.Claim = claim
+			verifiedSubmissionDatum.FilteredData = pathedData
 		}
 
 		// check relational constraints if present
@@ -154,21 +181,25 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		if subjectIsIssuerConstraint != nil && *subjectIsIssuerConstraint == Required {
 			issuer, ok := cred.Issuer.(string)
 			if !ok {
-				return fmt.Errorf("unable to get issuer from cred: %s", cred.Issuer)
+				return nil, fmt.Errorf("unable to get issuer from cred: %s", cred.Issuer)
 			}
 			subject, ok := cred.CredentialSubject[credential.VerifiableCredentialIDProperty]
 			if !ok {
-				return fmt.Errorf("unable to get subject from cred: %s", cred.CredentialSubject)
+				return nil, fmt.Errorf("unable to get subject from cred: %s", cred.CredentialSubject)
 			}
 			if issuer != subject {
-				return fmt.Errorf("subject<%s> is not the same as issuer<%s>", subject, issuer)
+				return nil, fmt.Errorf("subject<%s> is not the same as issuer<%s>", subject, issuer)
 			}
 		}
+
+		// once we get here we know the input descriptor is satisfied, and we can append the filtered
+		// data to the value being returned
+		verifiedSubmissionData = append(verifiedSubmissionData, verifiedSubmissionDatum)
 
 		// TODO(gabe) is_holder and same_subject cannot yet be implemented https://github.com/TBD54566975/ssi-sdk/issues/64
 		// TODO(gabe) check credential status https://github.com/TBD54566975/ssi-sdk/issues/65
 	}
-	return nil
+	return verifiedSubmissionData, nil
 }
 
 func toPresentationSubmission(maybePresentationSubmission any) (*PresentationSubmission, error) {
@@ -183,14 +214,10 @@ func toPresentationSubmission(maybePresentationSubmission any) (*PresentationSub
 	return &submission, nil
 }
 
-func getJSONDataFromPath(claim any, paths []string) (string, error) {
+func getDataFromJSONPath(claim any, paths []string) (any, error) {
 	for _, path := range paths {
 		if pathedData, err := jsonpath.JsonPathLookup(claim, path); err == nil {
-			pathedDataBytes, err := json.Marshal(pathedData)
-			if err != nil {
-				return "", errors.Wrapf(err, "marshalling pathed data<%s> to bytes", pathedData)
-			}
-			return string(pathedDataBytes), nil
+			return pathedData, nil
 		}
 	}
 	return "", errors.New("matching path for claim could not be found")
