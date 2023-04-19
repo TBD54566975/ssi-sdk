@@ -369,7 +369,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		assert.NotEmpty(tt, verifiedSubmissionData)
 		assert.Equal(tt, 1, len(verifiedSubmissionData))
 		assert.Equal(tt, "id-1", verifiedSubmissionData[0].InputDescriptorID)
-		assert.Equal(tt, "\"test-issuer\"", verifiedSubmissionData[0].FilteredData)
+		assert.Equal(tt, "test-issuer", verifiedSubmissionData[0].FilteredData)
 
 		// set optional flag to false and re-verify
 		def.InputDescriptors[0].Constraints.Fields[0].Optional = false
@@ -494,7 +494,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		assert.NotEmpty(tt, verifiedSubmissionData)
 		assert.Equal(tt, 1, len(verifiedSubmissionData))
 		assert.Equal(tt, "id-1", verifiedSubmissionData[0].InputDescriptorID)
-		assert.Equal(tt, "\"Block\"", verifiedSubmissionData[0].FilteredData)
+		assert.Equal(tt, "Block", verifiedSubmissionData[0].FilteredData)
 	})
 
 	t.Run("Verification with JWT credential", func(tt *testing.T) {

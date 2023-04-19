@@ -69,9 +69,9 @@ func TestIsValidJSON(t *testing.T) {
 
 func TestJSONSchemaValidation(t *testing.T) {
 	t.Run("Test Invalid JSON Against Schema", func(tt *testing.T) {
-		err := IsValidAgainstJSONSchema(string([]byte("bad")), string([]byte("bad")))
+		err := IsValidAgainstJSONSchema("bad", "bad")
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "json input is not valid json")
+		assert.Contains(tt, err.Error(), "data is not valid json")
 	})
 
 	t.Run("Test Invalid JSON Schema", func(tt *testing.T) {
@@ -84,7 +84,7 @@ func TestJSONSchemaValidation(t *testing.T) {
 
 		addressDataBytes, err := json.Marshal(addressData)
 		assert.NoError(tt, err)
-		err = IsValidAgainstJSONSchema(string(addressDataBytes), string([]byte("bad")))
+		err = IsValidAgainstJSONSchema(string(addressDataBytes), "bad")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "schema input is not valid json")
 	})

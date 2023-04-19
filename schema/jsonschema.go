@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 	"github.com/santhosh-tekuri/jsonschema/v5"
@@ -58,6 +59,9 @@ func IsValidAgainstJSONSchema(data, schema string) error {
 	if !IsValidJSON(data) {
 		return errors.New("data is not valid json")
 	}
+	if !IsValidJSON(schema) {
+		return errors.New("schema input is not valid json")
+	}
 	if err := IsValidJSONSchema(schema); err != nil {
 		return errors.Wrap(err, "schema is not valid")
 	}
@@ -65,5 +69,9 @@ func IsValidAgainstJSONSchema(data, schema string) error {
 	if err != nil {
 		return err
 	}
-	return jsonSchema.Validate(data)
+	jsonInterface, err := util.ToJSONInterface(data)
+	if err != nil {
+		return errors.Wrap(err, "could not convert json to interface")
+	}
+	return jsonSchema.Validate(jsonInterface)
 }
