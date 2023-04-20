@@ -45,10 +45,19 @@ func IsValidJSON(maybeJSON string) bool {
 	return json.Unmarshal([]byte(maybeJSON), &js) == nil
 }
 
-// IsJSONValidAgainstSchema validates a piece of JSON against a schema, returning an error if it is not valid
-func IsJSONValidAgainstSchema(json, schema string) error {
-	if !IsValidJSON(json) {
-		return errors.New("json input is not valid json")
+// IsAnyValidAgainstJSONSchema validates a piece of JSON against a schema, returning an error if it is not valid
+func IsAnyValidAgainstJSONSchema(data any, schema string) error {
+	jsonBytes, err := json.Marshal(data)
+	if err != nil {
+		return errors.Wrap(err, "could not marshal data to JSON")
+	}
+	return IsValidAgainstJSONSchema(string(jsonBytes), schema)
+}
+
+// IsValidAgainstJSONSchema validates a piece of JSON against a schema, returning an error if it is not valid
+func IsValidAgainstJSONSchema(data, schema string) error {
+	if !IsValidJSON(data) {
+		return errors.New("data is not valid json")
 	}
 	if !IsValidJSON(schema) {
 		return errors.New("schema input is not valid json")
@@ -60,25 +69,9 @@ func IsJSONValidAgainstSchema(json, schema string) error {
 	if err != nil {
 		return err
 	}
-	jsonInterface, err := util.ToJSONInterface(json)
+	jsonInterface, err := util.ToJSONInterface(data)
 	if err != nil {
 		return errors.Wrap(err, "could not convert json to interface")
 	}
 	return jsonSchema.Validate(jsonInterface)
-}
-
-// IsJSONValidAgainstSchemaGeneric validates a piece of JSON as an any against a schema,
-// returning an error if it is not valid
-func IsJSONValidAgainstSchemaGeneric(json any, schema string) error {
-	if !IsValidJSON(schema) {
-		return errors.New("schema input is not valid json")
-	}
-	if err := IsValidJSONSchema(schema); err != nil {
-		return errors.Wrap(err, "schema is not valid")
-	}
-	jsonSchema, err := jsonschema.CompileString(defaultSchemaURL, schema)
-	if err != nil {
-		return err
-	}
-	return jsonSchema.Validate(json)
 }

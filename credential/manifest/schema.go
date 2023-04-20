@@ -16,7 +16,7 @@ func IsValidCredentialManifest(manifest CredentialManifest) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get credential manifest schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "credential manifest not valid against schema")
 	}
 	return nil
@@ -32,7 +32,7 @@ func IsValidCredentialApplication(application CredentialApplication) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get credential application schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "credential application not valid against schema")
 	}
 	return nil
@@ -48,7 +48,7 @@ func IsValidCredentialResponse(response CredentialResponse) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get credential response schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "credential response not valid against schema")
 	}
 	return nil
@@ -69,7 +69,7 @@ func AreValidOutputDescriptors(descriptors []OutputDescriptor) error {
 	if err != nil {
 		return errors.Wrap(err, "could not get output descriptors schema")
 	}
-	if err = schema.IsJSONValidAgainstSchema(string(jsonBytes), s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(jsonBytes), s); err != nil {
 		return errors.Wrap(err, "output descriptors not valid against schema")
 	}
 	return nil

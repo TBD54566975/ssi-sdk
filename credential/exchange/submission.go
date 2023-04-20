@@ -480,6 +480,9 @@ func processInputDescriptorField(field Field, claimData map[string]any) (*limite
 // check for certain features we may not support yet: submission requirements, predicates, relational constraints,
 // credential status, JSON-LD framing from https://identity.foundation/presentation-exchange/#features
 func canProcessDefinition(def PresentationDefinition) error {
+	if def.IsEmpty() {
+		return errors.New("presentation definition cannot be empty")
+	}
 	submissionRequirementsErr := errors.New("submission requirements feature not supported")
 	if len(def.SubmissionRequirements) > 0 {
 		return submissionRequirementsErr

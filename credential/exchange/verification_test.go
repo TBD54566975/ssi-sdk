@@ -14,11 +14,29 @@ import (
 )
 
 func TestVerifyPresentationSubmission(t *testing.T) {
+	t.Run("Empty submission", func(tt *testing.T) {
+		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		assert.NoError(tt, err)
+		verifier := crypto.JWTVerifier{}
+		_, err = VerifyPresentationSubmission(context.Background(), verifier, resolver, "badEmbedTarget", PresentationDefinition{}, nil)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "submission cannot be empty")
+	})
+
+	t.Run("Empty presentation definition", func(tt *testing.T) {
+		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		assert.NoError(tt, err)
+		verifier := crypto.JWTVerifier{}
+		_, err = VerifyPresentationSubmission(context.Background(), verifier, resolver, "badEmbedTarget", PresentationDefinition{}, []byte{0, 1, 2, 3})
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "presentation definition cannot be empty")
+	})
+
 	t.Run("Unsupported embed target", func(tt *testing.T) {
 		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
 		assert.NoError(tt, err)
 		verifier := crypto.JWTVerifier{}
-		err = VerifyPresentationSubmission(context.Background(), verifier, resolver, "badEmbedTarget", PresentationDefinition{}, nil)
+		_, err = VerifyPresentationSubmission(context.Background(), verifier, resolver, "badEmbedTarget", PresentationDefinition{ID: "1"}, []byte{0, 1, 2, 3})
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported presentation submission embed target type")
 	})
@@ -45,7 +63,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
 		assert.NoError(tt, err)
 		_, verifier := getJWKSignerVerifier(tt)
-		err = VerifyPresentationSubmission(context.Background(), *verifier, resolver, JWTVPTarget, def, nil)
+		_, err = VerifyPresentationSubmission(context.Background(), *verifier, resolver, JWTVPTarget, def, []byte{0, 1, 2, 3})
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "verification of the presentation submission failed")
 	})
@@ -84,7 +102,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		err = VerifyPresentationSubmission(context.Background(), *verifier, resolver, JWTVPTarget, def, submissionBytes)
+		_, err = VerifyPresentationSubmission(context.Background(), *verifier, resolver, JWTVPTarget, def, submissionBytes)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "credential must have a proof")
 	})
@@ -125,7 +143,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		err = VerifyPresentationSubmission(context.Background(), *verifier, resolver, JWTVPTarget, def, submissionBytes)
+		_, err = VerifyPresentationSubmission(context.Background(), *verifier, resolver, JWTVPTarget, def, submissionBytes)
 		assert.NoError(tt, err)
 	})
 }
@@ -165,7 +183,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		_, _, verifiablePresentation, err := credential.ParseVerifiablePresentationFromJWT(string(submissionBytes))
 		assert.NoError(tt, err)
 
-		err = VerifyPresentationSubmissionVP(def, *verifiablePresentation)
+		_, err = VerifyPresentationSubmissionVP(def, *verifiablePresentation)
 		assert.NoError(tt, err)
 	})
 
@@ -207,7 +225,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 			},
 		}
 
-		err := VerifyPresentationSubmissionVP(def, presentation)
+		_, err := VerifyPresentationSubmissionVP(def, presentation)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "could not resolve claim from submission descriptor<id-1> with path: $.verifiableCredential[0]")
 	})
@@ -250,7 +268,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 			},
 		}
 
-		err := VerifyPresentationSubmissionVP(def, presentation)
+		_, err := VerifyPresentationSubmissionVP(def, presentation)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unfulfilled input descriptor<id-1>; submission not valid")
 	})
@@ -296,7 +314,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 			},
 		}
 
-		err := VerifyPresentationSubmissionVP(def, presentation)
+		_, err := VerifyPresentationSubmissionVP(def, presentation)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "matching path for claim could not be found")
 	})
@@ -346,12 +364,16 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 			},
 		}
 
-		err := VerifyPresentationSubmissionVP(def, presentation)
+		verifiedSubmissionData, err := VerifyPresentationSubmissionVP(def, presentation)
 		assert.NoError(tt, err)
+		assert.NotEmpty(tt, verifiedSubmissionData)
+		assert.Equal(tt, 1, len(verifiedSubmissionData))
+		assert.Equal(tt, "id-1", verifiedSubmissionData[0].InputDescriptorID)
+		assert.Equal(tt, "test-issuer", verifiedSubmissionData[0].FilteredData)
 
 		// set optional flag to false and re-verify
 		def.InputDescriptors[0].Constraints.Fields[0].Optional = false
-		err = VerifyPresentationSubmissionVP(def, presentation)
+		_, err = VerifyPresentationSubmissionVP(def, presentation)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unable to apply filter")
 	})
@@ -401,7 +423,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 			},
 		}
 
-		err := VerifyPresentationSubmissionVP(def, presentation)
+		_, err := VerifyPresentationSubmissionVP(def, presentation)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "subject<test-subject> is not the same as issuer<test-issuer>")
 
@@ -409,8 +431,10 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		testVC := getTestVerifiableCredential("test-issuer", "test-subject")
 		testVC.CredentialSubject[credential.VerifiableCredentialIDProperty] = "test-issuer"
 		presentation.VerifiableCredential = []any{testVC}
-		err = VerifyPresentationSubmissionVP(def, presentation)
+
+		verifiedSubmissionData, err := VerifyPresentationSubmissionVP(def, presentation)
 		assert.NoError(tt, err)
+		assert.NotEmpty(tt, verifiedSubmissionData)
 	})
 
 	t.Run("Input Descriptor with valid filter (credential properties)", func(tt *testing.T) {
@@ -465,11 +489,15 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 			},
 		}
 
-		err := VerifyPresentationSubmissionVP(def, presentation)
+		verifiedSubmissionData, err := VerifyPresentationSubmissionVP(def, presentation)
 		assert.NoError(tt, err)
+		assert.NotEmpty(tt, verifiedSubmissionData)
+		assert.Equal(tt, 1, len(verifiedSubmissionData))
+		assert.Equal(tt, "id-1", verifiedSubmissionData[0].InputDescriptorID)
+		assert.Equal(tt, "Block", verifiedSubmissionData[0].FilteredData)
 	})
 
-	t.Run("Verification with JWT credential", func(t *testing.T) {
+	t.Run("Verification with JWT credential", func(tt *testing.T) {
 		def := PresentationDefinition{
 			ID: "test-id",
 			InputDescriptors: []InputDescriptor{
@@ -487,12 +515,12 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 				},
 			},
 		}
-		signer, _ := getJWKSignerVerifier(t)
+		signer, _ := getJWKSignerVerifier(tt)
 		testVC := getTestVerifiableCredential("test-issuer", "test-subject")
 		vcData, err := credential.SignVerifiableCredentialJWT(*signer, testVC)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 		b := NewPresentationSubmissionBuilder(def.ID)
-		assert.NoError(t, b.SetDescriptorMap([]SubmissionDescriptor{
+		assert.NoError(tt, b.SetDescriptorMap([]SubmissionDescriptor{
 			{
 				ID:         "id-1",
 				Format:     string(JWTVPTarget),
@@ -501,15 +529,17 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 			},
 		}))
 		ps, err := b.Build()
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		vpBuilder := credential.NewVerifiablePresentationBuilder()
-		assert.NoError(t, vpBuilder.SetPresentationSubmission(ps))
-		assert.NoError(t, vpBuilder.AddVerifiableCredentials([]any{string(vcData)}...))
+		assert.NoError(tt, vpBuilder.SetPresentationSubmission(ps))
+		assert.NoError(tt, vpBuilder.AddVerifiableCredentials([]any{string(vcData)}...))
 		vp2, err := vpBuilder.Build()
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 		vp := *vp2
 
-		assert.NoError(t, VerifyPresentationSubmissionVP(def, vp))
+		verifiedSubmissionData, err := VerifyPresentationSubmissionVP(def, vp)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, verifiedSubmissionData)
 	})
 }
