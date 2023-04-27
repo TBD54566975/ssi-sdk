@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/pkg/errors"
@@ -77,30 +78,69 @@ func CreateDIDJWK(publicKeyJWK jwk.Key) (*DIDJWK, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling public key JWK")
 	}
-	pubKeyJWKString := string(pubKeyJWKBytes)
+	pubKeyJWKStr := string(pubKeyJWKBytes)
 
 	// 3. Encode string using base64url
-	encodedPubKeyJWKString := base64.URLEncoding.EncodeToString([]byte(pubKeyJWKString))
+	encodedPubKeyJWKStr := base64.URLEncoding.EncodeToString([]byte(pubKeyJWKStr))
 
 	// 4. Prepend the string with the did:jwk prefix
-	didJWK := DIDJWK(fmt.Sprintf("%s:%s", JWKPrefix, encodedPubKeyJWKString))
+	didJWK := DIDJWK(fmt.Sprintf("%s:%s", JWKPrefix, encodedPubKeyJWKStr))
 	return &didJWK, nil
 }
 
 // Expand turns the DID JWK into a compliant DID Document
 func (d DIDJWK) Expand() (*Document, error) {
 	id := d.String()
-	return &Document{
-		Context:              []string{KnownDIDContext, JWS2020Context},
-		ID:                   id,
-		VerificationMethod:   []VerificationMethod{},
-		Authentication:       nil,
-		AssertionMethod:      nil,
-		KeyAgreement:         nil,
-		CapabilityInvocation: nil,
-		CapabilityDelegation: nil,
-		Services:             nil,
-	}, nil
+
+	split := strings.Split(id, JWKPrefix+":")
+	if len(split) != 2 {
+		return nil, fmt.Errorf("invalid did:jwk: %s", d)
+	}
+	encodedJWK := split[1]
+	decodedPubKeyJWKStr, err := base64.URLEncoding.DecodeString(encodedJWK)
+	if err != nil {
+		return nil, errors.Wrap(err, "decoding did:jwk")
+	}
+
+	var pubKeyJWK crypto.PublicKeyJWK
+	if err = json.Unmarshal(decodedPubKeyJWKStr, &pubKeyJWK); err != nil {
+		return nil, errors.Wrap(err, "unmarshalling did:jwk")
+	}
+
+	keyReference := "#0"
+	keyID := id + keyReference
+
+	doc := Document{
+		Context: []string{KnownDIDContext, JWS2020Context},
+		ID:      id,
+		VerificationMethod: []VerificationMethod{
+			{
+				ID:           keyID,
+				Type:         cryptosuite.JSONWebKey2020Type,
+				Controller:   id,
+				PublicKeyJWK: &pubKeyJWK,
+			},
+		},
+		Authentication:       []VerificationMethodSet{keyID},
+		AssertionMethod:      []VerificationMethodSet{keyID},
+		KeyAgreement:         []VerificationMethodSet{keyID},
+		CapabilityInvocation: []VerificationMethodSet{keyID},
+		CapabilityDelegation: []VerificationMethodSet{keyID},
+	}
+
+	// If the JWK contains a use property with the value "sig" then the keyAgreement property is not included in the
+	// DID Document. If the use value is "enc" then only the keyAgreement property is included in the DID Document.
+	switch pubKeyJWK.Use {
+	case "sig":
+		doc.KeyAgreement = nil
+	case "enc":
+		doc.Authentication = nil
+		doc.AssertionMethod = nil
+		doc.CapabilityInvocation = nil
+		doc.CapabilityDelegation = nil
+	}
+
+	return &doc, nil
 }
 
 func isSupportedJWKType(kt crypto.KeyType) bool {
