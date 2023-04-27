@@ -10,6 +10,7 @@ const (
 	PKHMethod  Method = "pkh"
 	WebMethod  Method = "web"
 	IONMethod  Method = "ion"
+	JWKMethod  Method = "jwk"
 )
 
 func (m Method) String() string {
