@@ -311,6 +311,57 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 		assert.Equal(tt, "P-384", jwk2.CRV)
 	})
 
+	t.Run("Dilithium 2", func(tt *testing.T) {
+		pubKey, _, err := GenerateDilithiumKeyPair(Dilithium2)
+		assert.NoError(t, err)
+
+		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, "LWE", jwk.KTY)
+		assert.Equal(tt, "CRYDI2", jwk.Alg)
+
+		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "LWE", jwk2.KTY)
+		assert.Equal(tt, "CRYDI2", jwk2.Alg)
+	})
+
+	t.Run("Dilithium 3", func(tt *testing.T) {
+		pubKey, _, err := GenerateDilithiumKeyPair(Dilithium3)
+		assert.NoError(t, err)
+
+		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, "LWE", jwk.KTY)
+		assert.Equal(tt, "CRYDI3", jwk.Alg)
+
+		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "LWE", jwk2.KTY)
+		assert.Equal(tt, "CRYDI3", jwk2.Alg)
+	})
+
+	t.Run("Dilithium 5", func(tt *testing.T) {
+		pubKey, _, err := GenerateDilithiumKeyPair(Dilithium5)
+		assert.NoError(t, err)
+
+		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, "LWE", jwk.KTY)
+		assert.Equal(tt, "CRYDI5", jwk.Alg)
+
+		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "LWE", jwk2.KTY)
+		assert.Equal(tt, "CRYDI5", jwk2.Alg)
+	})
+
 	t.Run("unsupported", func(tt *testing.T) {
 		jwk, err := PublicKeyToPublicKeyJWK(nil)
 		assert.Error(tt, err)
@@ -382,6 +433,57 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, "EC", jwk.KTY)
 		assert.Equal(tt, "P-384", jwk.CRV)
+	})
+
+	t.Run("Dilithium 2", func(tt *testing.T) {
+		_, privKey, err := GenerateDilithiumKeyPair(Dilithium2)
+		assert.NoError(t, err)
+
+		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, "LWE", jwk.KTY)
+		assert.Equal(tt, "CRYDI2", jwk.Alg)
+
+		_, jwk2, err := PrivateKeyToPrivateKeyJWK(&privKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "LWE", jwk2.KTY)
+		assert.Equal(tt, "CRYDI2", jwk2.Alg)
+	})
+
+	t.Run("Dilithium 3", func(tt *testing.T) {
+		_, privKey, err := GenerateDilithiumKeyPair(Dilithium3)
+		assert.NoError(t, err)
+
+		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, "LWE", jwk.KTY)
+		assert.Equal(tt, "CRYDI2", jwk.Alg)
+
+		_, jwk2, err := PrivateKeyToPrivateKeyJWK(&privKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "LWE", jwk2.KTY)
+		assert.Equal(tt, "CRYDI2", jwk2.Alg)
+	})
+
+	t.Run("Dilithium 5", func(tt *testing.T) {
+		_, privKey, err := GenerateDilithiumKeyPair(Dilithium5)
+		assert.NoError(t, err)
+
+		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk)
+		assert.Equal(tt, "LWE", jwk.KTY)
+		assert.Equal(tt, "CRYDI5", jwk.Alg)
+
+		_, jwk2, err := PrivateKeyToPrivateKeyJWK(&privKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jwk2)
+		assert.Equal(tt, "LWE", jwk2.KTY)
+		assert.Equal(tt, "CRYDI5", jwk2.Alg)
 	})
 
 	t.Run("unsupported", func(tt *testing.T) {
