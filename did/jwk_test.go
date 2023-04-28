@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	"embed"
 	"strings"
 	"testing"
@@ -176,4 +177,19 @@ func TestExpandDIDJWK(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "could not parse did:key: invalid did:key: did:jwk:bad")
 	})
+}
+
+func TestGenerateAndResolveDIDJWK(t *testing.T) {
+	resolvers := []Resolver{JWKResolver{}}
+	resolver, _ := NewResolver(resolvers...)
+
+	for _, kt := range GetSupportedDIDJWKTypes() {
+		_, didJWK, err := GenerateDIDJWK(kt)
+		assert.NoError(t, err)
+
+		doc, err := resolver.Resolve(context.Background(), didJWK.String())
+		assert.NoError(t, err)
+		assert.NotEmpty(t, doc)
+		assert.Equal(t, didJWK.String(), doc.Document.ID)
+	}
 }

@@ -1,6 +1,7 @@
 package did
 
 import (
+	"context"
 	gocrypto "crypto"
 	"encoding/base64"
 	"fmt"
@@ -154,4 +155,24 @@ func isSupportedJWKType(kt crypto.KeyType) bool {
 
 func GetSupportedDIDJWKTypes() []crypto.KeyType {
 	return []crypto.KeyType{crypto.Ed25519, crypto.X25519, crypto.SECP256k1, crypto.P256, crypto.P384, crypto.P521, crypto.RSA}
+}
+
+type JWKResolver struct{}
+
+var _ Resolver = (*JWKResolver)(nil)
+
+func (JWKResolver) Resolve(_ context.Context, did string, _ ...ResolutionOption) (*ResolutionResult, error) {
+	if !strings.HasPrefix(did, JWKPrefix) {
+		return nil, fmt.Errorf("not a did:jwk DID: %s", did)
+	}
+	didJWK := DIDJWK(did)
+	doc, err := didJWK.Expand()
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not expand did:jwk DID: %s", did)
+	}
+	return &ResolutionResult{Document: *doc}, nil
+}
+
+func (JWKResolver) Methods() []Method {
+	return []Method{JWKMethod}
 }
