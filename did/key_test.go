@@ -46,7 +46,7 @@ func TestCreateDIDKey(t *testing.T) {
 		_, _, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		_, err = CreateDIDKey(crypto.KeyType("bad"), []byte("invalid"))
+		_, err = CreateDIDKey("bad", []byte("invalid"))
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "unsupported did:key type: bad")
 	})

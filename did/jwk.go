@@ -92,11 +92,10 @@ func CreateDIDJWK(publicKeyJWK jwk.Key) (*DIDJWK, error) {
 func (d DIDJWK) Expand() (*Document, error) {
 	id := d.String()
 
-	split := strings.Split(id, JWKPrefix+":")
-	if len(split) != 2 {
+	encodedJWK, err := d.Suffix()
+	if err != nil {
 		return nil, fmt.Errorf("invalid did:jwk: %s", d)
 	}
-	encodedJWK := split[1]
 	decodedPubKeyJWKStr, err := base64.URLEncoding.DecodeString(encodedJWK)
 	if err != nil {
 		return nil, errors.Wrap(err, "decoding did:jwk")

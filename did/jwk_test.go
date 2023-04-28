@@ -2,9 +2,13 @@ package did
 
 import (
 	"embed"
+	"strings"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/goccy/go-json"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -66,5 +70,110 @@ func TestDIDJWKVectors(t *testing.T) {
 		assert.NoError(tt, err)
 
 		assert.JSONEq(tt, string(ourDIDJSON), string(didDocJSON))
+	})
+}
+
+func TestGenerateDIDJWK(t *testing.T) {
+	tests := []struct {
+		name      string
+		keyType   crypto.KeyType
+		expectErr bool
+	}{
+		{
+			name:      "Ed25519",
+			keyType:   crypto.Ed25519,
+			expectErr: false,
+		},
+		{
+			name:      "x25519",
+			keyType:   crypto.X25519,
+			expectErr: false,
+		},
+		{
+			name:      "SECP256k1",
+			keyType:   crypto.SECP256k1,
+			expectErr: false,
+		},
+		{
+			name:      "P256",
+			keyType:   crypto.P256,
+			expectErr: false,
+		},
+		{
+			name:      "P384",
+			keyType:   crypto.P384,
+			expectErr: false,
+		},
+		{
+			name:      "P521",
+			keyType:   crypto.P521,
+			expectErr: false,
+		},
+		{
+			name:      "RSA",
+			keyType:   crypto.RSA,
+			expectErr: false,
+		},
+		{
+			name:      "Unsupported",
+			keyType:   crypto.KeyType("unsupported"),
+			expectErr: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			privKey, didJWK, err := GenerateDIDJWK(test.keyType)
+
+			if test.expectErr {
+				assert.Error(t, err)
+				return
+			}
+
+			jsonWebKey, err := cryptosuite.JSONWebKey2020FromPrivateKey(privKey)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, jsonWebKey)
+
+			assert.NoError(t, err)
+			assert.NotNil(t, didJWK)
+			assert.NotEmpty(t, privKey)
+
+			assert.True(t, strings.Contains(string(*didJWK), "did:jwk"))
+		})
+	}
+}
+
+func TestExpandDIDJWK(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		pk, sk, err := crypto.GenerateEd25519Key()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, pk)
+		assert.NotEmpty(t, sk)
+
+		gotJWK, err := jwk.FromRaw(sk)
+		assert.NoError(t, err)
+
+		didJWK, err := CreateDIDJWK(gotJWK)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, didJWK)
+
+		doc, err := didJWK.Expand()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, doc)
+		assert.NoError(t, doc.IsValid())
+	})
+
+	t.Run("bad DID", func(t *testing.T) {
+		badDID := DIDJWK("bad")
+		_, err := badDID.Expand()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid did:jwk: bad")
+	})
+
+	t.Run("DID but not a valid did:jwk", func(t *testing.T) {
+		badDID := DIDKey("did:jwk:bad")
+		_, err := badDID.Expand()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "could not parse did:key: invalid did:key: did:jwk:bad")
 	})
 }
