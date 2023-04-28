@@ -26,8 +26,7 @@ type (
 
 const (
 	// KeyPrefix did:key prefix
-	KeyPrefix      = "did:key"
-	JWS2020Context = "https://w3id.org/security/suites/jws-2020/v1"
+	KeyPrefix = "did:key"
 )
 
 func (d DIDKey) IsValid() bool {

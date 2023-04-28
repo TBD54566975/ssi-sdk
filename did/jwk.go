@@ -20,7 +20,8 @@ type (
 
 const (
 	// JWKPrefix did:jwk prefix
-	JWKPrefix = "did:jwk"
+	JWKPrefix      = "did:jwk"
+	JWS2020Context = "https://w3id.org/security/suites/jws-2020/v1"
 )
 
 func (d DIDJWK) IsValid() bool {
