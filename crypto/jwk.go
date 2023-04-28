@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/cloudflare/circl/sign/dilithium"
 	secp256k1 "github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -224,6 +225,8 @@ func PrivateKeyToPrivateKeyJWK(key crypto.PrivateKey) (*PublicKeyJWK, *PrivateKe
 		return jwkFromSECP256k1PrivateKey(k)
 	case ecdsa.PrivateKey:
 		return jwkFromECDSAPrivateKey(k)
+	case dilithium.PrivateKey:
+		return jwkFromDilithiumPrivateKey(k)
 	default:
 		return nil, nil, fmt.Errorf("unsupported private key type: %T", k)
 	}
@@ -509,6 +512,10 @@ func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK
 	}
 
 	return &publicKeyJWK, &privateKeyJWK, nil
+}
+
+func jwkFromDilithiumPrivateKey(k dilithium.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
+	return nil, nil, nil
 }
 
 // jwkKeyFromECDSAPublicKey converts a ECDSA public key to a JWK

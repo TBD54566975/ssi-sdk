@@ -33,6 +33,92 @@ func GenerateDilithiumKeyPair(m DilithiumMode) (dilithium.PublicKey, dilithium.P
 	return pk, sk, nil
 }
 
+func GetModeFromDilithiumPrivateKey(privKey dilithium.PrivateKey) (DilithiumMode, error) {
+	if err := getMode2PrivateKey(privKey); err == nil {
+		return Dilithium2, nil
+	}
+	if err := getMode3PrivateKey(privKey); err == nil {
+		return Dilithium3, nil
+	}
+	if err := getMode5PrivateKey(privKey); err == nil {
+		return Dilithium5, nil
+	}
+	return "", errors.New("unsupported dilithium mode")
+}
+
+func getMode2PrivateKey(privKey dilithium.PrivateKey) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New("not mode 2")
+		}
+	}()
+	dilithium.Mode2.PrivateKeyFromBytes(privKey.Bytes())
+	return err
+}
+
+func getMode3PrivateKey(privKey dilithium.PrivateKey) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New("not mode 3")
+		}
+	}()
+	dilithium.Mode3.PrivateKeyFromBytes(privKey.Bytes())
+	return err
+}
+
+func getMode5PrivateKey(privKey dilithium.PrivateKey) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New("not mode 5")
+		}
+	}()
+	dilithium.Mode5.PrivateKeyFromBytes(privKey.Bytes())
+	return err
+}
+
+func GetModeFromDilithiumPublicKey(pubKey dilithium.PublicKey) (DilithiumMode, error) {
+	if err := getMode2PublicKey(pubKey); err == nil {
+		return Dilithium2, nil
+	}
+	if err := getMode3PublicKey(pubKey); err == nil {
+		return Dilithium3, nil
+	}
+	if err := getMode5PublicKey(pubKey); err == nil {
+		return Dilithium5, nil
+	}
+	return "", errors.New("unsupported dilithium mode")
+}
+
+func getMode2PublicKey(pubKey dilithium.PublicKey) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New("not mode 2")
+		}
+	}()
+	dilithium.Mode2.PublicKeyFromBytes(pubKey.Bytes())
+	return err
+}
+
+func getMode3PublicKey(pubKey dilithium.PublicKey) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New("not mode 3")
+		}
+	}()
+	dilithium.Mode3.PublicKeyFromBytes(pubKey.Bytes())
+	return err
+}
+
+func getMode5PublicKey(pubKey dilithium.PublicKey) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New("not mode 5")
+		}
+	}()
+	dilithium.Mode5.PublicKeyFromBytes(pubKey.Bytes())
+	return err
+}
+
 type DilithiumSigner struct {
 	kid  string
 	mode dilithium.Mode

@@ -50,7 +50,7 @@ func TestDilithiumSignVerify(t *testing.T) {
 		_, _ = NewDilithiumVerifier("test-kid", Dilithium5, sk)
 	})
 
-	t.Run("sign and verify - 2", func(tt *testing.T) {
+	t.Run("sign and verify", func(tt *testing.T) {
 		tests := []struct {
 			m DilithiumMode
 		}{
@@ -83,6 +83,58 @@ func TestDilithiumSignVerify(t *testing.T) {
 
 				verified := verifier.Verify(msg, sig)
 				assert.True(ttt, verified)
+			})
+		}
+	})
+
+	t.Run("get mode from private key", func(tt *testing.T) {
+		tests := []struct {
+			m DilithiumMode
+		}{
+			{
+				Dilithium2,
+			},
+			{
+				Dilithium3,
+			},
+			{
+				Dilithium5,
+			},
+		}
+		for _, test := range tests {
+			tt.Run(test.m.String(), func(ttt *testing.T) {
+				_, privKey, err := GenerateDilithiumKeyPair(test.m)
+				assert.NoError(tt, err)
+
+				mode, err := GetModeFromDilithiumPrivateKey(privKey)
+				assert.NoError(tt, err)
+				assert.Equal(tt, test.m, mode)
+			})
+		}
+	})
+
+	t.Run("get mode from public key", func(tt *testing.T) {
+		tests := []struct {
+			m DilithiumMode
+		}{
+			{
+				Dilithium2,
+			},
+			{
+				Dilithium3,
+			},
+			{
+				Dilithium5,
+			},
+		}
+		for _, test := range tests {
+			tt.Run(test.m.String(), func(ttt *testing.T) {
+				pubKey, _, err := GenerateDilithiumKeyPair(test.m)
+				assert.NoError(tt, err)
+
+				mode, err := GetModeFromDilithiumPublicKey(pubKey)
+				assert.NoError(tt, err)
+				assert.Equal(tt, test.m, mode)
 			})
 		}
 	})
