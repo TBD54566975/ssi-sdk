@@ -57,6 +57,10 @@ func (k PrivateKeyJWK) ToPublicKeyJWK() PublicKeyJWK {
 }
 
 func (k PrivateKeyJWK) ToPrivateKey() (crypto.PrivateKey, error) {
+	// handle Dilithium separately since it's not supported by our jwx library
+	if k.KTY == "LWE" {
+		return k.toDilithiumPrivateKey()
+	}
 	gotJWK, err := JWKFromPrivateKeyJWK(k)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating JWK from private key")
@@ -70,6 +74,23 @@ func (k PrivateKeyJWK) ToPrivateKey() (crypto.PrivateKey, error) {
 		goKey = reflect.ValueOf(goKey).Elem().Interface().(crypto.PrivateKey)
 	}
 	return goKey, nil
+}
+
+func (k PrivateKeyJWK) toDilithiumPrivateKey() (crypto.PrivateKey, error) {
+	decodedPrivKey, err := base64.URLEncoding.DecodeString(k.D)
+	if err != nil {
+		return nil, err
+	}
+	switch k.Alg {
+	case "CRYDI2":
+		return dilithium.Mode2.PrivateKeyFromBytes(decodedPrivKey), nil
+	case "CRYDI3":
+		return dilithium.Mode3.PrivateKeyFromBytes(decodedPrivKey), nil
+	case "CRYDI5":
+		return dilithium.Mode5.PrivateKeyFromBytes(decodedPrivKey), nil
+	default:
+		return nil, fmt.Errorf("unsupported algorithm %s", k.Alg)
+	}
 }
 
 // PublicKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
@@ -87,6 +108,10 @@ type PublicKeyJWK struct {
 }
 
 func (k PublicKeyJWK) ToPublicKey() (crypto.PublicKey, error) {
+	// handle Dilithium separately since it's not supported by our jwx library
+	if k.KTY == "LWE" {
+		return k.toDilithiumPublicKey()
+	}
 	gotJWK, err := JWKFromPublicKeyJWK(k)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating JWK from public key")
@@ -100,6 +125,23 @@ func (k PublicKeyJWK) ToPublicKey() (crypto.PublicKey, error) {
 		goKey = reflect.ValueOf(goKey).Elem().Interface().(crypto.PublicKey)
 	}
 	return goKey, nil
+}
+
+func (k PublicKeyJWK) toDilithiumPublicKey() (crypto.PublicKey, error) {
+	decodedPubKey, err := base64.URLEncoding.DecodeString(k.X)
+	if err != nil {
+		return nil, err
+	}
+	switch k.Alg {
+	case "CRYDI2":
+		return dilithium.Mode2.PublicKeyFromBytes(decodedPubKey), nil
+	case "CRYDI3":
+		return dilithium.Mode3.PublicKeyFromBytes(decodedPubKey), nil
+	case "CRYDI5":
+		return dilithium.Mode5.PublicKeyFromBytes(decodedPubKey), nil
+	default:
+		return nil, fmt.Errorf("unsupported algorithm %s", k.Alg)
+	}
 }
 
 // JWKToPrivateKeyJWK converts a JWK to a PrivateKeyJWK

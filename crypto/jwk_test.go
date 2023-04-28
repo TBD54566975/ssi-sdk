@@ -9,55 +9,179 @@ import (
 )
 
 func TestJWKToPrivateKeyJWK(t *testing.T) {
-	// known private key
-	_, privateKey, err := GenerateEd25519Key()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, privateKey)
+	t.Run("Ed25519", func(tt *testing.T) {
+		// known private key
+		_, privateKey, err := GenerateEd25519Key()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, privateKey)
 
-	// convert to JWK
-	key, err := jwk.FromRaw(privateKey)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, key)
+		// convert to JWK
+		key, err := jwk.FromRaw(privateKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, key)
 
-	// to our representation of a jwk
-	privKeyJWK, err := JWKToPrivateKeyJWK(key)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, privKeyJWK)
+		// to our representation of a jwk
+		privKeyJWK, err := JWKToPrivateKeyJWK(key)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, privKeyJWK)
 
-	assert.Equal(t, "OKP", privKeyJWK.KTY)
-	assert.Equal(t, "Ed25519", privKeyJWK.CRV)
+		assert.Equal(tt, "OKP", privKeyJWK.KTY)
+		assert.Equal(tt, "Ed25519", privKeyJWK.CRV)
 
-	// convert back
-	gotPrivKey, err := privKeyJWK.ToPrivateKey()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, gotPrivKey)
-	assert.Equal(t, privateKey, gotPrivKey)
+		// convert back
+		gotPrivKey, err := privKeyJWK.ToPrivateKey()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, gotPrivKey)
+		assert.Equal(tt, privateKey, gotPrivKey)
+	})
+
+	t.Run("Dilithium 2", func(tt *testing.T) {
+		// known private key
+		_, privateKey, err := GenerateDilithiumKeyPair(Dilithium2)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, privateKey)
+
+		// to our representation of a jwk
+		_, privKeyJWK, err := PrivateKeyToPrivateKeyJWK(privateKey)
+		assert.NoError(tt, err)
+
+		assert.Equal(tt, "LWE", privKeyJWK.KTY)
+		assert.Equal(tt, "CRYDI2", privKeyJWK.Alg)
+
+		// convert back
+		gotPrivKey, err := privKeyJWK.ToPrivateKey()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, gotPrivKey)
+		assert.Equal(tt, privateKey, gotPrivKey)
+	})
+
+	t.Run("Dilithium 3", func(tt *testing.T) {
+		// known private key
+		_, privateKey, err := GenerateDilithiumKeyPair(Dilithium3)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, privateKey)
+
+		// to our representation of a jwk
+		_, privKeyJWK, err := PrivateKeyToPrivateKeyJWK(privateKey)
+		assert.NoError(tt, err)
+
+		assert.Equal(tt, "LWE", privKeyJWK.KTY)
+		assert.Equal(tt, "CRYDI3", privKeyJWK.Alg)
+
+		// convert back
+		gotPrivKey, err := privKeyJWK.ToPrivateKey()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, gotPrivKey)
+		assert.Equal(tt, privateKey, gotPrivKey)
+	})
+
+	t.Run("Dilithium 5", func(tt *testing.T) {
+		// known private key
+		_, privateKey, err := GenerateDilithiumKeyPair(Dilithium5)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, privateKey)
+
+		// to our representation of a jwk
+		_, privKeyJWK, err := PrivateKeyToPrivateKeyJWK(privateKey)
+		assert.NoError(tt, err)
+
+		assert.Equal(tt, "LWE", privKeyJWK.KTY)
+		assert.Equal(tt, "CRYDI5", privKeyJWK.Alg)
+
+		// convert back
+		gotPrivKey, err := privKeyJWK.ToPrivateKey()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, gotPrivKey)
+		assert.Equal(tt, privateKey, gotPrivKey)
+	})
 }
 
 func TestJWKToPublicKeyJWK(t *testing.T) {
-	// known public key
-	publicKey, _, err := GenerateEd25519Key()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, publicKey)
+	t.Run("Ed25519", func(tt *testing.T) {
+		// known public key
+		publicKey, _, err := GenerateEd25519Key()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, publicKey)
 
-	// convert to JWK
-	key, err := jwk.FromRaw(publicKey)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, key)
+		// convert to JWK
+		key, err := jwk.FromRaw(publicKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, key)
 
-	// to our representation of a jwk
-	pubKeyJWK, err := JWKToPublicKeyJWK(key)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, pubKeyJWK)
+		// to our representation of a jwk
+		pubKeyJWK, err := JWKToPublicKeyJWK(key)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, pubKeyJWK)
 
-	assert.Equal(t, "OKP", pubKeyJWK.KTY)
-	assert.Equal(t, "Ed25519", pubKeyJWK.CRV)
+		assert.Equal(tt, "OKP", pubKeyJWK.KTY)
+		assert.Equal(tt, "Ed25519", pubKeyJWK.CRV)
 
-	// convert back
-	gotPubKey, err := pubKeyJWK.ToPublicKey()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, gotPubKey)
-	assert.Equal(t, publicKey, gotPubKey)
+		// convert back
+		gotPubKey, err := pubKeyJWK.ToPublicKey()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, gotPubKey)
+		assert.Equal(tt, publicKey, gotPubKey)
+	})
+
+	t.Run("Dilithium 2", func(tt *testing.T) {
+		// known private key
+		publicKey, _, err := GenerateDilithiumKeyPair(Dilithium2)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, publicKey)
+
+		// to our representation of a jwk
+		pubKeyJWK, err := PublicKeyToPublicKeyJWK(publicKey)
+		assert.NoError(tt, err)
+
+		assert.Equal(tt, "LWE", pubKeyJWK.KTY)
+		assert.Equal(tt, "CRYDI2", pubKeyJWK.Alg)
+
+		// convert back
+		gotPubKey, err := pubKeyJWK.ToPublicKey()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, gotPubKey)
+		assert.Equal(tt, publicKey, gotPubKey)
+	})
+
+	t.Run("Dilithium 3", func(tt *testing.T) {
+		// known private key
+		publicKey, _, err := GenerateDilithiumKeyPair(Dilithium3)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, publicKey)
+
+		// to our representation of a jwk
+		pubKeyJWK, err := PublicKeyToPublicKeyJWK(publicKey)
+		assert.NoError(tt, err)
+
+		assert.Equal(tt, "LWE", pubKeyJWK.KTY)
+		assert.Equal(tt, "CRYDI3", pubKeyJWK.Alg)
+
+		// convert back
+		gotPubKey, err := pubKeyJWK.ToPublicKey()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, gotPubKey)
+		assert.Equal(tt, publicKey, gotPubKey)
+	})
+
+	t.Run("Dilithium 5", func(tt *testing.T) {
+		// known private key
+		publicKey, _, err := GenerateDilithiumKeyPair(Dilithium5)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, publicKey)
+
+		// to our representation of a jwk
+		pubKeyJWK, err := PublicKeyToPublicKeyJWK(publicKey)
+		assert.NoError(tt, err)
+
+		assert.Equal(tt, "LWE", pubKeyJWK.KTY)
+		assert.Equal(tt, "CRYDI5", pubKeyJWK.Alg)
+
+		// convert back
+		gotPubKey, err := pubKeyJWK.ToPublicKey()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, gotPubKey)
+		assert.Equal(tt, publicKey, gotPubKey)
+	})
 }
 
 func TestJWKFromPrivateKeyJWK(t *testing.T) {
@@ -460,13 +584,13 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, "LWE", jwk.KTY)
-		assert.Equal(tt, "CRYDI2", jwk.Alg)
+		assert.Equal(tt, "CRYDI3", jwk.Alg)
 
 		_, jwk2, err := PrivateKeyToPrivateKeyJWK(&privKey)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk2)
 		assert.Equal(tt, "LWE", jwk2.KTY)
-		assert.Equal(tt, "CRYDI2", jwk2.Alg)
+		assert.Equal(tt, "CRYDI3", jwk2.Alg)
 	})
 
 	t.Run("Dilithium 5", func(tt *testing.T) {
