@@ -84,6 +84,6 @@ func NewDilithiumVerifier(kid string, m DilithiumMode, pubKey dilithium.PublicKe
 	}, nil
 }
 
-func (s *DilithiumVerifier) Sign(message, signature []byte) bool {
+func (s *DilithiumVerifier) Verify(message, signature []byte) bool {
 	return s.mode.Verify(s.PublicKey, message, signature)
 }

@@ -50,12 +50,40 @@ func TestDilithiumSignVerify(t *testing.T) {
 		_, _ = NewDilithiumVerifier("test-kid", Dilithium5, sk)
 	})
 
-	t.Run("sign and verify", func(tt *testing.T) {
-		_, sk, err := GenerateDilithiumKeyPair(Dilithium2)
-		assert.NoError(tt, err)
+	t.Run("sign and verify - 2", func(tt *testing.T) {
+		tests := []struct {
+			m DilithiumMode
+		}{
+			{
+				Dilithium2,
+			},
+			{
+				Dilithium3,
+			},
+			{
+				Dilithium5,
+			},
+		}
+		for _, test := range tests {
+			tt.Run(test.m.String(), func(ttt *testing.T) {
+				_, sk, err := GenerateDilithiumKeyPair(test.m)
+				assert.NoError(ttt, err)
 
-		signer, err := NewDilithiumSigner("test-kid", Dilithium2, sk)
-		assert.NoError(tt, err)
-		assert.NotEmpty(tt, signer)
+				signer, err := NewDilithiumSigner("test-kid", test.m, sk)
+				assert.NoError(ttt, err)
+				assert.NotEmpty(ttt, signer)
+
+				verifier, err := NewDilithiumVerifier("test-kid", test.m, signer.PublicKey)
+				assert.NoError(ttt, err)
+				assert.NotEmpty(ttt, verifier)
+
+				msg := []byte("test message")
+				sig := signer.Sign(msg)
+				assert.NotEmpty(ttt, sig)
+
+				verified := verifier.Verify(msg, sig)
+				assert.True(ttt, verified)
+			})
+		}
 	})
 }
