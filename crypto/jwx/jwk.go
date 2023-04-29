@@ -1,7 +1,7 @@
 package jwx
 
 import (
-	"crypto"
+	gocrypto "crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"reflect"
 
-	crypto2 "github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/cloudflare/circl/sign/dilithium"
 	"github.com/cloudflare/circl/sign/dilithium/mode2"
 	"github.com/cloudflare/circl/sign/dilithium/mode3"
 	"github.com/cloudflare/circl/sign/dilithium/mode5"
-	secp256k1 "github.com/decred/dcrd/dcrec/secp256k1/v4"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -58,7 +58,7 @@ func (k PrivateKeyJWK) ToPublicKeyJWK() PublicKeyJWK {
 	}
 }
 
-func (k PrivateKeyJWK) ToPrivateKey() (crypto.PrivateKey, error) {
+func (k PrivateKeyJWK) ToPrivateKey() (gocrypto.PrivateKey, error) {
 	// handle Dilithium separately since it's not supported by our jwx library
 	if k.KTY == "LWE" {
 		return k.toDilithiumPrivateKey()
@@ -67,18 +67,18 @@ func (k PrivateKeyJWK) ToPrivateKey() (crypto.PrivateKey, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "creating JWK from private key")
 	}
-	var goKey crypto.PrivateKey
+	var goKey gocrypto.PrivateKey
 	if err = gotJWK.Raw(&goKey); err != nil {
 		return nil, errors.Wrap(err, "converting JWK to go key")
 	}
 	// dereference the ptr
 	if reflect.ValueOf(goKey).Kind() == reflect.Ptr {
-		goKey = reflect.ValueOf(goKey).Elem().Interface().(crypto.PrivateKey)
+		goKey = reflect.ValueOf(goKey).Elem().Interface().(gocrypto.PrivateKey)
 	}
 	return goKey, nil
 }
 
-func (k PrivateKeyJWK) toDilithiumPrivateKey() (crypto.PrivateKey, error) {
+func (k PrivateKeyJWK) toDilithiumPrivateKey() (gocrypto.PrivateKey, error) {
 	decodedPrivKey, err := base64.URLEncoding.DecodeString(k.D)
 	if err != nil {
 		return nil, err
@@ -109,7 +109,7 @@ type PublicKeyJWK struct {
 	KID    string `json:"kid,omitempty"`
 }
 
-func (k PublicKeyJWK) ToPublicKey() (crypto.PublicKey, error) {
+func (k PublicKeyJWK) ToPublicKey() (gocrypto.PublicKey, error) {
 	// handle Dilithium separately since it's not supported by our jwx library
 	if k.KTY == "LWE" {
 		return k.toDilithiumPublicKey()
@@ -118,18 +118,18 @@ func (k PublicKeyJWK) ToPublicKey() (crypto.PublicKey, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "creating JWK from public key")
 	}
-	var goKey crypto.PublicKey
+	var goKey gocrypto.PublicKey
 	if err = gotJWK.Raw(&goKey); err != nil {
 		return nil, errors.Wrap(err, "converting JWK to go key")
 	}
 	// dereference the ptr
 	if reflect.ValueOf(goKey).Kind() == reflect.Ptr {
-		goKey = reflect.ValueOf(goKey).Elem().Interface().(crypto.PublicKey)
+		goKey = reflect.ValueOf(goKey).Elem().Interface().(gocrypto.PublicKey)
 	}
 	return goKey, nil
 }
 
-func (k PublicKeyJWK) toDilithiumPublicKey() (crypto.PublicKey, error) {
+func (k PublicKeyJWK) toDilithiumPublicKey() (gocrypto.PublicKey, error) {
 	decodedPubKey, err := base64.URLEncoding.DecodeString(k.X)
 	if err != nil {
 		return nil, err
@@ -191,10 +191,10 @@ func JWKFromPrivateKeyJWK(key PrivateKeyJWK) (jwk.Key, error) {
 }
 
 // PublicKeyToJWK converts a public key to a JWK
-func PublicKeyToJWK(key crypto.PublicKey) (jwk.Key, error) {
+func PublicKeyToJWK(key gocrypto.PublicKey) (jwk.Key, error) {
 	// dereference the ptr
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {
-		key = reflect.ValueOf(key).Elem().Interface().(crypto.PublicKey)
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PublicKey)
 	}
 	switch k := key.(type) {
 	case rsa.PublicKey:
@@ -213,10 +213,10 @@ func PublicKeyToJWK(key crypto.PublicKey) (jwk.Key, error) {
 }
 
 // PublicKeyToPublicKeyJWK converts a public key to a PublicKeyJWK
-func PublicKeyToPublicKeyJWK(key crypto.PublicKey) (*PublicKeyJWK, error) {
+func PublicKeyToPublicKeyJWK(key gocrypto.PublicKey) (*PublicKeyJWK, error) {
 	// dereference the ptr, which could be a nested ptr
 	for reflect.ValueOf(key).Kind() == reflect.Ptr {
-		key = reflect.ValueOf(key).Elem().Interface().(crypto.PublicKey)
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PublicKey)
 	}
 	switch k := key.(type) {
 	case rsa.PublicKey:
@@ -231,23 +231,23 @@ func PublicKeyToPublicKeyJWK(key crypto.PublicKey) (*PublicKeyJWK, error) {
 		return jwkFromECDSAPublicKey(k)
 	case mode2.PublicKey:
 		pubKey := dilithium.Mode2.PublicKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPublicKey(crypto2.Dilithium2, pubKey)
+		return jwkFromDilithiumPublicKey(crypto.Dilithium2, pubKey)
 	case mode3.PublicKey:
 		pubKey := dilithium.Mode3.PublicKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPublicKey(crypto2.Dilithium3, pubKey)
+		return jwkFromDilithiumPublicKey(crypto.Dilithium3, pubKey)
 	case mode5.PublicKey:
 		pubKey := dilithium.Mode5.PublicKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPublicKey(crypto2.Dilithium5, pubKey)
+		return jwkFromDilithiumPublicKey(crypto.Dilithium5, pubKey)
 	default:
 		return nil, fmt.Errorf("unsupported public key type: %T", k)
 	}
 }
 
 // PrivateKeyToJWK converts a private key to a JWK
-func PrivateKeyToJWK(key crypto.PrivateKey) (jwk.Key, error) {
+func PrivateKeyToJWK(key gocrypto.PrivateKey) (jwk.Key, error) {
 	// dereference the ptr
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {
-		key = reflect.ValueOf(key).Elem().Interface().(crypto.PrivateKey)
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PrivateKey)
 	}
 	switch k := key.(type) {
 	case rsa.PrivateKey:
@@ -266,10 +266,10 @@ func PrivateKeyToJWK(key crypto.PrivateKey) (jwk.Key, error) {
 }
 
 // PrivateKeyToPrivateKeyJWK converts a private key to a PrivateKeyJWK
-func PrivateKeyToPrivateKeyJWK(key crypto.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
+func PrivateKeyToPrivateKeyJWK(key gocrypto.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	// dereference the ptr, which could be nested
 	for reflect.ValueOf(key).Kind() == reflect.Ptr {
-		key = reflect.ValueOf(key).Elem().Interface().(crypto.PrivateKey)
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PrivateKey)
 	}
 	switch k := key.(type) {
 	case rsa.PrivateKey:
@@ -284,13 +284,13 @@ func PrivateKeyToPrivateKeyJWK(key crypto.PrivateKey) (*PublicKeyJWK, *PrivateKe
 		return jwkFromECDSAPrivateKey(k)
 	case mode2.PrivateKey:
 		privKey := dilithium.Mode2.PrivateKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPrivateKey(crypto2.Dilithium2, privKey)
+		return jwkFromDilithiumPrivateKey(crypto.Dilithium2, privKey)
 	case mode3.PrivateKey:
 		privKey := dilithium.Mode3.PrivateKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPrivateKey(crypto2.Dilithium3, privKey)
+		return jwkFromDilithiumPrivateKey(crypto.Dilithium3, privKey)
 	case mode5.PrivateKey:
 		privKey := dilithium.Mode5.PrivateKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPrivateKey(crypto2.Dilithium5, privKey)
+		return jwkFromDilithiumPrivateKey(crypto.Dilithium5, privKey)
 	default:
 		return nil, nil, fmt.Errorf("unsupported private key type: %T", k)
 	}
@@ -591,14 +591,14 @@ func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK
 }
 
 // as per https://www.ietf.org/archive/id/draft-ietf-cose-dilithium-00.html
-func jwkFromDilithiumPrivateKey(m crypto2.DilithiumMode, k dilithium.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
+func jwkFromDilithiumPrivateKey(m crypto.DilithiumMode, k dilithium.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	var alg string
 	switch m {
-	case crypto2.Dilithium2:
+	case crypto.Dilithium2:
 		alg = "CRYDI2"
-	case crypto2.Dilithium3:
+	case crypto.Dilithium3:
 		alg = "CRYDI3"
-	case crypto2.Dilithium5:
+	case crypto.Dilithium5:
 		alg = "CRYDI5"
 	}
 
@@ -653,14 +653,14 @@ func jwkFromECDSAPublicKey(key ecdsa.PublicKey) (*PublicKeyJWK, error) {
 	return &publicKeyJWK, nil
 }
 
-func jwkFromDilithiumPublicKey(mode crypto2.DilithiumMode, k dilithium.PublicKey) (*PublicKeyJWK, error) {
+func jwkFromDilithiumPublicKey(mode crypto.DilithiumMode, k dilithium.PublicKey) (*PublicKeyJWK, error) {
 	var alg string
 	switch mode {
-	case crypto2.Dilithium2:
+	case crypto.Dilithium2:
 		alg = "CRYDI2"
-	case crypto2.Dilithium3:
+	case crypto.Dilithium3:
 		alg = "CRYDI3"
-	case crypto2.Dilithium5:
+	case crypto.Dilithium5:
 		alg = "CRYDI5"
 	}
 
