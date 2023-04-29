@@ -1,12 +1,25 @@
 package jwx
 
 import (
+	"embed"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+var (
+	//go:embed testdata
+	testData embed.FS
+)
+
+const (
+	dilithiumPublicJWK  string = "jwk-dilithium-vector-public.json"
+	dilithiumPrivateJWK string = "jwk-dilithium-vector-private.json"
 )
 
 func TestJWKToPrivateKeyJWK(t *testing.T) {
@@ -616,4 +629,44 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 		assert.Error(tt, err)
 		assert.Empty(tt, jwk)
 	})
+}
+
+// https://www.ietf.org/archive/id/draft-ietf-cose-dilithium-00.html#section-6.1.1
+func TestDilithiumVectors(t *testing.T) {
+	t.Run("Dilithium Private Key", func(tt *testing.T) {
+		var pubKeyJWK PublicKeyJWK
+		retrieveTestVectorAs(tt, dilithiumPublicJWK, &pubKeyJWK)
+		assert.NotEmpty(tt, pubKeyJWK)
+		assert.Equal(tt, "LWE", pubKeyJWK.KTY)
+		assert.Equal(tt, "CRYDI5", pubKeyJWK.Alg)
+
+		gotPubKey, err := pubKeyJWK.ToPublicKey()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, gotPubKey)
+	})
+
+	t.Run("Dilithium Private Key", func(tt *testing.T) {
+		var privKeyJWK PrivateKeyJWK
+		retrieveTestVectorAs(tt, dilithiumPrivateJWK, &privKeyJWK)
+		assert.NotEmpty(tt, privKeyJWK)
+		assert.Equal(tt, "LWE", privKeyJWK.KTY)
+		assert.Equal(tt, "CRYDI5", privKeyJWK.Alg)
+
+		gotPrivKey, err := privKeyJWK.ToPrivateKey()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, gotPrivKey)
+	})
+}
+
+func getTestData(fileName string) ([]byte, error) {
+	return testData.ReadFile("testdata/" + fileName)
+}
+
+// retrieveTestVectorAs retrieves a test vector from the testdata folder and unmarshals it into the given interface
+func retrieveTestVectorAs(t *testing.T, fileName string, output interface{}) {
+	t.Helper()
+	testDataBytes, err := getTestData(fileName)
+	require.NoError(t, err)
+	err = json.Unmarshal(testDataBytes, output)
+	require.NoError(t, err)
 }

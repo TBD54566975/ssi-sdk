@@ -79,7 +79,7 @@ func (k PrivateKeyJWK) ToPrivateKey() (gocrypto.PrivateKey, error) {
 }
 
 func (k PrivateKeyJWK) toDilithiumPrivateKey() (gocrypto.PrivateKey, error) {
-	decodedPrivKey, err := base64.URLEncoding.DecodeString(k.D)
+	decodedPrivKey, err := base64.RawURLEncoding.DecodeString(k.D)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (k PublicKeyJWK) ToPublicKey() (gocrypto.PublicKey, error) {
 }
 
 func (k PublicKeyJWK) toDilithiumPublicKey() (gocrypto.PublicKey, error) {
-	decodedPubKey, err := base64.URLEncoding.DecodeString(k.X)
+	decodedPubKey, err := base64.RawURLEncoding.DecodeString(k.X)
 	if err != nil {
 		return nil, err
 	}
@@ -604,10 +604,10 @@ func jwkFromDilithiumPrivateKey(m crypto.DilithiumMode, k dilithium.PrivateKey) 
 
 	// serialize pub and priv keys to b64url
 	privKeyBytes := k.Bytes()
-	d := base64.URLEncoding.EncodeToString(privKeyBytes)
+	d := base64.RawURLEncoding.EncodeToString(privKeyBytes)
 	publicKey := k.Public().(dilithium.PublicKey)
 	pubKeyBytes := publicKey.Bytes()
-	x := base64.URLEncoding.EncodeToString(pubKeyBytes)
+	x := base64.RawURLEncoding.EncodeToString(pubKeyBytes)
 	privKeyJWK := PrivateKeyJWK{
 		KTY: "LWE",
 		X:   x,
@@ -666,7 +666,7 @@ func jwkFromDilithiumPublicKey(mode crypto.DilithiumMode, k dilithium.PublicKey)
 
 	// serialize pub and priv keys to b64url
 	pubKeyBytes := k.Bytes()
-	x := base64.URLEncoding.EncodeToString(pubKeyBytes)
+	x := base64.RawURLEncoding.EncodeToString(pubKeyBytes)
 	return &PublicKeyJWK{
 		KTY: "LWE",
 		X:   x,

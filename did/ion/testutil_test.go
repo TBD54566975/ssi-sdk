@@ -13,8 +13,8 @@ var (
 	testData embed.FS
 )
 
-// RetrieveTestVectorAs retrieves a test vector from the testdata folder and unmarshals it into the given interface
-func RetrieveTestVectorAs(t *testing.T, fileName string, output interface{}) {
+// retrieveTestVectorAs retrieves a test vector from the testdata folder and unmarshals it into the given interface
+func retrieveTestVectorAs(t *testing.T, fileName string, output interface{}) {
 	t.Helper()
 	testDataBytes, err := getTestData(fileName)
 	require.NoError(t, err)
