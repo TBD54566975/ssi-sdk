@@ -55,7 +55,7 @@ import (
 	"os"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/example"
 	emp "github.com/TBD54566975/ssi-sdk/example/usecase/employer_university_flow/pkg"
@@ -130,7 +130,7 @@ func main() {
 	example.WriteStep("Example University Creates VC for Holder", step)
 	step++
 
-	universitySigner, err := crypto.NewJWTSigner(universityDID, universityKID, universityKey)
+	universitySigner, err := jwx.NewJWTSigner(universityDID, universityKID, universityKey)
 	example.HandleExampleError(err, "failed to build university signer")
 	vcID, vc, err := emp.BuildExampleUniversityVC(*universitySigner, universityDID, studentDID)
 	example.HandleExampleError(err, "failed to build vc")
@@ -158,7 +158,7 @@ func main() {
 	presentationRequestJWT, employerSigner, err := emp.MakePresentationRequest(employerKey, employerKID, presentationData, employerDID, studentDID)
 	example.HandleExampleError(err, "failed to make presentation request")
 
-	studentSigner, err := crypto.NewJWTSigner(studentDID, studentKID, studentKey)
+	studentSigner, err := jwx.NewJWTSigner(studentDID, studentKID, studentKey)
 	example.HandleExampleError(err, "failed to build json web key signer")
 
 	example.WriteNote("Student returns claims via a Presentation Submission")

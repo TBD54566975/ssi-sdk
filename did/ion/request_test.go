@@ -3,16 +3,16 @@ package ion
 import (
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/stretchr/testify/assert"
 )
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L7
 func TestCreateRequest(t *testing.T) {
-	var recoveryKey crypto.PublicKeyJWK
+	var recoveryKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	var updateKey crypto.PublicKeyJWK
+	var updateKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
 
 	var publicKey PublicKey
@@ -39,13 +39,13 @@ func TestCreateRequest(t *testing.T) {
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L32
 func TestUpdateRequest(t *testing.T) {
-	var updateKey crypto.PublicKeyJWK
+	var updateKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k1public.json", &updateKey)
 
-	var updatePrivateKey crypto.PrivateKeyJWK
+	var updatePrivateKey jwx.PrivateKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k1private.json", &updatePrivateKey)
 
-	var nextUpdateKey crypto.PublicKeyJWK
+	var nextUpdateKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k2public.json", &nextUpdateKey)
 
 	var publicKey PublicKey
@@ -87,16 +87,16 @@ func TestRecoverRequest(t *testing.T) {
 
 	document := Document{PublicKeys: []PublicKey{publicKey}, Services: []Service{service}}
 
-	var recoveryKey crypto.PublicKeyJWK
+	var recoveryKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	var recoveryPrivateKey crypto.PrivateKeyJWK
+	var recoveryPrivateKey jwx.PrivateKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k1private.json", &recoveryPrivateKey)
 
-	var nextRecoveryKey crypto.PublicKeyJWK
+	var nextRecoveryKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k2public.json", &nextRecoveryKey)
 
-	var nextUpdateKey crypto.PublicKeyJWK
+	var nextUpdateKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k3public.json", &nextUpdateKey)
 
 	signer, err := NewBTCSignerVerifier(recoveryPrivateKey)
@@ -118,10 +118,10 @@ func TestRecoverRequest(t *testing.T) {
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L102
 func TestDeactivateRequest(t *testing.T) {
-	var recoveryKey crypto.PublicKeyJWK
+	var recoveryKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	var recoveryPrivateKey crypto.PrivateKeyJWK
+	var recoveryPrivateKey jwx.PrivateKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k1private.json", &recoveryPrivateKey)
 
 	signer, err := NewBTCSignerVerifier(recoveryPrivateKey)

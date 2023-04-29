@@ -3,9 +3,9 @@ package ion
 import (
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/pkg/errors"
 )
@@ -20,7 +20,7 @@ type InitialState struct {
 // CreateLongFormDID generates a long form DID URI representation from a document, recovery, and update keys,
 // intended to be the initial state of a DID Document. The method follows the guidelines in the spec:
 // https://identity.foundation/sidetree/spec/#long-form-did-uris
-func CreateLongFormDID(recoveryKey, updateKey crypto.PublicKeyJWK, document Document) (string, error) {
+func CreateLongFormDID(recoveryKey, updateKey jwx.PublicKeyJWK, document Document) (string, error) {
 	createRequest, err := NewCreateRequest(recoveryKey, updateKey, document)
 	if err != nil {
 		return "", err

@@ -3,7 +3,7 @@ package credential
 import (
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/stretchr/testify/assert"
 )
@@ -36,12 +36,12 @@ func TestCredentialsFromInterface(t *testing.T) {
 	t.Run("Data Integrity Cred", func(tt *testing.T) {
 		knownJWK := cryptosuite.JSONWebKey2020{
 			ID: "did:example:123#key-0",
-			PublicKeyJWK: crypto.PublicKeyJWK{
+			PublicKeyJWK: jwx.PublicKeyJWK{
 				KTY: "OKP",
 				CRV: "Ed25519",
 				X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
 			},
-			PrivateKeyJWK: crypto.PrivateKeyJWK{
+			PrivateKeyJWK: jwx.PrivateKeyJWK{
 				KTY: "OKP",
 				CRV: "Ed25519",
 				X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
@@ -70,14 +70,14 @@ func TestCredentialsFromInterface(t *testing.T) {
 	})
 
 	t.Run("JWT Cred", func(tt *testing.T) {
-		knownJWK := crypto.PrivateKeyJWK{
+		knownJWK := jwx.PrivateKeyJWK{
 			KTY: "OKP",
 			CRV: "Ed25519",
 			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
 			D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 		}
 
-		signer, err := crypto.NewJWTSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
+		signer, err := jwx.NewJWTSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
 		assert.NoError(tt, err)
 
 		testCred := getTestCredential()

@@ -1,10 +1,11 @@
-package crypto
+package jwx
 
 import (
 	"crypto"
 	"fmt"
 	"time"
 
+	crypto2 "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -286,7 +287,7 @@ func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.Si
 
 	if kty == jwa.EC {
 		switch curve {
-		case jwa.EllipticCurveAlgorithm(SECP256k1):
+		case jwa.EllipticCurveAlgorithm(crypto2.SECP256k1):
 			return jwa.ES256K, nil
 		case jwa.P256:
 			return jwa.ES256, nil

@@ -3,7 +3,7 @@ package exchange
 import (
 	"fmt"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwt"
@@ -64,7 +64,7 @@ func BuildPresentationRequest(signer any, pt PresentationRequestType, def Presen
 	}
 	switch pt {
 	case JWTRequest:
-		jwtSigner, ok := signer.(crypto.JWTSigner)
+		jwtSigner, ok := signer.(jwx.JWTSigner)
 		if !ok {
 			return nil, errors.New("signer is not a JWTSigner")
 		}
@@ -75,7 +75,7 @@ func BuildPresentationRequest(signer any, pt PresentationRequestType, def Presen
 }
 
 // BuildJWTPresentationRequest builds a JWT representation of a presentation request
-func BuildJWTPresentationRequest(signer crypto.JWTSigner, def PresentationDefinition, target string) ([]byte, error) {
+func BuildJWTPresentationRequest(signer jwx.JWTSigner, def PresentationDefinition, target string) ([]byte, error) {
 	jwtValues := map[string]any{
 		jwt.JwtIDKey:              uuid.NewString(),
 		jwt.IssuerKey:             signer.ID,
@@ -97,7 +97,7 @@ func VerifyPresentationRequest(verifier any, pt PresentationRequestType, request
 	}
 	switch pt {
 	case JWTRequest:
-		jwtVerifier, ok := verifier.(crypto.JWTVerifier)
+		jwtVerifier, ok := verifier.(jwx.JWTVerifier)
 		if !ok {
 			return nil, fmt.Errorf("verifier<%T> is not a JWTVerifier", verifier)
 		}
@@ -109,7 +109,7 @@ func VerifyPresentationRequest(verifier any, pt PresentationRequestType, request
 
 // VerifyJWTPresentationRequest verifies the signature on a JWT-based presentation request for a given verifier
 // and then returns the parsed Presentation Definition object as a result.
-func VerifyJWTPresentationRequest(verifier crypto.JWTVerifier, request []byte) (*PresentationDefinition, error) {
+func VerifyJWTPresentationRequest(verifier jwx.JWTVerifier, request []byte) (*PresentationDefinition, error) {
 	_, parsed, err := verifier.VerifyAndParse(string(request))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not verify and parse jwt presentation request")

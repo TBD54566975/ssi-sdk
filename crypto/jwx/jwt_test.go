@@ -1,8 +1,9 @@
-package crypto
+package jwx
 
 import (
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/stretchr/testify/assert"
 )
@@ -52,34 +53,34 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 	}
 
 	tests := []struct {
-		kt KeyType
+		kt crypto.KeyType
 	}{
 		{
-			kt: Ed25519,
+			kt: crypto.Ed25519,
 		},
 		{
-			kt: SECP256k1,
+			kt: crypto.SECP256k1,
 		},
 		{
-			kt: SECP256k1ECDSA,
+			kt: crypto.SECP256k1ECDSA,
 		},
 		{
-			kt: P256,
+			kt: crypto.P256,
 		},
 		{
-			kt: P384,
+			kt: crypto.P384,
 		},
 		{
-			kt: P521,
+			kt: crypto.P521,
 		},
 		{
-			kt: RSA,
+			kt: crypto.RSA,
 		},
 	}
 	for _, test := range tests {
 		t.Run(string(test.kt), func(t *testing.T) {
 			// generate a new key based on the given key type
-			pubKey, privKey, err := GenerateKeyByKeyType(test.kt)
+			pubKey, privKey, err := crypto.GenerateKeyByKeyType(test.kt)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, privKey)
 

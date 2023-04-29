@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -17,7 +17,7 @@ import (
 // who issued it.  Building a VC means using the CredentialBuilder as part of the credentials package in the ssk-sdk.
 // VerifiableCredential is the verifiable credential model outlined in the vc-data-model spec:
 // https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#basic-concept
-func BuildExampleUniversityVC(signer crypto.JWTSigner, universityDID, recipientDID string) (credID string, cred string, err error) {
+func BuildExampleUniversityVC(signer jwx.JWTSigner, universityDID, recipientDID string) (credID string, cred string, err error) {
 	knownContext := []string{"https://www.w3.org/2018/credentials/v1",
 		"https://www.w3.org/2018/credentials/examples/v1"} // JSON-LD context statement
 	knownID := "http://example.edu/credentials/1872"

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,7 +14,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		signer, err := crypto.NewJWTSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWTSigner("test-id", "test-kid", privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
@@ -40,7 +41,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		signer, err := crypto.NewJWTSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWTSigner("test-id", "test-kid", privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
@@ -67,7 +68,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		signer, err := crypto.NewJWTSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWTSigner("test-id", "test-kid", privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()

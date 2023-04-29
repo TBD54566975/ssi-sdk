@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/mr-tron/base58"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -145,7 +146,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 				{
 					ID:   "#test-kid",
 					Type: "Ed25519VerificationKey2018",
-					PublicKeyJWK: &crypto.PublicKeyJWK{
+					PublicKeyJWK: &jwx.PublicKeyJWK{
 						KID: "bad",
 					},
 				},
@@ -261,7 +262,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 				{
 					ID:   "did:example:123#test-kid",
 					Type: "JsonWebKey2020",
-					PublicKeyJWK: &crypto.PublicKeyJWK{
+					PublicKeyJWK: &jwx.PublicKeyJWK{
 						KTY: "OKP",
 						CRV: "Ed25519",
 						X:   "VCpo2LMLhn6iWku8MKvSLg2ZAoC-nlOyPVQaO3FxVeQ",

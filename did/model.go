@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-multicodec"
 
@@ -100,7 +101,7 @@ type VerificationMethod struct {
 	Controller      string                `json:"controller" validate:"required"`
 	PublicKeyBase58 string                `json:"publicKeyBase58,omitempty"`
 	// must conform to https://datatracker.ietf.org/doc/html/rfc7517
-	PublicKeyJWK *crypto.PublicKeyJWK `json:"publicKeyJwk,omitempty" validate:"omitempty,dive"`
+	PublicKeyJWK *jwx.PublicKeyJWK `json:"publicKeyJwk,omitempty" validate:"omitempty,dive"`
 	// https://datatracker.ietf.org/doc/html/draft-multiformats-multibase-03
 	PublicKeyMultibase string `json:"publicKeyMultibase,omitempty"`
 	// for PKH DIDs - https://github.com/w3c-ccg/did-pkh/blob/90b28ad3c18d63822a8aab3c752302aa64fc9382/did-pkh-method-draft.md

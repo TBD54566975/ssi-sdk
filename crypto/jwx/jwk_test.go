@@ -1,8 +1,9 @@
-package crypto
+package jwx
 
 import (
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/assert"
@@ -11,7 +12,7 @@ import (
 func TestJWKToPrivateKeyJWK(t *testing.T) {
 	t.Run("Ed25519", func(tt *testing.T) {
 		// known private key
-		_, privateKey, err := GenerateEd25519Key()
+		_, privateKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, privateKey)
 
@@ -37,7 +38,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 2", func(tt *testing.T) {
 		// known private key
-		_, privateKey, err := GenerateDilithiumKeyPair(Dilithium2)
+		_, privateKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium2)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, privateKey)
 
@@ -57,7 +58,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 3", func(tt *testing.T) {
 		// known private key
-		_, privateKey, err := GenerateDilithiumKeyPair(Dilithium3)
+		_, privateKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium3)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, privateKey)
 
@@ -77,7 +78,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 5", func(tt *testing.T) {
 		// known private key
-		_, privateKey, err := GenerateDilithiumKeyPair(Dilithium5)
+		_, privateKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium5)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, privateKey)
 
@@ -99,7 +100,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 func TestJWKToPublicKeyJWK(t *testing.T) {
 	t.Run("Ed25519", func(tt *testing.T) {
 		// known public key
-		publicKey, _, err := GenerateEd25519Key()
+		publicKey, _, err := crypto.GenerateEd25519Key()
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, publicKey)
 
@@ -125,7 +126,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 2", func(tt *testing.T) {
 		// known private key
-		publicKey, _, err := GenerateDilithiumKeyPair(Dilithium2)
+		publicKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium2)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, publicKey)
 
@@ -145,7 +146,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 3", func(tt *testing.T) {
 		// known private key
-		publicKey, _, err := GenerateDilithiumKeyPair(Dilithium3)
+		publicKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium3)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, publicKey)
 
@@ -165,7 +166,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 5", func(tt *testing.T) {
 		// known private key
-		publicKey, _, err := GenerateDilithiumKeyPair(Dilithium5)
+		publicKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium5)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, publicKey)
 
@@ -186,7 +187,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 
 func TestJWKFromPrivateKeyJWK(t *testing.T) {
 	// known private key
-	_, privateKey, err := GenerateEd25519Key()
+	_, privateKey, err := crypto.GenerateEd25519Key()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, privateKey)
 
@@ -212,7 +213,7 @@ func TestJWKFromPrivateKeyJWK(t *testing.T) {
 
 func TestJWKFromPublicKeyJWK(t *testing.T) {
 	// known public key
-	publicKey, _, err := GenerateEd25519Key()
+	publicKey, _, err := crypto.GenerateEd25519Key()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, publicKey)
 
@@ -238,7 +239,7 @@ func TestJWKFromPublicKeyJWK(t *testing.T) {
 
 func TestPublicKeyToJWK(t *testing.T) {
 	t.Run("RSA", func(tt *testing.T) {
-		pubKey, _, err := GenerateRSA2048Key()
+		pubKey, _, err := crypto.GenerateRSA2048Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToJWK(pubKey)
@@ -253,7 +254,7 @@ func TestPublicKeyToJWK(t *testing.T) {
 	})
 
 	t.Run("Ed25519", func(tt *testing.T) {
-		pubKey, _, err := GenerateEd25519Key()
+		pubKey, _, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToJWK(pubKey)
@@ -268,7 +269,7 @@ func TestPublicKeyToJWK(t *testing.T) {
 	})
 
 	t.Run("X25519", func(tt *testing.T) {
-		pubKey, _, err := GenerateX25519Key()
+		pubKey, _, err := crypto.GenerateX25519Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToJWK(pubKey)
@@ -283,7 +284,7 @@ func TestPublicKeyToJWK(t *testing.T) {
 	})
 
 	t.Run("secp256k1", func(tt *testing.T) {
-		pubKey, _, err := GenerateSECP256k1Key()
+		pubKey, _, err := crypto.GenerateSECP256k1Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToJWK(pubKey)
@@ -298,7 +299,7 @@ func TestPublicKeyToJWK(t *testing.T) {
 	})
 
 	t.Run("ecdsa P-256", func(tt *testing.T) {
-		pubKey, _, err := GenerateP256Key()
+		pubKey, _, err := crypto.GenerateP256Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToJWK(pubKey)
@@ -313,7 +314,7 @@ func TestPublicKeyToJWK(t *testing.T) {
 	})
 
 	t.Run("ecdsa P-384", func(tt *testing.T) {
-		pubKey, _, err := GenerateP384Key()
+		pubKey, _, err := crypto.GenerateP384Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToJWK(pubKey)
@@ -336,7 +337,7 @@ func TestPublicKeyToJWK(t *testing.T) {
 
 func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	t.Run("RSA", func(tt *testing.T) {
-		pubKey, _, err := GenerateRSA2048Key()
+		pubKey, _, err := crypto.GenerateRSA2048Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
@@ -351,7 +352,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Ed25519", func(tt *testing.T) {
-		pubKey, _, err := GenerateEd25519Key()
+		pubKey, _, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
@@ -368,7 +369,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("X25519", func(tt *testing.T) {
-		pubKey, _, err := GenerateX25519Key()
+		pubKey, _, err := crypto.GenerateX25519Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
@@ -385,7 +386,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("secp256k1", func(tt *testing.T) {
-		pubKey, _, err := GenerateSECP256k1Key()
+		pubKey, _, err := crypto.GenerateSECP256k1Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
@@ -402,7 +403,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("ecdsa P-256", func(tt *testing.T) {
-		pubKey, _, err := GenerateP256Key()
+		pubKey, _, err := crypto.GenerateP256Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
@@ -419,7 +420,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("ecdsa P-384", func(tt *testing.T) {
-		pubKey, _, err := GenerateP384Key()
+		pubKey, _, err := crypto.GenerateP384Key()
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
@@ -436,7 +437,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 2", func(tt *testing.T) {
-		pubKey, _, err := GenerateDilithiumKeyPair(Dilithium2)
+		pubKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium2)
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
@@ -453,7 +454,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 3", func(tt *testing.T) {
-		pubKey, _, err := GenerateDilithiumKeyPair(Dilithium3)
+		pubKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium3)
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
@@ -470,7 +471,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 5", func(tt *testing.T) {
-		pubKey, _, err := GenerateDilithiumKeyPair(Dilithium5)
+		pubKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium5)
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(pubKey)
@@ -495,7 +496,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 
 func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	t.Run("RSA", func(tt *testing.T) {
-		_, privKey, err := GenerateRSA2048Key()
+		_, privKey, err := crypto.GenerateRSA2048Key()
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)
@@ -505,7 +506,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Ed25519", func(tt *testing.T) {
-		_, privKey, err := GenerateEd25519Key()
+		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)
@@ -516,7 +517,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("X25519", func(tt *testing.T) {
-		_, privKey, err := GenerateX25519Key()
+		_, privKey, err := crypto.GenerateX25519Key()
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)
@@ -527,7 +528,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("secp256k1", func(tt *testing.T) {
-		_, privKey, err := GenerateSECP256k1Key()
+		_, privKey, err := crypto.GenerateSECP256k1Key()
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)
@@ -538,7 +539,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("ecdsa P-256", func(tt *testing.T) {
-		_, privKey, err := GenerateP256Key()
+		_, privKey, err := crypto.GenerateP256Key()
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)
@@ -549,7 +550,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("ecdsa P-384", func(tt *testing.T) {
-		_, privKey, err := GenerateP384Key()
+		_, privKey, err := crypto.GenerateP384Key()
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)
@@ -560,7 +561,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 2", func(tt *testing.T) {
-		_, privKey, err := GenerateDilithiumKeyPair(Dilithium2)
+		_, privKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium2)
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)
@@ -577,7 +578,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 3", func(tt *testing.T) {
-		_, privKey, err := GenerateDilithiumKeyPair(Dilithium3)
+		_, privKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium3)
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)
@@ -594,7 +595,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 5", func(tt *testing.T) {
-		_, privKey, err := GenerateDilithiumKeyPair(Dilithium5)
+		_, privKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium5)
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(privKey)

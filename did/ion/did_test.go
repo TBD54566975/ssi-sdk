@@ -3,16 +3,16 @@ package ion
 import (
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/stretchr/testify/assert"
 )
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonDid.spec.ts#L18
 func TestCreateLongFormDID(t *testing.T) {
-	var recoveryKey crypto.PublicKeyJWK
+	var recoveryKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	var updateKey crypto.PublicKeyJWK
+	var updateKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
 
 	var publicKey PublicKey
@@ -61,10 +61,10 @@ func TestCreateShortFormDID(t *testing.T) {
 }
 
 func TestGetShortFormDIDFromLongFormDID(t *testing.T) {
-	var recoveryKey crypto.PublicKeyJWK
+	var recoveryKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	var updateKey crypto.PublicKeyJWK
+	var updateKey jwx.PublicKeyJWK
 	RetrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
 
 	var publicKey PublicKey

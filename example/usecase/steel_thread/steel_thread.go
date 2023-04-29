@@ -15,6 +15,7 @@ import (
 	"embed"
 	"fmt"
 
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -27,7 +28,7 @@ import (
 
 type Entity struct {
 	didKey                did.DIDKey
-	verifier              crypto.JWTVerifier
+	verifier              jwx.JWTVerifier
 	credentialManifest    manifest.CredentialManifest
 	credentialApplication manifest.CredentialApplication
 	credentialResponse    manifest.CredentialResponse
@@ -42,7 +43,7 @@ var (
 func (t *Entity) GenerateWallet() {
 	walletDIDPrivateKey, walletDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
-	walletSigner, err := crypto.NewJWTSigner(walletDIDKey.String(), walletDIDKey.String(), walletDIDPrivateKey)
+	walletSigner, err := jwx.NewJWTSigner(walletDIDKey.String(), walletDIDKey.String(), walletDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 	walletVerifier, err := walletSigner.ToVerifier(walletSigner.ID)
 	example.HandleExampleError(err, "Failed to generate verifier")

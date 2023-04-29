@@ -1,7 +1,7 @@
 package credential
 
 import (
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jws"
@@ -14,7 +14,7 @@ const (
 
 // SignVerifiableCredentialJWS is prepared according to https://transmute-industries.github.io/vc-jws/.
 // This is currently an experimental. It's unstable and subject to change. Use at your own peril.
-func SignVerifiableCredentialJWS(signer crypto.JWTSigner, cred VerifiableCredential) ([]byte, error) {
+func SignVerifiableCredentialJWS(signer jwx.JWTSigner, cred VerifiableCredential) ([]byte, error) {
 	payload, err := json.Marshal(cred)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling credential")
@@ -64,7 +64,7 @@ func ParseVerifiableCredentialFromJWS(token string) (*jws.Message, *VerifiableCr
 // VerifyVerifiableCredentialJWS verifies the signature validity on the token and parses
 // the token in a verifiable credential.
 // This is currently an experimental. It's unstable and subject to change. Use at your own peril.
-func VerifyVerifiableCredentialJWS(verifier crypto.JWTVerifier, token string) (*jws.Message, *VerifiableCredential, error) {
+func VerifyVerifiableCredentialJWS(verifier jwx.JWTVerifier, token string) (*jws.Message, *VerifiableCredential, error) {
 	if err := verifier.VerifyJWS(token); err != nil {
 		return nil, nil, errors.Wrap(err, "verifying JWS")
 	}
