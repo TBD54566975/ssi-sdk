@@ -84,11 +84,11 @@ func (k PrivateKeyJWK) toDilithiumPrivateKey() (gocrypto.PrivateKey, error) {
 		return nil, err
 	}
 	switch k.Alg {
-	case "CRYDI2":
+	case DilithiumMode2Alg.String():
 		return dilithium.Mode2.PrivateKeyFromBytes(decodedPrivKey), nil
-	case "CRYDI3":
+	case DilithiumMode3Alg.String():
 		return dilithium.Mode3.PrivateKeyFromBytes(decodedPrivKey), nil
-	case "CRYDI5":
+	case DilithiumMode5Alg.String():
 		return dilithium.Mode5.PrivateKeyFromBytes(decodedPrivKey), nil
 	default:
 		return nil, fmt.Errorf("unsupported algorithm %s", k.Alg)
@@ -135,11 +135,11 @@ func (k PublicKeyJWK) toDilithiumPublicKey() (gocrypto.PublicKey, error) {
 		return nil, err
 	}
 	switch k.Alg {
-	case "CRYDI2":
+	case DilithiumMode2Alg.String():
 		return dilithium.Mode2.PublicKeyFromBytes(decodedPubKey), nil
-	case "CRYDI3":
+	case DilithiumMode3Alg.String():
 		return dilithium.Mode3.PublicKeyFromBytes(decodedPubKey), nil
-	case "CRYDI5":
+	case DilithiumMode5Alg.String():
 		return dilithium.Mode5.PublicKeyFromBytes(decodedPubKey), nil
 	default:
 		return nil, fmt.Errorf("unsupported algorithm %s", k.Alg)
@@ -592,14 +592,14 @@ func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK
 
 // as per https://www.ietf.org/archive/id/draft-ietf-cose-dilithium-00.html
 func jwkFromDilithiumPrivateKey(m crypto.DilithiumMode, k dilithium.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
-	var alg string
+	var alg jwa.SignatureAlgorithm
 	switch m {
 	case crypto.Dilithium2:
-		alg = "CRYDI2"
+		alg = DilithiumMode2Alg
 	case crypto.Dilithium3:
-		alg = "CRYDI3"
+		alg = DilithiumMode3Alg
 	case crypto.Dilithium5:
-		alg = "CRYDI5"
+		alg = DilithiumMode5Alg
 	}
 
 	// serialize pub and priv keys to b64url
@@ -611,7 +611,7 @@ func jwkFromDilithiumPrivateKey(m crypto.DilithiumMode, k dilithium.PrivateKey) 
 	privKeyJWK := PrivateKeyJWK{
 		KTY: "LWE",
 		X:   x,
-		Alg: alg,
+		Alg: alg.String(),
 		D:   d,
 	}
 	pubKeyJWK := privKeyJWK.ToPublicKeyJWK()
@@ -654,14 +654,14 @@ func jwkFromECDSAPublicKey(key ecdsa.PublicKey) (*PublicKeyJWK, error) {
 }
 
 func jwkFromDilithiumPublicKey(mode crypto.DilithiumMode, k dilithium.PublicKey) (*PublicKeyJWK, error) {
-	var alg string
+	var alg jwa.SignatureAlgorithm
 	switch mode {
 	case crypto.Dilithium2:
-		alg = "CRYDI2"
+		alg = DilithiumMode2Alg
 	case crypto.Dilithium3:
-		alg = "CRYDI3"
+		alg = DilithiumMode3Alg
 	case crypto.Dilithium5:
-		alg = "CRYDI5"
+		alg = DilithiumMode5Alg
 	}
 
 	// serialize pub and priv keys to b64url
@@ -670,6 +670,6 @@ func jwkFromDilithiumPublicKey(mode crypto.DilithiumMode, k dilithium.PublicKey)
 	return &PublicKeyJWK{
 		KTY: "LWE",
 		X:   x,
-		Alg: alg,
+		Alg: alg.String(),
 	}, nil
 }

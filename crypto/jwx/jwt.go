@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// JWXSigner is a struct that contains the key and algorithm used to sign JWTs and produce JWS values
+// Signer is a struct that contains the key and algorithm used to sign JWTs and produce JWS values
 type Signer struct {
 	ID string
 	jwa.SignatureAlgorithm
