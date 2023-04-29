@@ -60,7 +60,7 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(tt, err)
 
-		signer, err := jwx.NewJWTSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
 		assert.NoError(tt, err)
 
 		signed, err := SignVerifiableCredentialJWT(*signer, testCredential)
@@ -187,7 +187,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 			},
 		}
 
-		issuerSigner, err := jwx.NewJWTSigner(issuerDID.String(), issuerKID, issuerPrivKey)
+		issuerSigner, err := jwx.NewJWXSigner(issuerDID.String(), issuerKID, issuerPrivKey)
 		assert.NoError(tt, err)
 		signedVC, err := SignVerifiableCredentialJWT(*issuerSigner, testCredential)
 		assert.NoError(t, err)
@@ -202,7 +202,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		}
 
 		// sign the presentation from the subject to the issuer
-		subjectSigner, err := jwx.NewJWTSigner(subjectDID.String(), subjectKID, subjectPrivKey)
+		subjectSigner, err := jwx.NewJWXSigner(subjectDID.String(), subjectKID, subjectPrivKey)
 		assert.NoError(tt, err)
 		signed, err := SignVerifiablePresentationJWT(*subjectSigner, JWTVVPParameters{Audience: issuerDID.String()}, testPresentation)
 		assert.NoError(tt, err)
@@ -230,7 +230,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 	})
 }
 
-func getTestVectorKey0Signer(t *testing.T) jwx.JWTSigner {
+func getTestVectorKey0Signer(t *testing.T) jwx.Signer {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	knownJWK := jwx.PrivateKeyJWK{
 		KTY: "OKP",
@@ -239,7 +239,7 @@ func getTestVectorKey0Signer(t *testing.T) jwx.JWTSigner {
 		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 	}
 
-	signer, err := jwx.NewJWTSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
+	signer, err := jwx.NewJWXSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
 	assert.NoError(t, err)
 	return *signer
 }

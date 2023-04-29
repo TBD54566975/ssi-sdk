@@ -35,7 +35,7 @@ func main() {
 	expanded, err := holderDIDKey.Expand()
 	example.HandleExampleError(err, "Failed to expand DID")
 	holderKID := expanded.VerificationMethod[0].ID
-	holderSigner, err := jwx.NewJWTSigner(holderDIDKey.String(), holderKID, holderDIDPrivateKey)
+	holderSigner, err := jwx.NewJWXSigner(holderDIDKey.String(), holderKID, holderDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 
 	// Apt Verifier
@@ -44,7 +44,7 @@ func main() {
 	expanded, err = aptDIDKey.Expand()
 	example.HandleExampleError(err, "Failed to expand DID")
 	aptKID := expanded.VerificationMethod[0].ID
-	aptSigner, err := jwx.NewJWTSigner(aptDIDKey.String(), aptKID, aptDIDPrivateKey)
+	aptSigner, err := jwx.NewJWXSigner(aptDIDKey.String(), aptKID, aptDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 	aptVerifier, err := aptSigner.ToVerifier(aptSigner.ID)
 	example.HandleExampleError(err, "Failed to generate verifier")
@@ -55,7 +55,7 @@ func main() {
 	expanded, err = govtDIDKey.Expand()
 	example.HandleExampleError(err, "Failed to expand DID")
 	govKID := expanded.VerificationMethod[0].ID
-	govtSigner, err := jwx.NewJWTSigner(govtDIDKey.String(), govKID, govtDIDPrivateKey)
+	govtSigner, err := jwx.NewJWXSigner(govtDIDKey.String(), govKID, govtDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 
 	_, _ = fmt.Print("\n\nStep 1: Create new DIDs for entities\n\n")

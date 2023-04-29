@@ -157,9 +157,9 @@ func BuildPresentationSubmission(signer any, requester string, def PresentationD
 	}
 	switch et {
 	case JWTVPTarget:
-		jwtSigner, ok := signer.(jwx.JWTSigner)
+		jwtSigner, ok := signer.(jwx.Signer)
 		if !ok {
-			return nil, fmt.Errorf("signer<%T> is not a JWTSigner", signer)
+			return nil, fmt.Errorf("signer<%T> is not a JWXSigner", signer)
 		}
 		vpSubmission, err := BuildPresentationSubmissionVP(jwtSigner.ID, def, normalizedClaims)
 		if err != nil {

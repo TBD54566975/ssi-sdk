@@ -77,7 +77,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 			D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 		}
 
-		signer, err := jwx.NewJWTSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
+		signer, err := jwx.NewJWXSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
 		assert.NoError(tt, err)
 
 		testCred := getTestCredential()

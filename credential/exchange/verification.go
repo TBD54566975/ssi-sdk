@@ -50,7 +50,7 @@ func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver di
 	}
 	switch et {
 	case JWTVPTarget:
-		jwtVerifier, ok := verifier.(jwx.JWTVerifier)
+		jwtVerifier, ok := verifier.(jwx.Verifier)
 		if !ok {
 			return nil, fmt.Errorf("verifier<%T> is not a JWT verifier", verifier)
 		}

@@ -64,9 +64,9 @@ func BuildPresentationRequest(signer any, pt PresentationRequestType, def Presen
 	}
 	switch pt {
 	case JWTRequest:
-		jwtSigner, ok := signer.(jwx.JWTSigner)
+		jwtSigner, ok := signer.(jwx.Signer)
 		if !ok {
-			return nil, errors.New("signer is not a JWTSigner")
+			return nil, errors.New("signer is not a JWXSigner")
 		}
 		return BuildJWTPresentationRequest(jwtSigner, def, audience)
 	default:
@@ -75,7 +75,7 @@ func BuildPresentationRequest(signer any, pt PresentationRequestType, def Presen
 }
 
 // BuildJWTPresentationRequest builds a JWT representation of a presentation request
-func BuildJWTPresentationRequest(signer jwx.JWTSigner, def PresentationDefinition, target string) ([]byte, error) {
+func BuildJWTPresentationRequest(signer jwx.Signer, def PresentationDefinition, target string) ([]byte, error) {
 	jwtValues := map[string]any{
 		jwt.JwtIDKey:              uuid.NewString(),
 		jwt.IssuerKey:             signer.ID,
@@ -97,9 +97,9 @@ func VerifyPresentationRequest(verifier any, pt PresentationRequestType, request
 	}
 	switch pt {
 	case JWTRequest:
-		jwtVerifier, ok := verifier.(jwx.JWTVerifier)
+		jwtVerifier, ok := verifier.(jwx.Verifier)
 		if !ok {
-			return nil, fmt.Errorf("verifier<%T> is not a JWTVerifier", verifier)
+			return nil, fmt.Errorf("verifier<%T> is not a Verifier", verifier)
 		}
 		return VerifyJWTPresentationRequest(jwtVerifier, request)
 	default:
@@ -109,7 +109,7 @@ func VerifyPresentationRequest(verifier any, pt PresentationRequestType, request
 
 // VerifyJWTPresentationRequest verifies the signature on a JWT-based presentation request for a given verifier
 // and then returns the parsed Presentation Definition object as a result.
-func VerifyJWTPresentationRequest(verifier jwx.JWTVerifier, request []byte) (*PresentationDefinition, error) {
+func VerifyJWTPresentationRequest(verifier jwx.Verifier, request []byte) (*PresentationDefinition, error) {
 	_, parsed, err := verifier.VerifyAndParse(string(request))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not verify and parse jwt presentation request")

@@ -14,7 +14,7 @@ import (
 // 1. That the VP is valid
 // 2. All VCs in the VP are valid
 // 3. That the VC was issued by a trusted entity (implied by the presentation, according to the Presentation Definition)
-func ValidateAccess(verifier jwx.JWTVerifier, resolver did.Resolver, submissionBytes []byte) error {
+func ValidateAccess(verifier jwx.Verifier, resolver did.Resolver, submissionBytes []byte) error {
 	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), verifier, resolver, string(submissionBytes))
 	if err != nil {
 		return errors.Wrap(err, "failed to validate VP signature")

@@ -22,7 +22,7 @@ const (
 
 // SignVerifiableCredentialJWT is prepared according to https://w3c.github.io/vc-jwt/#version-1.1
 // which will soon be deprecated by https://w3c.github.io/vc-jwt/ see: https://github.com/TBD54566975/ssi-sdk/issues/191
-func SignVerifiableCredentialJWT(signer jwx.JWTSigner, cred VerifiableCredential) ([]byte, error) {
+func SignVerifiableCredentialJWT(signer jwx.Signer, cred VerifiableCredential) ([]byte, error) {
 	if cred.IsEmpty() {
 		return nil, errors.New("credential cannot be empty")
 	}
@@ -92,7 +92,7 @@ func SignVerifiableCredentialJWT(signer jwx.JWTSigner, cred VerifiableCredential
 // the token in a verifiable credential.
 // TODO(gabe) modify this to add additional verification steps such as credential status, expiration, etc.
 // related to https://github.com/TBD54566975/ssi-service/issues/122
-func VerifyVerifiableCredentialJWT(verifier jwx.JWTVerifier, token string) (jws.Headers, jwt.Token, *VerifiableCredential, error) {
+func VerifyVerifiableCredentialJWT(verifier jwx.Verifier, token string) (jws.Headers, jwt.Token, *VerifiableCredential, error) {
 	if err := verifier.Verify(token); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "verifying JWT")
 	}
@@ -110,7 +110,7 @@ func ParseVerifiableCredentialFromJWT(token string) (jws.Headers, jwt.Token, *Ve
 	}
 
 	// get headers
-	headers, err := jwx.GetJWTHeaders([]byte(token))
+	headers, err := jwx.GetJWSHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
@@ -187,7 +187,7 @@ type JWTVVPParameters struct {
 
 // SignVerifiablePresentationJWT transforms a VP into a VP JWT and signs it
 // According to https://w3c.github.io/vc-jwt/#version-1.1
-func SignVerifiablePresentationJWT(signer jwx.JWTSigner, parameters JWTVVPParameters, presentation VerifiablePresentation) ([]byte, error) {
+func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameters, presentation VerifiablePresentation) ([]byte, error) {
 	if parameters.Audience == "" {
 		return nil, errors.New("audience cannot be empty")
 	}
@@ -253,7 +253,7 @@ func SignVerifiablePresentationJWT(signer jwx.JWTSigner, parameters JWTVVPParame
 // After decoding the signature of each credential in the presentation is verified. If there are any issues during
 // decoding or signature validation, an error is returned. As a result, a successfully decoded VerifiablePresentation
 // object is returned.
-func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.JWTVerifier, resolver did.Resolver, token string) (jws.Headers, jwt.Token, *VerifiablePresentation, error) {
+func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier, resolver did.Resolver, token string) (jws.Headers, jwt.Token, *VerifiablePresentation, error) {
 	if resolver == nil {
 		return nil, nil, nil, errors.New("resolver cannot be empty")
 	}
@@ -320,7 +320,7 @@ func ParseVerifiablePresentationFromJWT(token string) (jws.Headers, jwt.Token, *
 	}
 
 	// get headers
-	headers, err := jwx.GetJWTHeaders([]byte(token))
+	headers, err := jwx.GetJWSHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}

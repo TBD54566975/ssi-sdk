@@ -16,6 +16,7 @@ import (
 	"github.com/cloudflare/circl/sign/dilithium/mode5"
 	secp256k1 "github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/goccy/go-json"
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/x25519"
 	"github.com/pkg/errors"
@@ -293,6 +294,18 @@ func PrivateKeyToPrivateKeyJWK(key crypto.PrivateKey) (*PublicKeyJWK, *PrivateKe
 	default:
 		return nil, nil, fmt.Errorf("unsupported private key type: %T", k)
 	}
+}
+
+func GetCRVFromJWK(key jwk.Key) (string, error) {
+	maybeCrv, hasCrv := key.Get("crv")
+	if hasCrv {
+		crv, crvStr := maybeCrv.(jwa.EllipticCurveAlgorithm)
+		if !crvStr {
+			return "", fmt.Errorf("could not get crv value: %+v", maybeCrv)
+		}
+		return crv.String(), nil
+	}
+	return "", nil
 }
 
 // jwkKeyFromRSAPrivateKey converts a RSA private key to a JWK

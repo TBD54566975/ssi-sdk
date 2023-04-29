@@ -14,7 +14,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		signer, err := jwx.NewJWTSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
@@ -41,7 +41,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		signer, err := jwx.NewJWTSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
@@ -68,7 +68,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		signer, err := jwx.NewJWTSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()

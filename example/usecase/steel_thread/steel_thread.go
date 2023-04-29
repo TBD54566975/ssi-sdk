@@ -28,7 +28,7 @@ import (
 
 type Entity struct {
 	didKey                did.DIDKey
-	verifier              jwx.JWTVerifier
+	verifier              jwx.Verifier
 	credentialManifest    manifest.CredentialManifest
 	credentialApplication manifest.CredentialApplication
 	credentialResponse    manifest.CredentialResponse
@@ -43,7 +43,7 @@ var (
 func (t *Entity) GenerateWallet() {
 	walletDIDPrivateKey, walletDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
-	walletSigner, err := jwx.NewJWTSigner(walletDIDKey.String(), walletDIDKey.String(), walletDIDPrivateKey)
+	walletSigner, err := jwx.NewJWXSigner(walletDIDKey.String(), walletDIDKey.String(), walletDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 	walletVerifier, err := walletSigner.ToVerifier(walletSigner.ID)
 	example.HandleExampleError(err, "Failed to generate verifier")

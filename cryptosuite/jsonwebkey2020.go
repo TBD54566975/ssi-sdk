@@ -172,7 +172,7 @@ func GenerateP384JSONWebKey2020() (*JSONWebKey2020, error) {
 // Given a signature algorithm (e.g. ES256, PS384) and a JSON Web Key (private key), the signer is able to accept
 // a message and provide a valid JSON Web Signature (JWS) value as a result.
 type JSONWebKeySigner struct {
-	jwx.JWTSigner
+	jwx.Signer
 	purpose ProofPurpose
 	format  PayloadFormat
 }
@@ -219,13 +219,13 @@ func (s *JSONWebKeySigner) GetPayloadFormat() PayloadFormat {
 }
 
 func NewJSONWebKeySigner(id, kid string, key jwx.PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
-	signer, err := jwx.NewJWTSignerFromJWK(id, kid, key)
+	signer, err := jwx.NewJWXSignerFromJWK(id, kid, key)
 	if err != nil {
 		return nil, err
 	}
 	return &JSONWebKeySigner{
-		JWTSigner: *signer,
-		purpose:   purpose,
+		Signer:  *signer,
+		purpose: purpose,
 	}, nil
 }
 
@@ -233,7 +233,7 @@ func NewJSONWebKeySigner(id, kid string, key jwx.PrivateKeyJWK, purpose ProofPur
 // Given a signature algorithm (e.g. ES256, PS384) and a JSON Web Key (pub key), the verifier is able to accept
 // a message and signature, and provide a result to whether the signature is valid.
 type JSONWebKeyVerifier struct {
-	jwx.JWTVerifier
+	jwx.Verifier
 }
 
 // Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
@@ -248,12 +248,12 @@ func (v JSONWebKeyVerifier) GetKeyID() string {
 }
 
 func NewJSONWebKeyVerifier(id string, key jwx.PublicKeyJWK) (*JSONWebKeyVerifier, error) {
-	verifier, err := jwx.NewJWTVerifierFromJWK(id, key)
+	verifier, err := jwx.NewJWXVerifierFromJWK(id, key)
 	if err != nil {
 		return nil, err
 	}
 	return &JSONWebKeyVerifier{
-		JWTVerifier: *verifier,
+		Verifier: *verifier,
 	}, nil
 }
 

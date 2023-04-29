@@ -17,7 +17,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 	t.Run("Empty submission", func(tt *testing.T) {
 		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
 		assert.NoError(tt, err)
-		verifier := jwx.JWTVerifier{}
+		verifier := jwx.Verifier{}
 		_, err = VerifyPresentationSubmission(context.Background(), verifier, resolver, "badEmbedTarget", PresentationDefinition{}, nil)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "submission cannot be empty")
@@ -26,7 +26,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 	t.Run("Empty presentation definition", func(tt *testing.T) {
 		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
 		assert.NoError(tt, err)
-		verifier := jwx.JWTVerifier{}
+		verifier := jwx.Verifier{}
 		_, err = VerifyPresentationSubmission(context.Background(), verifier, resolver, "badEmbedTarget", PresentationDefinition{}, []byte{0, 1, 2, 3})
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "presentation definition cannot be empty")
@@ -35,7 +35,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 	t.Run("Unsupported embed target", func(tt *testing.T) {
 		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
 		assert.NoError(tt, err)
-		verifier := jwx.JWTVerifier{}
+		verifier := jwx.Verifier{}
 		_, err = VerifyPresentationSubmission(context.Background(), verifier, resolver, "badEmbedTarget", PresentationDefinition{ID: "1"}, []byte{0, 1, 2, 3})
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported presentation submission embed target type")

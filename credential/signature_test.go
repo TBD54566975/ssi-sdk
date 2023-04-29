@@ -99,7 +99,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWTSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
@@ -141,7 +141,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(tt, err)
-		signer, err := jwx.NewJWTSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
@@ -159,7 +159,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWTSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
@@ -174,7 +174,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 
 		privKey, didKey, err := did.GenerateDIDKey(crypto.Ed25519)
 		assert.NoError(tt, err)
-		signer, err := jwx.NewJWTSigner(didKey.String(), "missing", privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), "missing", privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
@@ -192,7 +192,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWTSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
@@ -214,7 +214,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWTSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
@@ -224,7 +224,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 }
 
-func getTestJWTCredential(t *testing.T, signer jwx.JWTSigner) string {
+func getTestJWTCredential(t *testing.T, signer jwx.Signer) string {
 	cred := VerifiableCredential{
 		ID:           uuid.NewString(),
 		Context:      []any{"https://www.w3.org/2018/credentials/v1"},

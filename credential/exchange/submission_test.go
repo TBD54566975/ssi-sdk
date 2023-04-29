@@ -20,7 +20,7 @@ import (
 
 func TestBuildPresentationSubmission(t *testing.T) {
 	t.Run("Unsupported embed target", func(tt *testing.T) {
-		_, err := BuildPresentationSubmission(jwx.JWTSigner{}, "requester", PresentationDefinition{}, nil, "badEmbedTarget")
+		_, err := BuildPresentationSubmission(jwx.Signer{}, "requester", PresentationDefinition{}, nil, "badEmbedTarget")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported presentation submission embed target type")
 	})
@@ -846,7 +846,7 @@ func getGenericTestClaim() map[string]any {
 	}
 }
 
-func getJWKSignerVerifier(t *testing.T) (*jwx.JWTSigner, *jwx.JWTVerifier) {
+func getJWKSignerVerifier(t *testing.T) (*jwx.Signer, *jwx.Verifier) {
 	privKey, didKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	require.NoError(t, err)
 
@@ -856,7 +856,7 @@ func getJWKSignerVerifier(t *testing.T) (*jwx.JWTSigner, *jwx.JWTVerifier) {
 	expanded, err := didKey.Expand()
 	require.NoError(t, err)
 	kid := expanded.VerificationMethod[0].ID
-	signer, err := jwx.NewJWTSignerFromKey(didKey.String(), kid, key)
+	signer, err := jwx.NewJWXSignerFromKey(didKey.String(), kid, key)
 	require.NoError(t, err)
 
 	verifier, err := signer.ToVerifier(didKey.String())

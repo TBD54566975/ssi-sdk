@@ -82,7 +82,7 @@ func VerifyJWTCredential(cred string, resolver did.Resolver) (bool, error) {
 	}
 
 	// construct a verifier
-	credVerifier, err := jwx.NewJWTVerifier(issuerDID.ID, issuerKey)
+	credVerifier, err := jwx.NewJWXVerifier(issuerDID.ID, issuerKey)
 	if err != nil {
 		return false, errors.Wrapf(err, "error constructing verifier for credential<%s>", token.JwtID())
 	}
