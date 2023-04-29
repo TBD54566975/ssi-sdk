@@ -10,8 +10,6 @@ import (
 )
 
 func TestJWSDilithium(t *testing.T) {
-	t.Skip("dependent on the merge of https://github.com/lestrrat-go/jwx/pull/911")
-
 	tests := []struct {
 		m   crypto.DilithiumMode
 		alg jwa.SignatureAlgorithm
@@ -45,7 +43,7 @@ func TestJWSDilithium(t *testing.T) {
 			verified, err := jws.Verify(signed, jws.WithKey(test.alg, pubKey))
 			assert.NoError(tt, err)
 
-			assert.NotEqualf(tt, string(verified) != payload, `got invalid payload: %s`, string(verified))
+			assert.Equal(tt, string(verified), payload)
 		})
 	}
 }
