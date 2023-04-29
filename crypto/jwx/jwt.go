@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
 	crypto2 "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -189,7 +190,7 @@ func (*JWTSigner) Parse(token string) (jws.Headers, jwt.Token, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not parse JWT")
 	}
-	headers, err := getJWTHeaders([]byte(token))
+	headers, err := credential.GetJWTHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
@@ -219,7 +220,7 @@ func (*JWTVerifier) Parse(token string) (jws.Headers, jwt.Token, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not parse JWT")
 	}
-	headers, err := getJWTHeaders([]byte(token))
+	headers, err := credential.GetJWTHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
@@ -245,7 +246,7 @@ func (v *JWTVerifier) VerifyAndParse(token string) (jws.Headers, jwt.Token, erro
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not parse and verify JWT")
 	}
-	headers, err := getJWTHeaders([]byte(token))
+	headers, err := credential.GetJWTHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
@@ -322,15 +323,4 @@ func GetSupportedJWTSigningVerificationAlgorithms() []jwa.SignatureAlgorithm {
 		jwa.ES512,
 		jwa.EdDSA,
 	}
-}
-
-func getJWTHeaders(token []byte) (jws.Headers, error) {
-	msg, err := jws.Parse(token)
-	if err != nil {
-		return nil, err
-	}
-	if len(msg.Signatures()) != 1 {
-		return nil, fmt.Errorf("expected 1 signature, got %d", len(msg.Signatures()))
-	}
-	return msg.Signatures()[0].ProtectedHeaders(), nil
 }
