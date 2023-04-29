@@ -110,7 +110,7 @@ func ParseVerifiableCredentialFromJWT(token string) (jws.Headers, jwt.Token, *Ve
 	}
 
 	// get headers
-	headers, err := GetJWTHeaders([]byte(token))
+	headers, err := jwx.GetJWTHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
@@ -320,7 +320,7 @@ func ParseVerifiablePresentationFromJWT(token string) (jws.Headers, jwt.Token, *
 	}
 
 	// get headers
-	headers, err := GetJWTHeaders([]byte(token))
+	headers, err := jwx.GetJWTHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
@@ -343,16 +343,4 @@ func ParseVerifiablePresentationFromJWT(token string) (jws.Headers, jwt.Token, *
 	}
 
 	return headers, parsed, &pres, nil
-}
-
-// GetJWTHeaders returns the headers of a JWT token, assuming there is only one signature.
-func GetJWTHeaders(token []byte) (jws.Headers, error) {
-	msg, err := jws.Parse(token)
-	if err != nil {
-		return nil, err
-	}
-	if len(msg.Signatures()) != 1 {
-		return nil, fmt.Errorf("expected 1 signature, got %d", len(msg.Signatures()))
-	}
-	return msg.Signatures()[0].ProtectedHeaders(), nil
 }

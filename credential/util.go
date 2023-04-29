@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/lestrrat-go/jwx/v2/jwt"
@@ -115,7 +116,7 @@ func VCJWTJSONToVC(vcJWTJSON []byte) (jws.Headers, jwt.Token, *VerifiableCredent
 	}
 
 	// get headers
-	headers, err := GetJWTHeaders(vcJWTJSON)
+	headers, err := jwx.GetJWTHeaders(vcJWTJSON)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}

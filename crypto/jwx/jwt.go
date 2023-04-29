@@ -1,11 +1,10 @@
 package jwx
 
 import (
-	"crypto"
+	gocrypto "crypto"
 	"fmt"
 	"time"
 
-	"github.com/TBD54566975/ssi-sdk/credential"
 	crypto2 "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -22,7 +21,7 @@ type JWTSigner struct {
 	jwk.Key
 }
 
-func NewJWTSigner(id, kid string, key crypto.PrivateKey) (*JWTSigner, error) {
+func NewJWTSigner(id, kid string, key gocrypto.PrivateKey) (*JWTSigner, error) {
 	privateKeyJWK, err := PrivateKeyToJWK(key)
 	if err != nil {
 		return nil, err
@@ -70,7 +69,7 @@ type JWTVerifier struct {
 	jwk.Key
 }
 
-func NewJWTVerifier(id string, key crypto.PublicKey) (*JWTVerifier, error) {
+func NewJWTVerifier(id string, key gocrypto.PublicKey) (*JWTVerifier, error) {
 	privateKeyJWK, err := PublicKeyToJWK(key)
 	if err != nil {
 		return nil, err
@@ -190,7 +189,7 @@ func (*JWTSigner) Parse(token string) (jws.Headers, jwt.Token, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not parse JWT")
 	}
-	headers, err := credential.GetJWTHeaders([]byte(token))
+	headers, err := GetJWTHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
@@ -220,7 +219,7 @@ func (*JWTVerifier) Parse(token string) (jws.Headers, jwt.Token, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not parse JWT")
 	}
-	headers, err := credential.GetJWTHeaders([]byte(token))
+	headers, err := GetJWTHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
@@ -246,7 +245,7 @@ func (v *JWTVerifier) VerifyAndParse(token string) (jws.Headers, jwt.Token, erro
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not parse and verify JWT")
 	}
-	headers, err := credential.GetJWTHeaders([]byte(token))
+	headers, err := GetJWTHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
@@ -323,4 +322,16 @@ func GetSupportedJWTSigningVerificationAlgorithms() []jwa.SignatureAlgorithm {
 		jwa.ES512,
 		jwa.EdDSA,
 	}
+}
+
+// GetJWTHeaders returns the headers of a JWT token, assuming there is only one signature.
+func GetJWTHeaders(token []byte) (jws.Headers, error) {
+	msg, err := jws.Parse(token)
+	if err != nil {
+		return nil, err
+	}
+	if len(msg.Signatures()) != 1 {
+		return nil, fmt.Errorf("expected 1 signature, got %d", len(msg.Signatures()))
+	}
+	return msg.Signatures()[0].ProtectedHeaders(), nil
 }
