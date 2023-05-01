@@ -80,6 +80,12 @@ func (k PrivateKeyJWK) ToPrivateKey() (gocrypto.PrivateKey, error) {
 
 // complies with https://www.ietf.org/id/draft-ietf-cose-dilithium-00.html#name-crydi-key-representations
 func (k PrivateKeyJWK) toDilithiumPrivateKey() (gocrypto.PrivateKey, error) {
+	if k.D == "" {
+		return nil, fmt.Errorf("missing private key D")
+	}
+	if k.X == "" {
+		return nil, fmt.Errorf("missing public key X")
+	}
 	decodedPrivKey, err := base64.RawURLEncoding.DecodeString(k.D)
 	if err != nil {
 		return nil, err
@@ -131,9 +137,12 @@ func (k PublicKeyJWK) ToPublicKey() (gocrypto.PublicKey, error) {
 }
 
 func (k PublicKeyJWK) toDilithiumPublicKey() (gocrypto.PublicKey, error) {
+	if k.X == "" {
+		return nil, fmt.Errorf("missing public key X")
+	}
 	decodedPubKey, err := base64.RawURLEncoding.DecodeString(k.X)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "decoding public key")
 	}
 	switch k.Alg {
 	case DilithiumMode2Alg.String():

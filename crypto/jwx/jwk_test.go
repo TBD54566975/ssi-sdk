@@ -60,7 +60,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 
 		assert.Equal(tt, DilithiumKTY, privKeyJWK.KTY)
-		assert.Equal(tt, DilithiumMode2Alg, privKeyJWK.Alg)
+		assert.EqualValues(tt, DilithiumMode2Alg, privKeyJWK.Alg)
 
 		// convert back
 		gotPrivKey, err := privKeyJWK.ToPrivateKey()
@@ -80,7 +80,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 
 		assert.Equal(tt, DilithiumKTY, privKeyJWK.KTY)
-		assert.Equal(tt, DilithiumMode3Alg, privKeyJWK.Alg)
+		assert.EqualValues(tt, DilithiumMode3Alg, privKeyJWK.Alg)
 
 		// convert back
 		gotPrivKey, err := privKeyJWK.ToPrivateKey()
@@ -100,7 +100,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 
 		assert.Equal(tt, DilithiumKTY, privKeyJWK.KTY)
-		assert.Equal(tt, DilithiumMode5Alg, privKeyJWK.Alg)
+		assert.EqualValues(tt, DilithiumMode5Alg, privKeyJWK.Alg)
 
 		// convert back
 		gotPrivKey, err := privKeyJWK.ToPrivateKey()
@@ -148,7 +148,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 
 		assert.Equal(tt, DilithiumKTY, pubKeyJWK.KTY)
-		assert.Equal(tt, DilithiumMode2Alg, pubKeyJWK.Alg)
+		assert.EqualValues(tt, DilithiumMode2Alg, pubKeyJWK.Alg)
 
 		// convert back
 		gotPubKey, err := pubKeyJWK.ToPublicKey()
@@ -168,7 +168,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 
 		assert.Equal(tt, DilithiumKTY, pubKeyJWK.KTY)
-		assert.Equal(tt, DilithiumMode3Alg, pubKeyJWK.Alg)
+		assert.EqualValues(tt, DilithiumMode3Alg, pubKeyJWK.Alg)
 
 		// convert back
 		gotPubKey, err := pubKeyJWK.ToPublicKey()
@@ -188,7 +188,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 
 		assert.Equal(tt, DilithiumKTY, pubKeyJWK.KTY)
-		assert.Equal(tt, DilithiumMode5Alg, pubKeyJWK.Alg)
+		assert.EqualValues(tt, DilithiumMode5Alg, pubKeyJWK.Alg)
 
 		// convert back
 		gotPubKey, err := pubKeyJWK.ToPublicKey()
@@ -457,13 +457,13 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, DilithiumKTY, jwk.KTY)
-		assert.Equal(tt, DilithiumMode2Alg, jwk.Alg)
+		assert.EqualValues(tt, DilithiumMode2Alg, jwk.Alg)
 
 		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk2)
 		assert.Equal(tt, DilithiumKTY, jwk2.KTY)
-		assert.Equal(tt, DilithiumMode2Alg, jwk2.Alg)
+		assert.EqualValues(tt, DilithiumMode2Alg, jwk2.Alg)
 	})
 
 	t.Run("Dilithium 3", func(tt *testing.T) {
@@ -474,13 +474,13 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, DilithiumKTY, jwk.KTY)
-		assert.Equal(tt, DilithiumMode3Alg, jwk.Alg)
+		assert.EqualValues(tt, DilithiumMode3Alg, jwk.Alg)
 
 		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk2)
 		assert.Equal(tt, DilithiumKTY, jwk2.KTY)
-		assert.Equal(tt, DilithiumMode3Alg, jwk2.Alg)
+		assert.EqualValues(tt, DilithiumMode3Alg, jwk2.Alg)
 	})
 
 	t.Run("Dilithium 5", func(tt *testing.T) {
@@ -491,13 +491,13 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, DilithiumKTY, jwk.KTY)
-		assert.Equal(tt, DilithiumMode5Alg, jwk.Alg)
+		assert.EqualValues(tt, DilithiumMode5Alg, jwk.Alg)
 
 		jwk2, err := PublicKeyToPublicKeyJWK(&pubKey)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk2)
 		assert.Equal(tt, DilithiumKTY, jwk2.KTY)
-		assert.Equal(tt, DilithiumMode5Alg, jwk2.Alg)
+		assert.EqualValues(tt, DilithiumMode5Alg, jwk2.Alg)
 	})
 
 	t.Run("unsupported", func(tt *testing.T) {
@@ -581,13 +581,13 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, DilithiumKTY, jwk.KTY)
-		assert.Equal(tt, DilithiumMode2Alg, jwk.Alg)
+		assert.EqualValues(tt, DilithiumMode2Alg, jwk.Alg)
 
 		_, jwk2, err := PrivateKeyToPrivateKeyJWK(&privKey)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk2)
 		assert.Equal(tt, DilithiumKTY, jwk2.KTY)
-		assert.Equal(tt, DilithiumMode2Alg, jwk2.Alg)
+		assert.EqualValues(tt, DilithiumMode2Alg, jwk2.Alg)
 	})
 
 	t.Run("Dilithium 3", func(tt *testing.T) {
@@ -598,13 +598,13 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, DilithiumKTY, jwk.KTY)
-		assert.Equal(tt, DilithiumMode3Alg, jwk.Alg)
+		assert.EqualValues(tt, DilithiumMode3Alg, jwk.Alg)
 
 		_, jwk2, err := PrivateKeyToPrivateKeyJWK(&privKey)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk2)
 		assert.Equal(tt, DilithiumKTY, jwk2.KTY)
-		assert.Equal(tt, DilithiumMode3Alg, jwk2.Alg)
+		assert.EqualValues(tt, DilithiumMode3Alg, jwk2.Alg)
 	})
 
 	t.Run("Dilithium 5", func(tt *testing.T) {
@@ -615,13 +615,13 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, DilithiumKTY, jwk.KTY)
-		assert.Equal(tt, DilithiumMode5Alg, jwk.Alg)
+		assert.EqualValues(tt, DilithiumMode5Alg, jwk.Alg)
 
 		_, jwk2, err := PrivateKeyToPrivateKeyJWK(&privKey)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk2)
 		assert.Equal(tt, DilithiumKTY, jwk2.KTY)
-		assert.Equal(tt, DilithiumMode5Alg, jwk2.Alg)
+		assert.EqualValues(tt, DilithiumMode5Alg, jwk2.Alg)
 	})
 
 	t.Run("unsupported", func(tt *testing.T) {
@@ -638,7 +638,7 @@ func TestDilithiumVectors(t *testing.T) {
 		retrieveTestVectorAs(tt, dilithiumPublicJWK, &pubKeyJWK)
 		assert.NotEmpty(tt, pubKeyJWK)
 		assert.Equal(tt, DilithiumKTY, pubKeyJWK.KTY)
-		assert.Equal(tt, DilithiumMode5Alg, pubKeyJWK.Alg)
+		assert.EqualValues(tt, DilithiumMode5Alg, pubKeyJWK.Alg)
 
 		gotPubKey, err := pubKeyJWK.ToPublicKey()
 		assert.NoError(tt, err)
@@ -650,7 +650,7 @@ func TestDilithiumVectors(t *testing.T) {
 		retrieveTestVectorAs(tt, dilithiumPrivateJWK, &privKeyJWK)
 		assert.NotEmpty(tt, privKeyJWK)
 		assert.Equal(tt, DilithiumKTY, privKeyJWK.KTY)
-		assert.Equal(tt, DilithiumMode5Alg, privKeyJWK.Alg)
+		assert.EqualValues(tt, DilithiumMode5Alg, privKeyJWK.Alg)
 
 		gotPrivKey, err := privKeyJWK.ToPrivateKey()
 		assert.NoError(tt, err)

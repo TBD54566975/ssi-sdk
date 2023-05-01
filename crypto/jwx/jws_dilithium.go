@@ -8,6 +8,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jws"
 )
 
+// Registers the Dilithium Signers and Verifiers with the jwx library
 func init() {
 	jws.RegisterSigner(DilithiumMode2Alg, jws.SignerFactoryFn(NewDilithiumMode2Signer))
 	jws.RegisterVerifier(DilithiumMode2Alg, jws.VerifierFactoryFn(NewDilithiumMode2Verifier))
@@ -24,34 +25,42 @@ const (
 	DilithiumMode5Alg jwa.SignatureAlgorithm = "CRYDI5"
 )
 
+// DilithiumSignerVerifier implements the jws.Signer and jws.Verifier interfaces for use with the jwx library
 type DilithiumSignerVerifier struct {
 	m dilithium.Mode
 }
 
+// NewDilithiumMode2Signer returns a new DilithiumSignerVerifier configured for Dilithium Mode 2
 func NewDilithiumMode2Signer() (jws.Signer, error) {
 	return &DilithiumSignerVerifier{m: dilithium.Mode2}, nil
 }
 
+// NewDilithiumMode2Verifier returns a new DilithiumSignerVerifier configured for Dilithium Mode 2
 func NewDilithiumMode2Verifier() (jws.Verifier, error) {
 	return &DilithiumSignerVerifier{m: dilithium.Mode2}, nil
 }
 
+// NewDilithiumMode3Signer returns a new DilithiumSignerVerifier configured for Dilithium Mode 3
 func NewDilithiumMode3Signer() (jws.Signer, error) {
 	return &DilithiumSignerVerifier{m: dilithium.Mode3}, nil
 }
 
+// NewDilithiumMode3Verifier returns a new DilithiumSignerVerifier configured for Dilithium Mode 3
 func NewDilithiumMode3Verifier() (jws.Verifier, error) {
 	return &DilithiumSignerVerifier{m: dilithium.Mode3}, nil
 }
 
+// NewDilithiumMode5Signer returns a new DilithiumSignerVerifier configured for Dilithium Mode 5
 func NewDilithiumMode5Signer() (jws.Signer, error) {
 	return &DilithiumSignerVerifier{m: dilithium.Mode5}, nil
 }
 
+// NewDilithiumMode5Verifier returns a new DilithiumSignerVerifier configured for Dilithium Mode 5
 func NewDilithiumMode5Verifier() (jws.Verifier, error) {
 	return &DilithiumSignerVerifier{m: dilithium.Mode5}, nil
 }
 
+// Algorithm returns the jwa.SignatureAlgorithm value for the configured Dilithium mode
 func (s DilithiumSignerVerifier) Algorithm() jwa.SignatureAlgorithm {
 	switch s.m {
 	case dilithium.Mode2:
@@ -65,6 +74,7 @@ func (s DilithiumSignerVerifier) Algorithm() jwa.SignatureAlgorithm {
 	}
 }
 
+// Sign signs the payload using the provided key
 func (s DilithiumSignerVerifier) Sign(payload []byte, keyif interface{}) ([]byte, error) {
 	switch key := keyif.(type) {
 	case dilithium.PrivateKey:
@@ -74,6 +84,7 @@ func (s DilithiumSignerVerifier) Sign(payload []byte, keyif interface{}) ([]byte
 	}
 }
 
+// Verify verifies the signature against the payload using the provided key
 func (s DilithiumSignerVerifier) Verify(payload []byte, signature []byte, keyif interface{}) error {
 	switch key := keyif.(type) {
 	case dilithium.PublicKey:

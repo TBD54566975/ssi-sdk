@@ -21,6 +21,8 @@ type Signer struct {
 	jwk.Key
 }
 
+// NewJWXSigner creates a new signer from a private key to sign and produce JWS values
+// TODO(gabe) support keys not in jwk.Key https://github.com/TBD54566975/ssi-sdk/issues/365
 func NewJWXSigner(id, kid string, key gocrypto.PrivateKey) (*Signer, error) {
 	privateKeyJWK, err := PrivateKeyToJWK(key)
 	if err != nil {
@@ -29,6 +31,7 @@ func NewJWXSigner(id, kid string, key gocrypto.PrivateKey) (*Signer, error) {
 	return NewJWXSignerFromKey(id, kid, privateKeyJWK)
 }
 
+// NewJWXSignerFromJWK creates a new signer from a private key to sign and produce JWS values
 func NewJWXSignerFromJWK(id, kid string, key PrivateKeyJWK) (*Signer, error) {
 	gotJWK, alg, err := jwxSigner(id, kid, key)
 	if err != nil {
@@ -44,6 +47,7 @@ func NewJWXSignerFromJWK(id, kid string, key PrivateKeyJWK) (*Signer, error) {
 	}, nil
 }
 
+// NewJWXSignerFromKey creates a new signer from a private key to sign and produce JWS values
 func NewJWXSignerFromKey(id, kid string, key jwk.Key) (*Signer, error) {
 	gotJWK, alg, err := jwxSignerFromKey(id, kid, key)
 	if err != nil {
@@ -55,6 +59,8 @@ func NewJWXSignerFromKey(id, kid string, key jwk.Key) (*Signer, error) {
 	return &Signer{ID: id, SignatureAlgorithm: *alg, Key: gotJWK}, nil
 }
 
+// ToVerifier converts a signer to a verifier, where the passed in verifiedID is the intended ID of the verifier for
+// `aud` validation
 func (s *Signer) ToVerifier(verifierID string) (*Verifier, error) {
 	key, err := s.Key.PublicKey()
 	if err != nil {
@@ -69,6 +75,8 @@ type Verifier struct {
 	jwk.Key
 }
 
+// NewJWXVerifier creates a new verifier from a public key to verify JWTs and JWS signatures
+// TODO(gabe) support keys not in jwk.Key https://github.com/TBD54566975/ssi-sdk/issues/365
 func NewJWXVerifier(id string, key gocrypto.PublicKey) (*Verifier, error) {
 	privateKeyJWK, err := PublicKeyToJWK(key)
 	if err != nil {
@@ -77,6 +85,7 @@ func NewJWXVerifier(id string, key gocrypto.PublicKey) (*Verifier, error) {
 	return NewJWXVerifierFromKey(id, privateKeyJWK)
 }
 
+// NewJWXVerifierFromJWK creates a new verifier from a public key to verify JWTs and JWS signatures
 func NewJWXVerifierFromJWK(id string, key PublicKeyJWK) (*Verifier, error) {
 	gotJWK, alg, err := jwxVerifier(id, key)
 	if err != nil {
@@ -88,6 +97,7 @@ func NewJWXVerifierFromJWK(id string, key PublicKeyJWK) (*Verifier, error) {
 	return &Verifier{ID: id, Key: gotJWK}, nil
 }
 
+// NewJWXVerifierFromKey creates a new verifier from a public key to verify JWTs and JWS signatures
 func NewJWXVerifierFromKey(id string, key jwk.Key) (*Verifier, error) {
 	gotJWK, alg, err := jwkVerifierFromKey(id, key)
 	if err != nil {
