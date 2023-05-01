@@ -151,7 +151,7 @@ func TestExpandDIDJWK(t *testing.T) {
 		assert.NotEmpty(t, pk)
 		assert.NotEmpty(t, sk)
 
-		gotJWK, err := jwk.FromRaw(sk)
+		gotJWK, err := jwk.FromRaw(pk)
 		assert.NoError(t, err)
 
 		didJWK, err := CreateDIDJWK(gotJWK)
@@ -164,18 +164,18 @@ func TestExpandDIDJWK(t *testing.T) {
 		assert.NoError(t, doc.IsValid())
 	})
 
-	t.Run("bad DID returns error ", func(t *testing.T) {
+	t.Run("bad DID returns error", func(t *testing.T) {
 		badDID := DIDJWK("bad")
 		_, err := badDID.Expand()
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid did:jwk: bad")
+		assert.Contains(t, err.Error(), "not a did:jwk DID, invalid prefix: bad")
 	})
 
 	t.Run("DID but not a valid did:jwk", func(t *testing.T) {
-		badDID := DIDKey("did:jwk:bad")
+		badDID := DIDJWK("did:jwk:bad")
 		_, err := badDID.Expand()
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "could not parse did:key: invalid did:key: did:jwk:bad")
+		assert.Contains(t, err.Error(), "unmarshalling did:jwk")
 	})
 }
 

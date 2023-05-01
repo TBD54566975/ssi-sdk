@@ -82,7 +82,7 @@ func CreateDIDJWK(publicKeyJWK jwk.Key) (*DIDJWK, error) {
 	pubKeyJWKStr := string(pubKeyJWKBytes)
 
 	// 3. Encode string using base64url
-	encodedPubKeyJWKStr := base64.URLEncoding.EncodeToString([]byte(pubKeyJWKStr))
+	encodedPubKeyJWKStr := base64.RawURLEncoding.EncodeToString([]byte(pubKeyJWKStr))
 
 	// 4. Prepend the string with the did:jwk prefix
 	didJWK := DIDJWK(fmt.Sprintf("%s:%s", JWKPrefix, encodedPubKeyJWKStr))
@@ -92,6 +92,10 @@ func CreateDIDJWK(publicKeyJWK jwk.Key) (*DIDJWK, error) {
 // Expand turns the DID JWK into a compliant DID Document
 func (d DIDJWK) Expand() (*Document, error) {
 	id := d.String()
+
+	if !strings.HasPrefix(id, JWKPrefix) {
+		return nil, fmt.Errorf("not a did:jwk DID, invalid prefix: %s", id)
+	}
 
 	encodedJWK, err := d.Suffix()
 	if err != nil {
@@ -162,9 +166,6 @@ type JWKResolver struct{}
 var _ Resolver = (*JWKResolver)(nil)
 
 func (JWKResolver) Resolve(_ context.Context, did string, _ ...ResolutionOption) (*ResolutionResult, error) {
-	if !strings.HasPrefix(did, JWKPrefix) {
-		return nil, fmt.Errorf("not a did:jwk DID: %s", did)
-	}
 	didJWK := DIDJWK(did)
 	doc, err := didJWK.Expand()
 	if err != nil {
