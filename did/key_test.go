@@ -46,7 +46,7 @@ func TestCreateDIDKey(t *testing.T) {
 		_, _, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		_, err = CreateDIDKey(crypto.KeyType("bad"), []byte("invalid"))
+		_, err = CreateDIDKey("bad", []byte("invalid"))
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "unsupported did:key type: bad")
 	})
@@ -132,7 +132,7 @@ func TestGenerateDIDKey(t *testing.T) {
 	}
 }
 
-func TestDecode(t *testing.T) {
+func TestDecodeDIDKey(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		pk, sk, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
@@ -165,7 +165,7 @@ func TestDecode(t *testing.T) {
 	})
 }
 
-func TestExpand(t *testing.T) {
+func TestExpandDIDKey(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		pk, sk, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
@@ -197,7 +197,7 @@ func TestExpand(t *testing.T) {
 	})
 }
 
-func TestGenerateAndDecode(t *testing.T) {
+func TestGenerateAndDecodeDIDKey(t *testing.T) {
 	for _, kt := range GetSupportedDIDKeyTypes() {
 		privKey, didKey, err := GenerateDIDKey(kt)
 		assert.NotEmpty(t, privKey)
@@ -213,7 +213,7 @@ func TestGenerateAndDecode(t *testing.T) {
 	}
 }
 
-func TestGenerateAndResolve(t *testing.T) {
+func TestGenerateAndResolveDIDKey(t *testing.T) {
 	resolvers := []Resolver{KeyResolver{}, WebResolver{}, PKHResolver{}, PeerResolver{}}
 	resolver, _ := NewResolver(resolvers...)
 
