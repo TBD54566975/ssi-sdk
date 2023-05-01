@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/pkg/errors"
 )
@@ -82,7 +82,7 @@ func VerifyJWTCredential(cred string, resolver did.Resolver) (bool, error) {
 	}
 
 	// construct a verifier
-	credVerifier, err := crypto.NewJWTVerifier(issuerDID.ID, issuerKey)
+	credVerifier, err := jwx.NewJWXVerifier(issuerDID.ID, issuerKey)
 	if err != nil {
 		return false, errors.Wrapf(err, "error constructing verifier for credential<%s>", token.JwtID())
 	}

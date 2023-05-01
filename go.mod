@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/bits-and-blooms/bitset v1.7.0
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
+	github.com/cloudflare/circl v1.3.2
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/go-playground/validator/v10 v10.12.0
 	github.com/goccy/go-json v0.10.2
@@ -12,7 +13,7 @@ require (
 	github.com/gowebpki/jcs v1.0.0
 	github.com/hyperledger/aries-framework-go v0.2.0
 	github.com/jarcoal/httpmock v1.3.0
-	github.com/lestrrat-go/jwx/v2 v2.0.9
+	github.com/lestrrat-go/jwx/v2 v2.0.9-0.20230429214153-5090ec1bd2cd
 	github.com/magefile/mage v1.14.0
 	github.com/mr-tron/base58 v1.2.0
 	github.com/multiformats/go-multibase v0.2.0
@@ -31,6 +32,7 @@ require (
 )
 
 require (
+	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
@@ -51,7 +53,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/cachecontrol v0.1.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	golang.org/x/crypto v0.7.0 // indirect
+	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.1.6 // indirect

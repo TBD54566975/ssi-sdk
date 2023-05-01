@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/pkg/errors"
@@ -37,11 +38,11 @@ const (
 
 // JSONWebKey2020 complies with https://w3c-ccg.github.io/lds-jws2020/#json-web-key-2020
 type JSONWebKey2020 struct {
-	ID                   string    `json:"id,omitempty"`
-	Type                 LDKeyType `json:"type,omitempty"`
-	Controller           string    `json:"controller,omitempty"`
-	crypto.PrivateKeyJWK `json:"privateKeyJwk,omitempty"`
-	crypto.PublicKeyJWK  `json:"publicKeyJwk,omitempty"`
+	ID                string    `json:"id,omitempty"`
+	Type              LDKeyType `json:"type,omitempty"`
+	Controller        string    `json:"controller,omitempty"`
+	jwx.PrivateKeyJWK `json:"privateKeyJwk,omitempty"`
+	jwx.PublicKeyJWK  `json:"publicKeyJwk,omitempty"`
 }
 
 func (jwk *JSONWebKey2020) IsValid() error {
@@ -93,7 +94,7 @@ func GenerateJSONWebKey2020(kty KTY, crv CRV) (*JSONWebKey2020, error) {
 // JSONWebKey2020FromPrivateKey returns a JsonWebKey2020 value from a given private key, containing both JWK
 // public and private key representations of the key.
 func JSONWebKey2020FromPrivateKey(key gocrypto.PrivateKey) (*JSONWebKey2020, error) {
-	pubKeyJWK, privKeyJWK, err := crypto.PrivateKeyToPrivateKeyJWK(key)
+	pubKeyJWK, privKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(key)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +172,7 @@ func GenerateP384JSONWebKey2020() (*JSONWebKey2020, error) {
 // Given a signature algorithm (e.g. ES256, PS384) and a JSON Web Key (private key), the signer is able to accept
 // a message and provide a valid JSON Web Signature (JWS) value as a result.
 type JSONWebKeySigner struct {
-	crypto.JWTSigner
+	jwx.Signer
 	purpose ProofPurpose
 	format  PayloadFormat
 }
@@ -217,14 +218,14 @@ func (s *JSONWebKeySigner) GetPayloadFormat() PayloadFormat {
 	return s.format
 }
 
-func NewJSONWebKeySigner(id, kid string, key crypto.PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
-	signer, err := crypto.NewJWTSignerFromJWK(id, kid, key)
+func NewJSONWebKeySigner(id, kid string, key jwx.PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
+	signer, err := jwx.NewJWXSignerFromJWK(id, kid, key)
 	if err != nil {
 		return nil, err
 	}
 	return &JSONWebKeySigner{
-		JWTSigner: *signer,
-		purpose:   purpose,
+		Signer:  *signer,
+		purpose: purpose,
 	}, nil
 }
 
@@ -232,7 +233,7 @@ func NewJSONWebKeySigner(id, kid string, key crypto.PrivateKeyJWK, purpose Proof
 // Given a signature algorithm (e.g. ES256, PS384) and a JSON Web Key (pub key), the verifier is able to accept
 // a message and signature, and provide a result to whether the signature is valid.
 type JSONWebKeyVerifier struct {
-	crypto.JWTVerifier
+	jwx.Verifier
 }
 
 // Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
@@ -246,13 +247,13 @@ func (v JSONWebKeyVerifier) GetKeyID() string {
 	return v.Key.KeyID()
 }
 
-func NewJSONWebKeyVerifier(id string, key crypto.PublicKeyJWK) (*JSONWebKeyVerifier, error) {
-	verifier, err := crypto.NewJWTVerifierFromJWK(id, key)
+func NewJSONWebKeyVerifier(id string, key jwx.PublicKeyJWK) (*JSONWebKeyVerifier, error) {
+	verifier, err := jwx.NewJWXVerifierFromJWK(id, key)
 	if err != nil {
 		return nil, err
 	}
 	return &JSONWebKeyVerifier{
-		JWTVerifier: *verifier,
+		Verifier: *verifier,
 	}, nil
 }
 

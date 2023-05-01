@@ -1,15 +1,22 @@
-package crypto
+package jwx
 
 import (
-	"crypto"
+	gocrypto "crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
+	"encoding/base64"
 	"fmt"
 	"reflect"
 
-	secp256k1 "github.com/decred/dcrd/dcrec/secp256k1/v4"
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/cloudflare/circl/sign/dilithium"
+	"github.com/cloudflare/circl/sign/dilithium/mode2"
+	"github.com/cloudflare/circl/sign/dilithium/mode3"
+	"github.com/cloudflare/circl/sign/dilithium/mode5"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/goccy/go-json"
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/x25519"
 	"github.com/pkg/errors"
@@ -51,20 +58,48 @@ func (k PrivateKeyJWK) ToPublicKeyJWK() PublicKeyJWK {
 	}
 }
 
-func (k PrivateKeyJWK) ToPrivateKey() (crypto.PrivateKey, error) {
+func (k PrivateKeyJWK) ToPrivateKey() (gocrypto.PrivateKey, error) {
+	// handle Dilithium separately since it's not supported by our jwx library
+	if k.KTY == DilithiumKTY {
+		return k.toDilithiumPrivateKey()
+	}
 	gotJWK, err := JWKFromPrivateKeyJWK(k)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating JWK from private key")
 	}
-	var goKey crypto.PrivateKey
+	var goKey gocrypto.PrivateKey
 	if err = gotJWK.Raw(&goKey); err != nil {
 		return nil, errors.Wrap(err, "converting JWK to go key")
 	}
 	// dereference the ptr
 	if reflect.ValueOf(goKey).Kind() == reflect.Ptr {
-		goKey = reflect.ValueOf(goKey).Elem().Interface().(crypto.PrivateKey)
+		goKey = reflect.ValueOf(goKey).Elem().Interface().(gocrypto.PrivateKey)
 	}
 	return goKey, nil
+}
+
+// complies with https://www.ietf.org/id/draft-ietf-cose-dilithium-00.html#name-crydi-key-representations
+func (k PrivateKeyJWK) toDilithiumPrivateKey() (gocrypto.PrivateKey, error) {
+	if k.D == "" {
+		return nil, fmt.Errorf("missing private key D")
+	}
+	if k.X == "" {
+		return nil, fmt.Errorf("missing public key X")
+	}
+	decodedPrivKey, err := base64.RawURLEncoding.DecodeString(k.D)
+	if err != nil {
+		return nil, err
+	}
+	switch k.Alg {
+	case DilithiumMode2Alg.String():
+		return dilithium.Mode2.PrivateKeyFromBytes(decodedPrivKey), nil
+	case DilithiumMode3Alg.String():
+		return dilithium.Mode3.PrivateKeyFromBytes(decodedPrivKey), nil
+	case DilithiumMode5Alg.String():
+		return dilithium.Mode5.PrivateKeyFromBytes(decodedPrivKey), nil
+	default:
+		return nil, fmt.Errorf("unsupported algorithm %s", k.Alg)
+	}
 }
 
 // PublicKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
@@ -81,20 +116,44 @@ type PublicKeyJWK struct {
 	KID    string `json:"kid,omitempty"`
 }
 
-func (k PublicKeyJWK) ToPublicKey() (crypto.PublicKey, error) {
+func (k PublicKeyJWK) ToPublicKey() (gocrypto.PublicKey, error) {
+	// handle Dilithium separately since it's not supported by our jwx library
+	if k.KTY == DilithiumKTY {
+		return k.toDilithiumPublicKey()
+	}
 	gotJWK, err := JWKFromPublicKeyJWK(k)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating JWK from public key")
 	}
-	var goKey crypto.PublicKey
+	var goKey gocrypto.PublicKey
 	if err = gotJWK.Raw(&goKey); err != nil {
 		return nil, errors.Wrap(err, "converting JWK to go key")
 	}
 	// dereference the ptr
 	if reflect.ValueOf(goKey).Kind() == reflect.Ptr {
-		goKey = reflect.ValueOf(goKey).Elem().Interface().(crypto.PublicKey)
+		goKey = reflect.ValueOf(goKey).Elem().Interface().(gocrypto.PublicKey)
 	}
 	return goKey, nil
+}
+
+func (k PublicKeyJWK) toDilithiumPublicKey() (gocrypto.PublicKey, error) {
+	if k.X == "" {
+		return nil, fmt.Errorf("missing public key X")
+	}
+	decodedPubKey, err := base64.RawURLEncoding.DecodeString(k.X)
+	if err != nil {
+		return nil, errors.Wrap(err, "decoding public key")
+	}
+	switch k.Alg {
+	case DilithiumMode2Alg.String():
+		return dilithium.Mode2.PublicKeyFromBytes(decodedPubKey), nil
+	case DilithiumMode3Alg.String():
+		return dilithium.Mode3.PublicKeyFromBytes(decodedPubKey), nil
+	case DilithiumMode5Alg.String():
+		return dilithium.Mode5.PublicKeyFromBytes(decodedPubKey), nil
+	default:
+		return nil, fmt.Errorf("unsupported algorithm %s", k.Alg)
+	}
 }
 
 // JWKToPrivateKeyJWK converts a JWK to a PrivateKeyJWK
@@ -142,10 +201,10 @@ func JWKFromPrivateKeyJWK(key PrivateKeyJWK) (jwk.Key, error) {
 }
 
 // PublicKeyToJWK converts a public key to a JWK
-func PublicKeyToJWK(key crypto.PublicKey) (jwk.Key, error) {
+func PublicKeyToJWK(key gocrypto.PublicKey) (jwk.Key, error) {
 	// dereference the ptr
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {
-		key = reflect.ValueOf(key).Elem().Interface().(crypto.PublicKey)
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PublicKey)
 	}
 	switch k := key.(type) {
 	case rsa.PublicKey:
@@ -164,10 +223,10 @@ func PublicKeyToJWK(key crypto.PublicKey) (jwk.Key, error) {
 }
 
 // PublicKeyToPublicKeyJWK converts a public key to a PublicKeyJWK
-func PublicKeyToPublicKeyJWK(key crypto.PublicKey) (*PublicKeyJWK, error) {
-	// dereference the ptr
-	if reflect.ValueOf(key).Kind() == reflect.Ptr {
-		key = reflect.ValueOf(key).Elem().Interface().(crypto.PublicKey)
+func PublicKeyToPublicKeyJWK(key gocrypto.PublicKey) (*PublicKeyJWK, error) {
+	// dereference the ptr, which could be a nested ptr
+	for reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PublicKey)
 	}
 	switch k := key.(type) {
 	case rsa.PublicKey:
@@ -180,16 +239,25 @@ func PublicKeyToPublicKeyJWK(key crypto.PublicKey) (*PublicKeyJWK, error) {
 		return jwkFromSECP256k1PublicKey(k)
 	case ecdsa.PublicKey:
 		return jwkFromECDSAPublicKey(k)
+	case mode2.PublicKey:
+		pubKey := dilithium.Mode2.PublicKeyFromBytes(k.Bytes())
+		return jwkFromDilithiumPublicKey(crypto.Dilithium2, pubKey)
+	case mode3.PublicKey:
+		pubKey := dilithium.Mode3.PublicKeyFromBytes(k.Bytes())
+		return jwkFromDilithiumPublicKey(crypto.Dilithium3, pubKey)
+	case mode5.PublicKey:
+		pubKey := dilithium.Mode5.PublicKeyFromBytes(k.Bytes())
+		return jwkFromDilithiumPublicKey(crypto.Dilithium5, pubKey)
 	default:
 		return nil, fmt.Errorf("unsupported public key type: %T", k)
 	}
 }
 
 // PrivateKeyToJWK converts a private key to a JWK
-func PrivateKeyToJWK(key crypto.PrivateKey) (jwk.Key, error) {
+func PrivateKeyToJWK(key gocrypto.PrivateKey) (jwk.Key, error) {
 	// dereference the ptr
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {
-		key = reflect.ValueOf(key).Elem().Interface().(crypto.PrivateKey)
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PrivateKey)
 	}
 	switch k := key.(type) {
 	case rsa.PrivateKey:
@@ -208,10 +276,10 @@ func PrivateKeyToJWK(key crypto.PrivateKey) (jwk.Key, error) {
 }
 
 // PrivateKeyToPrivateKeyJWK converts a private key to a PrivateKeyJWK
-func PrivateKeyToPrivateKeyJWK(key crypto.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
-	// dereference the ptr
-	if reflect.ValueOf(key).Kind() == reflect.Ptr {
-		key = reflect.ValueOf(key).Elem().Interface().(crypto.PrivateKey)
+func PrivateKeyToPrivateKeyJWK(key gocrypto.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
+	// dereference the ptr, which could be nested
+	for reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PrivateKey)
 	}
 	switch k := key.(type) {
 	case rsa.PrivateKey:
@@ -224,9 +292,30 @@ func PrivateKeyToPrivateKeyJWK(key crypto.PrivateKey) (*PublicKeyJWK, *PrivateKe
 		return jwkFromSECP256k1PrivateKey(k)
 	case ecdsa.PrivateKey:
 		return jwkFromECDSAPrivateKey(k)
+	case mode2.PrivateKey:
+		privKey := dilithium.Mode2.PrivateKeyFromBytes(k.Bytes())
+		return jwkFromDilithiumPrivateKey(crypto.Dilithium2, privKey)
+	case mode3.PrivateKey:
+		privKey := dilithium.Mode3.PrivateKeyFromBytes(k.Bytes())
+		return jwkFromDilithiumPrivateKey(crypto.Dilithium3, privKey)
+	case mode5.PrivateKey:
+		privKey := dilithium.Mode5.PrivateKeyFromBytes(k.Bytes())
+		return jwkFromDilithiumPrivateKey(crypto.Dilithium5, privKey)
 	default:
 		return nil, nil, fmt.Errorf("unsupported private key type: %T", k)
 	}
+}
+
+func GetCRVFromJWK(key jwk.Key) (string, error) {
+	maybeCrv, hasCrv := key.Get("crv")
+	if hasCrv {
+		crv, crvStr := maybeCrv.(jwa.EllipticCurveAlgorithm)
+		if !crvStr {
+			return "", fmt.Errorf("could not get crv value: %+v", maybeCrv)
+		}
+		return crv.String(), nil
+	}
+	return "", nil
 }
 
 // jwkKeyFromRSAPrivateKey converts a RSA private key to a JWK
@@ -511,6 +600,34 @@ func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
 
+// as per https://www.ietf.org/archive/id/draft-ietf-cose-dilithium-00.html
+func jwkFromDilithiumPrivateKey(m crypto.DilithiumMode, k dilithium.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
+	var alg jwa.SignatureAlgorithm
+	switch m {
+	case crypto.Dilithium2:
+		alg = DilithiumMode2Alg
+	case crypto.Dilithium3:
+		alg = DilithiumMode3Alg
+	case crypto.Dilithium5:
+		alg = DilithiumMode5Alg
+	}
+
+	// serialize pub and priv keys to b64url
+	privKeyBytes := k.Bytes()
+	d := base64.RawURLEncoding.EncodeToString(privKeyBytes)
+	publicKey := k.Public().(dilithium.PublicKey)
+	pubKeyBytes := publicKey.Bytes()
+	x := base64.RawURLEncoding.EncodeToString(pubKeyBytes)
+	privKeyJWK := PrivateKeyJWK{
+		KTY: DilithiumKTY,
+		X:   x,
+		Alg: alg.String(),
+		D:   d,
+	}
+	pubKeyJWK := privKeyJWK.ToPublicKeyJWK()
+	return &pubKeyJWK, &privKeyJWK, nil
+}
+
 // jwkKeyFromECDSAPublicKey converts a ECDSA public key to a JWK
 func jwkKeyFromECDSAPublicKey(key ecdsa.PublicKey) (jwk.Key, error) {
 	ecdsaKeyGeneric, err := jwk.FromRaw(key)
@@ -544,4 +661,25 @@ func jwkFromECDSAPublicKey(key ecdsa.PublicKey) (*PublicKeyJWK, error) {
 		return nil, errors.Wrap(err, "unmarshalling ecdsa jwk")
 	}
 	return &publicKeyJWK, nil
+}
+
+func jwkFromDilithiumPublicKey(mode crypto.DilithiumMode, k dilithium.PublicKey) (*PublicKeyJWK, error) {
+	var alg jwa.SignatureAlgorithm
+	switch mode {
+	case crypto.Dilithium2:
+		alg = DilithiumMode2Alg
+	case crypto.Dilithium3:
+		alg = DilithiumMode3Alg
+	case crypto.Dilithium5:
+		alg = DilithiumMode5Alg
+	}
+
+	// serialize pub and priv keys to b64url
+	pubKeyBytes := k.Bytes()
+	x := base64.RawURLEncoding.EncodeToString(pubKeyBytes)
+	return &PublicKeyJWK{
+		KTY: DilithiumKTY,
+		X:   x,
+		Alg: alg.String(),
+	}, nil
 }

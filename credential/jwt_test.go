@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -59,7 +60,7 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(tt, err)
 
-		signer, err := crypto.NewJWTSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
 		assert.NoError(tt, err)
 
 		signed, err := SignVerifiableCredentialJWT(*signer, testCredential)
@@ -186,7 +187,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 			},
 		}
 
-		issuerSigner, err := crypto.NewJWTSigner(issuerDID.String(), issuerKID, issuerPrivKey)
+		issuerSigner, err := jwx.NewJWXSigner(issuerDID.String(), issuerKID, issuerPrivKey)
 		assert.NoError(tt, err)
 		signedVC, err := SignVerifiableCredentialJWT(*issuerSigner, testCredential)
 		assert.NoError(t, err)
@@ -201,7 +202,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		}
 
 		// sign the presentation from the subject to the issuer
-		subjectSigner, err := crypto.NewJWTSigner(subjectDID.String(), subjectKID, subjectPrivKey)
+		subjectSigner, err := jwx.NewJWXSigner(subjectDID.String(), subjectKID, subjectPrivKey)
 		assert.NoError(tt, err)
 		signed, err := SignVerifiablePresentationJWT(*subjectSigner, JWTVVPParameters{Audience: issuerDID.String()}, testPresentation)
 		assert.NoError(tt, err)
@@ -229,16 +230,16 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 	})
 }
 
-func getTestVectorKey0Signer(t *testing.T) crypto.JWTSigner {
+func getTestVectorKey0Signer(t *testing.T) jwx.Signer {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
-	knownJWK := crypto.PrivateKeyJWK{
+	knownJWK := jwx.PrivateKeyJWK{
 		KTY: "OKP",
 		CRV: "Ed25519",
 		X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
 		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 	}
 
-	signer, err := crypto.NewJWTSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
+	signer, err := jwx.NewJWXSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
 	assert.NoError(t, err)
 	return *signer
 }

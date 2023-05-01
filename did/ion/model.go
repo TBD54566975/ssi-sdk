@@ -1,7 +1,7 @@
 package ion
 
 import (
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 )
 
 // object models
@@ -23,10 +23,10 @@ type Service struct {
 }
 
 type PublicKey struct {
-	ID           string              `json:"id,omitempty"`
-	Type         string              `json:"type,omitempty"`
-	PublicKeyJWK crypto.PublicKeyJWK `json:"publicKeyJwk,omitempty"`
-	Purposes     []PublicKeyPurpose  `json:"purposes,omitempty"`
+	ID           string             `json:"id,omitempty"`
+	Type         string             `json:"type,omitempty"`
+	PublicKeyJWK jwx.PublicKeyJWK   `json:"publicKeyJwk,omitempty"`
+	Purposes     []PublicKeyPurpose `json:"purposes,omitempty"`
 }
 
 // action models
@@ -96,8 +96,8 @@ func (UpdateRequest) GetType() OperationType {
 
 // UpdateSignedDataObject https://identity.foundation/sidetree/spec/#update-signed-data-object
 type UpdateSignedDataObject struct {
-	UpdateKey crypto.PublicKeyJWK `json:"updateKey,omitempty"`
-	DeltaHash string              `json:"deltaHash,omitempty"`
+	UpdateKey jwx.PublicKeyJWK `json:"updateKey,omitempty"`
+	DeltaHash string           `json:"deltaHash,omitempty"`
 }
 
 type Delta struct {
@@ -149,8 +149,8 @@ func (DeactivateRequest) GetType() OperationType {
 
 // DeactivateSignedDataObject https://identity.foundation/sidetree/spec/#deactivate-signed-data-object
 type DeactivateSignedDataObject struct {
-	DIDSuffix   string              `json:"didSuffix,omitempty"`
-	RecoveryKey crypto.PublicKeyJWK `json:"recoveryKey,omitempty"`
+	DIDSuffix   string           `json:"didSuffix,omitempty"`
+	RecoveryKey jwx.PublicKeyJWK `json:"recoveryKey,omitempty"`
 }
 
 type RecoverRequest struct {
@@ -167,8 +167,8 @@ func (RecoverRequest) GetType() OperationType {
 
 // RecoverySignedDataObject https://identity.foundation/sidetree/spec/#recovery-signed-data-object
 type RecoverySignedDataObject struct {
-	RecoveryCommitment string              `json:"recoveryCommitment,omitempty"`
-	RecoveryKey        crypto.PublicKeyJWK `json:"recoveryKey,omitempty"`
-	DeltaHash          string              `json:"deltaHash,omitempty"`
-	AnchorOrigin       string              `json:"anchorOrigin,omitempty"`
+	RecoveryCommitment string           `json:"recoveryCommitment,omitempty"`
+	RecoveryKey        jwx.PublicKeyJWK `json:"recoveryKey,omitempty"`
+	DeltaHash          string           `json:"deltaHash,omitempty"`
+	AnchorOrigin       string           `json:"anchorOrigin,omitempty"`
 }

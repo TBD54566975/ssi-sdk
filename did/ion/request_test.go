@@ -3,23 +3,23 @@ package ion
 import (
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/stretchr/testify/assert"
 )
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L7
 func TestCreateRequest(t *testing.T) {
-	var recoveryKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
+	var recoveryKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	var updateKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
+	var updateKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
 
 	var publicKey PublicKey
-	RetrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
+	retrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
 	var service Service
-	RetrieveTestVectorAs(t, "service1.json", &service)
+	retrieveTestVectorAs(t, "service1.json", &service)
 
 	document := Document{
 		PublicKeys: []PublicKey{publicKey},
@@ -39,20 +39,20 @@ func TestCreateRequest(t *testing.T) {
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L32
 func TestUpdateRequest(t *testing.T) {
-	var updateKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k1public.json", &updateKey)
+	var updateKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k1public.json", &updateKey)
 
-	var updatePrivateKey crypto.PrivateKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k1private.json", &updatePrivateKey)
+	var updatePrivateKey jwx.PrivateKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k1private.json", &updatePrivateKey)
 
-	var nextUpdateKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k2public.json", &nextUpdateKey)
+	var nextUpdateKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k2public.json", &nextUpdateKey)
 
 	var publicKey PublicKey
-	RetrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
+	retrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
 	var service Service
-	RetrieveTestVectorAs(t, "service1.json", &service)
+	retrieveTestVectorAs(t, "service1.json", &service)
 
 	signer, err := NewBTCSignerVerifier(updatePrivateKey)
 	assert.NoError(t, err)
@@ -80,24 +80,24 @@ func TestUpdateRequest(t *testing.T) {
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L72
 func TestRecoverRequest(t *testing.T) {
 	var publicKey PublicKey
-	RetrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
+	retrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
 	var service Service
-	RetrieveTestVectorAs(t, "service1.json", &service)
+	retrieveTestVectorAs(t, "service1.json", &service)
 
 	document := Document{PublicKeys: []PublicKey{publicKey}, Services: []Service{service}}
 
-	var recoveryKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
+	var recoveryKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	var recoveryPrivateKey crypto.PrivateKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k1private.json", &recoveryPrivateKey)
+	var recoveryPrivateKey jwx.PrivateKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k1private.json", &recoveryPrivateKey)
 
-	var nextRecoveryKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k2public.json", &nextRecoveryKey)
+	var nextRecoveryKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k2public.json", &nextRecoveryKey)
 
-	var nextUpdateKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k3public.json", &nextUpdateKey)
+	var nextUpdateKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k3public.json", &nextUpdateKey)
 
 	signer, err := NewBTCSignerVerifier(recoveryPrivateKey)
 	assert.NoError(t, err)
@@ -118,11 +118,11 @@ func TestRecoverRequest(t *testing.T) {
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonRequest.spec.ts#L102
 func TestDeactivateRequest(t *testing.T) {
-	var recoveryKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
+	var recoveryKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	var recoveryPrivateKey crypto.PrivateKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k1private.json", &recoveryPrivateKey)
+	var recoveryPrivateKey jwx.PrivateKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k1private.json", &recoveryPrivateKey)
 
 	signer, err := NewBTCSignerVerifier(recoveryPrivateKey)
 	assert.NoError(t, err)

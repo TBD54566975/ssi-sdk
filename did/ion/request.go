@@ -1,7 +1,7 @@
 package ion
 
 import (
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/pkg/errors"
 )
 
@@ -11,7 +11,7 @@ const (
 )
 
 // NewCreateRequest creates a new create request https://identity.foundation/sidetree/spec/#create
-func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Document) (*CreateRequest, error) {
+func NewCreateRequest(recoveryKey, updateKey jwx.PublicKeyJWK, document Document) (*CreateRequest, error) {
 	// prepare delta
 	replaceActionPatch := ReplaceAction{
 		Action:   Replace,
@@ -50,7 +50,7 @@ func NewCreateRequest(recoveryKey, updateKey crypto.PublicKeyJWK, document Docum
 }
 
 // NewUpdateRequest creates a new update request https://identity.foundation/sidetree/spec/#update
-func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKeyJWK, signer BTCSignerVerifier, stateChange StateChange) (*UpdateRequest, error) {
+func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey jwx.PublicKeyJWK, signer BTCSignerVerifier, stateChange StateChange) (*UpdateRequest, error) {
 	if err := stateChange.IsValid(); err != nil {
 		return nil, errors.Wrap(err, "invalid state change")
 	}
@@ -133,7 +133,7 @@ func NewUpdateRequest(didSuffix string, updateKey, nextUpdateKey crypto.PublicKe
 }
 
 // NewRecoverRequest creates a new recover request https://identity.foundation/sidetree/spec/#recover
-func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey crypto.PublicKeyJWK, document Document, signer BTCSignerVerifier) (*RecoverRequest, error) { //revive:disable-line:argument-limit
+func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdateKey jwx.PublicKeyJWK, document Document, signer BTCSignerVerifier) (*RecoverRequest, error) { //revive:disable-line:argument-limit
 	// prepare reveal value
 	revealValue, _, err := Commit(recoveryKey)
 	if err != nil {
@@ -187,7 +187,7 @@ func NewRecoverRequest(didSuffix string, recoveryKey, nextRecoveryKey, nextUpdat
 }
 
 // NewDeactivateRequest creates a new deactivate request https://identity.foundation/sidetree/spec/#deactivate
-func NewDeactivateRequest(didSuffix string, recoveryKey crypto.PublicKeyJWK, signer BTCSignerVerifier) (*DeactivateRequest, error) {
+func NewDeactivateRequest(didSuffix string, recoveryKey jwx.PublicKeyJWK, signer BTCSignerVerifier) (*DeactivateRequest, error) {
 	// prepare reveal value
 	revealValue, _, err := Commit(recoveryKey)
 	if err != nil {

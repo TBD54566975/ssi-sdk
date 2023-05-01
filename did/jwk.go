@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -56,7 +57,7 @@ func GenerateDIDJWK(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDJWK, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating key for did:jwk")
 	}
-	pubKeyJWK, err := crypto.PublicKeyToJWK(pubKey)
+	pubKeyJWK, err := jwx.PublicKeyToJWK(pubKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "converting public key to JWK")
 	}
@@ -106,7 +107,7 @@ func (d DIDJWK) Expand() (*Document, error) {
 		return nil, errors.Wrap(err, "decoding did:jwk")
 	}
 
-	var pubKeyJWK crypto.PublicKeyJWK
+	var pubKeyJWK jwx.PublicKeyJWK
 	if err = json.Unmarshal(decodedPubKeyJWKStr, &pubKeyJWK); err != nil {
 		return nil, errors.Wrap(err, "unmarshalling did:jwk")
 	}

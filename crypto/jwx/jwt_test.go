@@ -1,8 +1,9 @@
-package crypto
+package jwx
 
 import (
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/stretchr/testify/assert"
 )
@@ -52,39 +53,39 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 	}
 
 	tests := []struct {
-		kt KeyType
+		kt crypto.KeyType
 	}{
 		{
-			kt: Ed25519,
+			kt: crypto.Ed25519,
 		},
 		{
-			kt: SECP256k1,
+			kt: crypto.SECP256k1,
 		},
 		{
-			kt: SECP256k1ECDSA,
+			kt: crypto.SECP256k1ECDSA,
 		},
 		{
-			kt: P256,
+			kt: crypto.P256,
 		},
 		{
-			kt: P384,
+			kt: crypto.P384,
 		},
 		{
-			kt: P521,
+			kt: crypto.P521,
 		},
 		{
-			kt: RSA,
+			kt: crypto.RSA,
 		},
 	}
 	for _, test := range tests {
 		t.Run(string(test.kt), func(t *testing.T) {
 			// generate a new key based on the given key type
-			pubKey, privKey, err := GenerateKeyByKeyType(test.kt)
+			pubKey, privKey, err := crypto.GenerateKeyByKeyType(test.kt)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, privKey)
 
 			// create key access with the key
-			signer, err := NewJWTSigner(testID, testKID, privKey)
+			signer, err := NewJWXSigner(testID, testKID, privKey)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, signer)
 
@@ -98,7 +99,7 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, verifier)
 
-			sameVerifier, err := NewJWTVerifier(testID, pubKey)
+			sameVerifier, err := NewJWXVerifier(testID, pubKey)
 			assert.NoError(t, err)
 			assert.Equal(t, verifier, sameVerifier)
 
@@ -171,7 +172,7 @@ func TestSignVerifyGenericJWT(t *testing.T) {
 	assert.EqualValues(t, "did:example:123#key-0", jws.ProtectedHeaders().KeyID())
 }
 
-func getTestVectorKey0Signer(t *testing.T) JWTSigner {
+func getTestVectorKey0Signer(t *testing.T) Signer {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	knownJWK := PrivateKeyJWK{
 		KID: "did:example:123#key-0",
@@ -181,7 +182,7 @@ func getTestVectorKey0Signer(t *testing.T) JWTSigner {
 		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 	}
 
-	signer, err := NewJWTSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
+	signer, err := NewJWXSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
 	assert.NoError(t, err)
 	return *signer
 }

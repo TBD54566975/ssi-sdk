@@ -3,23 +3,23 @@ package ion
 import (
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/stretchr/testify/assert"
 )
 
 // https://github.com/decentralized-identity/ion-sdk/blob/main/tests/IonDid.spec.ts#L18
 func TestCreateLongFormDID(t *testing.T) {
-	var recoveryKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
+	var recoveryKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	var updateKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
+	var updateKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
 
 	var publicKey PublicKey
-	RetrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
+	retrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
 	var service Service
-	RetrieveTestVectorAs(t, "service1.json", &service)
+	retrieveTestVectorAs(t, "service1.json", &service)
 
 	document := Document{
 		PublicKeys: []PublicKey{
@@ -61,17 +61,17 @@ func TestCreateShortFormDID(t *testing.T) {
 }
 
 func TestGetShortFormDIDFromLongFormDID(t *testing.T) {
-	var recoveryKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
+	var recoveryKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)
 
-	var updateKey crypto.PublicKeyJWK
-	RetrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
+	var updateKey jwx.PublicKeyJWK
+	retrieveTestVectorAs(t, "jwkes256k2public.json", &updateKey)
 
 	var publicKey PublicKey
-	RetrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
+	retrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
 	var service Service
-	RetrieveTestVectorAs(t, "service1.json", &service)
+	retrieveTestVectorAs(t, "service1.json", &service)
 
 	document := Document{
 		PublicKeys: []PublicKey{

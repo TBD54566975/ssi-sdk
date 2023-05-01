@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
@@ -157,9 +157,9 @@ func BuildPresentationSubmission(signer any, requester string, def PresentationD
 	}
 	switch et {
 	case JWTVPTarget:
-		jwtSigner, ok := signer.(crypto.JWTSigner)
+		jwtSigner, ok := signer.(jwx.Signer)
 		if !ok {
-			return nil, fmt.Errorf("signer<%T> is not a JWTSigner", signer)
+			return nil, fmt.Errorf("signer<%T> is not a JWXSigner", signer)
 		}
 		vpSubmission, err := BuildPresentationSubmissionVP(jwtSigner.ID, def, normalizedClaims)
 		if err != nil {

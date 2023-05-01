@@ -11,6 +11,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
@@ -62,7 +63,7 @@ func makePresentationRequest(requesterID string, presentationData exchange.Prese
 	// Signer:
 	// https://github.com/TBD54566975/ssi-sdk/blob/main/cryptosuite/jsonwebkey2020.go#L350
 	// Implements: https://github.com/TBD54566975/ssi-sdk/blob/main/cryptosuite/jwt.go#L12
-	signer, err := crypto.NewJWTSignerFromJWK(requesterID, jwk.ID, jwk.PrivateKeyJWK)
+	signer, err := jwx.NewJWXSignerFromJWK(requesterID, jwk.ID, jwk.PrivateKeyJWK)
 	if err != nil {
 		return nil, err
 	}

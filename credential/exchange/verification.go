@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/schema"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
@@ -50,7 +50,7 @@ func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver di
 	}
 	switch et {
 	case JWTVPTarget:
-		jwtVerifier, ok := verifier.(crypto.JWTVerifier)
+		jwtVerifier, ok := verifier.(jwx.Verifier)
 		if !ok {
 			return nil, fmt.Errorf("verifier<%T> is not a JWT verifier", verifier)
 		}

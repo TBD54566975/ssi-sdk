@@ -1,10 +1,11 @@
-package crypto
+package jwx
 
 import (
-	"crypto"
+	gocrypto "crypto"
 	"fmt"
 	"time"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -13,108 +14,118 @@ import (
 	"github.com/pkg/errors"
 )
 
-// JWTSigner is a struct that contains the key and algorithm used to sign JWTs
-type JWTSigner struct {
+// Signer is a struct that contains the key and algorithm used to sign JWTs and produce JWS values
+type Signer struct {
 	ID string
 	jwa.SignatureAlgorithm
 	jwk.Key
 }
 
-func NewJWTSigner(id, kid string, key crypto.PrivateKey) (*JWTSigner, error) {
+// NewJWXSigner creates a new signer from a private key to sign and produce JWS values
+// TODO(gabe) support keys not in jwk.Key https://github.com/TBD54566975/ssi-sdk/issues/365
+func NewJWXSigner(id, kid string, key gocrypto.PrivateKey) (*Signer, error) {
 	privateKeyJWK, err := PrivateKeyToJWK(key)
 	if err != nil {
 		return nil, err
 	}
-	return NewJWTSignerFromKey(id, kid, privateKeyJWK)
+	return NewJWXSignerFromKey(id, kid, privateKeyJWK)
 }
 
-func NewJWTSignerFromJWK(id, kid string, key PrivateKeyJWK) (*JWTSigner, error) {
-	gotJWK, alg, err := jwtSigner(id, kid, key)
+// NewJWXSignerFromJWK creates a new signer from a private key to sign and produce JWS values
+func NewJWXSignerFromJWK(id, kid string, key PrivateKeyJWK) (*Signer, error) {
+	gotJWK, alg, err := jwxSigner(id, kid, key)
 	if err != nil {
 		return nil, err
 	}
-	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
+	if !IsSupportedJWXSigningVerificationAlgorithm(*alg) {
 		return nil, fmt.Errorf("unsupported signing algorithm: %s", alg)
 	}
-	return &JWTSigner{
+	return &Signer{
 		ID:                 id,
 		SignatureAlgorithm: *alg,
 		Key:                gotJWK,
 	}, nil
 }
 
-func NewJWTSignerFromKey(id, kid string, key jwk.Key) (*JWTSigner, error) {
-	gotJWK, alg, err := jwtSignerFromKey(id, kid, key)
+// NewJWXSignerFromKey creates a new signer from a private key to sign and produce JWS values
+func NewJWXSignerFromKey(id, kid string, key jwk.Key) (*Signer, error) {
+	gotJWK, alg, err := jwxSignerFromKey(id, kid, key)
 	if err != nil {
 		return nil, err
 	}
-	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
+	if !IsSupportedJWXSigningVerificationAlgorithm(*alg) {
 		return nil, fmt.Errorf("unsupported signing algorithm: %s", alg)
 	}
-	return &JWTSigner{ID: id, SignatureAlgorithm: *alg, Key: gotJWK}, nil
+	return &Signer{ID: id, SignatureAlgorithm: *alg, Key: gotJWK}, nil
 }
 
-func (s *JWTSigner) ToVerifier(verifierID string) (*JWTVerifier, error) {
+// ToVerifier converts a signer to a verifier, where the passed in verifiedID is the intended ID of the verifier for
+// `aud` validation
+func (s *Signer) ToVerifier(verifierID string) (*Verifier, error) {
 	key, err := s.Key.PublicKey()
 	if err != nil {
 		return nil, err
 	}
-	return NewJWTVerifierFromKey(verifierID, key)
+	return NewJWXVerifierFromKey(verifierID, key)
 }
 
-// JWTVerifier is a struct that contains the key and algorithm used to verify JWTs
-type JWTVerifier struct {
+// Verifier is a struct that contains the key and algorithm used to verify JWTs and JWS signatures
+type Verifier struct {
 	ID string
 	jwk.Key
 }
 
-func NewJWTVerifier(id string, key crypto.PublicKey) (*JWTVerifier, error) {
+// NewJWXVerifier creates a new verifier from a public key to verify JWTs and JWS signatures
+// TODO(gabe) support keys not in jwk.Key https://github.com/TBD54566975/ssi-sdk/issues/365
+func NewJWXVerifier(id string, key gocrypto.PublicKey) (*Verifier, error) {
 	privateKeyJWK, err := PublicKeyToJWK(key)
 	if err != nil {
 		return nil, err
 	}
-	return NewJWTVerifierFromKey(id, privateKeyJWK)
+	return NewJWXVerifierFromKey(id, privateKeyJWK)
 }
 
-func NewJWTVerifierFromJWK(id string, key PublicKeyJWK) (*JWTVerifier, error) {
-	gotJWK, alg, err := jwtVerifier(id, key)
+// NewJWXVerifierFromJWK creates a new verifier from a public key to verify JWTs and JWS signatures
+func NewJWXVerifierFromJWK(id string, key PublicKeyJWK) (*Verifier, error) {
+	gotJWK, alg, err := jwxVerifier(id, key)
 	if err != nil {
 		return nil, err
 	}
-	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
+	if !IsSupportedJWXSigningVerificationAlgorithm(*alg) {
 		return nil, fmt.Errorf("unsupported signing/verification algorithm: %s", alg)
 	}
-	return &JWTVerifier{ID: id, Key: gotJWK}, nil
+	return &Verifier{ID: id, Key: gotJWK}, nil
 }
 
-func NewJWTVerifierFromKey(id string, key jwk.Key) (*JWTVerifier, error) {
+// NewJWXVerifierFromKey creates a new verifier from a public key to verify JWTs and JWS signatures
+func NewJWXVerifierFromKey(id string, key jwk.Key) (*Verifier, error) {
 	gotJWK, alg, err := jwkVerifierFromKey(id, key)
 	if err != nil {
 		return nil, err
 	}
-	if !IsSupportedJWTSigningVerificationAlgorithm(*alg) {
+	if !IsSupportedJWXSigningVerificationAlgorithm(*alg) {
 		return nil, fmt.Errorf("unsupported signing algorithm: %s", alg)
 	}
-	return &JWTVerifier{ID: id, Key: gotJWK}, nil
+	return &Verifier{ID: id, Key: gotJWK}, nil
 }
 
-func jwtSigner(id, kid string, key PrivateKeyJWK) (jwk.Key, *jwa.SignatureAlgorithm, error) {
-	return jwtSignerVerifier(id, kid, key)
+func jwxSigner(id, kid string, key PrivateKeyJWK) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+	return jwxSignerVerifier(id, kid, key)
 }
 
-func jwtSignerFromKey(id, kid string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgorithm, error) {
-	return jwtSignerVerifier(id, kid, key)
+func jwxSignerFromKey(id, kid string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+	return jwxSignerVerifier(id, kid, key)
 }
 
-func jwtVerifier(id string, key PublicKeyJWK) (jwk.Key, *jwa.SignatureAlgorithm, error) {
-	return jwtSignerVerifier(id, "", key)
+func jwxVerifier(id string, key PublicKeyJWK) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+	return jwxSignerVerifier(id, "", key)
 }
 
 func jwkVerifierFromKey(id string, key jwk.Key) (jwk.Key, *jwa.SignatureAlgorithm, error) {
-	return jwtSignerVerifier(id, "", key)
+	return jwxSignerVerifier(id, "", key)
 }
 
-func jwtSignerVerifier(id, kid string, key any) (jwk.Key, *jwa.SignatureAlgorithm, error) {
+func jwxSignerVerifier(id, kid string, key any) (jwk.Key, *jwa.SignatureAlgorithm, error) {
 	jwkBytes, err := json.Marshal(key)
 	if err != nil {
 		return nil, nil, err
@@ -144,13 +155,13 @@ func jwtSignerVerifier(id, kid string, key any) (jwk.Key, *jwa.SignatureAlgorith
 }
 
 // GetSigningAlgorithm returns the algorithm used to sign the JWT
-func (s *JWTSigner) GetSigningAlgorithm() string {
+func (s *Signer) GetSigningAlgorithm() string {
 	return s.Algorithm().String()
 }
 
 // SignWithDefaults takes a set of JWT keys and values to add to a JWT before singing them with
 // the key defined in the signer. Automatically sets iss and iat
-func (s *JWTSigner) SignWithDefaults(kvs map[string]any) ([]byte, error) {
+func (s *Signer) SignWithDefaults(kvs map[string]any) ([]byte, error) {
 	t := jwt.New()
 
 	// set known default values, which can be overridden by the kvs
@@ -173,39 +184,8 @@ func (s *JWTSigner) SignWithDefaults(kvs map[string]any) ([]byte, error) {
 	return jwt.Sign(t, jwt.WithKey(s.SignatureAlgorithm, s.Key))
 }
 
-// SignJWS takes a set of payload and signs it with the key defined in the signer
-func (s *JWTSigner) SignJWS(payload []byte) ([]byte, error) {
-	headers := jws.NewHeaders()
-	if err := headers.Set(jws.AlgorithmKey, s.SignatureAlgorithm); err != nil {
-		return nil, errors.Wrap(err, "setting algorithm header")
-	}
-	return jws.Sign(payload, jws.WithKey(s.SignatureAlgorithm, s.Key, jws.WithProtectedHeaders(headers)))
-}
-
-// Parse attempts to turn a string into a jwt.Token
-func (*JWTSigner) Parse(token string) (jws.Headers, jwt.Token, error) {
-	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not parse JWT")
-	}
-	headers, err := getJWTHeaders([]byte(token))
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not get JWT headers")
-	}
-	return headers, parsed, nil
-}
-
-// VerifyJWS parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success.
-func (v *JWTVerifier) VerifyJWS(token string) error {
-	key := jws.WithKey(v.Algorithm(), v.Key)
-	if _, err := jws.Verify([]byte(token), key); err != nil {
-		return errors.Wrap(err, "verifying JWT")
-	}
-	return nil
-}
-
 // Verify parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success
-func (v *JWTVerifier) Verify(token string) error {
+func (v *Verifier) Verify(token string) error {
 	if _, err := jwt.Parse([]byte(token), jwt.WithKey(v.Algorithm(), v.Key)); err != nil {
 		return errors.Wrap(err, "could not verify JWT")
 	}
@@ -213,54 +193,29 @@ func (v *JWTVerifier) Verify(token string) error {
 }
 
 // Parse attempts to turn a string into a jwt.Token
-func (*JWTVerifier) Parse(token string) (jws.Headers, jwt.Token, error) {
+func (*Verifier) Parse(token string) (jws.Headers, jwt.Token, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not parse JWT")
 	}
-	headers, err := getJWTHeaders([]byte(token))
+	headers, err := GetJWSHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
 	return headers, parsed, nil
 }
 
-// ParseJWS attempts to pull of a single signature from a token, containing its headers
-func (*JWTVerifier) ParseJWS(token string) (*jws.Signature, error) {
-	parsed, err := jws.Parse([]byte(token))
-	if err != nil {
-		return nil, errors.Wrap(err, "could not parse JWS")
-	}
-	signatures := parsed.Signatures()
-	if len(signatures) != 1 {
-		return nil, fmt.Errorf("expected 1 signature, got %d", len(signatures))
-	}
-	return signatures[0], nil
-}
-
 // VerifyAndParse attempts to turn a string into a jwt.Token and verify its signature using the verifier
-func (v *JWTVerifier) VerifyAndParse(token string) (jws.Headers, jwt.Token, error) {
+func (v *Verifier) VerifyAndParse(token string) (jws.Headers, jwt.Token, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithKey(v.Algorithm(), v.Key))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not parse and verify JWT")
 	}
-	headers, err := getJWTHeaders([]byte(token))
+	headers, err := GetJWSHeaders([]byte(token))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
 	return headers, parsed, nil
-}
-
-func GetCRVFromJWK(key jwk.Key) (string, error) {
-	maybeCrv, hasCrv := key.Get("crv")
-	if hasCrv {
-		crv, crvStr := maybeCrv.(jwa.EllipticCurveAlgorithm)
-		if !crvStr {
-			return "", fmt.Errorf("could not get crv value: %+v", maybeCrv)
-		}
-		return crv.String(), nil
-	}
-	return "", nil
 }
 
 // AlgFromKeyAndCurve returns the supported JSON Web Algorithm for signing for a given key type and curve pair
@@ -286,7 +241,7 @@ func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.Si
 
 	if kty == jwa.EC {
 		switch curve {
-		case jwa.EllipticCurveAlgorithm(SECP256k1):
+		case jwa.EllipticCurveAlgorithm(crypto.SECP256k1):
 			return jwa.ES256K, nil
 		case jwa.P256:
 			return jwa.ES256, nil
@@ -301,8 +256,8 @@ func AlgFromKeyAndCurve(kty jwa.KeyType, crv jwa.EllipticCurveAlgorithm) (jwa.Si
 	return "", fmt.Errorf("unsupported key type: %s", kty)
 }
 
-// IsSupportedJWTSigningVerificationAlgorithm returns true if the algorithm is supported for signing or verifying JWTs
-func IsSupportedJWTSigningVerificationAlgorithm(algorithm jwa.SignatureAlgorithm) bool {
+// IsSupportedJWXSigningVerificationAlgorithm returns true if the algorithm is supported for signing or verifying JWTs
+func IsSupportedJWXSigningVerificationAlgorithm(algorithm jwa.SignatureAlgorithm) bool {
 	for _, supported := range GetSupportedJWTSigningVerificationAlgorithms() {
 		if algorithm == supported {
 			return true
@@ -321,15 +276,4 @@ func GetSupportedJWTSigningVerificationAlgorithms() []jwa.SignatureAlgorithm {
 		jwa.ES512,
 		jwa.EdDSA,
 	}
-}
-
-func getJWTHeaders(token []byte) (jws.Headers, error) {
-	msg, err := jws.Parse(token)
-	if err != nil {
-		return nil, err
-	}
-	if len(msg.Signatures()) != 1 {
-		return nil, fmt.Errorf("expected 1 signature, got %d", len(msg.Signatures()))
-	}
-	return msg.Signatures()[0].ProtectedHeaders(), nil
 }

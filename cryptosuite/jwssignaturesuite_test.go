@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/util"
 
 	"github.com/stretchr/testify/assert"
@@ -418,12 +419,12 @@ func getTestVectorKey0Signer(t *testing.T, purpose ProofPurpose) (JSONWebKeySign
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	knownJWK := JSONWebKey2020{
 		ID: "did:example:123#key-0",
-		PublicKeyJWK: crypto.PublicKeyJWK{
+		PublicKeyJWK: jwx.PublicKeyJWK{
 			KTY: "OKP",
 			CRV: "Ed25519",
 			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
 		},
-		PrivateKeyJWK: crypto.PrivateKeyJWK{
+		PrivateKeyJWK: jwx.PrivateKeyJWK{
 			KTY: "OKP",
 			CRV: "Ed25519",
 			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
