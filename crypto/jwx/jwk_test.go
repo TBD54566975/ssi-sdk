@@ -1,25 +1,12 @@
 package jwx
 
 import (
-	"embed"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-)
-
-var (
-	//go:embed testdata
-	testData embed.FS
-)
-
-const (
-	dilithiumPublicJWK  string = "jwk-dilithium-vector-public.json"
-	dilithiumPrivateJWK string = "jwk-dilithium-vector-private.json"
 )
 
 func TestJWKToPrivateKeyJWK(t *testing.T) {
@@ -656,17 +643,4 @@ func TestDilithiumVectors(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, gotPrivKey)
 	})
-}
-
-func getTestData(fileName string) ([]byte, error) {
-	return testData.ReadFile("testdata/" + fileName)
-}
-
-// retrieveTestVectorAs retrieves a test vector from the testdata folder and unmarshals it into the given interface
-func retrieveTestVectorAs(t *testing.T, fileName string, output interface{}) {
-	t.Helper()
-	testDataBytes, err := getTestData(fileName)
-	require.NoError(t, err)
-	err = json.Unmarshal(testDataBytes, output)
-	require.NoError(t, err)
 }

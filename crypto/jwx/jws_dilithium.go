@@ -8,16 +8,6 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jws"
 )
 
-// Registers the Dilithium Signers and Verifiers with the jwx library
-func init() {
-	jws.RegisterSigner(DilithiumMode2Alg, jws.SignerFactoryFn(NewDilithiumMode2Signer))
-	jws.RegisterVerifier(DilithiumMode2Alg, jws.VerifierFactoryFn(NewDilithiumMode2Verifier))
-	jws.RegisterSigner(DilithiumMode3Alg, jws.SignerFactoryFn(NewDilithiumMode3Signer))
-	jws.RegisterVerifier(DilithiumMode3Alg, jws.VerifierFactoryFn(NewDilithiumMode3Verifier))
-	jws.RegisterSigner(DilithiumMode5Alg, jws.SignerFactoryFn(NewDilithiumMode5Signer))
-	jws.RegisterVerifier(DilithiumMode5Alg, jws.VerifierFactoryFn(NewDilithiumMode5Verifier))
-}
-
 const (
 	DilithiumKTY                             = "LWE"
 	DilithiumMode2Alg jwa.SignatureAlgorithm = "CRYDI2"

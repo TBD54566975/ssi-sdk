@@ -68,7 +68,7 @@ func TestDilithiumSignVerify(t *testing.T) {
 				assert.NoError(ttt, err)
 				assert.NotEmpty(ttt, signer)
 
-				verifier, err := NewDilithiumVerifier("test-KID", signer.PublicKey)
+				verifier, err := NewDilithiumVerifier("test-KID", signer.publicKey)
 				assert.NoError(ttt, err)
 				assert.NotEmpty(ttt, verifier)
 

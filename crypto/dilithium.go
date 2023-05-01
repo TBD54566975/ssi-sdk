@@ -39,10 +39,10 @@ func GenerateDilithiumKeyPair(m DilithiumMode) (dilithium.PublicKey, dilithium.P
 
 // DilithiumSigner is a signer for Dilithium signatures, wrapping the dilithium.Mode, PublicKey, PrivateKey, and KID
 type DilithiumSigner struct {
-	KID  string
-	mode dilithium.Mode
-	dilithium.PublicKey
-	dilithium.PrivateKey
+	KID        string
+	mode       dilithium.Mode
+	publicKey  dilithium.PublicKey
+	privateKey dilithium.PrivateKey
 }
 
 // NewDilithiumSigner returns a new DilithiumSigner, validating the private key is a valid private key
@@ -59,8 +59,8 @@ func NewDilithiumSigner(kid string, privKey dilithium.PrivateKey) (*DilithiumSig
 	return &DilithiumSigner{
 		KID:        kid,
 		mode:       m,
-		PublicKey:  publicKey,
-		PrivateKey: privKey,
+		publicKey:  publicKey,
+		privateKey: privKey,
 	}, nil
 }
 
@@ -71,14 +71,14 @@ func (s *DilithiumSigner) GetKeyID() string {
 
 // Sign signs the message with the DilithiumSigner's private key
 func (s *DilithiumSigner) Sign(message []byte) []byte {
-	return s.mode.Sign(s.PrivateKey, message)
+	return s.mode.Sign(s.privateKey, message)
 }
 
 // DilithiumVerifier is a verifier for Dilithium signatures, wrapping the dilithium.Mode, PublicKey, and KID
 type DilithiumVerifier struct {
-	KID  string
-	mode dilithium.Mode
-	dilithium.PublicKey
+	KID       string
+	mode      dilithium.Mode
+	publicKey dilithium.PublicKey
 }
 
 // NewDilithiumVerifier returns a new DilithiumVerifier, validating the public key is a valid public key
@@ -92,12 +92,12 @@ func NewDilithiumVerifier(kid string, pubKey dilithium.PublicKey) (*DilithiumVer
 	return &DilithiumVerifier{
 		KID:       kid,
 		mode:      m,
-		PublicKey: pubKey,
+		publicKey: pubKey,
 	}, nil
 }
 
 func (s *DilithiumVerifier) Verify(message, signature []byte) bool {
-	return s.mode.Verify(s.PublicKey, message, signature)
+	return s.mode.Verify(s.publicKey, message, signature)
 }
 
 // DilithiumModeToMode converts a DilithiumMode (our representation) to a dilithium.Mode (lib representation)

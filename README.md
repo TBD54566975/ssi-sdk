@@ -50,7 +50,7 @@ change as the library evolves.
 - [Credential Manifest](https://identity.foundation/credential-manifest/) _Strawman, June 2022_
 - [Status List 2021](https://w3c-ccg.github.io/vc-status-list-2021/) _Draft Community Group Report 04 April 2022_
 
-## signature suites
+## Signing Methods
 
 - [Data Integrity 1.0](https://w3c-ccg.github.io/data-integrity-spec) _Draft Community Group Report_
 - [Linked Data Cryptographic Suite Registry](https://w3c-ccg.github.io/ld-cryptosuite-registry/) _Draft Community Group
@@ -62,12 +62,30 @@ change as the library evolves.
       Suite [can be found here](https://identity.foundation/JWS-Test-Suite/#tbd).
     - Supports both JWT and Linked Data proof formats with [JOSE compliance](https://jose.readthedocs.io/en/latest/).
 
-## did methods
+## Key Types & Signature Algorithms
+
+| Key Type         | Signature Algorithm | Supported    |
+|------------------|---------------------|--------------|
+| Ed25519          | EdDSA               | Yes          |
+| secp256k1        | ES256K              | Yes          |
+| P-256            | ES256               | Yes          |
+| P-384            | ES384               | Yes          |
+| P-521            | ES512               | Yes          |
+| RSA              | PS256               | Yes          |
+| BLS              | BBS+                | Experimental |
+| Dilithium Mode 2 | CRYDI2              | Experimental |
+| Dilithium Mode 3 | CRYDI3              | Experimental |
+| Dilithium Mode 5 | CRYDI5              | Experimental |
+
+Experimental methods must be explicitly enabled. For an example, [see this test](crypto/jwx/jws_dilithium_test.go).
+
+## DID Methods
 
 - [The did:key Method v0.7](https://w3c-ccg.github.io/did-method-key/) _Unofficial Draft 14 February 2022_
 - [The did:web Method](https://w3c-ccg.github.io/did-method-web/) _20 December 2021_
 - [The did:peer Method](https://identity.foundation/peer-did-method-spec/) _W3C Document 12 October 2021_
 - [The did:pkh Method](https://github.com/w3c-ccg/did-pkh/blob/main/did-pkh-method-draft.md) _Draft, 22 August 2022_
+- [The did:jwk Method](https://github.com/quartzjer/did-jwk/blob/main/spec.md) _13 April 2022_
 
 # Building
 
