@@ -75,7 +75,7 @@ func (s DilithiumSignerVerifier) Algorithm() jwa.SignatureAlgorithm {
 }
 
 // Sign signs the payload using the provided key
-func (s DilithiumSignerVerifier) Sign(payload []byte, key any) ([]byte, error) {
+func (s DilithiumSignerVerifier) Sign(payload []byte, keyif any) ([]byte, error) {
 	switch key := keyif.(type) {
 	case dilithium.PrivateKey:
 		return s.m.Sign(key, payload), nil
@@ -85,7 +85,7 @@ func (s DilithiumSignerVerifier) Sign(payload []byte, key any) ([]byte, error) {
 }
 
 // Verify verifies the signature against the payload using the provided key
-func (s DilithiumSignerVerifier) Verify(payload []byte, signature []byte, key any) error {
+func (s DilithiumSignerVerifier) Verify(payload []byte, signature []byte, keyif any) error {
 	switch key := keyif.(type) {
 	case dilithium.PublicKey:
 		if s.m.Verify(key, payload, signature) {
