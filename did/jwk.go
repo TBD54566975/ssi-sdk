@@ -35,11 +35,10 @@ func (d DIDJWK) String() string {
 
 // Suffix returns the value without the `did:jwk` prefix
 func (d DIDJWK) Suffix() (string, error) {
-	split := strings.Split(string(d), JWKPrefix+":")
-	if len(split) != 2 {
-		return "", fmt.Errorf("invalid did:jwk: %s", d)
+	if suffix, ok := strings.CutPrefix(string(d), JWKPrefix+":"); ok {
+		return suffix, nil
 	}
-	return split[1], nil
+	return "", fmt.Errorf("invalid did:jwk: %s", d)
 }
 
 func (DIDJWK) Method() Method {
@@ -96,9 +95,9 @@ func (d DIDJWK) Expand() (*Document, error) {
 
 	encodedJWK, err := d.Suffix()
 	if err != nil {
-		return nil, fmt.Errorf("invalid did:jwk: %s", d)
+		return nil, errors.Wrap(err, "reading suffix")
 	}
-	decodedPubKeyJWKStr, err := base64.URLEncoding.DecodeString(encodedJWK)
+	decodedPubKeyJWKStr, err := base64.RawURLEncoding.DecodeString(encodedJWK)
 	if err != nil {
 		return nil, errors.Wrap(err, "decoding did:jwk")
 	}
@@ -169,7 +168,7 @@ func (JWKResolver) Resolve(_ context.Context, did string, _ ...ResolutionOption)
 	didJWK := DIDJWK(did)
 	doc, err := didJWK.Expand()
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not expand did:jwk DID: %s", did)
+		return nil, errors.Wrap(err, "expanding did:jwk")
 	}
 	return &ResolutionResult{Document: *doc}, nil
 }

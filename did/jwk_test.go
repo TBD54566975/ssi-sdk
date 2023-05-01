@@ -164,7 +164,7 @@ func TestExpandDIDJWK(t *testing.T) {
 		assert.NoError(t, doc.IsValid())
 	})
 
-	t.Run("bad DID", func(t *testing.T) {
+	t.Run("bad DID returns error ", func(t *testing.T) {
 		badDID := DIDJWK("bad")
 		_, err := badDID.Expand()
 		assert.Error(t, err)
