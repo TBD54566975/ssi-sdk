@@ -32,7 +32,7 @@ func GenerateDilithiumKeyPair(m DilithiumMode) (dilithium.PublicKey, dilithium.P
 	}
 	pk, sk, err := mode.GenerateKey(nil)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not generate key for dilithium")
+		return nil, nil, errors.Wrap(err, "generating key for dilithium")
 	}
 	return pk, sk, nil
 }
