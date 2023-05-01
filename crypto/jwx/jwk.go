@@ -60,7 +60,7 @@ func (k PrivateKeyJWK) ToPublicKeyJWK() PublicKeyJWK {
 
 func (k PrivateKeyJWK) ToPrivateKey() (gocrypto.PrivateKey, error) {
 	// handle Dilithium separately since it's not supported by our jwx library
-	if k.KTY == "LWE" {
+	if k.KTY == DilithiumKTY {
 		return k.toDilithiumPrivateKey()
 	}
 	gotJWK, err := JWKFromPrivateKeyJWK(k)
@@ -78,6 +78,7 @@ func (k PrivateKeyJWK) ToPrivateKey() (gocrypto.PrivateKey, error) {
 	return goKey, nil
 }
 
+// complies with https://www.ietf.org/id/draft-ietf-cose-dilithium-00.html#name-crydi-key-representations
 func (k PrivateKeyJWK) toDilithiumPrivateKey() (gocrypto.PrivateKey, error) {
 	decodedPrivKey, err := base64.RawURLEncoding.DecodeString(k.D)
 	if err != nil {
@@ -111,7 +112,7 @@ type PublicKeyJWK struct {
 
 func (k PublicKeyJWK) ToPublicKey() (gocrypto.PublicKey, error) {
 	// handle Dilithium separately since it's not supported by our jwx library
-	if k.KTY == "LWE" {
+	if k.KTY == DilithiumKTY {
 		return k.toDilithiumPublicKey()
 	}
 	gotJWK, err := JWKFromPublicKeyJWK(k)
@@ -609,7 +610,7 @@ func jwkFromDilithiumPrivateKey(m crypto.DilithiumMode, k dilithium.PrivateKey) 
 	pubKeyBytes := publicKey.Bytes()
 	x := base64.RawURLEncoding.EncodeToString(pubKeyBytes)
 	privKeyJWK := PrivateKeyJWK{
-		KTY: "LWE",
+		KTY: DilithiumKTY,
 		X:   x,
 		Alg: alg.String(),
 		D:   d,
@@ -668,7 +669,7 @@ func jwkFromDilithiumPublicKey(mode crypto.DilithiumMode, k dilithium.PublicKey)
 	pubKeyBytes := k.Bytes()
 	x := base64.RawURLEncoding.EncodeToString(pubKeyBytes)
 	return &PublicKeyJWK{
-		KTY: "LWE",
+		KTY: DilithiumKTY,
 		X:   x,
 		Alg: alg.String(),
 	}, nil
