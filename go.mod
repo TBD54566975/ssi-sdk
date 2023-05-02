@@ -13,7 +13,7 @@ require (
 	github.com/gowebpki/jcs v1.0.0
 	github.com/hyperledger/aries-framework-go v0.2.0
 	github.com/jarcoal/httpmock v1.3.0
-	github.com/lestrrat-go/jwx/v2 v2.0.9-0.20230429214153-5090ec1bd2cd
+	github.com/lestrrat-go/jwx/v2 v2.0.9
 	github.com/magefile/mage v1.14.0
 	github.com/mr-tron/base58 v1.2.0
 	github.com/multiformats/go-multibase v0.2.0
