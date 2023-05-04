@@ -99,7 +99,7 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, verifier)
 
-			sameVerifier, err := NewJWXVerifier(testID, pubKey)
+			sameVerifier, err := NewJWXVerifier(testID, testKID, pubKey)
 			assert.NoError(t, err)
 			assert.Equal(t, verifier, sameVerifier)
 
@@ -182,7 +182,7 @@ func getTestVectorKey0Signer(t *testing.T) Signer {
 		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 	}
 
-	signer, err := NewJWXSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
+	signer, err := NewJWXSignerFromJWK("signer-id", knownJWK)
 	assert.NoError(t, err)
 	return *signer
 }

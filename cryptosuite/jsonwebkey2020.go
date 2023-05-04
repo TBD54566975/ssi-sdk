@@ -7,6 +7,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/util"
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/pkg/errors"
 )
@@ -94,7 +95,7 @@ func GenerateJSONWebKey2020(kty KTY, crv CRV) (*JSONWebKey2020, error) {
 // JSONWebKey2020FromPrivateKey returns a JsonWebKey2020 value from a given private key, containing both JWK
 // public and private key representations of the key.
 func JSONWebKey2020FromPrivateKey(key gocrypto.PrivateKey) (*JSONWebKey2020, error) {
-	pubKeyJWK, privKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(key)
+	pubKeyJWK, privKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK("", key)
 	if err != nil {
 		return nil, err
 	}
@@ -187,11 +188,15 @@ func (s *JSONWebKeySigner) Sign(tbs []byte) ([]byte, error) {
 	if err := headers.Set(jws.CriticalKey, []string{b64}); err != nil {
 		return nil, err
 	}
-	return jws.Sign(nil, jws.WithKey(s.SignatureAlgorithm, s.Key), jws.WithHeaders(headers), jws.WithDetachedPayload(tbs))
+	privateKey, err := s.ToPrivateKey()
+	if err != nil {
+		return nil, errors.Wrap(err, "getting private key")
+	}
+	return jws.Sign(nil, jws.WithKey(jwa.SignatureAlgorithm(s.ALG), privateKey), jws.WithHeaders(headers), jws.WithDetachedPayload(tbs))
 }
 
 func (s *JSONWebKeySigner) GetKeyID() string {
-	return s.Key.KeyID()
+	return s.KID
 }
 
 func (*JSONWebKeySigner) GetSignatureType() SignatureType {
@@ -199,7 +204,7 @@ func (*JSONWebKeySigner) GetSignatureType() SignatureType {
 }
 
 func (s *JSONWebKeySigner) GetSigningAlgorithm() string {
-	return s.Algorithm().String()
+	return s.ALG
 }
 
 func (s *JSONWebKeySigner) SetProofPurpose(purpose ProofPurpose) {
@@ -218,8 +223,8 @@ func (s *JSONWebKeySigner) GetPayloadFormat() PayloadFormat {
 	return s.format
 }
 
-func NewJSONWebKeySigner(id, kid string, key jwx.PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
-	signer, err := jwx.NewJWXSignerFromJWK(id, kid, key)
+func NewJSONWebKeySigner(id string, key jwx.PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
+	signer, err := jwx.NewJWXSignerFromJWK(id, key)
 	if err != nil {
 		return nil, err
 	}
@@ -239,12 +244,16 @@ type JSONWebKeyVerifier struct {
 // Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
 // and an error should it fail.
 func (v JSONWebKeyVerifier) Verify(message, signature []byte) error {
-	_, err := jws.Verify(signature, jws.WithKey(v.Algorithm(), v.Key), jws.WithDetachedPayload(message))
+	pubKey, err := v.PublicKeyJWK.ToPublicKey()
+	if err != nil {
+		return errors.Wrap(err, "getting public key")
+	}
+	_, err = jws.Verify(signature, jws.WithKey(jwa.SignatureAlgorithm(v.ALG), pubKey), jws.WithDetachedPayload(message))
 	return err
 }
 
 func (v JSONWebKeyVerifier) GetKeyID() string {
-	return v.Key.KeyID()
+	return v.KID
 }
 
 func NewJSONWebKeyVerifier(id string, key jwx.PublicKeyJWK) (*JSONWebKeyVerifier, error) {
@@ -252,9 +261,7 @@ func NewJSONWebKeyVerifier(id string, key jwx.PublicKeyJWK) (*JSONWebKeyVerifier
 	if err != nil {
 		return nil, err
 	}
-	return &JSONWebKeyVerifier{
-		Verifier: *verifier,
-	}, nil
+	return &JSONWebKeyVerifier{Verifier: *verifier}, nil
 }
 
 // PubKeyBytesToTypedKey converts a public key byte slice to a crypto.PublicKey based on a given key type, merging

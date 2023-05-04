@@ -9,6 +9,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/pkg/errors"
@@ -81,7 +82,15 @@ func SignVerifiableCredentialJWT(signer jwx.Signer, cred VerifiableCredential) (
 		return nil, errors.New("setting credential value")
 	}
 
-	signed, err := jwt.Sign(t, jwt.WithKey(signer.SignatureAlgorithm, signer.Key))
+	hdrs := jws.NewHeaders()
+	if err := hdrs.Set(jws.KeyIDKey, signer.KID); err != nil {
+		return nil, errors.Wrap(err, "setting KID protected header")
+	}
+	privateKey, err := signer.ToPrivateKey()
+	if err != nil {
+		return nil, errors.Wrap(err, "getting private key")
+	}
+	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.ALG), privateKey, jws.WithProtectedHeaders(hdrs)))
 	if err != nil {
 		return nil, errors.Wrap(err, "signing JWT credential")
 	}
@@ -241,7 +250,15 @@ func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameter
 		return nil, errors.Wrap(err, "setting vp value")
 	}
 
-	signed, err := jwt.Sign(t, jwt.WithKey(signer.SignatureAlgorithm, signer.Key))
+	hdrs := jws.NewHeaders()
+	if err := hdrs.Set(jws.KeyIDKey, signer.KID); err != nil {
+		return nil, errors.Wrap(err, "setting KID protected header")
+	}
+	privateKey, err := signer.ToPrivateKey()
+	if err != nil {
+		return nil, errors.Wrap(err, "getting private key")
+	}
+	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.ALG), privateKey, jws.WithProtectedHeaders(hdrs)))
 	if err != nil {
 		return nil, errors.Wrap(err, "signing JWT presentation")
 	}
@@ -272,13 +289,13 @@ func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier,
 	// make sure the audience matches the verifier
 	audMatch := false
 	for _, aud := range vpToken.Audience() {
-		if aud == verifier.ID || aud == verifier.KeyID() {
+		if aud == verifier.ID || aud == verifier.KID {
 			audMatch = true
 			break
 		}
 	}
 	if !audMatch {
-		return nil, nil, nil, errors.Errorf("audience mismatch: expected [%s] or [%s], got %s", verifier.ID, verifier.KeyID(), vpToken.Audience())
+		return nil, nil, nil, errors.Errorf("audience mismatch: expected [%s] or [%s], got %s", verifier.ID, verifier.KID, vpToken.Audience())
 	}
 
 	// verify signature for each credential in the vp

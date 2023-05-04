@@ -8,7 +8,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
-	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/oliveagle/jsonpath"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -92,7 +91,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Token:                         util.StringPtr(string(credJWT)),
 			JWTFormat:                     JWTVC.Ptr(),
-			SignatureAlgorithmOrProofType: signer.GetSigningAlgorithm(),
+			SignatureAlgorithmOrProofType: signer.ALG,
 		}
 		submissionBytes, err := BuildPresentationSubmission(*signer, signer.ID, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)
@@ -850,13 +849,10 @@ func getJWKSignerVerifier(t *testing.T) (*jwx.Signer, *jwx.Verifier) {
 	privKey, didKey, err := did.GenerateDIDKey(crypto.Ed25519)
 	require.NoError(t, err)
 
-	key, err := jwk.FromRaw(privKey)
-	require.NoError(t, err)
-
 	expanded, err := didKey.Expand()
 	require.NoError(t, err)
 	kid := expanded.VerificationMethod[0].ID
-	signer, err := jwx.NewJWXSignerFromKey(didKey.String(), kid, key)
+	signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
 	require.NoError(t, err)
 
 	verifier, err := signer.ToVerifier(didKey.String())

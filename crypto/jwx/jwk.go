@@ -22,6 +22,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+type JWK interface {
+	KID() string
+	ALG() string
+	KTY() string
+	CRV() string
+}
+
 // PrivateKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
 type PrivateKeyJWK struct {
 	KTY    string `json:"kty,omitempty" validate:"required"`
@@ -32,7 +39,7 @@ type PrivateKeyJWK struct {
 	E      string `json:"e,omitempty"`
 	Use    string `json:"use,omitempty"`
 	KeyOps string `json:"key_ops,omitempty"`
-	Alg    string `json:"alg,omitempty"`
+	ALG    string `json:"alg,omitempty"`
 	KID    string `json:"kid,omitempty"`
 	D      string `json:"d,omitempty"`
 	DP     string `json:"dp,omitempty"`
@@ -53,7 +60,7 @@ func (k PrivateKeyJWK) ToPublicKeyJWK() PublicKeyJWK {
 		E:      k.E,
 		Use:    k.Use,
 		KeyOps: k.KeyOps,
-		Alg:    k.Alg,
+		ALG:    k.ALG,
 		KID:    k.KID,
 	}
 }
@@ -71,6 +78,7 @@ func (k PrivateKeyJWK) ToPrivateKey() (gocrypto.PrivateKey, error) {
 	if err = gotJWK.Raw(&goKey); err != nil {
 		return nil, errors.Wrap(err, "converting JWK to go key")
 	}
+
 	// dereference the ptr
 	if reflect.ValueOf(goKey).Kind() == reflect.Ptr {
 		goKey = reflect.ValueOf(goKey).Elem().Interface().(gocrypto.PrivateKey)
@@ -90,7 +98,7 @@ func (k PrivateKeyJWK) toDilithiumPrivateKey() (gocrypto.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	switch k.Alg {
+	switch k.ALG {
 	case DilithiumMode2Alg.String():
 		return dilithium.Mode2.PrivateKeyFromBytes(decodedPrivKey), nil
 	case DilithiumMode3Alg.String():
@@ -98,7 +106,7 @@ func (k PrivateKeyJWK) toDilithiumPrivateKey() (gocrypto.PrivateKey, error) {
 	case DilithiumMode5Alg.String():
 		return dilithium.Mode5.PrivateKeyFromBytes(decodedPrivKey), nil
 	default:
-		return nil, fmt.Errorf("unsupported algorithm %s", k.Alg)
+		return nil, fmt.Errorf("unsupported algorithm %s", k.ALG)
 	}
 }
 
@@ -112,7 +120,7 @@ type PublicKeyJWK struct {
 	E      string `json:"e,omitempty"`
 	Use    string `json:"use,omitempty"`
 	KeyOps string `json:"key_ops,omitempty"`
-	Alg    string `json:"alg,omitempty"`
+	ALG    string `json:"alg,omitempty"`
 	KID    string `json:"kid,omitempty"`
 }
 
@@ -144,7 +152,7 @@ func (k PublicKeyJWK) toDilithiumPublicKey() (gocrypto.PublicKey, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "decoding public key")
 	}
-	switch k.Alg {
+	switch k.ALG {
 	case DilithiumMode2Alg.String():
 		return dilithium.Mode2.PublicKeyFromBytes(decodedPubKey), nil
 	case DilithiumMode3Alg.String():
@@ -152,7 +160,7 @@ func (k PublicKeyJWK) toDilithiumPublicKey() (gocrypto.PublicKey, error) {
 	case DilithiumMode5Alg.String():
 		return dilithium.Mode5.PublicKeyFromBytes(decodedPubKey), nil
 	default:
-		return nil, fmt.Errorf("unsupported algorithm %s", k.Alg)
+		return nil, fmt.Errorf("unsupported algorithm %s", k.ALG)
 	}
 }
 
@@ -174,131 +182,85 @@ func JWKFromPrivateKeyJWK(key PrivateKeyJWK) (jwk.Key, error) {
 	return jwk.ParseKey(keyBytes)
 }
 
-// PublicKeyToJWK converts a public key to a JWK
-func PublicKeyToJWK(key gocrypto.PublicKey) (jwk.Key, error) {
-	// dereference the ptr
-	if reflect.ValueOf(key).Kind() == reflect.Ptr {
-		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PublicKey)
-	}
-	switch k := key.(type) {
-	case rsa.PublicKey:
-		return jwkKeyFromRSAPublicKey(k)
-	case ed25519.PublicKey:
-		return jwkKeyFromEd25519PublicKey(k)
-	case x25519.PublicKey:
-		return jwkKeyFromX25519PublicKey(k)
-	case secp256k1.PublicKey:
-		return jwkKeyFromSECP256k1PublicKey(k)
-	case ecdsa.PublicKey:
-		return jwkKeyFromECDSAPublicKey(k)
-	default:
-		return nil, fmt.Errorf("unsupported public key type: %T", k)
-	}
-}
-
 // PublicKeyToPublicKeyJWK converts a public key to a PublicKeyJWK
-func PublicKeyToPublicKeyJWK(key gocrypto.PublicKey) (*PublicKeyJWK, error) {
+func PublicKeyToPublicKeyJWK(kid string, key gocrypto.PublicKey) (*PublicKeyJWK, error) {
 	// dereference the ptr, which could be a nested ptr
 	for reflect.ValueOf(key).Kind() == reflect.Ptr {
 		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PublicKey)
 	}
+	var pubKeyJWK *PublicKeyJWK
+	var err error
 	switch k := key.(type) {
 	case rsa.PublicKey:
-		return jwkFromRSAPublicKey(k)
+		pubKeyJWK, err = jwkFromRSAPublicKey(k)
 	case ed25519.PublicKey:
-		return jwkFromEd25519PublicKey(k)
+		pubKeyJWK, err = jwkFromEd25519PublicKey(k)
 	case x25519.PublicKey:
-		return jwkFromX25519PublicKey(k)
+		pubKeyJWK, err = jwkFromX25519PublicKey(k)
 	case secp256k1.PublicKey:
-		return jwkFromSECP256k1PublicKey(k)
+		pubKeyJWK, err = jwkFromSECP256k1PublicKey(k)
 	case ecdsa.PublicKey:
-		return jwkFromECDSAPublicKey(k)
+		pubKeyJWK, err = jwkFromECDSAPublicKey(k)
 	case mode2.PublicKey:
 		pubKey := dilithium.Mode2.PublicKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPublicKey(crypto.Dilithium2, pubKey)
+		pubKeyJWK, err = jwkFromDilithiumPublicKey(crypto.Dilithium2, pubKey)
 	case mode3.PublicKey:
 		pubKey := dilithium.Mode3.PublicKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPublicKey(crypto.Dilithium3, pubKey)
+		pubKeyJWK, err = jwkFromDilithiumPublicKey(crypto.Dilithium3, pubKey)
 	case mode5.PublicKey:
 		pubKey := dilithium.Mode5.PublicKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPublicKey(crypto.Dilithium5, pubKey)
+		pubKeyJWK, err = jwkFromDilithiumPublicKey(crypto.Dilithium5, pubKey)
 	default:
 		return nil, fmt.Errorf("unsupported public key type: %T", k)
 	}
-}
-
-// PrivateKeyToJWK converts a private key to a JWK
-func PrivateKeyToJWK(key gocrypto.PrivateKey) (jwk.Key, error) {
-	// dereference the ptr
-	if reflect.ValueOf(key).Kind() == reflect.Ptr {
-		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PrivateKey)
+	if err != nil {
+		return nil, err
 	}
-	switch k := key.(type) {
-	case rsa.PrivateKey:
-		return jwkKeyFromRSAPrivateKey(k)
-	case ed25519.PrivateKey:
-		return jwkKeyFromEd25519PrivateKey(k)
-	case x25519.PrivateKey:
-		return jwkKeyFromX25519PrivateKey(k)
-	case secp256k1.PrivateKey:
-		return jwkKeyFromSECP256k1PrivateKey(k)
-	case ecdsa.PrivateKey:
-		return jwkKeyFromECDSAPrivateKey(k)
-	default:
-		return nil, fmt.Errorf("unsupported private key type: %T", k)
-	}
+	pubKeyJWK.KID = kid
+	return pubKeyJWK, err
 }
 
 // PrivateKeyToPrivateKeyJWK converts a private key to a PrivateKeyJWK
-func PrivateKeyToPrivateKeyJWK(key gocrypto.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
+func PrivateKeyToPrivateKeyJWK(keyID string, key gocrypto.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	// dereference the ptr, which could be nested
 	for reflect.ValueOf(key).Kind() == reflect.Ptr {
 		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PrivateKey)
 	}
+	var pubKeyJWK *PublicKeyJWK
+	var privKeyJWK *PrivateKeyJWK
+	var err error
 	switch k := key.(type) {
 	case rsa.PrivateKey:
-		return jwkFromRSAPrivateKey(k)
+		pubKeyJWK, privKeyJWK, err = jwkFromRSAPrivateKey(k)
+		if err != nil {
+			return nil, nil, err
+		}
 	case ed25519.PrivateKey:
-		return jwkFromEd25519PrivateKey(k)
+		pubKeyJWK, privKeyJWK, err = jwkFromEd25519PrivateKey(k)
 	case x25519.PrivateKey:
-		return jwkFromX25519PrivateKey(k)
+		pubKeyJWK, privKeyJWK, err = jwkFromX25519PrivateKey(k)
 	case secp256k1.PrivateKey:
-		return jwkFromSECP256k1PrivateKey(k)
+		pubKeyJWK, privKeyJWK, err = jwkFromSECP256k1PrivateKey(k)
 	case ecdsa.PrivateKey:
-		return jwkFromECDSAPrivateKey(k)
+		pubKeyJWK, privKeyJWK, err = jwkFromECDSAPrivateKey(k)
 	case mode2.PrivateKey:
 		privKey := dilithium.Mode2.PrivateKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPrivateKey(crypto.Dilithium2, privKey)
+		pubKeyJWK, privKeyJWK, err = jwkFromDilithiumPrivateKey(crypto.Dilithium2, privKey)
 	case mode3.PrivateKey:
 		privKey := dilithium.Mode3.PrivateKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPrivateKey(crypto.Dilithium3, privKey)
+		pubKeyJWK, privKeyJWK, err = jwkFromDilithiumPrivateKey(crypto.Dilithium3, privKey)
 	case mode5.PrivateKey:
 		privKey := dilithium.Mode5.PrivateKeyFromBytes(k.Bytes())
-		return jwkFromDilithiumPrivateKey(crypto.Dilithium5, privKey)
+		pubKeyJWK, privKeyJWK, err = jwkFromDilithiumPrivateKey(crypto.Dilithium5, privKey)
 	default:
 		return nil, nil, fmt.Errorf("unsupported private key type: %T", k)
 	}
-}
-
-func GetCRVFromJWK(key jwk.Key) (string, error) {
-	maybeCrv, hasCrv := key.Get("crv")
-	if hasCrv {
-		crv, crvStr := maybeCrv.(jwa.EllipticCurveAlgorithm)
-		if !crvStr {
-			return "", fmt.Errorf("could not get crv value: %+v", maybeCrv)
-		}
-		return crv.String(), nil
-	}
-	return "", nil
-}
-
-// jwkKeyFromRSAPrivateKey converts a RSA private key to a JWK
-func jwkKeyFromRSAPrivateKey(key rsa.PrivateKey) (jwk.Key, error) {
-	rsaJWK, err := jwk.FromRaw(key)
 	if err != nil {
-		return nil, errors.Wrap(err, "generating rsa jwk")
+		return nil, nil, err
 	}
-	return rsaJWK, nil
+	pubKeyJWK.KID = keyID
+	privKeyJWK.KID = keyID
+	return pubKeyJWK, privKeyJWK, nil
 }
 
 // jwkFromRSAPrivateKey converts a RSA private key to a JWK
@@ -327,19 +289,6 @@ func jwkFromRSAPrivateKey(key rsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, er
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
 
-// jwkKeyFromRSAPublicKey converts an RSA public key to a JWK
-func jwkKeyFromRSAPublicKey(key rsa.PublicKey) (jwk.Key, error) {
-	rsaJWKGeneric, err := jwk.FromRaw(key)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate rsa jwk")
-	}
-	rsaJWK, ok := rsaJWKGeneric.(jwk.RSAPublicKey)
-	if !ok {
-		return nil, errors.New("failed casting to rsa jwk")
-	}
-	return rsaJWK, nil
-}
-
 // jwkFromRSAPublicKey converts an RSA public key to a JWK
 func jwkFromRSAPublicKey(key rsa.PublicKey) (*PublicKeyJWK, error) {
 	rsaJWKGeneric, err := jwk.FromRaw(key)
@@ -360,19 +309,6 @@ func jwkFromRSAPublicKey(key rsa.PublicKey) (*PublicKeyJWK, error) {
 		return nil, errors.Wrap(err, "unmarshalling rsa jwk")
 	}
 	return &publicKeyJWK, nil
-}
-
-// jwkKeyFromEd25519PrivateKey converts an Ed25519 private key to a JWK
-func jwkKeyFromEd25519PrivateKey(key ed25519.PrivateKey) (jwk.Key, error) {
-	ed25519JWKGeneric, err := jwk.FromRaw(key)
-	if err != nil {
-		return nil, errors.Wrap(err, "generating ed25519 jwk")
-	}
-	ed25519JWK, ok := ed25519JWKGeneric.(jwk.OKPPrivateKey)
-	if !ok {
-		return nil, errors.New("failed casting ed25519 jwk")
-	}
-	return ed25519JWK, nil
 }
 
 // jwkFromEd25519PrivateKey converts an Ed25519 private key to a JWK
@@ -401,19 +337,6 @@ func jwkFromEd25519PrivateKey(key ed25519.PrivateKey) (*PublicKeyJWK, *PrivateKe
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
 
-// jwkKeyFromEd25519PublicKey converts a Ed25519 public key to a JWK
-func jwkKeyFromEd25519PublicKey(key ed25519.PublicKey) (jwk.Key, error) {
-	ed25519JWKGeneric, err := jwk.FromRaw(key)
-	if err != nil {
-		return nil, errors.Wrap(err, "generating ed25519 jwk")
-	}
-	ed25519JWK, ok := ed25519JWKGeneric.(jwk.OKPPublicKey)
-	if !ok {
-		return nil, errors.New("failed casting to ed25519 jwk")
-	}
-	return ed25519JWK, nil
-}
-
 // jwkFromEd25519PublicKey converts a Ed25519 public key to a JWK
 func jwkFromEd25519PublicKey(key ed25519.PublicKey) (*PublicKeyJWK, error) {
 	ed25519JWKGeneric, err := jwk.FromRaw(key)
@@ -437,37 +360,13 @@ func jwkFromEd25519PublicKey(key ed25519.PublicKey) (*PublicKeyJWK, error) {
 }
 
 // jwkFromX25519PrivateKey converts a X25519 private key to a JWK
-func jwkKeyFromX25519PrivateKey(key x25519.PrivateKey) (jwk.Key, error) {
-	return jwkKeyFromEd25519PrivateKey(ed25519.PrivateKey(key))
-}
-
-// jwkFromX25519PrivateKey converts a X25519 private key to a JWK
 func jwkFromX25519PrivateKey(key x25519.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	return jwkFromEd25519PrivateKey(ed25519.PrivateKey(key))
-}
-
-// jwkKeyFromX25519PublicKey converts a X25519 public key to a JWK
-func jwkKeyFromX25519PublicKey(key x25519.PublicKey) (jwk.Key, error) {
-	return jwkKeyFromEd25519PublicKey(ed25519.PublicKey(key))
 }
 
 // jwkFromX25519PublicKey converts a X25519 public key to a JWK
 func jwkFromX25519PublicKey(key x25519.PublicKey) (*PublicKeyJWK, error) {
 	return jwkFromEd25519PublicKey(ed25519.PublicKey(key))
-}
-
-// jwkKeyFromSECP256k1PrivateKey converts a SECP256k1 private key to a JWK
-func jwkKeyFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (jwk.Key, error) {
-	ecdsaPrivKey := key.ToECDSA()
-	secp256k1JWKGeneric, err := jwk.FromRaw(ecdsaPrivKey)
-	if err != nil {
-		return nil, errors.Wrap(err, "generating secp256k1 jwk")
-	}
-	secp256k1JWK, ok := secp256k1JWKGeneric.(jwk.ECDSAPrivateKey)
-	if !ok {
-		return nil, errors.New("failed casting to secp256k1 jwk")
-	}
-	return secp256k1JWK, nil
 }
 
 // jwkFromSECP256k1PrivateKey converts a SECP256k1 private key to a JWK
@@ -497,20 +396,6 @@ func jwkFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (*PublicKeyJWK, *Priva
 	return &publicKeyJWK, &privateKeyJWK, nil
 }
 
-// jwkKeyFromSECP256k1PublicKey converts a SECP256k1 public key to a JWK
-func jwkKeyFromSECP256k1PublicKey(key secp256k1.PublicKey) (jwk.Key, error) {
-	ecdsaPubKey := key.ToECDSA()
-	secp256k1JWKGeneric, err := jwk.FromRaw(ecdsaPubKey)
-	if err != nil {
-		return nil, errors.Wrap(err, "generating secp256k1 jwk")
-	}
-	secp256k1JWK, ok := secp256k1JWKGeneric.(jwk.ECDSAPublicKey)
-	if !ok {
-		return nil, errors.New("failed casting to secp256k1 jwk")
-	}
-	return secp256k1JWK, nil
-}
-
 // jwkFromSECP256k1PublicKey converts a SECP256k1 public key to a JWK
 func jwkFromSECP256k1PublicKey(key secp256k1.PublicKey) (*PublicKeyJWK, error) {
 	ecdsaPubKey := key.ToECDSA()
@@ -532,19 +417,6 @@ func jwkFromSECP256k1PublicKey(key secp256k1.PublicKey) (*PublicKeyJWK, error) {
 		return nil, errors.Wrap(err, "unmarshalling secp256k1 jwk")
 	}
 	return &publicKeyJWK, nil
-}
-
-// jwkKeyFromECDSAPrivateKey converts a ECDSA private key to a JWK
-func jwkKeyFromECDSAPrivateKey(key ecdsa.PrivateKey) (jwk.Key, error) {
-	ecdsaKeyGeneric, err := jwk.FromRaw(key)
-	if err != nil {
-		return nil, errors.Wrap(err, "generating ecdsa jwk")
-	}
-	ecdsaKey, ok := ecdsaKeyGeneric.(jwk.ECDSAPrivateKey)
-	if !ok {
-		return nil, errors.New("failed casting to ecdsa jwk")
-	}
-	return ecdsaKey, nil
 }
 
 // jwkFromECDSAPrivateKey converts a ECDSA private key to a JWK
@@ -595,24 +467,11 @@ func jwkFromDilithiumPrivateKey(m crypto.DilithiumMode, k dilithium.PrivateKey) 
 	privKeyJWK := PrivateKeyJWK{
 		KTY: DilithiumKTY,
 		X:   x,
-		Alg: alg.String(),
+		ALG: alg.String(),
 		D:   d,
 	}
 	pubKeyJWK := privKeyJWK.ToPublicKeyJWK()
 	return &pubKeyJWK, &privKeyJWK, nil
-}
-
-// jwkKeyFromECDSAPublicKey converts a ECDSA public key to a JWK
-func jwkKeyFromECDSAPublicKey(key ecdsa.PublicKey) (jwk.Key, error) {
-	ecdsaKeyGeneric, err := jwk.FromRaw(key)
-	if err != nil {
-		return nil, errors.Wrap(err, "generating ecdsa jwk")
-	}
-	ecdsaKey, ok := ecdsaKeyGeneric.(jwk.ECDSAPublicKey)
-	if !ok {
-		return nil, errors.New("failed casting to ecdsa jwk")
-	}
-	return ecdsaKey, nil
 }
 
 // jwkFromECDSAPublicKey converts a ECDSA public key to a JWK
@@ -654,6 +513,6 @@ func jwkFromDilithiumPublicKey(mode crypto.DilithiumMode, k dilithium.PublicKey)
 	return &PublicKeyJWK{
 		KTY: DilithiumKTY,
 		X:   x,
-		Alg: alg.String(),
+		ALG: alg.String(),
 	}, nil
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/goccy/go-json"
-	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/pkg/errors"
 )
 
@@ -57,7 +56,8 @@ func GenerateDIDJWK(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDJWK, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating key for did:jwk")
 	}
-	pubKeyJWK, err := jwx.PublicKeyToJWK(pubKey)
+	// kid not needed since it will be set on expansion
+	pubKeyJWK, err := jwx.PublicKeyToPublicKeyJWK("", pubKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "converting public key to JWK")
 	}
@@ -65,7 +65,7 @@ func GenerateDIDJWK(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDJWK, error) {
 	// 2. Serialize it into a UTF-8 string
 	// 3. Encode string using base64url
 	// 4. Prepend the string with the did:jwk prefix
-	didJWK, err := CreateDIDJWK(pubKeyJWK)
+	didJWK, err := CreateDIDJWK(*pubKeyJWK)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "creating did:jwk")
 	}
@@ -74,7 +74,7 @@ func GenerateDIDJWK(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDJWK, error) {
 
 // CreateDIDJWK creates a did:jwk from a JWK public key by following the steps in the spec:
 // https://github.com/quartzjer/did-jwk/blob/main/spec.md
-func CreateDIDJWK(publicKeyJWK jwk.Key) (*DIDJWK, error) {
+func CreateDIDJWK(publicKeyJWK jwx.PublicKeyJWK) (*DIDJWK, error) {
 	// 2. Serialize it into a UTF-8 string
 	pubKeyJWKBytes, err := json.Marshal(publicKeyJWK)
 	if err != nil {

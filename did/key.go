@@ -233,7 +233,7 @@ func constructVerificationMethod(id, keyReference string, pubKey []byte, keyType
 		return nil, errors.Wrap(err, "converting bytes to public key")
 	}
 
-	pubKeyJWK, err := jwx.PublicKeyToPublicKeyJWK(cryptoPubKey)
+	pubKeyJWK, err := jwx.PublicKeyToPublicKeyJWK(keyReference, cryptoPubKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "could convert did:key to PublicKeyJWK")
 	}

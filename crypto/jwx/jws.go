@@ -3,6 +3,7 @@ package jwx
 import (
 	"fmt"
 
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/pkg/errors"
@@ -11,10 +12,14 @@ import (
 // SignJWS takes a set of payload and signs it with the key defined in the signer
 func (s *Signer) SignJWS(payload []byte) ([]byte, error) {
 	headers := jws.NewHeaders()
-	if err := headers.Set(jws.AlgorithmKey, s.SignatureAlgorithm); err != nil {
+	if err := headers.Set(jws.AlgorithmKey, s.ALG); err != nil {
 		return nil, errors.Wrap(err, "setting algorithm header")
 	}
-	return jws.Sign(payload, jws.WithKey(s.SignatureAlgorithm, s.Key, jws.WithProtectedHeaders(headers)))
+	privateKey, err := s.ToPrivateKey()
+	if err != nil {
+		return nil, errors.Wrap(err, "getting private key")
+	}
+	return jws.Sign(payload, jws.WithKey(jwa.SignatureAlgorithm(s.ALG), privateKey, jws.WithProtectedHeaders(headers)))
 }
 
 // Parse attempts to turn a string into a jwt.Token
@@ -32,8 +37,12 @@ func (*Signer) Parse(token string) (jws.Headers, jwt.Token, error) {
 
 // VerifyJWS parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success.
 func (v *Verifier) VerifyJWS(token string) error {
-	key := jws.WithKey(v.Algorithm(), v.Key)
-	if _, err := jws.Verify([]byte(token), key); err != nil {
+	pubKey, err := v.PublicKeyJWK.ToPublicKey()
+	if err != nil {
+		return errors.Wrap(err, "getting public key")
+	}
+	key := jws.WithKey(jwa.SignatureAlgorithm(v.ALG), pubKey)
+	if _, err = jws.Verify([]byte(token), key); err != nil {
 		return errors.Wrap(err, "verifying JWT")
 	}
 	return nil

@@ -233,13 +233,14 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 func getTestVectorKey0Signer(t *testing.T) jwx.Signer {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	knownJWK := jwx.PrivateKeyJWK{
+		KID: "key-0",
 		KTY: "OKP",
 		CRV: "Ed25519",
 		X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
 		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 	}
 
-	signer, err := jwx.NewJWXSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
+	signer, err := jwx.NewJWXSignerFromJWK("signer-id", knownJWK)
 	assert.NoError(t, err)
 	return *signer
 }
