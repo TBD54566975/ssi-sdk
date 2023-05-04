@@ -156,32 +156,6 @@ func (k PublicKeyJWK) toDilithiumPublicKey() (gocrypto.PublicKey, error) {
 	}
 }
 
-// JWKToPrivateKeyJWK converts a JWK to a PrivateKeyJWK
-func JWKToPrivateKeyJWK(key jwk.Key) (*PrivateKeyJWK, error) {
-	keyBytes, err := json.Marshal(key)
-	if err != nil {
-		return nil, err
-	}
-	var privateKeyJWK PrivateKeyJWK
-	if err = json.Unmarshal(keyBytes, &privateKeyJWK); err != nil {
-		return nil, err
-	}
-	return &privateKeyJWK, nil
-}
-
-// JWKToPublicKeyJWK converts a JWK to a PublicKeyJWK
-func JWKToPublicKeyJWK(key jwk.Key) (*PublicKeyJWK, error) {
-	keyBytes, err := json.Marshal(key)
-	if err != nil {
-		return nil, err
-	}
-	var pubKeyJWK PublicKeyJWK
-	if err = json.Unmarshal(keyBytes, &pubKeyJWK); err != nil {
-		return nil, err
-	}
-	return &pubKeyJWK, nil
-}
-
 // JWKFromPublicKeyJWK converts a PublicKeyJWK to a JWK
 func JWKFromPublicKeyJWK(key PublicKeyJWK) (jwk.Key, error) {
 	keyBytes, err := json.Marshal(key)
