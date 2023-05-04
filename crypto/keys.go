@@ -143,7 +143,7 @@ func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 	}
 }
 
-// GetKeyTypeFromPrivateKey returns the key type of a private key for known key types
+// GetKeyTypeFromPrivateKey returns the key type for a private key for known key types
 func GetKeyTypeFromPrivateKey(key crypto.PrivateKey) (KeyType, error) {
 	// dereference the ptr
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {

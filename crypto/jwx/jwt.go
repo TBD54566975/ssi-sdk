@@ -62,7 +62,6 @@ type Verifier struct {
 }
 
 // NewJWXVerifier creates a new verifier from a public key to verify JWTs and JWS signatures
-// TODO(gabe) support keys not in jwk.Key https://github.com/TBD54566975/ssi-sdk/issues/365
 func NewJWXVerifier(id, kid string, key gocrypto.PublicKey) (*Verifier, error) {
 	publicKeyJWK, err := PublicKeyToPublicKeyJWK(kid, key)
 	if err != nil {
@@ -112,8 +111,10 @@ func (s *Signer) SignWithDefaults(kvs map[string]any) ([]byte, error) {
 		}
 	}
 	hdrs := jws.NewHeaders()
-	if err := hdrs.Set(jws.KeyIDKey, s.KID); err != nil {
-		return nil, errors.Wrap(err, "setting KID protected header")
+	if s.KID != "" {
+		if err := hdrs.Set(jws.KeyIDKey, s.KID); err != nil {
+			return nil, errors.Wrap(err, "setting KID protected header")
+		}
 	}
 	privateKey, err := s.ToPrivateKey()
 	if err != nil {
@@ -128,7 +129,7 @@ func (v *Verifier) Verify(token string) error {
 	if err != nil {
 		return errors.Wrap(err, "getting get public key")
 	}
-	if _, err := jwt.Parse([]byte(token), jwt.WithKey(jwa.SignatureAlgorithm(v.ALG), pubKey)); err != nil {
+	if _, err = jwt.Parse([]byte(token), jwt.WithKey(jwa.SignatureAlgorithm(v.ALG), pubKey)); err != nil {
 		return errors.Wrap(err, "verifying JWT")
 	}
 	return nil
@@ -169,6 +170,8 @@ func (v *Verifier) VerifyAndParse(token string) (jws.Headers, jwt.Token, error) 
 func AlgFromKeyAndCurve(kty, crv string) (string, error) {
 	if kty == jwa.RSA.String() {
 		return jwa.PS256.String(), nil
+	} else if kty == DilithiumKTY {
+		return "", errors.New("dilithium alg should already be set")
 	}
 
 	if crv == "" {
@@ -202,9 +205,9 @@ func AlgFromKeyAndCurve(kty, crv string) (string, error) {
 	return "", fmt.Errorf("unsupported key type: %s", kty)
 }
 
-// IsSupportedJWXSigningVerificationAlgorithm returns true if the algorithm is supported for signing or verifying JWTs
+// IsSupportedJWXSigningVerificationAlgorithm returns true if the algorithm is supported for signing or verifying JWXs
 func IsSupportedJWXSigningVerificationAlgorithm(algorithm string) bool {
-	for _, supported := range GetSupportedJWTSigningVerificationAlgorithms() {
+	for _, supported := range GetSupportedJWXSigningVerificationAlgorithms() {
 		if algorithm == supported {
 			return true
 		}
@@ -212,8 +215,8 @@ func IsSupportedJWXSigningVerificationAlgorithm(algorithm string) bool {
 	return false
 }
 
-// GetSupportedJWTSigningVerificationAlgorithms returns a list of supported signing and verifying algorithms for JWTs
-func GetSupportedJWTSigningVerificationAlgorithms() []string {
+// GetSupportedJWXSigningVerificationAlgorithms returns a list of supported signing and verifying algorithms for JWXs
+func GetSupportedJWXSigningVerificationAlgorithms() []string {
 	return []string{
 		jwa.PS256.String(),
 		jwa.ES256.String(),
@@ -221,5 +224,24 @@ func GetSupportedJWTSigningVerificationAlgorithms() []string {
 		jwa.ES384.String(),
 		jwa.ES512.String(),
 		jwa.EdDSA.String(),
+	}
+}
+
+// IsExperimentalJWXSigningVerificationAlgorithm returns true if the algorithm is supported for experimental signing or verifying JWXs
+func IsExperimentalJWXSigningVerificationAlgorithm(algorithm string) bool {
+	for _, supported := range GetExperimentalJWXSigningVerificationAlgorithms() {
+		if algorithm == supported {
+			return true
+		}
+	}
+	return false
+}
+
+// GetExperimentalJWXSigningVerificationAlgorithms returns a list of experimental signing and verifying algorithms for JWXs
+func GetExperimentalJWXSigningVerificationAlgorithms() []string {
+	return []string{
+		DilithiumMode2Alg.String(),
+		DilithiumMode3Alg.String(),
+		DilithiumMode5Alg.String(),
 	}
 }

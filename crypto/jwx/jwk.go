@@ -22,13 +22,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type JWK interface {
-	KID() string
-	ALG() string
-	KTY() string
-	CRV() string
-}
-
 // PrivateKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
 type PrivateKeyJWK struct {
 	KTY    string `json:"kty,omitempty" validate:"required"`
@@ -65,25 +58,45 @@ func (k PrivateKeyJWK) ToPublicKeyJWK() PublicKeyJWK {
 	}
 }
 
+// ToPrivateKey converts a PrivateKeyJWK to a PrivateKeyJWK
 func (k PrivateKeyJWK) ToPrivateKey() (gocrypto.PrivateKey, error) {
-	// handle Dilithium separately since it's not supported by our jwx library
-	if k.KTY == DilithiumKTY {
-		return k.toDilithiumPrivateKey()
+	if IsSupportedJWXSigningVerificationAlgorithm(k.ALG) {
+		return k.toSupportedPrivateKey()
 	}
-	gotJWK, err := JWKFromPrivateKeyJWK(k)
+	if IsExperimentalJWXSigningVerificationAlgorithm(k.ALG) {
+		return k.toExperimentalPrivateKey()
+	}
+	return nil, fmt.Errorf("unsupported key conversion %+v", k)
+}
+
+func (k PrivateKeyJWK) toSupportedPrivateKey() (gocrypto.PrivateKey, error) {
+	keyBytes, err := json.Marshal(k)
+	if err != nil {
+		return nil, err
+	}
+	gotJWK, err := jwk.ParseKey(keyBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating JWK from private key")
 	}
-	var goKey gocrypto.PrivateKey
-	if err = gotJWK.Raw(&goKey); err != nil {
+	var key gocrypto.PrivateKey
+	if err = gotJWK.Raw(&key); err != nil {
 		return nil, errors.Wrap(err, "converting JWK to go key")
 	}
 
 	// dereference the ptr
-	if reflect.ValueOf(goKey).Kind() == reflect.Ptr {
-		goKey = reflect.ValueOf(goKey).Elem().Interface().(gocrypto.PrivateKey)
+	if reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PrivateKey)
 	}
-	return goKey, nil
+	return key, nil
+}
+
+func (k PrivateKeyJWK) toExperimentalPrivateKey() (gocrypto.PrivateKey, error) {
+	switch k.KTY {
+	case DilithiumKTY:
+		return k.toDilithiumPrivateKey()
+	default:
+		return nil, fmt.Errorf("unsupported key type %s", k.KTY)
+	}
 }
 
 // complies with https://www.ietf.org/id/draft-ietf-cose-dilithium-00.html#name-crydi-key-representations
@@ -124,24 +137,45 @@ type PublicKeyJWK struct {
 	KID    string `json:"kid,omitempty"`
 }
 
+// ToPublicKey converts a PublicKeyJWK to a PublicKey
 func (k PublicKeyJWK) ToPublicKey() (gocrypto.PublicKey, error) {
-	// handle Dilithium separately since it's not supported by our jwx library
-	if k.KTY == DilithiumKTY {
-		return k.toDilithiumPublicKey()
+	if IsSupportedJWXSigningVerificationAlgorithm(k.ALG) {
+		return k.toSupportedPublicKey()
 	}
-	gotJWK, err := JWKFromPublicKeyJWK(k)
+	if IsExperimentalJWXSigningVerificationAlgorithm(k.ALG) {
+		return k.toExperimentalPublicKey()
+	}
+	return nil, fmt.Errorf("unsupported key conversion %+v", k)
+}
+
+func (k PublicKeyJWK) toSupportedPublicKey() (gocrypto.PublicKey, error) {
+	keyBytes, err := json.Marshal(k)
+	if err != nil {
+		return nil, err
+	}
+	gotJWK, err := jwk.ParseKey(keyBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating JWK from public key")
 	}
-	var goKey gocrypto.PublicKey
-	if err = gotJWK.Raw(&goKey); err != nil {
+	var key gocrypto.PublicKey
+	if err = gotJWK.Raw(&key); err != nil {
 		return nil, errors.Wrap(err, "converting JWK to go key")
 	}
+
 	// dereference the ptr
-	if reflect.ValueOf(goKey).Kind() == reflect.Ptr {
-		goKey = reflect.ValueOf(goKey).Elem().Interface().(gocrypto.PublicKey)
+	if reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PublicKey)
 	}
-	return goKey, nil
+	return key, nil
+}
+
+func (k PublicKeyJWK) toExperimentalPublicKey() (gocrypto.PublicKey, error) {
+	switch k.KTY {
+	case DilithiumKTY:
+		return k.toDilithiumPublicKey()
+	default:
+		return nil, fmt.Errorf("unsupported key type %s", k.KTY)
+	}
 }
 
 func (k PublicKeyJWK) toDilithiumPublicKey() (gocrypto.PublicKey, error) {
@@ -162,24 +196,6 @@ func (k PublicKeyJWK) toDilithiumPublicKey() (gocrypto.PublicKey, error) {
 	default:
 		return nil, fmt.Errorf("unsupported algorithm %s", k.ALG)
 	}
-}
-
-// JWKFromPublicKeyJWK converts a PublicKeyJWK to a JWK
-func JWKFromPublicKeyJWK(key PublicKeyJWK) (jwk.Key, error) {
-	keyBytes, err := json.Marshal(key)
-	if err != nil {
-		return nil, err
-	}
-	return jwk.ParseKey(keyBytes)
-}
-
-// JWKFromPrivateKeyJWK converts a PrivateKeyJWK to a JWK
-func JWKFromPrivateKeyJWK(key PrivateKeyJWK) (jwk.Key, error) {
-	keyBytes, err := json.Marshal(key)
-	if err != nil {
-		return nil, err
-	}
-	return jwk.ParseKey(keyBytes)
 }
 
 // PublicKeyToPublicKeyJWK converts a public key to a PublicKeyJWK
@@ -217,6 +233,13 @@ func PublicKeyToPublicKeyJWK(kid string, key gocrypto.PublicKey) (*PublicKeyJWK,
 		return nil, err
 	}
 	pubKeyJWK.KID = kid
+	if pubKeyJWK.ALG == "" {
+		alg, err := AlgFromKeyAndCurve(pubKeyJWK.KTY, pubKeyJWK.CRV)
+		if err != nil {
+			return nil, errors.Wrap(err, "getting alg from key and curve")
+		}
+		pubKeyJWK.ALG = alg
+	}
 	return pubKeyJWK, err
 }
 
@@ -260,6 +283,14 @@ func PrivateKeyToPrivateKeyJWK(keyID string, key gocrypto.PrivateKey) (*PublicKe
 	}
 	pubKeyJWK.KID = keyID
 	privKeyJWK.KID = keyID
+	if privKeyJWK.ALG == "" {
+		alg, err := AlgFromKeyAndCurve(privKeyJWK.KTY, privKeyJWK.CRV)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "getting alg from key and curve")
+		}
+		pubKeyJWK.ALG = alg
+		privKeyJWK.ALG = alg
+	}
 	return pubKeyJWK, privKeyJWK, nil
 }
 

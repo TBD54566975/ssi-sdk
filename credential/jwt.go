@@ -83,8 +83,10 @@ func SignVerifiableCredentialJWT(signer jwx.Signer, cred VerifiableCredential) (
 	}
 
 	hdrs := jws.NewHeaders()
-	if err := hdrs.Set(jws.KeyIDKey, signer.KID); err != nil {
-		return nil, errors.Wrap(err, "setting KID protected header")
+	if signer.KID != "" {
+		if err := hdrs.Set(jws.KeyIDKey, signer.KID); err != nil {
+			return nil, errors.Wrap(err, "setting KID protected header")
+		}
 	}
 	privateKey, err := signer.ToPrivateKey()
 	if err != nil {
@@ -188,7 +190,7 @@ func ParseVerifiableCredentialFromToken(token jwt.Token) (*VerifiableCredential,
 
 // JWTVVPParameters represents additional parameters needed when constructing a JWT VP as opposed to a VP
 type JWTVVPParameters struct {
-	// Audience is a required intended audience of the JWT.
+	// Audience is a required audience of the JWT.
 	Audience string `validate:"required"`
 	// Expiration is an optional expiration time of the JWT using the `exp` property.
 	Expiration int
@@ -251,8 +253,10 @@ func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameter
 	}
 
 	hdrs := jws.NewHeaders()
-	if err := hdrs.Set(jws.KeyIDKey, signer.KID); err != nil {
-		return nil, errors.Wrap(err, "setting KID protected header")
+	if signer.KID != "" {
+		if err := hdrs.Set(jws.KeyIDKey, signer.KID); err != nil {
+			return nil, errors.Wrap(err, "setting KID protected header")
+		}
 	}
 	privateKey, err := signer.ToPrivateKey()
 	if err != nil {
