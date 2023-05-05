@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/cloudflare/circl/sign/dilithium"
 	"github.com/cloudflare/circl/sign/dilithium/mode2"
 	"github.com/cloudflare/circl/sign/dilithium/mode3"
@@ -20,6 +19,10 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/x25519"
 	"github.com/pkg/errors"
+)
+
+const (
+	DilithiumKTY = "LWE"
 )
 
 // PrivateKeyJWK complies with RFC7517 https://datatracker.ietf.org/doc/html/rfc7517
@@ -253,13 +256,13 @@ func PublicKeyToPublicKeyJWK(kid string, key gocrypto.PublicKey) (*PublicKeyJWK,
 		pubKeyJWK, err = jwkFromECDSAPublicKey(k)
 	case mode2.PublicKey:
 		pubKey := dilithium.Mode2.PublicKeyFromBytes(k.Bytes())
-		pubKeyJWK, err = jwkFromDilithiumPublicKey(crypto.Dilithium2, pubKey)
+		pubKeyJWK, err = jwkFromDilithiumPublicKey(dilithium.Mode2, pubKey)
 	case mode3.PublicKey:
 		pubKey := dilithium.Mode3.PublicKeyFromBytes(k.Bytes())
-		pubKeyJWK, err = jwkFromDilithiumPublicKey(crypto.Dilithium3, pubKey)
+		pubKeyJWK, err = jwkFromDilithiumPublicKey(dilithium.Mode3, pubKey)
 	case mode5.PublicKey:
 		pubKey := dilithium.Mode5.PublicKeyFromBytes(k.Bytes())
-		pubKeyJWK, err = jwkFromDilithiumPublicKey(crypto.Dilithium5, pubKey)
+		pubKeyJWK, err = jwkFromDilithiumPublicKey(dilithium.Mode5, pubKey)
 	default:
 		return nil, fmt.Errorf("unsupported public key type: %T", k)
 	}
@@ -302,13 +305,13 @@ func PrivateKeyToPrivateKeyJWK(keyID string, key gocrypto.PrivateKey) (*PublicKe
 		pubKeyJWK, privKeyJWK, err = jwkFromECDSAPrivateKey(k)
 	case mode2.PrivateKey:
 		privKey := dilithium.Mode2.PrivateKeyFromBytes(k.Bytes())
-		pubKeyJWK, privKeyJWK, err = jwkFromDilithiumPrivateKey(crypto.Dilithium2, privKey)
+		pubKeyJWK, privKeyJWK, err = jwkFromDilithiumPrivateKey(dilithium.Mode2, privKey)
 	case mode3.PrivateKey:
 		privKey := dilithium.Mode3.PrivateKeyFromBytes(k.Bytes())
-		pubKeyJWK, privKeyJWK, err = jwkFromDilithiumPrivateKey(crypto.Dilithium3, privKey)
+		pubKeyJWK, privKeyJWK, err = jwkFromDilithiumPrivateKey(dilithium.Mode3, privKey)
 	case mode5.PrivateKey:
 		privKey := dilithium.Mode5.PrivateKeyFromBytes(k.Bytes())
-		pubKeyJWK, privKeyJWK, err = jwkFromDilithiumPrivateKey(crypto.Dilithium5, privKey)
+		pubKeyJWK, privKeyJWK, err = jwkFromDilithiumPrivateKey(dilithium.Mode5, privKey)
 	default:
 		return nil, nil, fmt.Errorf("unsupported private key type: %T", k)
 	}
@@ -512,14 +515,14 @@ func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK
 }
 
 // as per https://www.ietf.org/archive/id/draft-ietf-cose-dilithium-00.html
-func jwkFromDilithiumPrivateKey(m crypto.DilithiumMode, k dilithium.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
+func jwkFromDilithiumPrivateKey(m dilithium.Mode, k dilithium.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	var alg jwa.SignatureAlgorithm
 	switch m {
-	case crypto.Dilithium2:
+	case dilithium.Mode2:
 		alg = DilithiumMode2Alg
-	case crypto.Dilithium3:
+	case dilithium.Mode3:
 		alg = DilithiumMode3Alg
-	case crypto.Dilithium5:
+	case dilithium.Mode5:
 		alg = DilithiumMode5Alg
 	}
 
@@ -561,14 +564,14 @@ func jwkFromECDSAPublicKey(key ecdsa.PublicKey) (*PublicKeyJWK, error) {
 	return &publicKeyJWK, nil
 }
 
-func jwkFromDilithiumPublicKey(mode crypto.DilithiumMode, k dilithium.PublicKey) (*PublicKeyJWK, error) {
+func jwkFromDilithiumPublicKey(mode dilithium.Mode, k dilithium.PublicKey) (*PublicKeyJWK, error) {
 	var alg jwa.SignatureAlgorithm
 	switch mode {
-	case crypto.Dilithium2:
+	case dilithium.Mode2:
 		alg = DilithiumMode2Alg
-	case crypto.Dilithium3:
+	case dilithium.Mode3:
 		alg = DilithiumMode3Alg
-	case crypto.Dilithium5:
+	case dilithium.Mode5:
 		alg = DilithiumMode5Alg
 	}
 
