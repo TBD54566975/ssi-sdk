@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/cloudflare/circl/sign/dilithium"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,7 +33,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 2", func(tt *testing.T) {
 		// known private key
-		_, privateKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium2)
+		_, privateKey, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode2)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, privateKey)
 
@@ -52,7 +53,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 3", func(tt *testing.T) {
 		// known private key
-		_, privateKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium3)
+		_, privateKey, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode3)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, privateKey)
 
@@ -72,7 +73,7 @@ func TestJWKToPrivateKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 5", func(tt *testing.T) {
 		// known private key
-		_, privateKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium5)
+		_, privateKey, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode5)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, privateKey)
 
@@ -116,7 +117,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 2", func(tt *testing.T) {
 		// known private key
-		publicKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium2)
+		publicKey, _, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode2)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, publicKey)
 
@@ -136,7 +137,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 3", func(tt *testing.T) {
 		// known private key
-		publicKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium3)
+		publicKey, _, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode3)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, publicKey)
 
@@ -156,7 +157,7 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 
 	t.Run("Dilithium 5", func(tt *testing.T) {
 		// known private key
-		publicKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium5)
+		publicKey, _, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode5)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, publicKey)
 
@@ -278,7 +279,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 2", func(tt *testing.T) {
-		pubKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium2)
+		pubKey, _, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode2)
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(testKID, pubKey)
@@ -295,7 +296,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 3", func(tt *testing.T) {
-		pubKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium3)
+		pubKey, _, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode3)
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(testKID, pubKey)
@@ -312,7 +313,7 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 5", func(tt *testing.T) {
-		pubKey, _, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium5)
+		pubKey, _, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode5)
 		assert.NoError(t, err)
 
 		jwk, err := PublicKeyToPublicKeyJWK(testKID, pubKey)
@@ -403,7 +404,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 2", func(tt *testing.T) {
-		_, privKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium2)
+		_, privKey, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode2)
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(testKID, privKey)
@@ -420,7 +421,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 3", func(tt *testing.T) {
-		_, privKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium3)
+		_, privKey, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode3)
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(testKID, privKey)
@@ -437,7 +438,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 	})
 
 	t.Run("Dilithium 5", func(tt *testing.T) {
-		_, privKey, err := crypto.GenerateDilithiumKeyPair(crypto.Dilithium5)
+		_, privKey, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode5)
 		assert.NoError(t, err)
 
 		_, jwk, err := PrivateKeyToPrivateKeyJWK(testKID, privKey)
