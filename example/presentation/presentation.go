@@ -69,17 +69,16 @@ func makePresentationRequest(requesterID string, presentationData exchange.Prese
 	}
 
 	// Builds a presentation request
-	// Requires a signer, the presentation data, and a target
-	// Target is the Audience Key
-	target := "did:test"
-	requestJWTBytes, err := exchange.BuildJWTPresentationRequest(*signer, presentationData, target)
+	// Requires a signer, the presentation data, and an optional audience
+	audience := "did:test"
+	requestJWTBytes, err := exchange.BuildJWTPresentationRequest(*signer, presentationData, []string{audience})
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: Add better documentation on the verification process
 	// Seems like needed to know more of: https://github.com/lestrrat-go/jwx/tree/develop/v2/jwt
-	verifier, err := cryptosuite.NewJSONWebKeyVerifier(target, jwk.PublicKeyJWK)
+	verifier, err := cryptosuite.NewJSONWebKeyVerifier(audience, jwk.PublicKeyJWK)
 	if err != nil {
 		return nil, err
 	}

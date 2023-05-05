@@ -98,7 +98,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		}
 
 		signer := getTestVectorKey0Signer(tt)
-		signed, err := SignVerifiablePresentationJWT(signer, JWTVVPParameters{Audience: "bad-audience"}, testPresentation)
+		signed, err := SignVerifiablePresentationJWT(signer, JWTVVPParameters{Audience: []string{"bad-audience"}}, testPresentation)
 		assert.NoError(tt, err)
 
 		verifier, err := signer.ToVerifier(signer.ID)
@@ -126,7 +126,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		}
 
 		signer := getTestVectorKey0Signer(tt)
-		signed, err := SignVerifiablePresentationJWT(signer, JWTVVPParameters{Audience: signer.ID}, testPresentation)
+		signed, err := SignVerifiablePresentationJWT(signer, JWTVVPParameters{Audience: []string{signer.ID}}, testPresentation)
 		assert.NoError(tt, err)
 
 		verifier, err := signer.ToVerifier(signer.ID)
@@ -204,7 +204,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		// sign the presentation from the subject to the issuer
 		subjectSigner, err := jwx.NewJWXSigner(subjectDID.String(), subjectKID, subjectPrivKey)
 		assert.NoError(tt, err)
-		signed, err := SignVerifiablePresentationJWT(*subjectSigner, JWTVVPParameters{Audience: issuerDID.String()}, testPresentation)
+		signed, err := SignVerifiablePresentationJWT(*subjectSigner, JWTVVPParameters{Audience: []string{issuerDID.String()}}, testPresentation)
 		assert.NoError(tt, err)
 
 		// parse the VP

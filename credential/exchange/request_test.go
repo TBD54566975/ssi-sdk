@@ -18,7 +18,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
-		requestJWTBytes, err := BuildJWTPresentationRequest(*signer, testDef, "did:test")
+		requestJWTBytes, err := BuildJWTPresentationRequest(*signer, testDef, []string{"did:test"})
 		assert.NoError(t, err)
 		assert.NotEmpty(t, requestJWTBytes)
 

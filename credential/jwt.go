@@ -186,8 +186,8 @@ func ParseVerifiableCredentialFromToken(token jwt.Token) (*VerifiableCredential,
 
 // JWTVVPParameters represents additional parameters needed when constructing a JWT VP as opposed to a VP
 type JWTVVPParameters struct {
-	// Audience is a required audience of the JWT.
-	Audience string `validate:"required"`
+	// Audience is an optional audience of the JWT.
+	Audience []string
 	// Expiration is an optional expiration time of the JWT using the `exp` property.
 	Expiration int
 }
@@ -195,9 +195,6 @@ type JWTVVPParameters struct {
 // SignVerifiablePresentationJWT transforms a VP into a VP JWT and signs it
 // According to https://w3c.github.io/vc-jwt/#version-1.1
 func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameters, presentation VerifiablePresentation) ([]byte, error) {
-	if parameters.Audience == "" {
-		return nil, errors.New("audience cannot be empty")
-	}
 	if presentation.IsEmpty() {
 		return nil, errors.New("presentation cannot be empty")
 	}
@@ -207,8 +204,14 @@ func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameter
 
 	t := jwt.New()
 	// set JWT-VP specific parameters
-	if err := t.Set(jwt.AudienceKey, parameters.Audience); err != nil {
-		return nil, errors.Wrap(err, "setting audience value")
+
+	// NOTE: according to the JWT encoding rules (https://www.w3.org/TR/vc-data-model/#jwt-encoding) aud is a required
+	// property; however, aud is not required according to the JWT spec. Requiring audience limits a number of cases
+	// where JWT-VPs can be used, so we do not enforce this requirement.
+	if parameters.Audience != nil {
+		if err := t.Set(jwt.AudienceKey, parameters.Audience); err != nil {
+			return nil, errors.Wrap(err, "setting audience value")
+		}
 	}
 	iatAndNBF := time.Now().Unix()
 	if err := t.Set(jwt.IssuedAtKey, iatAndNBF); err != nil {

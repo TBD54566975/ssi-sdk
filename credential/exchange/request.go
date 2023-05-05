@@ -46,16 +46,21 @@ func BuildPresentationRequest(signer any, pt PresentationRequestType, def Presen
 	if len(opts) > 1 {
 		return nil, fmt.Errorf("only one option supported")
 	}
-	var audience string
+	var audience []string
 	if len(opts) == 1 {
 		opt := opts[0]
 		if opt.Type != AudienceOption {
 			return nil, fmt.Errorf("unsupported option type: %s", opt.Type)
 		}
 		var ok bool
-		audience, ok = opt.Value.(string)
-		if !ok {
-			return nil, fmt.Errorf("audience option value must be a string")
+		audStr, ok := opt.Value.(string)
+		if ok {
+			audience = []string{audStr}
+		} else {
+			audience, ok = opt.Value.([]string)
+			if !ok {
+				return nil, fmt.Errorf("audience option value must be a string or array of strings")
+			}
 		}
 	}
 
@@ -75,15 +80,15 @@ func BuildPresentationRequest(signer any, pt PresentationRequestType, def Presen
 }
 
 // BuildJWTPresentationRequest builds a JWT representation of a presentation request
-func BuildJWTPresentationRequest(signer jwx.Signer, def PresentationDefinition, target string) ([]byte, error) {
+func BuildJWTPresentationRequest(signer jwx.Signer, def PresentationDefinition, audience []string) ([]byte, error) {
 	jwtValues := map[string]any{
 		jwt.JwtIDKey:              uuid.NewString(),
 		jwt.IssuerKey:             signer.ID,
-		jwt.AudienceKey:           target,
+		jwt.AudienceKey:           audience,
 		PresentationDefinitionKey: def,
 	}
-	if target != "" {
-		jwtValues[jwt.AudienceKey] = target
+	if len(audience) != 0 {
+		jwtValues[jwt.AudienceKey] = audience
 	}
 	return signer.SignWithDefaults(jwtValues)
 }
