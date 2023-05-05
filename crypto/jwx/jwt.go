@@ -3,9 +3,11 @@ package jwx
 import (
 	gocrypto "crypto"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/lestrrat-go/jwx/v2/jwt"
@@ -16,6 +18,7 @@ import (
 type Signer struct {
 	ID string
 	PrivateKeyJWK
+	gocrypto.PrivateKey
 }
 
 // NewJWXSigner creates a new signer from a private key to sign and produce JWS values
@@ -24,28 +27,56 @@ func NewJWXSigner(id, kid string, key gocrypto.PrivateKey) (*Signer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "converting private key to JWK")
 	}
-	return NewJWXSignerFromJWK(id, *privateKeyJWK)
+	return jwxSigner(id, *privateKeyJWK, key)
 }
 
 // NewJWXSignerFromJWK creates a new signer from a private key to sign and produce JWS values
 func NewJWXSignerFromJWK(id string, key PrivateKeyJWK) (*Signer, error) {
+	privateKey, err := key.ToPrivateKey()
+	if err != nil {
+		return nil, errors.Wrap(err, "converting JWK to private key")
+	}
+	return jwxSigner(id, key, privateKey)
+}
+
+func jwxSigner(id string, jwk PrivateKeyJWK, key gocrypto.PrivateKey) (*Signer, error) {
 	if id == "" {
 		return nil, errors.New("id is required")
 	}
-	if key.ALG == "" {
-		alg, err := AlgFromKeyAndCurve(key.KTY, key.CRV)
+	if jwk.IsEmpty() {
+		return nil, errors.New("jwk is required")
+	}
+	if key == nil {
+		return nil, errors.New("key is required")
+	}
+	if jwk.ALG == "" {
+		alg, err := AlgFromKeyAndCurve(jwk.KTY, jwk.CRV)
 		if err != nil {
 			return nil, errors.Wrap(err, "getting alg from key and curve")
 		}
-		key.ALG = alg
+		jwk.ALG = alg
 	}
-	if !IsSupportedJWXSigningVerificationAlgorithm(key.ALG) {
-		return nil, fmt.Errorf("unsupported signing algorithm: %s", key.ALG)
+	if !IsSupportedJWXSigningVerificationAlgorithm(jwk.ALG) && !IsExperimentalJWXSigningVerificationAlgorithm(jwk.ALG) {
+		return nil, fmt.Errorf("unsupported signing algorithm: %s", jwk.ALG)
 	}
-	return &Signer{
-		ID:            id,
-		PrivateKeyJWK: key,
-	}, nil
+	if convertedPrivKey, ok := privKeyForJWX(key); ok {
+		key = convertedPrivKey
+	}
+	return &Signer{ID: id, PrivateKeyJWK: jwk, PrivateKey: key}, nil
+}
+
+// some key types need to be converted to work with our signing library, such as
+// secp256k1 keys, which need to be converted to ecdsa keys
+func privKeyForJWX(key gocrypto.PrivateKey) (gocrypto.PrivateKey, bool) {
+	for reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PrivateKey)
+	}
+	switch k := key.(type) {
+	case secp256k1.PrivateKey:
+		return *k.ToECDSA(), true
+	default:
+		return nil, false
+	}
 }
 
 // ToVerifier converts a signer to a verifier, where the passed in verifiedID is the intended ID of the verifier for
@@ -59,33 +90,65 @@ func (s *Signer) ToVerifier(verifierID string) (*Verifier, error) {
 type Verifier struct {
 	ID string
 	PublicKeyJWK
+	publicKey gocrypto.PublicKey
 }
 
 // NewJWXVerifier creates a new verifier from a public key to verify JWTs and JWS signatures
 func NewJWXVerifier(id, kid string, key gocrypto.PublicKey) (*Verifier, error) {
 	publicKeyJWK, err := PublicKeyToPublicKeyJWK(kid, key)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "converting public key to JWK")
 	}
-	return NewJWXVerifierFromJWK(id, *publicKeyJWK)
+	return jwxVerifier(id, *publicKeyJWK, key)
 }
 
 // NewJWXVerifierFromJWK creates a new verifier from a public key to verify JWTs and JWS signatures
 func NewJWXVerifierFromJWK(id string, key PublicKeyJWK) (*Verifier, error) {
+	pubKey, err := key.ToPublicKey()
+	if err != nil {
+		return nil, errors.Wrap(err, "converting JWK to public key")
+	}
+	return jwxVerifier(id, key, pubKey)
+}
+
+func jwxVerifier(id string, jwk PublicKeyJWK, key gocrypto.PublicKey) (*Verifier, error) {
 	if id == "" {
 		return nil, errors.New("id is required")
 	}
-	if key.ALG == "" {
-		alg, err := AlgFromKeyAndCurve(key.KTY, key.CRV)
+	if jwk.IsEmpty() {
+		return nil, errors.New("jwk is required")
+	}
+	if key == nil {
+		return nil, errors.New("key is required")
+	}
+	if jwk.ALG == "" {
+		alg, err := AlgFromKeyAndCurve(jwk.KTY, jwk.CRV)
 		if err != nil {
 			return nil, errors.Wrap(err, "getting alg from key and curve")
 		}
-		key.ALG = alg
+		jwk.ALG = alg
 	}
-	if !IsSupportedJWXSigningVerificationAlgorithm(key.ALG) {
-		return nil, fmt.Errorf("unsupported signing/verification algorithm: %s", key.ALG)
+	if !IsSupportedJWXSigningVerificationAlgorithm(jwk.ALG) && !IsExperimentalJWXSigningVerificationAlgorithm(jwk.ALG) {
+		return nil, fmt.Errorf("unsupported signing/verification algorithm: %s", jwk.ALG)
 	}
-	return &Verifier{ID: id, PublicKeyJWK: key}, nil
+	if convertedPubKey, ok := pubKeyForJWX(key); ok {
+		key = convertedPubKey
+	}
+	return &Verifier{ID: id, PublicKeyJWK: jwk, publicKey: key}, nil
+}
+
+// some key types need to be converted to work with our signing library, such as
+// secp256k1 keys, which need to be converted to ecdsa keys
+func pubKeyForJWX(key gocrypto.PublicKey) (gocrypto.PublicKey, bool) {
+	for reflect.ValueOf(key).Kind() == reflect.Ptr {
+		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PublicKey)
+	}
+	switch k := key.(type) {
+	case secp256k1.PublicKey:
+		return *k.ToECDSA(), true
+	default:
+		return nil, false
+	}
 }
 
 // SignWithDefaults takes a set of JWT keys and values to add to a JWT before singing them with
@@ -116,20 +179,12 @@ func (s *Signer) SignWithDefaults(kvs map[string]any) ([]byte, error) {
 			return nil, errors.Wrap(err, "setting KID protected header")
 		}
 	}
-	privateKey, err := s.ToPrivateKey()
-	if err != nil {
-		return nil, errors.Wrap(err, "getting private key")
-	}
-	return jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(s.ALG), privateKey, jws.WithProtectedHeaders(hdrs)))
+	return jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(s.ALG), s.PrivateKey, jws.WithProtectedHeaders(hdrs)))
 }
 
 // Verify parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success
 func (v *Verifier) Verify(token string) error {
-	pubKey, err := v.PublicKeyJWK.ToPublicKey()
-	if err != nil {
-		return errors.Wrap(err, "getting get public key")
-	}
-	if _, err = jwt.Parse([]byte(token), jwt.WithKey(jwa.SignatureAlgorithm(v.ALG), pubKey)); err != nil {
+	if _, err := jwt.Parse([]byte(token), jwt.WithKey(jwa.SignatureAlgorithm(v.ALG), v.publicKey)); err != nil {
 		return errors.Wrap(err, "verifying JWT")
 	}
 	return nil
@@ -150,11 +205,7 @@ func (*Verifier) Parse(token string) (jws.Headers, jwt.Token, error) {
 
 // VerifyAndParse attempts to turn a string into a jwt.Token and verify its signature using the verifier
 func (v *Verifier) VerifyAndParse(token string) (jws.Headers, jwt.Token, error) {
-	pubKey, err := v.PublicKeyJWK.ToPublicKey()
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "getting get public key")
-	}
-	parsed, err := jwt.Parse([]byte(token), jwt.WithKey(jwa.SignatureAlgorithm(v.ALG), pubKey))
+	parsed, err := jwt.Parse([]byte(token), jwt.WithKey(jwa.SignatureAlgorithm(v.ALG), v.publicKey))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "parsing and verifying JWT")
 	}

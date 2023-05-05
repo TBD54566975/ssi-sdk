@@ -241,6 +241,6 @@ func getTestVectorKey0Signer(t *testing.T) jwx.Signer {
 	}
 
 	signer, err := jwx.NewJWXSignerFromJWK("signer-id", knownJWK)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return *signer
 }

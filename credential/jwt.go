@@ -88,11 +88,7 @@ func SignVerifiableCredentialJWT(signer jwx.Signer, cred VerifiableCredential) (
 			return nil, errors.Wrap(err, "setting KID protected header")
 		}
 	}
-	privateKey, err := signer.ToPrivateKey()
-	if err != nil {
-		return nil, errors.Wrap(err, "getting private key")
-	}
-	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.ALG), privateKey, jws.WithProtectedHeaders(hdrs)))
+	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.ALG), signer.PrivateKey, jws.WithProtectedHeaders(hdrs)))
 	if err != nil {
 		return nil, errors.Wrap(err, "signing JWT credential")
 	}
@@ -258,11 +254,7 @@ func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameter
 			return nil, errors.Wrap(err, "setting KID protected header")
 		}
 	}
-	privateKey, err := signer.ToPrivateKey()
-	if err != nil {
-		return nil, errors.Wrap(err, "getting private key")
-	}
-	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.ALG), privateKey, jws.WithProtectedHeaders(hdrs)))
+	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.ALG), signer.PrivateKey, jws.WithProtectedHeaders(hdrs)))
 	if err != nil {
 		return nil, errors.Wrap(err, "signing JWT presentation")
 	}

@@ -15,11 +15,7 @@ func (s *Signer) SignJWS(payload []byte) ([]byte, error) {
 	if err := headers.Set(jws.AlgorithmKey, s.ALG); err != nil {
 		return nil, errors.Wrap(err, "setting algorithm header")
 	}
-	privateKey, err := s.ToPrivateKey()
-	if err != nil {
-		return nil, errors.Wrap(err, "getting private key")
-	}
-	return jws.Sign(payload, jws.WithKey(jwa.SignatureAlgorithm(s.ALG), privateKey, jws.WithProtectedHeaders(headers)))
+	return jws.Sign(payload, jws.WithKey(jwa.SignatureAlgorithm(s.ALG), s.PrivateKey, jws.WithProtectedHeaders(headers)))
 }
 
 // Parse attempts to turn a string into a jwt.Token
@@ -37,12 +33,8 @@ func (*Signer) Parse(token string) (jws.Headers, jwt.Token, error) {
 
 // VerifyJWS parses a token given the verifier's known algorithm and key, and returns an error, which is nil upon success.
 func (v *Verifier) VerifyJWS(token string) error {
-	pubKey, err := v.PublicKeyJWK.ToPublicKey()
-	if err != nil {
-		return errors.Wrap(err, "getting public key")
-	}
-	key := jws.WithKey(jwa.SignatureAlgorithm(v.ALG), pubKey)
-	if _, err = jws.Verify([]byte(token), key); err != nil {
+	key := jws.WithKey(jwa.SignatureAlgorithm(v.ALG), v.publicKey)
+	if _, err := jws.Verify([]byte(token), key); err != nil {
 		return errors.Wrap(err, "verifying JWT")
 	}
 	return nil

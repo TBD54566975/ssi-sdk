@@ -188,11 +188,7 @@ func (s *JSONWebKeySigner) Sign(tbs []byte) ([]byte, error) {
 	if err := headers.Set(jws.CriticalKey, []string{b64}); err != nil {
 		return nil, err
 	}
-	privateKey, err := s.ToPrivateKey()
-	if err != nil {
-		return nil, errors.Wrap(err, "getting private key")
-	}
-	return jws.Sign(nil, jws.WithKey(jwa.SignatureAlgorithm(s.ALG), privateKey), jws.WithHeaders(headers), jws.WithDetachedPayload(tbs))
+	return jws.Sign(nil, jws.WithKey(jwa.SignatureAlgorithm(s.ALG), s.PrivateKey), jws.WithHeaders(headers), jws.WithDetachedPayload(tbs))
 }
 
 func (s *JSONWebKeySigner) GetKeyID() string {
