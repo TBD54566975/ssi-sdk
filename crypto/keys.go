@@ -20,6 +20,7 @@ import (
 )
 
 // GenerateKeyByKeyType creates a brand-new key, returning the public and private key for the given key type
+// TODO(gabe): update to support experimental key types https://github.com/TBD54566975/ssi-sdk/issues/146
 func GenerateKeyByKeyType(kt KeyType) (crypto.PublicKey, crypto.PrivateKey, error) {
 	switch kt {
 	case Ed25519:
@@ -51,6 +52,7 @@ func GenerateKeyByKeyType(kt KeyType) (crypto.PublicKey, crypto.PrivateKey, erro
 }
 
 // PubKeyToBytes constructs a byte representation of a public key, for a set number of supported key types
+// TODO(gabe): update to support experimental key types https://github.com/TBD54566975/ssi-sdk/issues/146
 func PubKeyToBytes(key crypto.PublicKey) ([]byte, error) {
 	// dereference the ptr
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {
@@ -87,6 +89,7 @@ func PubKeyToBytes(key crypto.PublicKey) ([]byte, error) {
 
 // BytesToPubKey reconstructs a public key given some bytes and a target key type
 // It is assumed the key was turned into byte form using the sibling method `PubKeyToBytes`
+// TODO(gabe): update to support experimental key types https://github.com/TBD54566975/ssi-sdk/issues/146
 func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 	switch kt {
 	case Ed25519, X25519:
@@ -143,7 +146,8 @@ func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 	}
 }
 
-// GetKeyTypeFromPrivateKey returns the key type of a private key for known key types
+// GetKeyTypeFromPrivateKey returns the key type for a private key for known key types
+// TODO(gabe): update to support experimental key types https://github.com/TBD54566975/ssi-sdk/issues/146
 func GetKeyTypeFromPrivateKey(key crypto.PrivateKey) (KeyType, error) {
 	// dereference the ptr
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {
@@ -181,6 +185,7 @@ func GetKeyTypeFromPrivateKey(key crypto.PrivateKey) (KeyType, error) {
 }
 
 // PrivKeyToBytes constructs a byte representation of a private key, for a set number of supported key types
+// TODO(gabe): update to support experimental key types https://github.com/TBD54566975/ssi-sdk/issues/146
 func PrivKeyToBytes(key crypto.PrivateKey) ([]byte, error) {
 	// dereference the ptr
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {
@@ -222,6 +227,7 @@ func PrivKeyToBytes(key crypto.PrivateKey) ([]byte, error) {
 
 // BytesToPrivKey reconstructs a private key given some bytes and a target key type
 // It is assumed the key was turned into byte form using the sibling method `PrivKeyToBytes`
+// TODO(gabe): update to support experimental key types https://github.com/TBD54566975/ssi-sdk/issues/146
 func BytesToPrivKey(keyBytes []byte, kt KeyType) (crypto.PrivateKey, error) {
 	switch kt {
 	case Ed25519:

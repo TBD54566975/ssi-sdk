@@ -68,7 +68,8 @@ func TestJWSDilithiumVector(t *testing.T) {
 		retrieveTestVectorAs(tt, dilithiumPrivateJWK, &privKeyJWK)
 		assert.NotEmpty(tt, privKeyJWK)
 
-		pubKey, err := privKeyJWK.ToPublicKeyJWK().ToPublicKey()
+		jwk := privKeyJWK.ToPublicKeyJWK()
+		pubKey, err := jwk.ToPublicKey()
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, pubKey)
 

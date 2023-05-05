@@ -92,13 +92,8 @@ func CanonicalizeAny(data any) ([]byte, error) {
 // https://identity.foundation/sidetree/spec/#public-key-commitment-scheme
 func Commit(key sdkcrypto.PublicKeyJWK) (reveal, commitment string, err error) {
 	// 1. Encode the public key into the form of a valid JWK.
-	gotJWK, err := sdkcrypto.JWKFromPublicKeyJWK(key)
-	if err != nil {
-		return "", "", err
-	}
-
 	// 2. Canonicalize the JWK encoded public key using the implementation’s JSON_CANONICALIZATION_SCHEME.
-	canonicalKey, err := CanonicalizeAny(gotJWK)
+	canonicalKey, err := CanonicalizeAny(key)
 	if err != nil {
 		logrus.WithError(err).Error("could not canonicalize JWK")
 		return "", "", err

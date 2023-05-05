@@ -106,7 +106,7 @@ func TestJsonWebSignature2020AllKeyTypes(t *testing.T) {
 			jwk, err := GenerateJSONWebKey2020(test.kty, test.crv)
 
 			if !test.expectErr {
-				signer, err := NewJSONWebKeySigner(issuerID, jwk.ID, jwk.PrivateKeyJWK, AssertionMethod)
+				signer, err := NewJSONWebKeySigner(issuerID, jwk.PrivateKeyJWK, AssertionMethod)
 				assert.NoError(tt, err)
 
 				// pin to avoid ptr shadowing
@@ -162,7 +162,8 @@ func TestCredentialLDProof(t *testing.T) {
 	assert.NotEmpty(t, jwk)
 
 	jwk.ID = issuer
-	signer, err := NewJSONWebKeySigner(issuer, jwk.ID, jwk.PrivateKeyJWK, AssertionMethod)
+	jwk.PrivateKeyJWK.KID = issuer
+	signer, err := NewJSONWebKeySigner(issuer, jwk.PrivateKeyJWK, AssertionMethod)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, signer)
 
@@ -240,7 +241,7 @@ func TestJSONWebSignature2020TestVectorCredential0(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestJsonWebSignature2020TestVectorsCredential1(t *testing.T) {
+func TestJSONWebSignature2020TestVectorsCredential1(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	signer, jwk := getTestVectorKey0Signer(t, AssertionMethod)
 
@@ -289,7 +290,7 @@ func (t *TestVerifiablePresentation) SetProof(p *crypto.Proof) {
 	t.Proof = p
 }
 
-func TestJsonWebSignature2020TestVectorPresentation0(t *testing.T) {
+func TestJSONWebSignature2020TestVectorPresentation0(t *testing.T) {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	signer, jwk := getTestVectorKey0Signer(t, Authentication)
 
@@ -332,7 +333,7 @@ func TestJsonWebSignature2020TestVectorPresentation0(t *testing.T) {
 }
 
 // https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
-func TestJsonWebSignature2020TestVectorPresentation1(t *testing.T) {
+func TestJSONWebSignature2020TestVectorPresentation1(t *testing.T) {
 	signer, jwk := getTestVectorKey0Signer(t, Authentication)
 
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/presentations/presentation-1.json
@@ -420,11 +421,13 @@ func getTestVectorKey0Signer(t *testing.T, purpose ProofPurpose) (JSONWebKeySign
 	knownJWK := JSONWebKey2020{
 		ID: "did:example:123#key-0",
 		PublicKeyJWK: jwx.PublicKeyJWK{
+			KID: "key-0",
 			KTY: "OKP",
 			CRV: "Ed25519",
 			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
 		},
 		PrivateKeyJWK: jwx.PrivateKeyJWK{
+			KID: "key-0",
 			KTY: "OKP",
 			CRV: "Ed25519",
 			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
@@ -432,7 +435,7 @@ func getTestVectorKey0Signer(t *testing.T, purpose ProofPurpose) (JSONWebKeySign
 		},
 	}
 
-	signer, err := NewJSONWebKeySigner("verifier-id", knownJWK.ID, knownJWK.PrivateKeyJWK, purpose)
+	signer, err := NewJSONWebKeySigner("verifier-id", knownJWK.PrivateKeyJWK, purpose)
 	assert.NoError(t, err)
 	return *signer, knownJWK
 }

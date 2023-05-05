@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/goccy/go-json"
-	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -151,10 +151,10 @@ func TestExpandDIDJWK(t *testing.T) {
 		assert.NotEmpty(t, pk)
 		assert.NotEmpty(t, sk)
 
-		gotJWK, err := jwk.FromRaw(pk)
+		gotJWK, err := jwx.PublicKeyToPublicKeyJWK("test-kid", pk)
 		assert.NoError(t, err)
 
-		didJWK, err := CreateDIDJWK(gotJWK)
+		didJWK, err := CreateDIDJWK(*gotJWK)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, didJWK)
 
