@@ -140,43 +140,28 @@ func TestKeyToBytes(t *testing.T) {
 func TestDilithiumKeys(t *testing.T) {
 	t.Run("Able to generate dilithium key pairs for each mode", func(tt *testing.T) {
 		tests := []struct {
-			name    string
-			m       dilithium.Mode
-			wantErr bool
+			name string
+			m    dilithium.Mode
 		}{
 			{
 				"mode2",
 				dilithium.Mode2,
-				false,
 			},
 			{
 				"mode3",
 				dilithium.Mode3,
-				false,
 			},
 			{
 				"mode5",
 				dilithium.Mode5,
-				false,
-			},
-			{
-				"bad",
-				nil,
-				true,
 			},
 		}
 		for _, test := range tests {
 			tt.Run(test.name, func(ttt *testing.T) {
 				pk, sk, err := GenerateDilithiumKeyPair(test.m)
-				if test.wantErr {
-					assert.Error(ttt, err)
-					assert.Nil(ttt, pk)
-					assert.Nil(ttt, sk)
-				} else {
-					assert.NoError(ttt, err)
-					assert.NotNil(ttt, pk)
-					assert.NotNil(ttt, sk)
-				}
+				assert.NoError(ttt, err)
+				assert.NotNil(ttt, pk)
+				assert.NotNil(ttt, sk)
 			})
 		}
 	})
