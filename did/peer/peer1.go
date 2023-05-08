@@ -5,10 +5,10 @@ import (
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
-// PeerMethod1 Method 1: genesis doc
-type PeerMethod1 struct{}
+// Method1 Method 1: genesis doc
+type Method1 struct{}
 
-func (PeerMethod1) Method() did.Method {
+func (Method1) Method() did.Method {
 	return did.PeerMethod
 }
 
@@ -21,7 +21,8 @@ func (PeerMethod1) Method() did.Method {
 // relative reference rather than an absolute value. For example, each controller property of a verificationMethod
 // that is owned by this DID would say "controller": "#id".). Calculate the SHA256 [RFC4634] hash of the bytes of
 // the stored variant of the genesis version of the DID doc, and make this value the new DID's numeric basis.
-func (PeerMethod1) Generate() (*DIDPeer, error) {
+func (Method1) Generate() (*DIDPeer, error) {
 	// Create a Genesis Version
+	// TODO support method 1 https://github.com/TBD54566975/ssi-sdk/issues/137
 	return nil, util.NotImplementedError
 }

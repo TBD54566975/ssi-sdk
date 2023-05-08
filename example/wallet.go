@@ -127,12 +127,12 @@ func (s *SimpleWallet) Init(didMethod did.Method) error {
 		if err != nil {
 			return err
 		}
-		didPeer, err := peer.PeerMethod0{}.Generate(kt, pubKey)
+		didPeer, err := peer.Method0{}.Generate(kt, pubKey)
 		if err != nil {
 			return err
 		}
 		didStr = didPeer.String()
-		resolvedPeer, err := peer.PeerResolver{}.Resolve(context.Background(), didPeer.String())
+		resolvedPeer, err := peer.Resolver{}.Resolve(context.Background(), didPeer.String())
 		if err != nil {
 			return err
 		}

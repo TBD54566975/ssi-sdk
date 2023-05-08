@@ -110,7 +110,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		err = verifier.Verify(token)
 		assert.NoError(tt, err)
 
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
 		require.NoError(tt, err)
 		require.NotEmpty(tt, resolver)
 
@@ -144,7 +144,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		assert.NotEmpty(tt, parsedHeaders)
 		assert.NotEmpty(tt, parsedPres)
 
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
 		require.NoError(tt, err)
 		require.NotEmpty(tt, resolver)
 
@@ -217,7 +217,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		assert.NotEmpty(tt, parsedPres)
 
 		// Verify the VP JWT
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
 		require.NoError(tt, err)
 		require.NotEmpty(tt, resolver)
 

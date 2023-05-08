@@ -1,56 +1,54 @@
 package jwk
 
 import (
-	"context"
 	gocrypto "crypto"
 	"encoding/base64"
 	"fmt"
 	"strings"
 
+	"github.com/goccy/go-json"
+	"github.com/pkg/errors"
+
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
-
-	"github.com/goccy/go-json"
-	"github.com/pkg/errors"
 )
 
 type (
-	DIDJWK string
+	JWK string
 )
 
 const (
-	// JWKPrefix did:jwk prefix
-	JWKPrefix      = "did:jwk"
+	// Prefix did:jwk prefix
+	Prefix         = "did:jwk"
 	JWS2020Context = "https://w3id.org/security/suites/jws-2020/v1"
 )
 
-func (d DIDJWK) IsValid() bool {
+func (d JWK) IsValid() bool {
 	_, err := d.Expand()
 	return err == nil
 }
 
-func (d DIDJWK) String() string {
+func (d JWK) String() string {
 	return string(d)
 }
 
 // Suffix returns the value without the `did:jwk` prefix
-func (d DIDJWK) Suffix() (string, error) {
-	if suffix, ok := strings.CutPrefix(string(d), JWKPrefix+":"); ok {
+func (d JWK) Suffix() (string, error) {
+	if suffix, ok := strings.CutPrefix(string(d), Prefix+":"); ok {
 		return suffix, nil
 	}
 	return "", fmt.Errorf("invalid did:jwk: %s", d)
 }
 
-func (DIDJWK) Method() did.Method {
+func (JWK) Method() did.Method {
 	return did.JWKMethod
 }
 
 // GenerateDIDJWK takes in a key type value that this library supports and constructs a conformant did:jwk identifier.
-func GenerateDIDJWK(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDJWK, error) {
-	if !isSupportedJWKType(kt) {
+func GenerateDIDJWK(kt crypto.KeyType) (gocrypto.PrivateKey, *JWK, error) {
+	if !IsSupportedJWKType(kt) {
 		return nil, nil, fmt.Errorf("unsupported did:jwk type: %s", kt)
 	}
 
@@ -77,7 +75,7 @@ func GenerateDIDJWK(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDJWK, error) {
 
 // CreateDIDJWK creates a did:jwk from a JWK public key by following the steps in the spec:
 // https://github.com/quartzjer/did-jwk/blob/main/spec.md
-func CreateDIDJWK(publicKeyJWK jwx.PublicKeyJWK) (*DIDJWK, error) {
+func CreateDIDJWK(publicKeyJWK jwx.PublicKeyJWK) (*JWK, error) {
 	// 2. Serialize it into a UTF-8 string
 	pubKeyJWKBytes, err := json.Marshal(publicKeyJWK)
 	if err != nil {
@@ -89,15 +87,15 @@ func CreateDIDJWK(publicKeyJWK jwx.PublicKeyJWK) (*DIDJWK, error) {
 	encodedPubKeyJWKStr := base64.RawURLEncoding.EncodeToString([]byte(pubKeyJWKStr))
 
 	// 4. Prepend the string with the did:jwk prefix
-	didJWK := DIDJWK(fmt.Sprintf("%s:%s", JWKPrefix, encodedPubKeyJWKStr))
+	didJWK := JWK(fmt.Sprintf("%s:%s", Prefix, encodedPubKeyJWKStr))
 	return &didJWK, nil
 }
 
 // Expand turns the DID JWK into a compliant DID Document
-func (d DIDJWK) Expand() (*did.Document, error) {
+func (d JWK) Expand() (*did.Document, error) {
 	id := d.String()
 
-	if !strings.HasPrefix(id, JWKPrefix) {
+	if !strings.HasPrefix(id, Prefix) {
 		return nil, fmt.Errorf("not a did:jwk DID, invalid prefix: %s", id)
 	}
 
@@ -151,7 +149,8 @@ func (d DIDJWK) Expand() (*did.Document, error) {
 	return &doc, nil
 }
 
-func isSupportedJWKType(kt crypto.KeyType) bool {
+// IsSupportedJWKType returns if a given key type is supported for the did:jwk method
+func IsSupportedJWKType(kt crypto.KeyType) bool {
 	jwkTypes := GetSupportedDIDJWKTypes()
 	for _, t := range jwkTypes {
 		if t == kt {
@@ -161,23 +160,7 @@ func isSupportedJWKType(kt crypto.KeyType) bool {
 	return false
 }
 
+// GetSupportedDIDJWKTypes returns all supported did:jwk key types
 func GetSupportedDIDJWKTypes() []crypto.KeyType {
 	return []crypto.KeyType{crypto.Ed25519, crypto.X25519, crypto.SECP256k1, crypto.P256, crypto.P384, crypto.P521, crypto.RSA}
-}
-
-type JWKResolver struct{}
-
-var _ resolver.Resolver = (*JWKResolver)(nil)
-
-func (JWKResolver) Resolve(_ context.Context, id string, _ ...resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
-	didJWK := DIDJWK(id)
-	doc, err := didJWK.Expand()
-	if err != nil {
-		return nil, errors.Wrap(err, "expanding did:jwk")
-	}
-	return &resolver.ResolutionResult{Document: *doc}, nil
-}
-
-func (JWKResolver) Methods() []did.Method {
-	return []did.Method{did.JWKMethod}
 }

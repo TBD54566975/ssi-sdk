@@ -24,8 +24,8 @@ type (
 )
 
 const (
-	// KeyPrefix did:key prefix
-	KeyPrefix = "did:key"
+	// Prefix did:key prefix
+	Prefix = "did:key"
 )
 
 func (d DIDKey) IsValid() bool {
@@ -39,7 +39,7 @@ func (d DIDKey) String() string {
 
 // Suffix returns the value without the `did:key` prefix
 func (d DIDKey) Suffix() (string, error) {
-	split := strings.Split(string(d), KeyPrefix+":")
+	split := strings.Split(string(d), Prefix+":")
 	if len(split) != 2 {
 		return "", fmt.Errorf("invalid did:key: %s", d)
 	}
@@ -100,7 +100,7 @@ func CreateDIDKey(kt crypto.KeyType, publicKey []byte) (*DIDKey, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not encode did:key")
 	}
-	didKey := DIDKey(fmt.Sprintf("%s:%s", KeyPrefix, encoded))
+	didKey := DIDKey(fmt.Sprintf("%s:%s", Prefix, encoded))
 	return &didKey, nil
 }
 

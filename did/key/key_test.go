@@ -229,7 +229,7 @@ func TestGenerateAndDecodeDIDKey(t *testing.T) {
 }
 
 func TestGenerateAndResolveDIDKey(t *testing.T) {
-	resolvers := []resolver.Resolver{KeyResolver{}}
+	resolvers := []resolver.Resolver{Resolver{}}
 	r, _ := resolver.NewResolver(resolvers...)
 
 	for _, kt := range GetSupportedDIDKeyTypes() {

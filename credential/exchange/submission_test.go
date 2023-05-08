@@ -57,7 +57,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 		_, _, _, err = credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
 		assert.Error(tt, err)
@@ -101,7 +101,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 
 		println(string(submissionBytes))
 
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
 		assert.NoError(tt, err)

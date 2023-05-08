@@ -13,20 +13,20 @@ import (
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
-// PeerMethod2 Method 2: multiple inception key without doc
-type PeerMethod2 struct {
+// Method2 Method 2: multiple inception key without doc
+type Method2 struct {
 	KT     crypto.KeyType
 	Values []any
 }
 
-func (PeerMethod2) Method() did.Method {
+func (Method2) Method() did.Method {
 	return did.PeerMethod
 }
 
 // Resolve Splits the DID string into element.
 // Extract element purpose and decode each key or service.
 // Insert each key or service into the document according to the designated pu
-func (PeerMethod2) resolve(didDoc did.DID, _ resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
+func (Method2) resolve(didDoc did.DID, _ resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
 	d, ok := didDoc.(DIDPeer)
 	if !ok {
 		return nil, errors.Wrap(util.CastingError, "did:peer")
@@ -51,39 +51,39 @@ func (PeerMethod2) resolve(didDoc did.DID, _ resolver.ResolutionOption) (*resolv
 	}
 
 	doc := did.Document{
-		Context: PeerKnownContext,
+		Context: KnownContext,
 		ID:      string(d),
 	}
 
 	for _, entry := range entries {
 		serviceType := PurposeType(entry[0])
 		switch serviceType {
-		case PeerPurposeCapabilityServiceCode:
+		case PurposeCapabilityServiceCode:
 			service, err := d.decodeServiceBlock("." + entry)
 			if err != nil {
 				return nil, err
 			}
 			service.ID = string(d) + "#didcommmessaging-0"
 			doc.Services = append(doc.Services, *service)
-		case PeerPurposeEncryptionCode:
+		case PurposeEncryptionCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to build encryption code")
 			}
 			doc.KeyAgreement = append(doc.KeyAgreement, *vm)
-		case PeerPurposeVerificationCode:
+		case PurposeVerificationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to build verification code")
 			}
 			doc.Authentication = append(doc.Authentication, *vm)
-		case PeerPurposeCapabilityInvocationCode:
+		case PurposeCapabilityInvocationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to build capabilities invocation code")
 			}
 			doc.CapabilityInvocation = append(doc.CapabilityInvocation, *vm)
-		case PeerPurposeCapabilityDelegationCode:
+		case PurposeCapabilityDelegationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to build capability delegation code")
@@ -105,7 +105,7 @@ func (PeerMethod2) resolve(didDoc did.DID, _ resolver.ResolutionOption) (*resolv
 // 3. Prefix each encoded key with a period character (.) and single character from the purpose codes table below.
 // 4. Append the encoded key to the DID.
 // 5. Encode and append a service type to the end of the peer DID if desired as described below.
-func (m PeerMethod2) Generate() (*DIDPeer, error) {
+func (m Method2) Generate() (*DIDPeer, error) {
 	if len(m.Values) == 0 {
 		// revive:disable-next-line:error-strings We do not want to change to error messages sent to clients.
 		return nil, errors.New("no keys specified for did:peer. could not build.")
@@ -121,7 +121,7 @@ func (m PeerMethod2) Generate() (*DIDPeer, error) {
 
 		switch tt := value.(type) {
 		case did.Service:
-			purpose = PeerPurposeCapabilityServiceCode
+			purpose = PurposeCapabilityServiceCode
 			service := value.(did.Service)
 
 			if i < len(m.Values)-1 {
@@ -139,7 +139,7 @@ func (m PeerMethod2) Generate() (*DIDPeer, error) {
 			}
 
 		case gocrypto.PublicKey:
-			purpose = PeerPurposeEncryptionCode
+			purpose = PurposeEncryptionCode
 			key := value.(gocrypto.PublicKey)
 			enc, err = encodePublicKeyWithKeyMultiCodecType(m.KT, key)
 			if err != nil {

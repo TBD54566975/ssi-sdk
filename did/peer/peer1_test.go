@@ -7,7 +7,7 @@ import (
 )
 
 func TestPeerMethod1(t *testing.T) {
-	var m1 PeerMethod1
+	var m1 Method1
 	_, err := m1.Generate()
 	assert.Error(t, err)
 	assert.Contains(t, "not implemented", err.Error())

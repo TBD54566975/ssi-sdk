@@ -38,39 +38,39 @@ type (
 // ANBF specified here:
 // https://identity.foundation/peer-did-method-spec/#method-specific-identifier
 const (
-	DIDPeerPrefix                   = "did:peer"
-	PeerEncNumBasis                 = did.Base58BTCMultiBase
-	PeerDIDRegex                    = `^did:peer:(([01](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))|(2((\.[AEVID](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))+(\.(S)[0-9a-zA-Z=]*)?)))$`
-	PeerKnownContext                = "https://w3id.org/did/v1"
-	PeerDIDCommMessagingAbbr string = "dm"
-	PeerDIDCommMessaging     string = "DIDCommMessaging"
-	Hash                            = "#"
+	DIDPeerPrefix               = "did:peer"
+	EncNumBasis                 = did.Base58BTCMultiBase
+	DIDRegex                    = `^did:peer:(([01](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))|(2((\.[AEVID](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))+(\.(S)[0-9a-zA-Z=]*)?)))$`
+	KnownContext                = "https://w3id.org/did/v1"
+	DIDCommMessagingAbbr string = "dm"
+	DIDCommMessaging     string = "DIDCommMessaging"
+	Hash                        = "#"
 )
 
 // https://identity.foundation/peer-did-method-spec/index.html#generation-method
 const (
-	PeerPurposeEncryptionCode           PurposeType = "E"
-	PeerPurposeAssertionCode            PurposeType = "A"
-	PeerPurposeVerificationCode         PurposeType = "V"
-	PeerPurposeCapabilityInvocationCode PurposeType = "I"
-	PeerPurposeCapabilityDelegationCode PurposeType = "D"
-	PeerPurposeCapabilityServiceCode    PurposeType = "S"
+	PurposeEncryptionCode           PurposeType = "E"
+	PurposeAssertionCode            PurposeType = "A"
+	PurposeVerificationCode         PurposeType = "V"
+	PurposeCapabilityInvocationCode PurposeType = "I"
+	PurposeCapabilityDelegationCode PurposeType = "D"
+	PurposeCapabilityServiceCode    PurposeType = "S"
 )
 
 // For a quick lookup of supported DID purposes
 var supportedDIDPeerPurposes = map[PurposeType]bool{
-	PeerPurposeEncryptionCode:           true,
-	PeerPurposeAssertionCode:            true,
-	PeerPurposeVerificationCode:         true,
-	PeerPurposeCapabilityDelegationCode: true,
-	PeerPurposeCapabilityInvocationCode: true,
-	PeerPurposeCapabilityServiceCode:    true,
+	PurposeEncryptionCode:           true,
+	PurposeAssertionCode:            true,
+	PurposeVerificationCode:         true,
+	PurposeCapabilityDelegationCode: true,
+	PurposeCapabilityInvocationCode: true,
+	PurposeCapabilityServiceCode:    true,
 }
 
 // Checks if peer DID is valid
 // https://identity.foundation/peer-did-method-spec/index.html#recognizing-and-handling-peer-dids
 func isPeerDID(did string) bool {
-	r, err := regexp.Compile(PeerDIDRegex)
+	r, err := regexp.Compile(DIDRegex)
 	if err != nil {
 		return false
 	}
@@ -133,7 +133,7 @@ func (DIDPeer) Delta(_ DIDPeer) (*PeerDelta, error) {
 	return nil, errors.Wrap(util.NotImplementedError, "peer:did delta")
 }
 
-// TODO: CRDT
+// TODO: CRDT https://github.com/TBD54566975/ssi-sdk/issues/138
 // https://identity.foundation/peer-did-method-spec/#crdts
 
 // Generates the key by types
@@ -152,7 +152,7 @@ func (DIDPeer) IsValidPurpose(p PurposeType) bool {
 	return false
 }
 
-func (PeerMethod1) resolve(d did.DID, _ resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
+func (Method1) resolve(d did.DID, _ resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
 	if _, ok := d.(DIDPeer); !ok {
 		return nil, errors.Wrap(util.CastingError, DIDPeerPrefix)
 	}
@@ -174,8 +174,8 @@ func (DIDPeer) buildVerificationMethod(data, id string) (*did.VerificationMethod
 	return &vm, nil
 }
 
-// PeerServiceBlockEncoded Remaps the service block for encoding
-type PeerServiceBlockEncoded struct {
+// ServiceBlockEncoded Remaps the service block for encoding
+type ServiceBlockEncoded struct {
 	ServiceType     string   `json:"t"`
 	ServiceEndpoint string   `json:"s"`
 	RoutingKeys     []string `json:"r"`
@@ -192,15 +192,15 @@ func (DIDPeer) encodeService(p did.Service) (string, error) {
 		return "", errors.Wrap(util.UndefinedError, "service endpoint is not defined")
 	}
 
-	serviceBlock := PeerServiceBlockEncoded{
+	serviceBlock := ServiceBlockEncoded{
 		ServiceType:     p.Type,
 		ServiceEndpoint: p.ServiceEndpoint.(string),
 		RoutingKeys:     p.RoutingKeys,
 		Accept:          p.Accept,
 	}
 
-	if serviceBlock.ServiceType == PeerDIDCommMessaging {
-		serviceBlock.ServiceType = PeerDIDCommMessagingAbbr
+	if serviceBlock.ServiceType == DIDCommMessaging {
+		serviceBlock.ServiceType = DIDCommMessagingAbbr
 	}
 
 	dat, err := json.Marshal(serviceBlock)
@@ -212,7 +212,7 @@ func (DIDPeer) encodeService(p did.Service) (string, error) {
 
 // Checks if the service block is valid
 func (DIDPeer) checkValidPeerServiceBlock(s string) bool {
-	if s[:2] != "."+string(PeerPurposeCapabilityServiceCode) {
+	if s[:2] != "."+string(PurposeCapabilityServiceCode) {
 		return false
 	}
 	return true
@@ -239,7 +239,7 @@ func (d DIDPeer) decodeServiceBlock(s string) (*did.Service, error) {
 		return nil, errors.Wrap(err, "failed to decode service for did:peer")
 	}
 
-	var psbe PeerServiceBlockEncoded
+	var psbe ServiceBlockEncoded
 	if err = json.Unmarshal(decoded, &psbe); err != nil {
 		return nil, errors.Wrap(err, "could not decode JSON for peer service block")
 	}
@@ -250,8 +250,8 @@ func (d DIDPeer) decodeServiceBlock(s string) (*did.Service, error) {
 		Accept:          psbe.Accept,
 	}
 
-	if serviceBlock.Type == PeerDIDCommMessagingAbbr {
-		serviceBlock.Type = PeerDIDCommMessaging
+	if serviceBlock.Type == DIDCommMessagingAbbr {
+		serviceBlock.Type = DIDCommMessaging
 	}
 
 	return &serviceBlock, nil
@@ -270,13 +270,13 @@ func (d DIDPeer) GetMethodID() (string, error) {
 func peerMethodAvailable(m string) bool {
 	switch m {
 	case "0":
-		// PeerMethod0
+		// Method0
 		return true
 	case "1":
-		// PeerMethod1
+		// Method1
 		return false
 	case "2":
-		// PeerMethod2
+		// Method2
 		return true
 	default:
 		return false
@@ -301,7 +301,7 @@ func encodePublicKeyWithKeyMultiCodecType(kt crypto.KeyType, pubKey gocrypto.Pub
 
 	prefix := varint.ToUvarint(uint64(multiCodec))
 	codec := append(prefix, publicKey...)
-	encoded, err := multibase.Encode(PeerEncNumBasis, codec)
+	encoded, err := multibase.Encode(EncNumBasis, codec)
 	if err != nil {
 		return "", err
 	}

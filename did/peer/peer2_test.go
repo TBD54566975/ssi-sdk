@@ -18,13 +18,13 @@ func TestPeerMethod2(t *testing.T) {
 
 	service := did.Service{
 		ID:              "myid",
-		Type:            PeerDIDCommMessagingAbbr,
+		Type:            DIDCommMessagingAbbr,
 		ServiceEndpoint: "https://example.com/endpoint",
 		RoutingKeys:     []string{"did:example:somemediator#somekey"},
 		Accept:          []string{"didcomm/v2"},
 	}
 
-	m2 := PeerMethod2{KT: kt, Values: []any{pubKey, service}}
+	m2 := Method2{KT: kt, Values: []any{pubKey, service}}
 
 	didPeer, err := m2.Generate()
 	assert.NoError(t, err)
@@ -50,7 +50,7 @@ func TestPeerResolveMethod2(t *testing.T) {
 	testDoc := makeSamplePeerDIDDocument()
 	didPeer := DIDPeer(testDoc.ID)
 
-	resolved, err := PeerMethod2{}.resolve(didPeer, nil)
+	resolved, err := Method2{}.resolve(didPeer, nil)
 	assert.NoError(t, err)
 
 	assert.Equal(t, testDoc.Context, resolved.Document.Context)

@@ -1,7 +1,6 @@
 package pkh
 
 import (
-	"context"
 	"embed"
 	"fmt"
 	"regexp"
@@ -11,12 +10,11 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 type (
-	DIDPKH  string
+	PKH     string
 	Network string
 )
 
@@ -53,7 +51,7 @@ func GetDIDPKHContext() (string, error) {
 }
 
 // CreateDIDPKHFromNetwork constructs a did:pkh from a network and the networks native address.
-func CreateDIDPKHFromNetwork(network Network, address string) (*DIDPKH, error) {
+func CreateDIDPKHFromNetwork(network Network, address string) (*PKH, error) {
 	prefix, err := GetDIDPKHPrefixForNetwork(network)
 	if err != nil {
 		return nil, err
@@ -64,26 +62,26 @@ func CreateDIDPKHFromNetwork(network Network, address string) (*DIDPKH, error) {
 
 // CreateDIDPKH constructs a did:pkh from a namespace, reference, and account address.
 // Reference: did:pkh:namespace:reference:account_address
-func CreateDIDPKH(namespace, reference, address string) (*DIDPKH, error) {
-	did := DIDPKH(fmt.Sprintf("%s:%s:%s:%s", DIDPKHPrefix, namespace, reference, address))
+func CreateDIDPKH(namespace, reference, address string) (*PKH, error) {
+	didPKH := PKH(fmt.Sprintf("%s:%s:%s:%s", DIDPKHPrefix, namespace, reference, address))
 
-	if !IsValidPKH(did) {
-		return nil, fmt.Errorf("PKH DID is not valid: %s", string(did))
+	if !IsValidPKH(didPKH) {
+		return nil, fmt.Errorf("PKH DID is not valid: %s", didPKH.String())
 	}
 
-	return &did, nil
+	return &didPKH, nil
 }
 
-func (d DIDPKH) IsValid() bool {
+func (d PKH) IsValid() bool {
 	return IsValidPKH(d)
 }
 
-func (d DIDPKH) String() string {
+func (d PKH) String() string {
 	return string(d)
 }
 
 // Suffix Parse returns the value without the `did:pkh` prefix
-func (d DIDPKH) Suffix() (string, error) {
+func (d PKH) Suffix() (string, error) {
 	split := strings.Split(string(d), DIDPKHPrefix+":")
 	if len(split) != 2 {
 		return "", errors.New("invalid did pkh")
@@ -91,7 +89,7 @@ func (d DIDPKH) Suffix() (string, error) {
 	return split[1], nil
 }
 
-func (DIDPKH) Method() did.Method {
+func (PKH) Method() did.Method {
 	return did.PKHMethod
 }
 
@@ -150,7 +148,7 @@ func GetDIDPKHNetworkPrefixes() []string {
 }
 
 // Expand turns the DID key into a complaint DID Document
-func (d DIDPKH) Expand() (*did.Document, error) {
+func (d PKH) Expand() (*did.Document, error) {
 	verificationMethod, err := constructPKHVerificationMethod(d)
 
 	if err != nil {
@@ -182,7 +180,7 @@ func (d DIDPKH) Expand() (*did.Document, error) {
 	}, nil
 }
 
-func constructPKHVerificationMethod(didPKH DIDPKH) (*did.VerificationMethod, error) {
+func constructPKHVerificationMethod(didPKH PKH) (*did.VerificationMethod, error) {
 	if !IsValidPKH(didPKH) {
 		parsed, err := didPKH.Suffix()
 		if err != nil || parsed == "" {
@@ -220,8 +218,8 @@ func constructPKHVerificationMethod(didPKH DIDPKH) (*did.VerificationMethod, err
 // chain_id:    namespace + ":" + reference
 // namespace:   [-a-z0-9]{3,8}
 // reference:   [-a-zA-Z0-9]{1,32}
-func IsValidPKH(did DIDPKH) bool {
-	split := strings.Split(string(did), ":")
+func IsValidPKH(id PKH) bool {
+	split := strings.Split(string(id), ":")
 
 	if len(split) != 5 || (split[0]+":"+split[1]) != DIDPKHPrefix {
 		return false
@@ -246,24 +244,4 @@ func IsValidPKH(did DIDPKH) bool {
 	}
 
 	return true
-}
-
-type PKHResolver struct{}
-
-var _ resolver.Resolver = (*PKHResolver)(nil)
-
-func (PKHResolver) Resolve(_ context.Context, id string, _ ...resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
-	if !strings.HasPrefix(id, DIDPKHPrefix) {
-		return nil, fmt.Errorf("not a did:pkh DID: %s", id)
-	}
-	didPKH := DIDPKH(id)
-	doc, err := didPKH.Expand()
-	if err != nil {
-		return nil, errors.Wrapf(err, "could not expand did:pkh DID: %s", id)
-	}
-	return &resolver.ResolutionResult{Document: *doc}, nil
-}
-
-func (PKHResolver) Methods() []did.Method {
-	return []did.Method{did.PKHMethod}
 }

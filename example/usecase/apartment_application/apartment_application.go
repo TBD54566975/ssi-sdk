@@ -162,7 +162,7 @@ func main() {
 		Step 5: The apartment will verify the presentation submission. This is done to make sure the presentation is in compliance with the definition.
 	**/
 
-	resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
+	resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
 	example.HandleExampleError(err, "Failed to build resolver")
 
 	// Convert the holder signer to a verifier with the audience set as the apartment DID

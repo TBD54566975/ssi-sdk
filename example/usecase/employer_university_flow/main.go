@@ -174,7 +174,7 @@ func main() {
 	verifier, err := studentSigner.ToVerifier(employerDID)
 	example.HandleExampleError(err, "failed to construct verifier")
 
-	resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}, peer.PeerResolver{}}...)
+	resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}, peer.Resolver{}}...)
 	example.HandleExampleError(err, "failed to create DID resolver")
 	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submission))
 	example.HandleExampleError(err, "failed to verify jwt")

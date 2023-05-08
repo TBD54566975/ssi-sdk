@@ -55,33 +55,33 @@ import (
 )
 
 type (
-	DIDION string
+	ION string
 )
 
 const (
-	IONPrefix = "did:ion"
+	Prefix = "did:ion"
 )
 
 // IsValid checks if the did:ion is valid by checking for a valid prefix
 // full validation is impossible without resolution
-func (d DIDION) IsValid() bool {
-	split := strings.Split(d.String(), IONPrefix+":")
+func (d ION) IsValid() bool {
+	split := strings.Split(d.String(), Prefix+":")
 	return len(split) == 2
 }
 
-func (d DIDION) String() string {
+func (d ION) String() string {
 	return string(d)
 }
 
-func (d DIDION) Suffix() (string, error) {
-	split := strings.Split(d.String(), IONPrefix+":")
+func (d ION) Suffix() (string, error) {
+	split := strings.Split(d.String(), Prefix+":")
 	if len(split) != 2 {
 		return "", errors.Wrap(util.InvalidFormatError, "did is malformed")
 	}
 	return split[1], nil
 }
 
-func (DIDION) Method() did.Method {
+func (ION) Method() did.Method {
 	return did.IONMethod
 }
 

@@ -1,9 +1,7 @@
-package key
+package jwk
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"github.com/pkg/errors"
 
@@ -16,17 +14,14 @@ type Resolver struct{}
 var _ resolver.Resolver = (*Resolver)(nil)
 
 func (Resolver) Resolve(_ context.Context, id string, _ ...resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
-	if !strings.HasPrefix(id, Prefix) {
-		return nil, fmt.Errorf("not a id:key DID: %s", id)
-	}
-	didKey := DIDKey(id)
-	doc, err := didKey.Expand()
+	didJWK := JWK(id)
+	doc, err := didJWK.Expand()
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not expand did:key DID: %s", id)
+		return nil, errors.Wrap(err, "expanding did:jwk")
 	}
 	return &resolver.ResolutionResult{Document: *doc}, nil
 }
 
 func (Resolver) Methods() []did.Method {
-	return []did.Method{did.KeyMethod}
+	return []did.Method{did.JWKMethod}
 }

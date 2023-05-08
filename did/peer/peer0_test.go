@@ -10,7 +10,7 @@ import (
 )
 
 func TestPeerMethod0(t *testing.T) {
-	var m0 PeerMethod0
+	var m0 Method0
 	kt := crypto.Ed25519
 
 	// TODO: Add known key so reproducible results
@@ -29,7 +29,7 @@ func TestPeerMethod0(t *testing.T) {
 
 func TestPeerResolveMethod0(t *testing.T) {
 	did := DIDPeer("did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH")
-	resolved, err := PeerMethod0{}.resolve(did, nil)
+	resolved, err := Method0{}.resolve(did, nil)
 	assert.NoError(t, err)
 	gtestDoc := getSampleDIDDocumentMethod0()
 	assert.Equal(t, gtestDoc.Context, resolved.Document.Context)

@@ -69,7 +69,7 @@ func TestDIDPeerUtilities(t *testing.T) {
 	})
 
 	t.Run("test resolve method 1", func(tt *testing.T) {
-		var m1 PeerMethod1
+		var m1 Method1
 		_, err := m1.resolve(DIDPeer("did:peer:1z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"), nil)
 		assert.Error(tt, err)
 	})
@@ -94,7 +94,7 @@ func TestDIDPeerUtilities(t *testing.T) {
 
 	t.Run("test valid purpose", func(tt *testing.T) {
 		did := DIDPeer(validDIDPeerStr)
-		assert.True(tt, did.IsValidPurpose(PeerPurposeEncryptionCode))
+		assert.True(tt, did.IsValidPurpose(PurposeEncryptionCode))
 		assert.False(tt, did.IsValidPurpose(PurposeType("M")))
 	})
 
@@ -132,7 +132,7 @@ func TestDIDPeerUtilities(t *testing.T) {
 
 func TestPeerResolver(t *testing.T) {
 	bad := "asdf"
-	var r PeerResolver
+	var r Resolver
 	_, err := r.Resolve(context.Background(), bad, nil)
 	assert.Error(t, err)
 

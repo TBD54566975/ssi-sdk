@@ -13,7 +13,7 @@ import (
 )
 
 func TestResolveKeyForDID(t *testing.T) {
-	r, err := resolver.NewResolver([]resolver.Resolver{KeyResolver{}}...)
+	r, err := resolver.NewResolver([]resolver.Resolver{Resolver{}}...)
 	require.NoError(t, err)
 	require.NotEmpty(t, r)
 

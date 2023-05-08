@@ -1,4 +1,4 @@
-package key
+package pkh
 
 import (
 	"context"
@@ -16,17 +16,17 @@ type Resolver struct{}
 var _ resolver.Resolver = (*Resolver)(nil)
 
 func (Resolver) Resolve(_ context.Context, id string, _ ...resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
-	if !strings.HasPrefix(id, Prefix) {
-		return nil, fmt.Errorf("not a id:key DID: %s", id)
+	if !strings.HasPrefix(id, DIDPKHPrefix) {
+		return nil, fmt.Errorf("not a did:pkh DID: %s", id)
 	}
-	didKey := DIDKey(id)
-	doc, err := didKey.Expand()
+	didPKH := PKH(id)
+	doc, err := didPKH.Expand()
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not expand did:key DID: %s", id)
+		return nil, errors.Wrapf(err, "could not expand did:pkh DID: %s", id)
 	}
 	return &resolver.ResolutionResult{Document: *doc}, nil
 }
 
 func (Resolver) Methods() []did.Method {
-	return []did.Method{did.KeyMethod}
+	return []did.Method{did.PKHMethod}
 }

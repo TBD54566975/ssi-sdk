@@ -11,20 +11,20 @@ import (
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
-// PeerMethod0 Method 0: inception key without doc
+// Method0 Method 0: inception key without doc
 // https://identity.foundation/peer-did-method-spec/index.html#generation-method
 // The DID doc offers no endpoint. This makes the DID functionally equivalent to a did:key value For example,
 // did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH is equivalent to
 // did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH
-type PeerMethod0 struct {
+type Method0 struct {
 	kt crypto.KeyType
 }
 
-func (PeerMethod0) Method() did.Method {
+func (Method0) Method() did.Method {
 	return did.PeerMethod
 }
 
-func (PeerMethod0) Generate(kt crypto.KeyType, publicKey gocrypto.PublicKey) (*DIDPeer, error) {
+func (Method0) Generate(kt crypto.KeyType, publicKey gocrypto.PublicKey) (*DIDPeer, error) {
 	var didPeer DIDPeer
 	encoded, err := encodePublicKeyWithKeyMultiCodecType(kt, publicKey)
 	if err != nil {
@@ -35,9 +35,9 @@ func (PeerMethod0) Generate(kt crypto.KeyType, publicKey gocrypto.PublicKey) (*D
 }
 
 // Resolve resolves a did:peer into a DID Document
-// To do so, it decodes the key, constructs a verification  method, and returns a DID Document .This allows PeerMethod0
+// To do so, it decodes the key, constructs a verification  method, and returns a DID Document .This allows Method0
 // to implement the DID Resolver interface and be used to expand the did into the DID Document.
-func (PeerMethod0) resolve(didDoc did.DID, _ resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
+func (Method0) resolve(didDoc did.DID, _ resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
 	d, ok := didDoc.(DIDPeer)
 	if !ok {
 		return nil, errors.Wrap(util.CastingError, "did:peer")

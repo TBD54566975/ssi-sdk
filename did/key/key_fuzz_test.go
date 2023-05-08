@@ -14,14 +14,14 @@ var mockPubKeys = []string{
 }
 
 func FuzzCreateAndDecode(f *testing.F) {
-	keytypes := GetSupportedDIDKeyTypes()
-	ktLen := len(keytypes)
+	keyTypes := GetSupportedDIDKeyTypes()
+	ktLen := len(keyTypes)
 
 	for i, pk := range mockPubKeys {
 		f.Add(i, []byte(pk))
 	}
 	f.Fuzz(func(t *testing.T, ktSeed int, pubKey []byte) {
-		kt := keytypes[(ktSeed%ktLen+ktLen)%ktLen]
+		kt := keyTypes[(ktSeed%ktLen+ktLen)%ktLen]
 
 		didKey, err := CreateDIDKey(kt, pubKey)
 		assert.NoError(t, err)
@@ -36,7 +36,7 @@ func FuzzCreateAndResolve(f *testing.F) {
 	keyTypes := GetSupportedDIDKeyTypes()
 	ktLen := len(keyTypes)
 
-	resolvers := []resolver.Resolver{KeyResolver{}}
+	resolvers := []resolver.Resolver{Resolver{}}
 	r, err := resolver.NewResolver(resolvers...)
 	assert.NoError(f, err)
 

@@ -1,19 +1,17 @@
 package jwk
 
 import (
-	"context"
 	"embed"
 	"strings"
 	"testing"
+
+	"github.com/goccy/go-json"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
-
-	"github.com/goccy/go-json"
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -30,7 +28,7 @@ var (
 func TestDIDJWKVectors(t *testing.T) {
 	t.Run("P-256", func(tt *testing.T) {
 		id := "did:jwk:eyJjcnYiOiJQLTI1NiIsImt0eSI6IkVDIiwieCI6ImFjYklRaXVNczNpOF91c3pFakoydHBUdFJNNEVVM3l6OTFQSDZDZEgyVjAiLCJ5IjoiX0tjeUxqOXZXTXB0bm1LdG00NkdxRHo4d2Y3NEk1TEtncmwyR3pIM25TRSJ9"
-		didJWK := DIDJWK(id)
+		didJWK := JWK(id)
 		valid := didJWK.IsValid()
 		assert.True(tt, valid)
 
@@ -53,7 +51,7 @@ func TestDIDJWKVectors(t *testing.T) {
 
 	t.Run("X25519", func(tt *testing.T) {
 		id := "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJYMjU1MTkiLCJ1c2UiOiJlbmMiLCJ4IjoiM3A3YmZYdDl3YlRUVzJIQzdPUTFOei1EUThoYmVHZE5yZngtRkctSUswOCJ9"
-		didJWK := DIDJWK(id)
+		didJWK := JWK(id)
 		valid := didJWK.IsValid()
 		assert.True(tt, valid)
 
@@ -167,33 +165,18 @@ func TestExpandDIDJWK(t *testing.T) {
 	})
 
 	t.Run("bad DID returns error", func(t *testing.T) {
-		badDID := DIDJWK("bad")
+		badDID := JWK("bad")
 		_, err := badDID.Expand()
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not a did:jwk DID, invalid prefix: bad")
 	})
 
 	t.Run("DID but not a valid did:jwk", func(t *testing.T) {
-		badDID := DIDJWK("did:jwk:bad")
+		badDID := JWK("did:jwk:bad")
 		_, err := badDID.Expand()
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "unmarshalling did:jwk")
 	})
-}
-
-func TestGenerateAndResolveDIDJWK(t *testing.T) {
-	resolvers := []resolver.Resolver{JWKResolver{}}
-	resolver, _ := resolver.NewResolver(resolvers...)
-
-	for _, kt := range GetSupportedDIDJWKTypes() {
-		_, didJWK, err := GenerateDIDJWK(kt)
-		assert.NoError(t, err)
-
-		doc, err := resolver.Resolve(context.Background(), didJWK.String())
-		assert.NoError(t, err)
-		assert.NotEmpty(t, doc)
-		assert.Equal(t, didJWK.String(), doc.Document.ID)
-	}
 }
 
 func getTestVector(fileName string) (string, error) {
