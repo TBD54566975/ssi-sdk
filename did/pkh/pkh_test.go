@@ -1,4 +1,4 @@
-package did
+package pkh
 
 import (
 	"embed"
@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/goccy/go-json"
+
+	"github.com/TBD54566975/ssi-sdk/did"
 )
 
 const (
@@ -32,7 +34,7 @@ func TestDIDPKHVectors(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Test Known DIDPKH
-		var knownDIDPKH Document
+		var knownDIDPKH did.Document
 		err = json.Unmarshal([]byte(gotTestVector), &knownDIDPKH)
 
 		assert.NoError(t, err)
@@ -99,8 +101,8 @@ func TestCreateDIDPKH(t *testing.T) {
 		testVectorDIDDoc, err := testVectorPKHDIDFS.ReadFile(testDataDirectory + "/" + pkhTestVectors[Ethereum][1])
 		assert.NoError(tt, err)
 
-		var expandedTestDIDDoc Document
-		err = json.Unmarshal([]byte(testVectorDIDDoc), &expandedTestDIDDoc)
+		var expandedTestDIDDoc did.Document
+		err = json.Unmarshal(testVectorDIDDoc, &expandedTestDIDDoc)
 		assert.NoError(tt, err)
 		expandedTestDIDDocBytes, err := json.Marshal(expandedTestDIDDoc)
 		assert.NoError(tt, err)

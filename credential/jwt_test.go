@@ -9,7 +9,9 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/key"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -108,7 +110,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		err = verifier.Verify(token)
 		assert.NoError(tt, err)
 
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		require.NoError(tt, err)
 		require.NotEmpty(tt, resolver)
 
@@ -142,7 +144,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		assert.NotEmpty(tt, parsedHeaders)
 		assert.NotEmpty(tt, parsedPres)
 
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		require.NoError(tt, err)
 		require.NotEmpty(tt, resolver)
 
@@ -155,7 +157,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 	})
 
 	t.Run("with VC a single valid VC JWT", func(tt *testing.T) {
-		issuerPrivKey, issuerDID, err := did.GenerateDIDKey(crypto.Ed25519)
+		issuerPrivKey, issuerDID, err := key.GenerateDIDKey(crypto.Ed25519)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, issuerPrivKey)
 		assert.NotEmpty(tt, issuerDID)
@@ -165,7 +167,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		issuerKID := expandedIssuerDID.VerificationMethod[0].ID
 		assert.NotEmpty(tt, issuerKID)
 
-		subjectPrivKey, subjectDID, err := did.GenerateDIDKey(crypto.Ed25519)
+		subjectPrivKey, subjectDID, err := key.GenerateDIDKey(crypto.Ed25519)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, subjectPrivKey)
 		assert.NotEmpty(tt, subjectDID)
@@ -215,7 +217,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		assert.NotEmpty(tt, parsedPres)
 
 		// Verify the VP JWT
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		require.NoError(tt, err)
 		require.NotEmpty(tt, resolver)
 

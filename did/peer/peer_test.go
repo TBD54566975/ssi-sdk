@@ -1,12 +1,26 @@
-package did
+package peer
 
 import (
 	"context"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/did"
+
 	"github.com/stretchr/testify/assert"
 )
+
+func TestEncodePublicKeyWithKeyMultiCodecType(t *testing.T) {
+	// unsupported type
+	_, err := encodePublicKeyWithKeyMultiCodecType(crypto.KeyType("unsupported"), nil)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not a supported key type")
+
+	// bad public key
+	_, err = encodePublicKeyWithKeyMultiCodecType(crypto.Ed25519, nil)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown public key type; could not convert to bytes")
+}
 
 func TestDIDPeerValid(t *testing.T) {
 	valid := "did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
@@ -103,7 +117,7 @@ func TestDIDPeerUtilities(t *testing.T) {
 
 	t.Run("test encode service block", func(tt *testing.T) {
 		res := "eyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0"
-		sbe := Service{
+		sbe := did.Service{
 			Type:            "DIDCommMessaging",
 			ServiceEndpoint: "https://example.com/endpoint",
 			RoutingKeys:     []string{"did:example:somemediator#somekey"},
@@ -153,104 +167,33 @@ func TestDIDPeerDeltaError(t *testing.T) {
 	assert.Contains(t, err.Error(), "not implemented")
 }
 
-func makeSamplePeerDIDDocument1() *Document {
-	return &Document{
-		Context: "https://www.w3.org/ns/did/v1",
-		ID:      "did:peer:0z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs",
-		Authentication: []VerificationMethodSet{
-			VerificationMethod{
-				ID:              "#z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs6",
-				Type:            "Ed25519VerificationKey2018",
-				Controller:      "id:peer:0z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs6",
-				PublicKeyBase58: "FhV92MLqMGanvJbgnGY2Kjxi4tbXZWZbauHW58R9315i",
-			},
-		},
-		KeyAgreement: []VerificationMethodSet{
-			[]string{"#z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs6"},
-		},
-		AssertionMethod: []VerificationMethodSet{
-			[]string{"#z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs6"},
-		},
-		CapabilityDelegation: []VerificationMethodSet{
-			[]string{"#z6Mku9kBcbbGgp5G2oSPTqVsAqWhtTsNyPoxGvCRuQP9xDs6"},
-		},
-	}
-}
-
-func TestPeerMethod0(t *testing.T) {
-	var m0 PeerMethod0
-	kt := crypto.Ed25519
-
-	// TODO: Add known key so reproducible results
-	pubKey, _, err := crypto.GenerateKeyByKeyType(kt)
-	assert.NoError(t, err)
-
-	did, err := m0.Generate(kt, pubKey)
-	assert.NoError(t, err)
-
-	resolved, err := m0.resolve(*did, nil)
-	assert.NoError(t, err)
-	testDoc := makeSamplePeerDIDDocument1()
-
-	assert.Equal(t, testDoc.Context, resolved.Document.Context)
-}
-
-func TestPeerMethod2(t *testing.T) {
-	var d DIDPeer
-	kt := crypto.Ed25519
-
-	pubKey, _, err := d.generateKeyByType(crypto.Ed25519)
-	assert.NoError(t, err)
-
-	service := Service{
-		ID:              "myid",
-		Type:            PeerDIDCommMessagingAbbr,
-		ServiceEndpoint: "https://example.com/endpoint",
-		RoutingKeys:     []string{"did:example:somemediator#somekey"},
-		Accept:          []string{"didcomm/v2"},
-	}
-
-	m2 := PeerMethod2{KT: kt, Values: []any{pubKey, service}}
-
-	did, err := m2.Generate()
-	assert.NoError(t, err)
-	assert.True(t, did.IsValid())
-}
-
-func TestPeerMethod1(t *testing.T) {
-	var m1 PeerMethod1
-	_, err := m1.Generate()
-	assert.Error(t, err)
-	assert.Contains(t, "not implemented", err.Error())
-}
-
-func makeSamplePeerDIDDocument() *Document {
-	return &Document{
+func makeSamplePeerDIDDocument() *did.Document {
+	return &did.Document{
 		Context: "https://w3id.org/did/v1",
 		ID:      "did:peer:2.Ez6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc.Vz6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V.Vz6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0",
-		Authentication: []VerificationMethodSet{
-			VerificationMethod{
+		Authentication: []did.VerificationMethodSet{
+			did.VerificationMethod{
 				ID:                 "did:peer:2.Ez6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc.Vz6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V.Vz6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0#6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V",
 				Type:               "Ed25519VerificationKey2020",
 				Controller:         "did:peer:2.Ez6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc.Vz6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V.Vz6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0",
 				PublicKeyMultibase: "z6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V",
 			},
-			VerificationMethod{
+			did.VerificationMethod{
 				ID:                 "did:peer:2.Ez6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc.Vz6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V.Vz6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0#6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg",
 				Type:               "Ed25519VerificationKey2020",
 				Controller:         "did:peer:2.Ez6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc.Vz6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V.Vz6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0",
 				PublicKeyMultibase: "z6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg",
 			},
 		},
-		KeyAgreement: []VerificationMethodSet{
-			VerificationMethod{
+		KeyAgreement: []did.VerificationMethodSet{
+			did.VerificationMethod{
 				ID:                 "did:peer:2.Ez6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc.Vz6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V.Vz6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0#6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc",
 				Type:               "X25519KeyAgreementKey2020",
 				Controller:         "did:peer:2.Ez6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc.Vz6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V.Vz6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0",
 				PublicKeyMultibase: "z6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc",
 			},
 		},
-		Services: []Service{Service{
+		Services: []did.Service{did.Service{
 			ID:              "did:peer:2.Ez6LSbysY2xFMRpGMhb7tFTLMpeuPRaqaWM1yECx2AtzE3KCc.Vz6MkqRYqQiSgvZQdnBytw86Qbs2ZWUkGv22od935YF4s8M7V.Vz6MkgoLTnTypo3tDRwCkZXSccTPHRLhF4ZnjhueYAFpEX6vg.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0#didcommmessaging-0",
 			Type:            "DIDCommMessaging",
 			ServiceEndpoint: "https://example.com/endpoint",
@@ -260,64 +203,9 @@ func makeSamplePeerDIDDocument() *Document {
 	}
 }
 
-func getSampleDIDDocumentMethod0() *Document {
-	return &Document{
+func getSampleDIDDocumentMethod0() *did.Document {
+	return &did.Document{
 		Context: "https://www.w3.org/ns/did/v1",
 		ID:      "did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH",
 	}
-}
-
-func TestPeerResolveMethod0(t *testing.T) {
-	did := DIDPeer("did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH")
-	resolved, err := PeerMethod0{}.resolve(did, nil)
-	assert.NoError(t, err)
-	gtestDoc := getSampleDIDDocumentMethod0()
-	assert.Equal(t, gtestDoc.Context, resolved.Document.Context)
-	assert.Equal(t, gtestDoc.ID, resolved.ID)
-}
-
-// Encoded Encryption Key: .Ez6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH
-// Encoded Signing Key: .VzXwpBnMdCm1cLmKuzgESn29nqnonp1ioqrQMRHNsmjMyppzx8xB2pv7cw8q1PdDacSrdWE3dtB9f7Nxk886mdzNFoPtY
-// Service Block:
-//
-//	{
-//		"type": "DIDCommMessaging",
-//		"serviceEndpoint": "https://example.com/endpoint",
-//		"routingKeys": ["did:example:somemediator#somekey"],
-//	          "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"]
-//	}
-//
-// Service Block, after whitespace removal and common word substitution:
-// {"t":"dm","s":"https://example.com/endpoint","r":["did:example:somemediator#somekey"],"a":["didcomm/v2","didcomm/aip2;env=rfc587"]}
-// Encoded Service Endpoint: .SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0=
-// Method 2 peer DID: did:peer:2.Ez6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH.VzXwpBnMdCm1cLmKuzgESn29nqnonp1ioqrQMRHNsmjMyppzx8xB2pv7cw8q1PdDacSrdWE3dtB9f7Nxk886mdzNFoPtY.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9lbmRwb2ludCIsInIiOlsiZGlkOmV4YW1wbGU6c29tZW1lZGlhdG9yI3NvbWVrZXkiXSwiYSI6WyJkaWRjb21tL3YyIiwiZGlkY29tbS9haXAyO2Vudj1yZmM1ODciXX0=
-func TestPeerResolveMethod2(t *testing.T) {
-	testDoc := makeSamplePeerDIDDocument()
-	did := DIDPeer(testDoc.ID)
-
-	resolved, err := PeerMethod2{}.resolve(did, nil)
-	assert.NoError(t, err)
-
-	assert.Equal(t, testDoc.Context, resolved.Document.Context)
-	assert.Equal(t, testDoc.ID, resolved.ID)
-
-	assert.Equal(t, testDoc.Services[0].ID, resolved.Services[0].ID)
-	assert.Equal(t, testDoc.Services[0].Type, resolved.Services[0].Type)
-	assert.Equal(t, testDoc.Services[0].ServiceEndpoint, resolved.Services[0].ServiceEndpoint)
-	assert.Equal(t, testDoc.Services[0].Accept, resolved.Services[0].Accept)
-
-	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).ID, resolved.KeyAgreement[0].(VerificationMethod).ID)
-	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).Type, resolved.KeyAgreement[0].(VerificationMethod).Type)
-	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).Controller, resolved.KeyAgreement[0].(VerificationMethod).Controller)
-	assert.Equal(t, testDoc.KeyAgreement[0].(VerificationMethod).PublicKeyMultibase, resolved.KeyAgreement[0].(VerificationMethod).PublicKeyMultibase)
-
-	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).ID, resolved.Authentication[0].(VerificationMethod).ID)
-	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).Type, resolved.Authentication[0].(VerificationMethod).Type)
-	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).Controller, resolved.Authentication[0].(VerificationMethod).Controller)
-	assert.Equal(t, testDoc.Authentication[0].(VerificationMethod).PublicKeyMultibase, resolved.Authentication[0].(VerificationMethod).PublicKeyMultibase)
-
-	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).ID, resolved.Authentication[1].(VerificationMethod).ID)
-	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).Type, resolved.Authentication[1].(VerificationMethod).Type)
-	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).Controller, resolved.Authentication[1].(VerificationMethod).Controller)
-	assert.Equal(t, testDoc.Authentication[1].(VerificationMethod).PublicKeyMultibase, resolved.Authentication[1].(VerificationMethod).PublicKeyMultibase)
 }

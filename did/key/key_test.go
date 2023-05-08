@@ -1,4 +1,4 @@
-package did
+package key
 
 import (
 	"context"
@@ -12,18 +12,33 @@ import (
 	"testing"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
-
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
-
+	"github.com/goccy/go-json"
+	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-multicodec"
 
-	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-varint"
+
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestParseDID(t *testing.T) {
+	// good did
+	didKey := DIDKey("did:key:abcd")
+	parsed, err := didKey.Suffix()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, parsed)
+
+	// bad did
+	badDIDKey := DIDKey("bad")
+	_, err = badDIDKey.Suffix()
+	assert.Error(t, err)
+}
 
 func TestCreateDIDKey(t *testing.T) {
 	t.Run("Ed25519 happy path", func(t *testing.T) {
@@ -115,14 +130,14 @@ func TestGenerateDIDKey(t *testing.T) {
 
 			assert.True(t, strings.Contains(string(*didKey), "did:key"))
 
-			codec, err := keyTypeToMultiCodec(test.keyType)
+			codec, err := did.KeyTypeToMultiCodec(test.keyType)
 			assert.NoError(t, err)
 
 			parsed, err := didKey.Suffix()
 			assert.NoError(t, err)
 			encoding, decoded, err := multibase.Decode(parsed)
 			assert.NoError(t, err)
-			assert.True(t, encoding == Base58BTCMultiBase)
+			assert.True(t, encoding == did.Base58BTCMultiBase)
 
 			multiCodec, n, err := varint.FromUvarint(decoded)
 			assert.NoError(t, err)
@@ -203,7 +218,7 @@ func TestGenerateAndDecodeDIDKey(t *testing.T) {
 		assert.NotEmpty(t, privKey)
 		assert.NoError(t, err)
 
-		expectedLLKeyType, _ := KeyTypeToLDKeyType(kt)
+		expectedLLKeyType, _ := did.KeyTypeToLDKeyType(kt)
 
 		pubKey, ldKeyType, cryptoKeyType, err := didKey.Decode()
 		assert.NoError(t, err)
@@ -214,14 +229,14 @@ func TestGenerateAndDecodeDIDKey(t *testing.T) {
 }
 
 func TestGenerateAndResolveDIDKey(t *testing.T) {
-	resolvers := []Resolver{KeyResolver{}, WebResolver{}, PKHResolver{}, PeerResolver{}}
-	resolver, _ := NewResolver(resolvers...)
+	resolvers := []resolver.Resolver{KeyResolver{}}
+	r, _ := resolver.NewResolver(resolvers...)
 
 	for _, kt := range GetSupportedDIDKeyTypes() {
 		_, didKey, err := GenerateDIDKey(kt)
 		assert.NoError(t, err)
 
-		doc, err := resolver.Resolve(context.Background(), didKey.String())
+		doc, err := r.Resolve(context.Background(), didKey.String())
 		assert.NoError(t, err)
 		assert.NotEmpty(t, doc)
 		assert.Equal(t, didKey.String(), doc.Document.ID)
@@ -354,6 +369,8 @@ func TestKnownTestVectors(t *testing.T) {
 		did1 := "did:key:z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp"
 		didKey1 := DIDKey(did1)
 		didDoc1, err := didKey1.Expand()
+		b, _ := json.Marshal(didDoc1)
+		println(string(b))
 		assert.NoError(tt, err)
 		assert.Equal(tt, did1, didDoc1.ID)
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))

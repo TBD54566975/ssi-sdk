@@ -19,7 +19,8 @@ import (
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/key"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
 	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
@@ -30,7 +31,7 @@ func main() {
 	**/
 
 	// User Holder
-	holderDIDPrivateKey, holderDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
+	holderDIDPrivateKey, holderDIDKey, err := key.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
 	expanded, err := holderDIDKey.Expand()
 	example.HandleExampleError(err, "Failed to expand DID")
@@ -39,7 +40,7 @@ func main() {
 	example.HandleExampleError(err, "Failed to generate signer")
 
 	// Apt Verifier
-	aptDIDPrivateKey, aptDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
+	aptDIDPrivateKey, aptDIDKey, err := key.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID key")
 	expanded, err = aptDIDKey.Expand()
 	example.HandleExampleError(err, "Failed to expand DID")
@@ -50,7 +51,7 @@ func main() {
 	example.HandleExampleError(err, "Failed to generate verifier")
 
 	// Government Issuer
-	govtDIDPrivateKey, govtDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
+	govtDIDPrivateKey, govtDIDKey, err := key.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID key")
 	expanded, err = govtDIDKey.Expand()
 	example.HandleExampleError(err, "Failed to expand DID")
@@ -161,7 +162,7 @@ func main() {
 		Step 5: The apartment will verify the presentation submission. This is done to make sure the presentation is in compliance with the definition.
 	**/
 
-	resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+	resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 	example.HandleExampleError(err, "Failed to build resolver")
 
 	// Convert the holder signer to a verifier with the audience set as the apartment DID

@@ -6,14 +6,15 @@ import (
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
 	"github.com/TBD54566975/ssi-sdk/schema"
 
-	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
+
+	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 // VerifiedSubmissionData is the result of a successful verification of a presentation submission
@@ -35,7 +36,7 @@ type VerifiedSubmissionData struct {
 // Note: this method does not support LD cryptosuites, and prefers JWT representations. Future refactors
 // may include an analog method for LD suites.
 // TODO(gabe) remove embed target, have it detected from the submission
-func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver did.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) ([]VerifiedSubmissionData, error) { //revive:disable-line
+func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver resolver.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) ([]VerifiedSubmissionData, error) { //revive:disable-line
 	if resolver == nil {
 		return nil, errors.New("resolver cannot be empty")
 	}

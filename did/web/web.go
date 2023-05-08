@@ -1,4 +1,4 @@
-package did
+package web
 
 import (
 	"context"
@@ -9,10 +9,12 @@ import (
 	"strings"
 
 	"github.com/goccy/go-json"
+	"github.com/pkg/errors"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
 	"github.com/TBD54566975/ssi-sdk/util"
-	"github.com/pkg/errors"
 )
 
 // did:web method specification https://w3c-ccg.github.io/did-method-web/
@@ -45,35 +47,35 @@ func (d DIDWeb) Suffix() (string, error) {
 	return split[1], nil
 }
 
-func (DIDWeb) Method() Method {
-	return WebMethod
+func (DIDWeb) Method() did.Method {
+	return did.WebMethod
 }
 
 // CreateDoc constructs a did:web Document from a specific key type and its corresponding public key. This method
 // does not attempt to validate that the provided public key is of the specified key type. The returned Document is
 // expected further turned into a JSON file named did.json and stored under the expected path of the target web domain
 // specification: https://w3c-ccg.github.io/did-method-web/#create-register
-func (d DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*Document, error) {
-	ldKeyType, err := KeyTypeToLDKeyType(kt)
+func (d DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*did.Document, error) {
+	ldKeyType, err := did.KeyTypeToLDKeyType(kt)
 	if err != nil {
 		return nil, err
 	}
 	didWebStr := string(d)
 	keyReference := didWebStr + "#owner"
 
-	verificationMethod, err := constructVerificationMethod(didWebStr, keyReference, publicKey, ldKeyType, kt)
+	verificationMethod, err := did.ConstructJWKVerificationMethod(didWebStr, keyReference, publicKey, ldKeyType, kt)
 	if err != nil {
 		return nil, fmt.Errorf("could not construct verification method for DIDWeb %+v", d)
 	}
 
-	verificationMethodSet := []VerificationMethodSet{
+	verificationMethodSet := []did.VerificationMethodSet{
 		[]string{keyReference},
 	}
 
-	return &Document{
-		Context:            KnownDIDContext,
+	return &did.Document{
+		Context:            did.KnownDIDContext,
 		ID:                 didWebStr,
-		VerificationMethod: []VerificationMethod{*verificationMethod},
+		VerificationMethod: []did.VerificationMethod{*verificationMethod},
 		Authentication:     verificationMethodSet,
 		AssertionMethod:    verificationMethodSet,
 	}, nil
@@ -138,12 +140,12 @@ func (d DIDWeb) GetDocURL() (string, error) {
 	return sb.String(), nil
 }
 
-func (d DIDWeb) Resolve() (*Document, error) {
+func (d DIDWeb) Resolve() (*did.Document, error) {
 	docBytes, err := d.resolveDocBytes()
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolving did:web DID<%s>", d)
 	}
-	resolutionResult, err := ParseDIDResolution(docBytes)
+	resolutionResult, err := resolver.ParseDIDResolution(docBytes)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolving did:web DID<%s>", d)
 	}
@@ -177,22 +179,22 @@ func (d DIDWeb) resolveDocBytes() ([]byte, error) {
 
 type WebResolver struct{}
 
-var _ Resolver = (*WebResolver)(nil)
+var _ resolver.Resolver = (*WebResolver)(nil)
 
-func (WebResolver) Methods() []Method {
-	return []Method{WebMethod}
+func (WebResolver) Methods() []did.Method {
+	return []did.Method{did.WebMethod}
 }
 
 // Resolve fetches and returns the Document from the expected URL
 // specification: https://w3c-ccg.github.io/did-method-web/#read-resolve
-func (WebResolver) Resolve(_ context.Context, did string, _ ...ResolutionOption) (*ResolutionResult, error) {
-	if !strings.HasPrefix(did, WebPrefix) {
-		return nil, fmt.Errorf("not a did:web DID: %s", did)
+func (WebResolver) Resolve(_ context.Context, id string, _ ...resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
+	if !strings.HasPrefix(id, WebPrefix) {
+		return nil, fmt.Errorf("not a did:web DID: %s", id)
 	}
-	didWeb := DIDWeb(did)
+	didWeb := DIDWeb(id)
 	doc, err := didWeb.Resolve()
 	if err != nil {
-		return nil, errors.Wrapf(err, "cresolving did:web DID: %s", did)
+		return nil, errors.Wrapf(err, "cresolving did:web DID: %s", id)
 	}
-	return &ResolutionResult{Document: *doc}, nil
+	return &resolver.ResolutionResult{Document: *doc}, nil
 }

@@ -4,10 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
+	"github.com/TBD54566975/ssi-sdk/did/key"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/util"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
@@ -15,7 +17,7 @@ import (
 
 func TestVerifyPresentationSubmission(t *testing.T) {
 	t.Run("Empty submission", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 		verifier := jwx.Verifier{}
 		_, err = VerifyPresentationSubmission(context.Background(), verifier, resolver, "badEmbedTarget", PresentationDefinition{}, nil)
@@ -24,7 +26,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 	})
 
 	t.Run("Empty presentation definition", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 		verifier := jwx.Verifier{}
 		_, err = VerifyPresentationSubmission(context.Background(), verifier, resolver, "badEmbedTarget", PresentationDefinition{}, []byte{0, 1, 2, 3})
@@ -33,7 +35,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 	})
 
 	t.Run("Unsupported embed target", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 		verifier := jwx.Verifier{}
 		_, err = VerifyPresentationSubmission(context.Background(), verifier, resolver, "badEmbedTarget", PresentationDefinition{ID: "1"}, []byte{0, 1, 2, 3})
@@ -60,7 +62,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 			},
 		}
 
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 		_, verifier := getJWKSignerVerifier(tt)
 		_, err = VerifyPresentationSubmission(context.Background(), *verifier, resolver, JWTVPTarget, def, []byte{0, 1, 2, 3})
@@ -88,7 +90,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		}
 		assert.NoError(tt, def.IsValid())
 
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
 		signer, verifier := getJWKSignerVerifier(tt)
@@ -127,7 +129,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		}
 		assert.NoError(tt, def.IsValid())
 
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
 		signer, verifier := getJWKSignerVerifier(tt)

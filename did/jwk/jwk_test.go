@@ -1,4 +1,4 @@
-package did
+package jwk
 
 import (
 	"context"
@@ -9,6 +9,9 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
+
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,20 +24,19 @@ const (
 var (
 	//go:embed testdata
 	jwkTestVectors embed.FS
-	jwkVectors     = []string{P256Vector, X25519Vector}
 )
 
 // from https://github.com/quartzjer/did-jwk/blob/main/spec.md#examples
 func TestDIDJWKVectors(t *testing.T) {
 	t.Run("P-256", func(tt *testing.T) {
-		did := "did:jwk:eyJjcnYiOiJQLTI1NiIsImt0eSI6IkVDIiwieCI6ImFjYklRaXVNczNpOF91c3pFakoydHBUdFJNNEVVM3l6OTFQSDZDZEgyVjAiLCJ5IjoiX0tjeUxqOXZXTXB0bm1LdG00NkdxRHo4d2Y3NEk1TEtncmwyR3pIM25TRSJ9"
-		didJWK := DIDJWK(did)
+		id := "did:jwk:eyJjcnYiOiJQLTI1NiIsImt0eSI6IkVDIiwieCI6ImFjYklRaXVNczNpOF91c3pFakoydHBUdFJNNEVVM3l6OTFQSDZDZEgyVjAiLCJ5IjoiX0tjeUxqOXZXTXB0bm1LdG00NkdxRHo4d2Y3NEk1TEtncmwyR3pIM25TRSJ9"
+		didJWK := DIDJWK(id)
 		valid := didJWK.IsValid()
 		assert.True(tt, valid)
 
 		gotTestVector, err := getTestVector(P256Vector)
 		assert.NoError(t, err)
-		var didDoc Document
+		var didDoc did.Document
 		err = json.Unmarshal([]byte(gotTestVector), &didDoc)
 		assert.NoError(tt, err)
 
@@ -50,14 +52,14 @@ func TestDIDJWKVectors(t *testing.T) {
 	})
 
 	t.Run("X25519", func(tt *testing.T) {
-		did := "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJYMjU1MTkiLCJ1c2UiOiJlbmMiLCJ4IjoiM3A3YmZYdDl3YlRUVzJIQzdPUTFOei1EUThoYmVHZE5yZngtRkctSUswOCJ9"
-		didJWK := DIDJWK(did)
+		id := "did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJYMjU1MTkiLCJ1c2UiOiJlbmMiLCJ4IjoiM3A3YmZYdDl3YlRUVzJIQzdPUTFOei1EUThoYmVHZE5yZngtRkctSUswOCJ9"
+		didJWK := DIDJWK(id)
 		valid := didJWK.IsValid()
 		assert.True(tt, valid)
 
 		gotTestVector, err := getTestVector(X25519Vector)
 		assert.NoError(t, err)
-		var didDoc Document
+		var didDoc did.Document
 		err = json.Unmarshal([]byte(gotTestVector), &didDoc)
 		assert.NoError(tt, err)
 
@@ -180,8 +182,8 @@ func TestExpandDIDJWK(t *testing.T) {
 }
 
 func TestGenerateAndResolveDIDJWK(t *testing.T) {
-	resolvers := []Resolver{JWKResolver{}}
-	resolver, _ := NewResolver(resolvers...)
+	resolvers := []resolver.Resolver{JWKResolver{}}
+	resolver, _ := resolver.NewResolver(resolvers...)
 
 	for _, kt := range GetSupportedDIDJWKTypes() {
 		_, didJWK, err := GenerateDIDJWK(kt)
@@ -192,4 +194,9 @@ func TestGenerateAndResolveDIDJWK(t *testing.T) {
 		assert.NotEmpty(t, doc)
 		assert.Equal(t, didJWK.String(), doc.Document.ID)
 	}
+}
+
+func getTestVector(fileName string) (string, error) {
+	b, err := jwkTestVectors.ReadFile("testdata/" + fileName)
+	return string(b), err
 }

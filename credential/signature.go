@@ -8,12 +8,14 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
+
 	"github.com/pkg/errors"
 )
 
 // VerifyCredentialSignature verifies the signature of a credential of any type
 // TODO(gabe) support other types of credentials https://github.com/TBD54566975/ssi-sdk/issues/352
-func VerifyCredentialSignature(ctx context.Context, genericCred any, resolver did.Resolver) (bool, error) {
+func VerifyCredentialSignature(ctx context.Context, genericCred any, resolver resolver.Resolver) (bool, error) {
 	if genericCred == nil {
 		return false, errors.New("credential cannot be empty")
 	}
@@ -55,7 +57,7 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, resolver di
 // VerifyJWTCredential verifies the signature of a JWT credential after parsing it to resolve the issuer DID
 // The issuer DID is resolver from the provided resolver, and used to find the issuer's public key matching
 // the KID in the JWT header.
-func VerifyJWTCredential(cred string, resolver did.Resolver) (bool, error) {
+func VerifyJWTCredential(cred string, resolver resolver.Resolver) (bool, error) {
 	if cred == "" {
 		return false, errors.New("credential cannot be empty")
 	}

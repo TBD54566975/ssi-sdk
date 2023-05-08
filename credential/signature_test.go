@@ -5,10 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/goccy/go-json"
+
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/goccy/go-json"
+	"github.com/TBD54566975/ssi-sdk/did/key"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/web"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,7 +32,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 	})
 
 	t.Run("invalid credential type - int", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
 		_, err = VerifyCredentialSignature(context.Background(), 5, resolver)
@@ -37,7 +41,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 	})
 
 	t.Run("empty map credential type", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
 		_, err = VerifyCredentialSignature(context.Background(), map[string]any{"a": "test"}, resolver)
@@ -46,7 +50,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 	})
 
 	t.Run("data integrity map credential type missing proof", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
 		credential := getTestCredential()
@@ -59,7 +63,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 	})
 
 	t.Run("data integrity credential - no proof", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
 		credential := getTestCredential()
@@ -74,7 +78,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 	})
 
 	t.Run("data integrity credential - as bytes and string", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
 		credential := getTestCredential()
@@ -91,10 +95,10 @@ func TestVerifyCredentialSignature(t *testing.T) {
 	})
 
 	t.Run("jwt credential - as bytes and string", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
-		privKey, didKey, err := did.GenerateDIDKey(crypto.Ed25519)
+		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
 		assert.NoError(tt, err)
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
@@ -128,7 +132,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 
 	t.Run("invalid credential", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 		_, err = VerifyJWTCredential("not-empty", resolver)
 		assert.Error(tt, err)
@@ -136,7 +140,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 
 	t.Run("valid credential, not signed by DID", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
 		_, privKey, err := crypto.GenerateEd25519Key()
@@ -151,10 +155,10 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 
 	t.Run("valid credential, signed by DID the resolver can't resolve", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.WebResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{web.WebResolver{}}...)
 		assert.NoError(tt, err)
 
-		privKey, didKey, err := did.GenerateDIDKey(crypto.Ed25519)
+		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
 		assert.NoError(tt, err)
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
@@ -169,10 +173,10 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 
 	t.Run("valid credential, kid not found", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
-		privKey, didKey, err := did.GenerateDIDKey(crypto.Ed25519)
+		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
 		assert.NoError(tt, err)
 		signer, err := jwx.NewJWXSigner(didKey.String(), "missing", privKey)
 		assert.NoError(tt, err)
@@ -184,10 +188,10 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 
 	t.Run("valid credential, bad signature", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
-		privKey, didKey, err := did.GenerateDIDKey(crypto.Ed25519)
+		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
 		assert.NoError(tt, err)
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
@@ -206,10 +210,10 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 
 	t.Run("valid credential", func(tt *testing.T) {
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}}...)
 		assert.NoError(tt, err)
 
-		privKey, didKey, err := did.GenerateDIDKey(crypto.Ed25519)
+		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
 		assert.NoError(tt, err)
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)

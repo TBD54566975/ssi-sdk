@@ -1,10 +1,12 @@
-package did
+package key
 
 import (
 	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
 )
 
 var mockPubKeys = []string{
@@ -34,8 +36,8 @@ func FuzzCreateAndResolve(f *testing.F) {
 	keyTypes := GetSupportedDIDKeyTypes()
 	ktLen := len(keyTypes)
 
-	resolvers := []Resolver{KeyResolver{}, WebResolver{}, PKHResolver{}, PeerResolver{}}
-	resolver, err := NewResolver(resolvers...)
+	resolvers := []resolver.Resolver{KeyResolver{}}
+	r, err := resolver.NewResolver(resolvers...)
 	assert.NoError(f, err)
 
 	for i, pk := range mockPubKeys {
@@ -48,7 +50,7 @@ func FuzzCreateAndResolve(f *testing.F) {
 		didKey, err := CreateDIDKey(kt, pubKey)
 		assert.NoError(t, err)
 
-		doc, err := resolver.Resolve(context.Background(), didKey.String())
+		doc, err := r.Resolve(context.Background(), didKey.String())
 		if err != nil {
 			t.Skip()
 		}

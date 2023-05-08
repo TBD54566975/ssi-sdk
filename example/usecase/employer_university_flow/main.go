@@ -54,14 +54,17 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/goccy/go-json"
+	"github.com/sirupsen/logrus"
+
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/key"
+	"github.com/TBD54566975/ssi-sdk/did/peer"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
 	"github.com/TBD54566975/ssi-sdk/example"
 	emp "github.com/TBD54566975/ssi-sdk/example/usecase/employer_university_flow/pkg"
-	"github.com/goccy/go-json"
-
-	"github.com/sirupsen/logrus"
 )
 
 // Set to debug mode here
@@ -171,7 +174,7 @@ func main() {
 	verifier, err := studentSigner.ToVerifier(employerDID)
 	example.HandleExampleError(err, "failed to construct verifier")
 
-	resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}, did.PeerResolver{}}...)
+	resolver, err := resolver.NewResolver([]resolver.Resolver{key.KeyResolver{}, peer.PeerResolver{}}...)
 	example.HandleExampleError(err, "failed to create DID resolver")
 	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submission))
 	example.HandleExampleError(err, "failed to verify jwt")

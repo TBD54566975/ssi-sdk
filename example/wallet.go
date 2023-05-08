@@ -9,6 +9,8 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/key"
+	"github.com/TBD54566975/ssi-sdk/did/peer"
 )
 
 // SimpleWallet is a sample wallet
@@ -125,19 +127,19 @@ func (s *SimpleWallet) Init(didMethod did.Method) error {
 		if err != nil {
 			return err
 		}
-		didPeer, err := did.PeerMethod0{}.Generate(kt, pubKey)
+		didPeer, err := peer.PeerMethod0{}.Generate(kt, pubKey)
 		if err != nil {
 			return err
 		}
 		didStr = didPeer.String()
-		resolvedPeer, err := did.PeerResolver{}.Resolve(context.Background(), didPeer.String())
+		resolvedPeer, err := peer.PeerResolver{}.Resolve(context.Background(), didPeer.String())
 		if err != nil {
 			return err
 		}
 		kid = resolvedPeer.VerificationMethod[0].ID
 	case did.KeyMethod:
-		var didKey *did.DIDKey
-		privKey, didKey, err = did.GenerateDIDKey(crypto.Ed25519)
+		var didKey *key.DIDKey
+		privKey, didKey, err = key.GenerateDIDKey(crypto.Ed25519)
 		if err != nil {
 			return err
 		}

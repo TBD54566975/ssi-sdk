@@ -15,19 +15,20 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
+
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
+	"github.com/TBD54566975/ssi-sdk/did/key"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/manifest"
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/example"
 )
 
 type Entity struct {
-	didKey                did.DIDKey
+	didKey                key.DIDKey
 	verifier              jwx.Verifier
 	credentialManifest    manifest.CredentialManifest
 	credentialApplication manifest.CredentialApplication
@@ -41,7 +42,7 @@ var (
 )
 
 func (t *Entity) GenerateWallet() {
-	walletDIDPrivateKey, walletDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
+	walletDIDPrivateKey, walletDIDKey, err := key.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
 	walletSigner, err := jwx.NewJWXSigner(walletDIDKey.String(), walletDIDKey.String(), walletDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
@@ -272,13 +273,13 @@ func createVerifiableCredential(issuerDID string, walletDID string) credential.V
 	credSubject["id"] = walletDID
 
 	builder := credential.NewVerifiableCredentialBuilder()
-	builder.SetIssuer(issuerDID)
-	builder.SetCredentialSubject(credSubject)
-	builder.SetCredentialSchema(*vc.CredentialSchema)
-	builder.SetIssuanceDate(vc.IssuanceDate)
-	builder.SetCredentialStatus(vc.CredentialStatus)
-	builder.SetEvidence(vc.Evidence)
-	builder.SetExpirationDate(vc.ExpirationDate)
+	_ = builder.SetIssuer(issuerDID)
+	_ = builder.SetCredentialSubject(credSubject)
+	_ = builder.SetCredentialSchema(*vc.CredentialSchema)
+	_ = builder.SetIssuanceDate(vc.IssuanceDate)
+	_ = builder.SetCredentialStatus(vc.CredentialStatus)
+	_ = builder.SetEvidence(vc.Evidence)
+	_ = builder.SetExpirationDate(vc.ExpirationDate)
 
 	builderVC, err := builder.Build()
 	if err != nil {
@@ -291,12 +292,11 @@ func createVerifiableCredential(issuerDID string, walletDID string) credential.V
 func createCredentialManifest(issuer string) manifest.CredentialManifest {
 	cmBytes := getFileBytes("testdata/cm.json")
 
-	var mfst manifest.CredentialManifest
-	if err := json.Unmarshal(cmBytes, &mfst); err != nil {
+	var manifest manifest.CredentialManifest
+	if err := json.Unmarshal(cmBytes, &manifest); err != nil {
 		example.HandleExampleError(err, "problem unmarshalling credential manifest")
 	}
 
-	mfst.Issuer.ID = issuer
-
-	return mfst
+	manifest.Issuer.ID = issuer
+	return manifest
 }

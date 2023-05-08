@@ -43,13 +43,15 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
+	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 type (
@@ -115,7 +117,7 @@ func NewIONResolver(client *http.Client, baseURL string) (*Resolver, error) {
 }
 
 // Resolve resolves a did:ion DID by appending the DID to the base URL with the identifiers path and making a GET request
-func (i Resolver) Resolve(ctx context.Context, id string, _ did.ResolutionOption) (*did.ResolutionResult, error) {
+func (i Resolver) Resolve(ctx context.Context, id string, _ resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
 	if i.baseURL.String() == "" {
 		return nil, errors.New("resolver URL cannot be empty")
 	}
@@ -137,7 +139,7 @@ func (i Resolver) Resolve(ctx context.Context, id string, _ did.ResolutionOption
 	if !is2xxStatusCode(resp.StatusCode) {
 		return nil, fmt.Errorf("could not resolve DID: %q", string(body))
 	}
-	resolutionResult, err := did.ParseDIDResolution(body)
+	resolutionResult, err := resolver.ParseDIDResolution(body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolving did:ion DID<%s>", id)
 	}

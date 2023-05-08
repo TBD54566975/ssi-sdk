@@ -1,4 +1,4 @@
-package did
+package pkh
 
 import (
 	"context"
@@ -7,9 +7,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
-	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/pkg/errors"
+
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/util"
 )
 
 type (
@@ -88,8 +91,8 @@ func (d DIDPKH) Suffix() (string, error) {
 	return split[1], nil
 }
 
-func (DIDPKH) Method() Method {
-	return PKHMethod
+func (DIDPKH) Method() did.Method {
+	return did.PKHMethod
 }
 
 // GetDIDPKHPrefixForNetwork returns the did:pkh prefix for a given network
@@ -147,7 +150,7 @@ func GetDIDPKHNetworkPrefixes() []string {
 }
 
 // Expand turns the DID key into a complaint DID Document
-func (d DIDPKH) Expand() (*Document, error) {
+func (d DIDPKH) Expand() (*did.Document, error) {
 	verificationMethod, err := constructPKHVerificationMethod(d)
 
 	if err != nil {
@@ -164,14 +167,14 @@ func (d DIDPKH) Expand() (*Document, error) {
 		return nil, errors.Wrap(err, "could not convert known context to json")
 	}
 
-	verificationMethodSet := []VerificationMethodSet{
+	verificationMethodSet := []did.VerificationMethodSet{
 		string(d) + "#blockchainAccountId",
 	}
 
-	return &Document{
+	return &did.Document{
 		Context:              contextJSON,
 		ID:                   string(d),
-		VerificationMethod:   []VerificationMethod{*verificationMethod},
+		VerificationMethod:   []did.VerificationMethod{*verificationMethod},
 		Authentication:       verificationMethodSet,
 		AssertionMethod:      verificationMethodSet,
 		CapabilityDelegation: verificationMethodSet,
@@ -179,15 +182,15 @@ func (d DIDPKH) Expand() (*Document, error) {
 	}, nil
 }
 
-func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
-	if !IsValidPKH(did) {
-		parsed, err := did.Suffix()
+func constructPKHVerificationMethod(didPKH DIDPKH) (*did.VerificationMethod, error) {
+	if !IsValidPKH(didPKH) {
+		parsed, err := didPKH.Suffix()
 		if err != nil || parsed == "" {
 			return nil, errors.Wrap(err, "PKH DID is not valid")
 		}
 	}
 
-	network, err := GetDIDPKHNetworkForDID(did.String())
+	network, err := GetDIDPKHNetworkForDID(didPKH.String())
 	if err != nil {
 		return nil, errors.Wrap(err, "could not find network")
 	}
@@ -196,14 +199,14 @@ func constructPKHVerificationMethod(did DIDPKH) (*VerificationMethod, error) {
 		return nil, errors.Wrap(err, "could not find verification type")
 	}
 
-	suffix, err := did.Suffix()
+	suffix, err := didPKH.Suffix()
 	if err != nil {
 		return nil, err
 	}
-	return &VerificationMethod{
-		ID:                  string(did) + "#blockchainAccountId",
+	return &did.VerificationMethod{
+		ID:                  string(didPKH) + "#blockchainAccountId",
 		Type:                cryptosuite.LDKeyType(verificationType),
-		Controller:          string(did),
+		Controller:          string(didPKH),
 		BlockchainAccountID: suffix,
 	}, nil
 }
@@ -247,20 +250,20 @@ func IsValidPKH(did DIDPKH) bool {
 
 type PKHResolver struct{}
 
-var _ Resolver = (*PKHResolver)(nil)
+var _ resolver.Resolver = (*PKHResolver)(nil)
 
-func (PKHResolver) Resolve(_ context.Context, did string, _ ...ResolutionOption) (*ResolutionResult, error) {
-	if !strings.HasPrefix(did, DIDPKHPrefix) {
-		return nil, fmt.Errorf("not a did:pkh DID: %s", did)
+func (PKHResolver) Resolve(_ context.Context, id string, _ ...resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
+	if !strings.HasPrefix(id, DIDPKHPrefix) {
+		return nil, fmt.Errorf("not a did:pkh DID: %s", id)
 	}
-	didPKH := DIDPKH(did)
+	didPKH := DIDPKH(id)
 	doc, err := didPKH.Expand()
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not expand did:pkh DID: %s", did)
+		return nil, errors.Wrapf(err, "could not expand did:pkh DID: %s", id)
 	}
-	return &ResolutionResult{Document: *doc}, nil
+	return &resolver.ResolutionResult{Document: *doc}, nil
 }
 
-func (PKHResolver) Methods() []Method {
-	return []Method{PKHMethod}
+func (PKHResolver) Methods() []did.Method {
+	return []did.Method{did.PKHMethod}
 }

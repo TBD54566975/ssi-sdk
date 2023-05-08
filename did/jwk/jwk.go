@@ -1,4 +1,4 @@
-package did
+package jwk
 
 import (
 	"context"
@@ -10,6 +10,9 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/resolver"
+
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 )
@@ -41,8 +44,8 @@ func (d DIDJWK) Suffix() (string, error) {
 	return "", fmt.Errorf("invalid did:jwk: %s", d)
 }
 
-func (DIDJWK) Method() Method {
-	return JWKMethod
+func (DIDJWK) Method() did.Method {
+	return did.JWKMethod
 }
 
 // GenerateDIDJWK takes in a key type value that this library supports and constructs a conformant did:jwk identifier.
@@ -91,7 +94,7 @@ func CreateDIDJWK(publicKeyJWK jwx.PublicKeyJWK) (*DIDJWK, error) {
 }
 
 // Expand turns the DID JWK into a compliant DID Document
-func (d DIDJWK) Expand() (*Document, error) {
+func (d DIDJWK) Expand() (*did.Document, error) {
 	id := d.String()
 
 	if !strings.HasPrefix(id, JWKPrefix) {
@@ -115,10 +118,10 @@ func (d DIDJWK) Expand() (*Document, error) {
 	keyReference := "#0"
 	keyID := id + keyReference
 
-	doc := Document{
-		Context: []string{KnownDIDContext, JWS2020Context},
+	doc := did.Document{
+		Context: []string{did.KnownDIDContext, JWS2020Context},
 		ID:      id,
-		VerificationMethod: []VerificationMethod{
+		VerificationMethod: []did.VerificationMethod{
 			{
 				ID:           keyID,
 				Type:         cryptosuite.JSONWebKey2020Type,
@@ -126,11 +129,11 @@ func (d DIDJWK) Expand() (*Document, error) {
 				PublicKeyJWK: &pubKeyJWK,
 			},
 		},
-		Authentication:       []VerificationMethodSet{keyID},
-		AssertionMethod:      []VerificationMethodSet{keyID},
-		KeyAgreement:         []VerificationMethodSet{keyID},
-		CapabilityInvocation: []VerificationMethodSet{keyID},
-		CapabilityDelegation: []VerificationMethodSet{keyID},
+		Authentication:       []did.VerificationMethodSet{keyID},
+		AssertionMethod:      []did.VerificationMethodSet{keyID},
+		KeyAgreement:         []did.VerificationMethodSet{keyID},
+		CapabilityInvocation: []did.VerificationMethodSet{keyID},
+		CapabilityDelegation: []did.VerificationMethodSet{keyID},
 	}
 
 	// If the JWK contains a use property with the value "sig" then the keyAgreement property is not included in the
@@ -164,17 +167,17 @@ func GetSupportedDIDJWKTypes() []crypto.KeyType {
 
 type JWKResolver struct{}
 
-var _ Resolver = (*JWKResolver)(nil)
+var _ resolver.Resolver = (*JWKResolver)(nil)
 
-func (JWKResolver) Resolve(_ context.Context, did string, _ ...ResolutionOption) (*ResolutionResult, error) {
-	didJWK := DIDJWK(did)
+func (JWKResolver) Resolve(_ context.Context, id string, _ ...resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
+	didJWK := DIDJWK(id)
 	doc, err := didJWK.Expand()
 	if err != nil {
 		return nil, errors.Wrap(err, "expanding did:jwk")
 	}
-	return &ResolutionResult{Document: *doc}, nil
+	return &resolver.ResolutionResult{Document: *doc}, nil
 }
 
-func (JWKResolver) Methods() []Method {
-	return []Method{JWKMethod}
+func (JWKResolver) Methods() []did.Method {
+	return []did.Method{did.JWKMethod}
 }
