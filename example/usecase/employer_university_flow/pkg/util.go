@@ -36,7 +36,7 @@ func NewEntity(name string, didMethod did.Method) (*Entity, error) {
 // over multiple mechanisms. For more information, please go to here:
 // https://identity.foundation/presentation-exchange/#presentation-request and for the source code with the sdk,
 // https://github.com/TBD54566975/ssi-sdk/blob/main/credential/exchange/request.go is appropriate to start off with.
-func MakePresentationRequest(key gocrypto.PrivateKey, keyID string, presentationData exchange.PresentationDefinition, requesterID, targetID string) (pr []byte, signer *jwx.Signer, err error) {
+func MakePresentationRequest(key gocrypto.PrivateKey, keyID string, presentationData exchange.PresentationDefinition, requesterID, audienceID string) (pr []byte, signer *jwx.Signer, err error) {
 	example.WriteNote("Presentation Request (JWT) is created")
 
 	// Signer uses a private key
@@ -47,7 +47,7 @@ func MakePresentationRequest(key gocrypto.PrivateKey, keyID string, presentation
 
 	// Builds a presentation request
 	// Requires a signer, the presentation data, and a target which is the Audience Key
-	requestJWTBytes, err := exchange.BuildJWTPresentationRequest(*signer, presentationData, targetID)
+	requestJWTBytes, err := exchange.BuildJWTPresentationRequest(*signer, presentationData, []string{audienceID})
 	if err != nil {
 		return nil, nil, err
 	}

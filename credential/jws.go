@@ -21,11 +21,13 @@ func SignVerifiableCredentialJWS(signer jwx.Signer, cred VerifiableCredential) (
 	}
 
 	headers := jws.NewHeaders()
+	if err = headers.Set(jws.KeyIDKey, signer.KID); err != nil {
+		return nil, errors.Wrap(err, "setting key ID JOSE header")
+	}
 	if err = headers.Set(jws.ContentTypeKey, VCMediaType); err != nil {
 		return nil, errors.Wrap(err, "setting content type JOSE header")
 	}
-
-	signed, err := jws.Sign(payload, jws.WithKey(jwa.SignatureAlgorithm(signer.GetSigningAlgorithm()), signer.Key, jws.WithProtectedHeaders(headers)))
+	signed, err := jws.Sign(payload, jws.WithKey(jwa.SignatureAlgorithm(signer.ALG), signer.PrivateKey, jws.WithProtectedHeaders(headers)))
 	if err != nil {
 		return nil, errors.Wrap(err, "signing JWT credential")
 	}

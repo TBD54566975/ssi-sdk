@@ -137,7 +137,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Token:                         util.StringPtr(string(credJWT)),
 			JWTFormat:                     JWTVC.Ptr(),
-			SignatureAlgorithmOrProofType: signer.GetSigningAlgorithm(),
+			SignatureAlgorithmOrProofType: signer.ALG,
 		}
 		submissionBytes, err := BuildPresentationSubmission(*signer, verifier.ID, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)

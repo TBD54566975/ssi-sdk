@@ -37,11 +37,13 @@ func TestCredentialsFromInterface(t *testing.T) {
 		knownJWK := cryptosuite.JSONWebKey2020{
 			ID: "did:example:123#key-0",
 			PublicKeyJWK: jwx.PublicKeyJWK{
+				KID: "key-0",
 				KTY: "OKP",
 				CRV: "Ed25519",
 				X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
 			},
 			PrivateKeyJWK: jwx.PrivateKeyJWK{
+				KID: "key-0",
 				KTY: "OKP",
 				CRV: "Ed25519",
 				X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
@@ -49,7 +51,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 			},
 		}
 
-		signer, err := cryptosuite.NewJSONWebKeySigner("issuer-id", knownJWK.ID, knownJWK.PrivateKeyJWK, cryptosuite.AssertionMethod)
+		signer, err := cryptosuite.NewJSONWebKeySigner("issuer-id", knownJWK.PrivateKeyJWK, cryptosuite.AssertionMethod)
 		assert.NoError(t, err)
 
 		suite := cryptosuite.GetJSONWebSignature2020Suite()
@@ -71,13 +73,14 @@ func TestCredentialsFromInterface(t *testing.T) {
 
 	t.Run("JWT Cred", func(tt *testing.T) {
 		knownJWK := jwx.PrivateKeyJWK{
+			KID: "key-0",
 			KTY: "OKP",
 			CRV: "Ed25519",
 			X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
 			D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 		}
 
-		signer, err := jwx.NewJWXSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
+		signer, err := jwx.NewJWXSignerFromJWK("signer-id", knownJWK)
 		assert.NoError(tt, err)
 
 		testCred := getTestCredential()

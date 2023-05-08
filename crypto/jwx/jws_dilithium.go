@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	DilithiumKTY                             = "LWE"
 	DilithiumMode2Alg jwa.SignatureAlgorithm = "CRYDI2"
 	DilithiumMode3Alg jwa.SignatureAlgorithm = "CRYDI3"
 	DilithiumMode5Alg jwa.SignatureAlgorithm = "CRYDI5"

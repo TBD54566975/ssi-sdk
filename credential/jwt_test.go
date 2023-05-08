@@ -98,7 +98,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		}
 
 		signer := getTestVectorKey0Signer(tt)
-		signed, err := SignVerifiablePresentationJWT(signer, JWTVVPParameters{Audience: "bad-audience"}, testPresentation)
+		signed, err := SignVerifiablePresentationJWT(signer, JWTVVPParameters{Audience: []string{"bad-audience"}}, testPresentation)
 		assert.NoError(tt, err)
 
 		verifier, err := signer.ToVerifier(signer.ID)
@@ -126,7 +126,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		}
 
 		signer := getTestVectorKey0Signer(tt)
-		signed, err := SignVerifiablePresentationJWT(signer, JWTVVPParameters{Audience: signer.ID}, testPresentation)
+		signed, err := SignVerifiablePresentationJWT(signer, JWTVVPParameters{Audience: []string{signer.ID}}, testPresentation)
 		assert.NoError(tt, err)
 
 		verifier, err := signer.ToVerifier(signer.ID)
@@ -204,7 +204,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		// sign the presentation from the subject to the issuer
 		subjectSigner, err := jwx.NewJWXSigner(subjectDID.String(), subjectKID, subjectPrivKey)
 		assert.NoError(tt, err)
-		signed, err := SignVerifiablePresentationJWT(*subjectSigner, JWTVVPParameters{Audience: issuerDID.String()}, testPresentation)
+		signed, err := SignVerifiablePresentationJWT(*subjectSigner, JWTVVPParameters{Audience: []string{issuerDID.String()}}, testPresentation)
 		assert.NoError(tt, err)
 
 		// parse the VP
@@ -233,13 +233,14 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 func getTestVectorKey0Signer(t *testing.T) jwx.Signer {
 	// https://github.com/decentralized-identity/JWS-Test-Suite/blob/main/data/keys/key-0-ed25519.json
 	knownJWK := jwx.PrivateKeyJWK{
+		KID: "key-0",
 		KTY: "OKP",
 		CRV: "Ed25519",
 		X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
 		D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
 	}
 
-	signer, err := jwx.NewJWXSignerFromJWK("signer-id", knownJWK.KID, knownJWK)
-	assert.NoError(t, err)
+	signer, err := jwx.NewJWXSignerFromJWK("signer-id", knownJWK)
+	require.NoError(t, err)
 	return *signer
 }

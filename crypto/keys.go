@@ -12,6 +12,10 @@ import (
 	"reflect"
 
 	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/cloudflare/circl/sign/dilithium"
+	"github.com/cloudflare/circl/sign/dilithium/mode2"
+	"github.com/cloudflare/circl/sign/dilithium/mode3"
+	"github.com/cloudflare/circl/sign/dilithium/mode5"
 	"github.com/pkg/errors"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
@@ -46,6 +50,12 @@ func GenerateKeyByKeyType(kt KeyType) (crypto.PublicKey, crypto.PrivateKey, erro
 		return GenerateP521Key()
 	case RSA:
 		return GenerateRSA2048Key()
+	case Dilithium2:
+		return GenerateDilithiumKeyPair(dilithium.Mode2)
+	case Dilithium3:
+		return GenerateDilithiumKeyPair(dilithium.Mode3)
+	case Dilithium5:
+		return GenerateDilithiumKeyPair(dilithium.Mode5)
 	}
 	return nil, nil, fmt.Errorf("unsupported key type: %s", kt)
 }
@@ -56,30 +66,27 @@ func PubKeyToBytes(key crypto.PublicKey) ([]byte, error) {
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {
 		key = reflect.ValueOf(key).Elem().Interface().(crypto.PublicKey)
 	}
-	ed25519Key, ok := key.(ed25519.PublicKey)
-	if ok {
-		return ed25519Key, nil
-	}
 
-	x25519Key, ok := key.(x25519.PublicKey)
-	if ok {
-		return x25519Key, nil
-	}
-
-	secp256k1Key, ok := key.(secp.PublicKey)
-	if ok {
-		return secp256k1Key.SerializeCompressed(), nil
-	}
-
-	ecdsaKey, ok := key.(ecdsa.PublicKey)
-	if ok {
-		curve := ecdsaKey.Curve
-		return elliptic.Marshal(curve, ecdsaKey.X, ecdsaKey.Y), nil
-	}
-
-	rsaKey, ok := key.(rsa.PublicKey)
-	if ok {
-		return x509.MarshalPKCS1PublicKey(&rsaKey), nil
+	switch k := key.(type) {
+	case ed25519.PublicKey:
+		return k, nil
+	case x25519.PublicKey:
+		return k, nil
+	case secp.PublicKey:
+		return k.SerializeCompressed(), nil
+	case ecdsa.PublicKey:
+		curve := k.Curve
+		return elliptic.Marshal(curve, k.X, k.Y), nil
+	case rsa.PublicKey:
+		return x509.MarshalPKCS1PublicKey(&k), nil
+	case dilithium.PublicKey:
+		return k.Bytes(), nil
+	case mode2.PublicKey:
+		return k.Bytes(), nil
+	case mode3.PublicKey:
+		return k.Bytes(), nil
+	case mode5.PublicKey:
+		return k.Bytes(), nil
 	}
 
 	return nil, errors.New("unknown public key type; could not convert to bytes")
@@ -138,28 +145,33 @@ func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 			return nil, err
 		}
 		return *pubKey, nil
+	case Dilithium2:
+		return dilithium.Mode2.PublicKeyFromBytes(keyBytes), nil
+	case Dilithium3:
+		return dilithium.Mode3.PublicKeyFromBytes(keyBytes), nil
+	case Dilithium5:
+		return dilithium.Mode5.PublicKeyFromBytes(keyBytes), nil
 	default:
 		return nil, fmt.Errorf("unsupported key type: %s", kt)
 	}
 }
 
-// GetKeyTypeFromPrivateKey returns the key type of a private key for known key types
+// GetKeyTypeFromPrivateKey returns the key type for a private key for known key types
 func GetKeyTypeFromPrivateKey(key crypto.PrivateKey) (KeyType, error) {
 	// dereference the ptr
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {
 		key = reflect.ValueOf(key).Elem().Interface().(crypto.PrivateKey)
 	}
-	if _, ok := key.(ed25519.PrivateKey); ok {
+
+	switch k := key.(type) {
+	case ed25519.PrivateKey:
 		return Ed25519, nil
-	}
-	if _, ok := key.(x25519.PrivateKey); ok {
+	case x25519.PrivateKey:
 		return X25519, nil
-	}
-	if _, ok := key.(secp.PrivateKey); ok {
+	case secp.PrivateKey:
 		return SECP256k1, nil
-	}
-	if ecdsaKey, ok := key.(ecdsa.PrivateKey); ok {
-		switch ecdsaKey.Curve {
+	case ecdsa.PrivateKey:
+		switch k.Curve {
 		case elliptic.P224():
 			return P224, nil
 		case elliptic.P256():
@@ -171,13 +183,34 @@ func GetKeyTypeFromPrivateKey(key crypto.PrivateKey) (KeyType, error) {
 		case btcec.S256():
 			return SECP256k1ECDSA, nil
 		default:
-			return "", fmt.Errorf("unsupported curve: %s", ecdsaKey.Curve)
+			return "", fmt.Errorf("unsupported curve: %s", k.Curve.Params().Name)
 		}
-	}
-	if _, ok := key.(rsa.PrivateKey); ok {
+	case rsa.PrivateKey:
 		return RSA, nil
+	case dilithium.PrivateKey:
+		mode, err := GetModeFromDilithiumPrivateKey(k)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to get dilithium mode from private key")
+		}
+		switch mode {
+		case dilithium.Mode2:
+			return Dilithium2, nil
+		case dilithium.Mode3:
+			return Dilithium3, nil
+		case dilithium.Mode5:
+			return Dilithium5, nil
+		default:
+			return "", fmt.Errorf("unknown dilithium mode: %s", mode.Name())
+		}
+	case mode2.PrivateKey:
+		return Dilithium2, nil
+	case mode3.PrivateKey:
+		return Dilithium3, nil
+	case mode5.PrivateKey:
+		return Dilithium5, nil
+	default:
+		return "", errors.New("unknown private key type")
 	}
-	return "", errors.New("unknown private key type")
 }
 
 // PrivKeyToBytes constructs a byte representation of a private key, for a set number of supported key types
@@ -186,38 +219,35 @@ func PrivKeyToBytes(key crypto.PrivateKey) ([]byte, error) {
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {
 		key = reflect.ValueOf(key).Elem().Interface().(crypto.PrivateKey)
 	}
-	ed25519Key, ok := key.(ed25519.PrivateKey)
-	if ok {
-		return ed25519Key, nil
-	}
 
-	x25519Key, ok := key.(x25519.PrivateKey)
-	if ok {
-		return x25519Key, nil
-	}
-
-	secp256k1Key, ok := key.(secp.PrivateKey)
-	if ok {
-		return secp256k1Key.Serialize(), nil
-	}
-
-	ecdsaKey, ok := key.(ecdsa.PrivateKey)
-	if ok {
-		if ecdsaKey.Curve == btcec.S256() {
+	switch k := key.(type) {
+	case ed25519.PrivateKey:
+		return k, nil
+	case x25519.PrivateKey:
+		return k, nil
+	case secp.PrivateKey:
+		return k.Serialize(), nil
+	case ecdsa.PrivateKey:
+		if k.Curve == btcec.S256() {
 			scalar := new(btcec.ModNScalar)
-			_ = scalar.SetByteSlice(ecdsaKey.D.Bytes())
+			_ = scalar.SetByteSlice(k.D.Bytes())
 			privKey := secp.NewPrivateKey(scalar)
 			return privKey.Serialize(), nil
 		}
-		return x509.MarshalECPrivateKey(&ecdsaKey)
+		return x509.MarshalECPrivateKey(&k)
+	case rsa.PrivateKey:
+		return x509.MarshalPKCS1PrivateKey(&k), nil
+	case dilithium.PrivateKey:
+		return k.Bytes(), nil
+	case mode2.PrivateKey:
+		return k.Bytes(), nil
+	case mode3.PrivateKey:
+		return k.Bytes(), nil
+	case mode5.PrivateKey:
+		return k.Bytes(), nil
+	default:
+		return nil, errors.New("unknown private key type; could not convert to bytes")
 	}
-
-	rsaKey, ok := key.(rsa.PrivateKey)
-	if ok {
-		return x509.MarshalPKCS1PrivateKey(&rsaKey), nil
-	}
-
-	return nil, errors.New("unknown private key type; could not convert to bytes")
 }
 
 // BytesToPrivKey reconstructs a private key given some bytes and a target key type
@@ -245,6 +275,12 @@ func BytesToPrivKey(keyBytes []byte, kt KeyType) (crypto.PrivateKey, error) {
 			return nil, err
 		}
 		return *privKey, nil
+	case Dilithium2:
+		return dilithium.Mode2.PrivateKeyFromBytes(keyBytes), nil
+	case Dilithium3:
+		return dilithium.Mode3.PrivateKeyFromBytes(keyBytes), nil
+	case Dilithium5:
+		return dilithium.Mode5.PrivateKeyFromBytes(keyBytes), nil
 	default:
 		return nil, fmt.Errorf("unsupported key type: %s", kt)
 	}
@@ -297,4 +333,46 @@ func GenerateRSA2048Key() (rsa.PublicKey, rsa.PrivateKey, error) {
 		return rsa.PublicKey{}, rsa.PrivateKey{}, err
 	}
 	return privKey.PublicKey, *privKey, nil
+}
+
+// GenerateDilithiumKeyPair generates a new Dilithium key pair for the given mode
+func GenerateDilithiumKeyPair(m dilithium.Mode) (dilithium.PublicKey, dilithium.PrivateKey, error) {
+	if m == nil {
+		return nil, nil, errors.New("dilithium mode cannot be nil")
+	}
+	pk, sk, err := m.GenerateKey(nil)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "generating key for dilithium")
+	}
+	return pk, sk, nil
+}
+
+// GetModeFromDilithiumPrivateKey returns the DilithiumMode from a dilithium.PrivateKey, validating
+// the key is a valid private key
+func GetModeFromDilithiumPrivateKey(privKey dilithium.PrivateKey) (dilithium.Mode, error) {
+	switch len(privKey.Bytes()) {
+	case mode2.PrivateKeySize:
+		return dilithium.Mode2, nil
+	case mode3.PrivateKeySize:
+		return dilithium.Mode3, nil
+	case mode5.PrivateKeySize:
+		return dilithium.Mode5, nil
+	default:
+		return nil, errors.New("unsupported dilithium mode")
+	}
+}
+
+// GetModeFromDilithiumPublicKey returns the DilithiumMode from a dilithium.PublicKey, validating
+// the key is a valid public key
+func GetModeFromDilithiumPublicKey(pubKey dilithium.PublicKey) (dilithium.Mode, error) {
+	switch len(pubKey.Bytes()) {
+	case mode2.PublicKeySize:
+		return dilithium.Mode2, nil
+	case mode3.PublicKeySize:
+		return dilithium.Mode3, nil
+	case mode5.PublicKeySize:
+		return dilithium.Mode5, nil
+	default:
+		return nil, errors.New("unsupported dilithium mode")
+	}
 }

@@ -22,24 +22,24 @@ func init() {
 
 func TestJWSDilithium(t *testing.T) {
 	tests := []struct {
-		m   crypto.DilithiumMode
+		m   dilithium.Mode
 		alg jwa.SignatureAlgorithm
 	}{
 		{
-			m:   crypto.Dilithium2,
+			m:   dilithium.Mode2,
 			alg: DilithiumMode2Alg,
 		},
 		{
-			m:   crypto.Dilithium3,
+			m:   dilithium.Mode3,
 			alg: DilithiumMode3Alg,
 		},
 		{
-			m:   crypto.Dilithium5,
+			m:   dilithium.Mode5,
 			alg: DilithiumMode5Alg,
 		},
 	}
 	for _, test := range tests {
-		t.Run(test.m.String(), func(tt *testing.T) {
+		t.Run(test.m.Name(), func(tt *testing.T) {
 			pubKey, privKey, err := crypto.GenerateDilithiumKeyPair(test.m)
 			assert.NoError(tt, err)
 
@@ -68,7 +68,8 @@ func TestJWSDilithiumVector(t *testing.T) {
 		retrieveTestVectorAs(tt, dilithiumPrivateJWK, &privKeyJWK)
 		assert.NotEmpty(tt, privKeyJWK)
 
-		pubKey, err := privKeyJWK.ToPublicKeyJWK().ToPublicKey()
+		jwk := privKeyJWK.ToPublicKeyJWK()
+		pubKey, err := jwk.ToPublicKey()
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, pubKey)
 
