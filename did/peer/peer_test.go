@@ -15,7 +15,6 @@ func TestEncodePublicKeyWithKeyMultiCodecType(t *testing.T) {
 		_, err := encodePublicKeyWithKeyMultiCodecType("unsupported", nil)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not a supported key type")
-
 	})
 
 	t.Run("bad public key", func(t *testing.T) {
