@@ -8,17 +8,19 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
+
 	"github.com/pkg/errors"
 )
 
 // VerifyCredentialSignature verifies the signature of a credential of any type
 // TODO(gabe) support other types of credentials https://github.com/TBD54566975/ssi-sdk/issues/352
-func VerifyCredentialSignature(ctx context.Context, genericCred any, resolver did.Resolver) (bool, error) {
+func VerifyCredentialSignature(ctx context.Context, genericCred any, r resolution.Resolver) (bool, error) {
 	if genericCred == nil {
 		return false, errors.New("credential cannot be empty")
 	}
-	if resolver == nil {
-		return false, errors.New("resolver cannot be empty")
+	if r == nil {
+		return false, errors.New("resolution cannot be empty")
 	}
 	switch genericCred.(type) {
 	case *VerifiableCredential, VerifiableCredential, map[string]any:
@@ -38,29 +40,29 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, resolver di
 		return false, errors.New("data integrity signature verification not yet implemented")
 	case []byte:
 		// turn it into a string and try again
-		return VerifyCredentialSignature(ctx, string(genericCred.([]byte)), resolver)
+		return VerifyCredentialSignature(ctx, string(genericCred.([]byte)), r)
 	case string:
 		// could be a Data Integrity credential
 		var cred VerifiableCredential
 		if err := json.Unmarshal([]byte(genericCred.(string)), &cred); err == nil {
-			return VerifyCredentialSignature(ctx, cred, resolver)
+			return VerifyCredentialSignature(ctx, cred, r)
 		}
 
 		// could be a JWT
-		return VerifyJWTCredential(genericCred.(string), resolver)
+		return VerifyJWTCredential(genericCred.(string), r)
 	}
 	return false, fmt.Errorf("invalid credential type: %s", reflect.TypeOf(genericCred).Kind().String())
 }
 
 // VerifyJWTCredential verifies the signature of a JWT credential after parsing it to resolve the issuer DID
-// The issuer DID is resolver from the provided resolver, and used to find the issuer's public key matching
+// The issuer DID is resolution from the provided resolution, and used to find the issuer's public key matching
 // the KID in the JWT header.
-func VerifyJWTCredential(cred string, resolver did.Resolver) (bool, error) {
+func VerifyJWTCredential(cred string, r resolution.Resolver) (bool, error) {
 	if cred == "" {
 		return false, errors.New("credential cannot be empty")
 	}
-	if resolver == nil {
-		return false, errors.New("resolver cannot be empty")
+	if r == nil {
+		return false, errors.New("resolution cannot be empty")
 	}
 	headers, token, _, err := ParseVerifiableCredentialFromJWT(cred)
 	if err != nil {
@@ -72,7 +74,7 @@ func VerifyJWTCredential(cred string, resolver did.Resolver) (bool, error) {
 	if issuerKID == "" {
 		return false, errors.Errorf("missing kid in header of credential<%s>", token.JwtID())
 	}
-	issuerDID, err := resolver.Resolve(context.Background(), token.Issuer())
+	issuerDID, err := r.Resolve(context.Background(), token.Issuer())
 	if err != nil {
 		return false, errors.Wrapf(err, "error getting issuer DID<%s> to verify credential<%s>", token.Issuer(), token.JwtID())
 	}

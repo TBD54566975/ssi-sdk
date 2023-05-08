@@ -11,22 +11,23 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/goccy/go-json"
+	"github.com/google/uuid"
+
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/credential/manifest"
 	"github.com/TBD54566975/ssi-sdk/credential/rendering"
 	"github.com/TBD54566975/ssi-sdk/credential/schema"
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/key"
 	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/TBD54566975/ssi-sdk/util"
-	"github.com/goccy/go-json"
-	"github.com/google/uuid"
 )
 
 // getDIDKey will return a DID key and its private key
-func getDIDKey() (gocrypto.PrivateKey, *did.DIDKey, error) {
-	return did.GenerateDIDKey(crypto.Ed25519)
+func getDIDKey() (gocrypto.PrivateKey, *key.DIDKey, error) {
+	return key.GenerateDIDKey(crypto.Ed25519)
 }
 
 // Prepare a credential schema that will be used to issue a credential from a successful Credential Manifest
@@ -71,7 +72,7 @@ func prepareResultingCredentialSchema(issuerDID string) schema.VCJSONSchema {
 // Credential Manifests are used to describe which credentials are available for issuance.
 // For more information on credential manifests, please go to:
 // https://identity.foundation/credential-manifest/#credential-manifest
-func prepareCredentialManifest(issuerDID did.DIDKey, licenseSchemaID string) (*manifest.CredentialManifest, error) {
+func prepareCredentialManifest(issuerDID key.DIDKey, licenseSchemaID string) (*manifest.CredentialManifest, error) {
 	// Create a new credential manifest builder
 	builder := manifest.NewCredentialManifestBuilder()
 
@@ -183,7 +184,7 @@ func prepareCredentialManifest(issuerDID did.DIDKey, licenseSchemaID string) (*m
 
 // Prepare a credential which is required to fill out the credential manifest's application's
 // input descriptor's requirements
-func issueApplicationCredential(id did.DIDKey, s schema.VCJSONSchema) (*credential.VerifiableCredential, error) {
+func issueApplicationCredential(id key.DIDKey, s schema.VCJSONSchema) (*credential.VerifiableCredential, error) {
 	builder := credential.NewVerifiableCredentialBuilder()
 
 	if err := builder.SetIssuer(id.String()); err != nil {
@@ -270,7 +271,7 @@ type driversLicenseFields struct {
 	DateOfBirth string `json:"dateOfBirth"`
 }
 
-func issueDriversLicenseCredential(issuerDID did.DIDKey, subjectDID string, s schema.VCJSONSchema, data driversLicenseFields) (*credential.VerifiableCredential, error) {
+func issueDriversLicenseCredential(issuerDID key.DIDKey, subjectDID string, s schema.VCJSONSchema, data driversLicenseFields) (*credential.VerifiableCredential, error) {
 	builder := credential.NewVerifiableCredentialBuilder()
 
 	if err := builder.SetIssuer(issuerDID.String()); err != nil {
@@ -307,7 +308,7 @@ func issueDriversLicenseCredential(issuerDID did.DIDKey, subjectDID string, s sc
 }
 
 // Prepare a credential given a valid credential application
-func processCredentialApplication(cm manifest.CredentialManifest, ca manifest.CredentialApplicationWrapper, s schema.VCJSONSchema, issuerDID did.DIDKey) (*manifest.CredentialResponseWrapper, error) {
+func processCredentialApplication(cm manifest.CredentialManifest, ca manifest.CredentialApplicationWrapper, s schema.VCJSONSchema, issuerDID key.DIDKey) (*manifest.CredentialResponseWrapper, error) {
 	credAppRequestBytes, err := json.Marshal(ca)
 	if err != nil {
 		return nil, err

@@ -3,12 +3,13 @@ package did
 import (
 	"reflect"
 
-	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+
+	"github.com/TBD54566975/ssi-sdk/util"
 )
 
-// contexts and types are kept to avoid having cast to/from any values
+// DIDDocumentBuilder contexts and types are kept to avoid having cast to/from any values
 type DIDDocumentBuilder struct {
 	contexts []string
 	types    []string
@@ -21,7 +22,7 @@ const (
 	BuilderEmptyError    string = "builder cannot be empty"
 )
 
-// Create a new DID Document Builder
+// NewDIDDocumentBuilder Creates a new DID Document Builder
 func NewDIDDocumentBuilder() DIDDocumentBuilder {
 	contexts := []string{DIDDocumentLDContext}
 	types := []string{DIDDocumentType}
@@ -35,7 +36,7 @@ func NewDIDDocumentBuilder() DIDDocumentBuilder {
 	}
 }
 
-// Builds the DID Document
+// Build builds the DID Document
 func (builder *DIDDocumentBuilder) Build() (*Document, error) {
 	if builder.IsEmpty() {
 		return nil, errors.New(BuilderEmptyError)
@@ -94,7 +95,7 @@ func (builder *DIDDocumentBuilder) SetController(controller string) error {
 	return nil
 }
 
-// Note: Not thread safe
+// AddVerificationMethod Note: Not thread safe
 func (builder *DIDDocumentBuilder) AddVerificationMethod(m VerificationMethod) error {
 	if builder.IsEmpty() {
 		return errors.New(BuilderEmptyError)
@@ -103,8 +104,8 @@ func (builder *DIDDocumentBuilder) AddVerificationMethod(m VerificationMethod) e
 	return nil
 }
 
-// Note: Not thread safe
-func (builder *DIDDocumentBuilder) AddAuthentication(m VerificationMethodSet) error {
+// AddAuthenticationMethod Note: Not thread safe
+func (builder *DIDDocumentBuilder) AddAuthenticationMethod(m VerificationMethodSet) error {
 	if builder.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -112,7 +113,7 @@ func (builder *DIDDocumentBuilder) AddAuthentication(m VerificationMethodSet) er
 	return nil
 }
 
-// Note: Not thread safe
+// AddAssertionMethod Note: Not thread safe
 func (builder *DIDDocumentBuilder) AddAssertionMethod(m VerificationMethodSet) error {
 	if builder.IsEmpty() {
 		return errors.New(BuilderEmptyError)
@@ -121,7 +122,7 @@ func (builder *DIDDocumentBuilder) AddAssertionMethod(m VerificationMethodSet) e
 	return nil
 }
 
-// Note: Not thread safe
+// AddKeyAgreement Note: Not thread safe
 func (builder *DIDDocumentBuilder) AddKeyAgreement(m VerificationMethodSet) error {
 	if builder.IsEmpty() {
 		return errors.New(BuilderEmptyError)
@@ -130,7 +131,7 @@ func (builder *DIDDocumentBuilder) AddKeyAgreement(m VerificationMethodSet) erro
 	return nil
 }
 
-// Note: Not thread safe
+// AddCapabilityInvocation Note: Not thread safe
 func (builder *DIDDocumentBuilder) AddCapabilityInvocation(m VerificationMethodSet) error {
 	if builder.IsEmpty() {
 		return errors.New(BuilderEmptyError)
@@ -139,8 +140,8 @@ func (builder *DIDDocumentBuilder) AddCapabilityInvocation(m VerificationMethodS
 	return nil
 }
 
-// Note: Not thread safe
-func (builder *DIDDocumentBuilder) AddCapabilityDelgation(m VerificationMethodSet) error {
+// AddCapabilityDelegation Note: Not thread safe
+func (builder *DIDDocumentBuilder) AddCapabilityDelegation(m VerificationMethodSet) error {
 	if builder.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
@@ -148,7 +149,7 @@ func (builder *DIDDocumentBuilder) AddCapabilityDelgation(m VerificationMethodSe
 	return nil
 }
 
-// Note: Not thread safe
+// AddService Note: Not thread safe
 func (builder *DIDDocumentBuilder) AddService(s Service) error {
 	if builder.IsEmpty() {
 		return errors.New(BuilderEmptyError)
