@@ -69,12 +69,12 @@ var supportedDIDPeerPurposes = map[PurposeType]bool{
 
 // Checks if peer DID is valid
 // https://identity.foundation/peer-did-method-spec/index.html#recognizing-and-handling-peer-dids
-func isPeerDID(did string) bool {
+func isPeerDID(id string) bool {
 	r, err := regexp.Compile(DIDRegex)
 	if err != nil {
 		return false
 	}
-	return r.MatchString(did)
+	return r.MatchString(id)
 }
 
 // IsValid Checks if the Peer DID is correctly formatted

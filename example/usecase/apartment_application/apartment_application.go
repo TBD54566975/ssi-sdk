@@ -162,14 +162,14 @@ func main() {
 		Step 5: The apartment will verify the presentation submission. This is done to make sure the presentation is in compliance with the definition.
 	**/
 
-	resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
-	example.HandleExampleError(err, "Failed to build resolver")
+	r, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+	example.HandleExampleError(err, "Failed to build r")
 
 	// Convert the holder signer to a verifier with the audience set as the apartment DID
 	holderVerifier, err := holderSigner.ToVerifier(aptVerifier.ID)
 	example.HandleExampleError(err, "Failed to generate verifier")
 
-	_, err = exchange.VerifyPresentationSubmission(context.Background(), *holderVerifier, resolver, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
+	_, err = exchange.VerifyPresentationSubmission(context.Background(), *holderVerifier, r, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
 	example.HandleExampleError(err, "Failed to verify presentation submission")
 
 	_, _ = fmt.Print("\n\nStep 5: The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic\n\n")

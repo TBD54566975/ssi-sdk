@@ -56,7 +56,7 @@ func (s *SimpleWallet) GetDIDs() []string {
 }
 
 // AddPrivateKey Adds a Private Key to a wallet
-func (s *SimpleWallet) AddPrivateKey(id, kid string, key gocrypto.PrivateKey) error {
+func (s *SimpleWallet) AddPrivateKey(id, kid string, pubKey gocrypto.PrivateKey) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	walletKeys, ok := s.dids[id]
@@ -70,7 +70,7 @@ func (s *SimpleWallet) AddPrivateKey(id, kid string, key gocrypto.PrivateKey) er
 	}
 	walletKeys = append(walletKeys, WalletKeys{
 		ID:  kid,
-		Key: key,
+		Key: pubKey,
 	})
 	s.dids[id] = walletKeys
 	return nil

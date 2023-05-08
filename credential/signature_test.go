@@ -132,9 +132,9 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 
 	t.Run("invalid credential", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		r, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
-		_, err = VerifyJWTCredential("not-empty", resolver)
+		_, err = VerifyJWTCredential("not-empty", r)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "invalid JWT")
 	})

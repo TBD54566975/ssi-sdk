@@ -50,13 +50,13 @@ func NewResolver(resolvers ...Resolver) (*MultiMethodResolver, error) {
 }
 
 // Resolve attempts to resolve a DID for a given method
-func (dr MultiMethodResolver) Resolve(ctx context.Context, did string, opts ...ResolutionOption) (*ResolutionResult, error) {
-	method, err := GetMethodForDID(did)
+func (dr MultiMethodResolver) Resolve(ctx context.Context, id string, opts ...ResolutionOption) (*ResolutionResult, error) {
+	method, err := GetMethodForDID(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get method for DID before resolving")
 	}
 	if resolver, ok := dr.resolvers[method]; ok {
-		return resolver.Resolve(ctx, did, opts)
+		return resolver.Resolve(ctx, id, opts)
 	}
 	return nil, fmt.Errorf("unsupported method: %s", method)
 }

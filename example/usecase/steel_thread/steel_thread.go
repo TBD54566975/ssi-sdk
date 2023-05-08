@@ -290,13 +290,13 @@ func createVerifiableCredential(issuerDID string, walletDID string) credential.V
 }
 
 func createCredentialManifest(issuer string) manifest.CredentialManifest {
-	cmBytes := getFileBytes("testdata/cm.json")
+	manifestBytes := getFileBytes("testdata/cm.json")
 
-	var manifest manifest.CredentialManifest
-	if err := json.Unmarshal(cmBytes, &manifest); err != nil {
-		example.HandleExampleError(err, "problem unmarshalling credential manifest")
+	var m manifest.CredentialManifest
+	if err := json.Unmarshal(manifestBytes, &m); err != nil {
+		example.HandleExampleError(err, "problem unmarshalling credential m")
 	}
 
-	manifest.Issuer.ID = issuer
-	return manifest
+	m.Issuer.ID = issuer
+	return m
 }

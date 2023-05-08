@@ -270,9 +270,9 @@ func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameter
 // After decoding the signature of each credential in the presentation is verified. If there are any issues during
 // decoding or signature validation, an error is returned. As a result, a successfully decoded VerifiablePresentation
 // object is returned.
-func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier, resolver resolver.Resolver, token string) (jws.Headers, jwt.Token, *VerifiablePresentation, error) {
-	if resolver == nil {
-		return nil, nil, nil, errors.New("resolver cannot be empty")
+func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier, r resolver.Resolver, token string) (jws.Headers, jwt.Token, *VerifiablePresentation, error) {
+	if r == nil {
+		return nil, nil, nil, errors.New("r cannot be empty")
 	}
 
 	// verify outer signature on the token
@@ -301,7 +301,7 @@ func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier,
 	// verify signature for each credential in the vp
 	for i, cred := range vp.VerifiableCredential {
 		// verify the signature on the credential
-		verified, err := VerifyCredentialSignature(ctx, cred, resolver)
+		verified, err := VerifyCredentialSignature(ctx, cred, r)
 		if err != nil {
 			return nil, nil, nil, errors.Wrapf(err, "verifying credential %d", i)
 		}

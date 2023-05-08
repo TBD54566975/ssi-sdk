@@ -174,9 +174,9 @@ func main() {
 	verifier, err := studentSigner.ToVerifier(employerDID)
 	example.HandleExampleError(err, "failed to construct verifier")
 
-	resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}, peer.Resolver{}}...)
-	example.HandleExampleError(err, "failed to create DID resolver")
-	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submission))
+	r, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}, peer.Resolver{}}...)
+	example.HandleExampleError(err, "failed to create DID r")
+	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, r, string(submission))
 	example.HandleExampleError(err, "failed to verify jwt")
 
 	dat, err = json.Marshal(vp)
@@ -184,7 +184,7 @@ func main() {
 	logrus.Debugf("Submission:\n%v", string(dat))
 
 	example.WriteStep(fmt.Sprintf("Employer Attempting to Grant Access"), step)
-	if err = emp.ValidateAccess(*verifier, resolver, submission); err == nil {
+	if err = emp.ValidateAccess(*verifier, r, submission); err == nil {
 		example.WriteOK("Access Granted!")
 	} else {
 		example.WriteError(fmt.Sprintf("Access was not granted! Reason: %s", err))

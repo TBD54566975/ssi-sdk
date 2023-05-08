@@ -28,12 +28,12 @@ func TestPeerMethod0(t *testing.T) {
 }
 
 func TestPeerResolveMethod0(t *testing.T) {
-	did := DIDPeer("did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH")
-	resolved, err := Method0{}.resolve(did, nil)
+	didPeer := DIDPeer("did:peer:0z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH")
+	resolved, err := Method0{}.resolve(didPeer, nil)
 	assert.NoError(t, err)
-	gtestDoc := getSampleDIDDocumentMethod0()
-	assert.Equal(t, gtestDoc.Context, resolved.Document.Context)
-	assert.Equal(t, gtestDoc.ID, resolved.ID)
+	testDoc := getSampleDIDDocumentMethod0()
+	assert.Equal(t, testDoc.Context, resolved.Document.Context)
+	assert.Equal(t, testDoc.ID, resolved.ID)
 }
 
 func makeSamplePeerDIDDocument0() *did.Document {

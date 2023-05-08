@@ -120,14 +120,14 @@ func GetDIDPKHNetworkForPrefix(p string) (Network, error) {
 }
 
 // GetDIDPKHNetworkForDID returns the network for a given did:pkh
-func GetDIDPKHNetworkForDID(did string) (Network, error) {
+func GetDIDPKHNetworkForDID(id string) (Network, error) {
 	prefixes := GetDIDPKHNetworkPrefixes()
 	for _, prefix := range prefixes {
-		if strings.Contains(did, prefix+":") {
+		if strings.Contains(id, prefix+":") {
 			return GetDIDPKHNetworkForPrefix(prefix)
 		}
 	}
-	return "", fmt.Errorf("could not find network for did:pkh DID: %s", did)
+	return "", fmt.Errorf("could not find network for did:pkh DID: %s", id)
 }
 
 // GetVerificationTypeForNetwork returns the verification key type for a given network
