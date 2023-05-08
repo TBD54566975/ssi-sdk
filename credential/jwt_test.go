@@ -8,7 +8,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did/key"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -108,7 +108,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		err = verifier.Verify(token)
 		assert.NoError(tt, err)
 
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		require.NoError(tt, err)
 		require.NotEmpty(tt, resolver)
 
@@ -142,7 +142,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		assert.NotEmpty(tt, parsedHeaders)
 		assert.NotEmpty(tt, parsedPres)
 
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		require.NoError(tt, err)
 		require.NotEmpty(tt, resolver)
 
@@ -215,7 +215,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		assert.NotEmpty(tt, parsedPres)
 
 		// Verify the VP JWT
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		require.NoError(tt, err)
 		require.NotEmpty(tt, resolver)
 

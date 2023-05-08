@@ -1,11 +1,11 @@
 // Package ion provides all the functionality you need to interact with an ION service and manage your ION DID.
-// To start, create a new ION resolver object using the NewResolver function. This will create a new resolver
+// To start, create a new ION resolution object using the NewResolver function. This will create a new resolution
 // that can resolve and anchor ION DIDs. Next, create a new ION DID using the NewIONDID function. This will
 // create a new ION DID object with a set of receiver methods that can be used to generate operations to submit
 // to the ION service.
 // For example:
-// // Create a new ION resolver
-// resolver, err := ion.NewResolver(http.DefaultClient, "https://ion.tbd.network")
+// // Create a new ION resolution
+// resolution, err := ion.NewResolver(http.DefaultClient, "https://ion.tbd.network")
 //
 //	if err != nil {
 //		panic(err)
@@ -19,14 +19,14 @@
 //	}
 //
 // // Submit the create operation to the ION service
-// err = resolver.Anchor(ctx, createOp)
+// err = resolution.Anchor(ctx, createOp)
 //
 //	if err != nil {
 //		panic(err)
 //	}
 //
 // // Resolve the DID
-// result, err := resolver.Resolve(ctx, did, nil)
+// result, err := resolution.Resolve(ctx, did, nil)
 //
 //	if err != nil {
 //		panic(err)
@@ -50,7 +50,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
@@ -90,9 +90,9 @@ type Resolver struct {
 	baseURL url.URL
 }
 
-// NewIONResolver creates a new resolver for the ION DID method with a common base URL
+// NewIONResolver creates a new resolution for the ION DID method with a common base URL
 // The base URL is the URL of the ION node, for example: https://ion.tbd.network
-// The resolver will append the DID to the base URL to resolve the DID such as
+// The resolution will append the DID to the base URL to resolve the DID such as
 //
 //	https://ion.tbd.network/identifiers/did:ion:1234
 //
@@ -105,10 +105,10 @@ func NewIONResolver(client *http.Client, baseURL string) (*Resolver, error) {
 	}
 	parsedURL, err := url.ParseRequestURI(baseURL)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid resolver URL")
+		return nil, errors.Wrap(err, "invalid resolution URL")
 	}
 	if parsedURL.Scheme != "https" {
-		return nil, errors.New("invalid resolver URL scheme; must use https")
+		return nil, errors.New("invalid resolution URL scheme; must use https")
 	}
 	return &Resolver{
 		client:  client,
@@ -117,9 +117,9 @@ func NewIONResolver(client *http.Client, baseURL string) (*Resolver, error) {
 }
 
 // Resolve resolves a did:ion DID by appending the DID to the base URL with the identifiers path and making a GET request
-func (i Resolver) Resolve(ctx context.Context, id string, _ resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
+func (i Resolver) Resolve(ctx context.Context, id string, _ resolution.ResolutionOption) (*resolution.ResolutionResult, error) {
 	if i.baseURL.String() == "" {
-		return nil, errors.New("resolver URL cannot be empty")
+		return nil, errors.New("resolution URL cannot be empty")
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.Join([]string{i.baseURL.String(), "identifiers", id}, "/"), nil)
@@ -139,7 +139,7 @@ func (i Resolver) Resolve(ctx context.Context, id string, _ resolver.ResolutionO
 	if !is2xxStatusCode(resp.StatusCode) {
 		return nil, fmt.Errorf("could not resolve DID: %q", string(body))
 	}
-	resolutionResult, err := resolver.ParseDIDResolution(body)
+	resolutionResult, err := resolution.ParseDIDResolution(body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolving did:ion DID<%s>", id)
 	}
@@ -150,7 +150,7 @@ func (i Resolver) Resolve(ctx context.Context, id string, _ resolver.ResolutionO
 // and making a POST request
 func (i Resolver) Anchor(ctx context.Context, op AnchorOperation) error {
 	if i.baseURL.String() == "" {
-		return errors.New("resolver URL cannot be empty")
+		return errors.New("resolution URL cannot be empty")
 	}
 	jsonOpBytes, err := json.Marshal(op)
 	if err != nil {

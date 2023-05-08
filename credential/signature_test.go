@@ -10,7 +10,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did/key"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 	"github.com/TBD54566975/ssi-sdk/did/web"
 
 	"github.com/google/uuid"
@@ -25,14 +25,14 @@ func TestVerifyCredentialSignature(t *testing.T) {
 		assert.Contains(tt, err.Error(), "credential cannot be empty")
 	})
 
-	t.Run("empty resolver", func(tt *testing.T) {
+	t.Run("empty resolution", func(tt *testing.T) {
 		_, err := VerifyCredentialSignature(context.Background(), "not-empty", nil)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "resolver cannot be empty")
+		assert.Contains(tt, err.Error(), "resolution cannot be empty")
 	})
 
 	t.Run("invalid credential type - int", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 
 		_, err = VerifyCredentialSignature(context.Background(), 5, resolver)
@@ -41,7 +41,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 	})
 
 	t.Run("empty map credential type", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 
 		_, err = VerifyCredentialSignature(context.Background(), map[string]any{"a": "test"}, resolver)
@@ -50,7 +50,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 	})
 
 	t.Run("data integrity map credential type missing proof", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 
 		credential := getTestCredential()
@@ -63,7 +63,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 	})
 
 	t.Run("data integrity credential - no proof", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 
 		credential := getTestCredential()
@@ -78,7 +78,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 	})
 
 	t.Run("data integrity credential - as bytes and string", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 
 		credential := getTestCredential()
@@ -95,7 +95,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 	})
 
 	t.Run("jwt credential - as bytes and string", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 
 		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
@@ -125,14 +125,14 @@ func TestVerifyJWTCredential(t *testing.T) {
 		assert.Contains(tt, err.Error(), "credential cannot be empty")
 	})
 
-	t.Run("empty resolver", func(tt *testing.T) {
+	t.Run("empty resolution", func(tt *testing.T) {
 		_, err := VerifyJWTCredential("not-empty", nil)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "resolver cannot be empty")
+		assert.Contains(tt, err.Error(), "resolution cannot be empty")
 	})
 
 	t.Run("invalid credential", func(tt *testing.T) {
-		r, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		r, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 		_, err = VerifyJWTCredential("not-empty", r)
 		assert.Error(tt, err)
@@ -140,7 +140,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 
 	t.Run("valid credential, not signed by DID", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 
 		_, privKey, err := crypto.GenerateEd25519Key()
@@ -154,8 +154,8 @@ func TestVerifyJWTCredential(t *testing.T) {
 		assert.Contains(tt, err.Error(), "error getting issuer DID<test-id> to verify credential")
 	})
 
-	t.Run("valid credential, signed by DID the resolver can't resolve", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{web.Resolver{}}...)
+	t.Run("valid credential, signed by DID the resolution can't resolve", func(tt *testing.T) {
+		resolver, err := resolution.NewResolver([]resolution.Resolver{web.Resolver{}}...)
 		assert.NoError(tt, err)
 
 		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
@@ -173,7 +173,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 
 	t.Run("valid credential, kid not found", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 
 		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
@@ -188,7 +188,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 
 	t.Run("valid credential, bad signature", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 
 		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
@@ -210,7 +210,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 	})
 
 	t.Run("valid credential", func(tt *testing.T) {
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 
 		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)

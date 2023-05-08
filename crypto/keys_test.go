@@ -160,8 +160,8 @@ func TestDilithiumKeys(t *testing.T) {
 			tt.Run(test.name, func(ttt *testing.T) {
 				pk, sk, err := GenerateDilithiumKeyPair(test.m)
 				assert.NoError(ttt, err)
-				assert.NotNil(ttt, pk)
-				assert.NotNil(ttt, sk)
+				assert.NotEmpty(ttt, pk)
+				assert.NotEmpty(ttt, sk)
 			})
 		}
 	})

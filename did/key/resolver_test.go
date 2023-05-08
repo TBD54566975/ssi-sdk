@@ -9,40 +9,40 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 )
 
 func TestResolveKeyForDID(t *testing.T) {
-	r, err := resolver.NewResolver([]resolver.Resolver{Resolver{}}...)
+	r, err := resolution.NewResolver([]resolution.Resolver{Resolver{}}...)
 	require.NoError(t, err)
 	require.NotEmpty(t, r)
 
-	t.Run("empty resolver", func(tt *testing.T) {
-		_, err = resolver.ResolveKeyForDID(context.Background(), nil, "did:test", "test-kid")
+	t.Run("empty resolution", func(tt *testing.T) {
+		_, err = resolution.ResolveKeyForDID(context.Background(), nil, "did:test", "test-kid")
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "resolver cannot be empty")
+		assert.Contains(tt, err.Error(), "resolution cannot be empty")
 	})
 
 	t.Run("empty did", func(tt *testing.T) {
-		_, err = resolver.ResolveKeyForDID(context.Background(), r, "", "test-kid")
+		_, err = resolution.ResolveKeyForDID(context.Background(), r, "", "test-kid")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "not a valid did")
 	})
 
 	t.Run("unresolveable did", func(tt *testing.T) {
-		_, err = resolver.ResolveKeyForDID(context.Background(), r, "did:example:test", "test-kid")
+		_, err = resolution.ResolveKeyForDID(context.Background(), r, "did:example:test", "test-kid")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported method: example")
 	})
 
 	t.Run("unresolveable did", func(tt *testing.T) {
-		_, err = resolver.ResolveKeyForDID(context.Background(), r, "did:example:test", "test-kid")
+		_, err = resolution.ResolveKeyForDID(context.Background(), r, "did:example:test", "test-kid")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported method: example")
 	})
 
 	t.Run("invalid did", func(tt *testing.T) {
-		_, err = resolver.ResolveKeyForDID(context.Background(), r, "did:key:test", "test-kid")
+		_, err = resolution.ResolveKeyForDID(context.Background(), r, "did:key:test", "test-kid")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "could not expand did:key DID")
 	})
@@ -50,7 +50,7 @@ func TestResolveKeyForDID(t *testing.T) {
 	t.Run("valid did; no kid", func(tt *testing.T) {
 		_, didKey, err := GenerateDIDKey(crypto.Ed25519)
 		assert.NoError(tt, err)
-		_, err = resolver.ResolveKeyForDID(context.Background(), r, didKey.String(), "test-kid")
+		_, err = resolution.ResolveKeyForDID(context.Background(), r, didKey.String(), "test-kid")
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "has no verification methods with kid: test-kid")
 	})
@@ -62,7 +62,7 @@ func TestResolveKeyForDID(t *testing.T) {
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
 
-		key, err := resolver.ResolveKeyForDID(context.Background(), r, didKey.String(), kid)
+		key, err := resolution.ResolveKeyForDID(context.Background(), r, didKey.String(), kid)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, key)
 

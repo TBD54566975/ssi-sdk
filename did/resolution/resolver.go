@@ -1,4 +1,4 @@
-package resolver
+package resolution
 
 import (
 	"context"
@@ -19,11 +19,11 @@ type ResolutionOption any
 type Resolver interface {
 	// Resolve Attempts to resolve a DID for a given method
 	Resolve(ctx context.Context, id string, opts ...ResolutionOption) (*ResolutionResult, error)
-	// Methods returns all methods that can be resolved by this resolver.
+	// Methods returns all methods that can be resolved by this resolution.
 	Methods() []did.Method
 }
 
-// MultiMethodResolver resolves a DID. The current implementation ssk-sdk does not have a universal resolver:
+// MultiMethodResolver resolves a DID. The current implementation ssk-sdk does not have a universal resolution:
 // https://github.com/decentralized-identity/universal-resolver
 // In its place, this method attempts to resolve DID methods that can be resolved without relying on additional services.
 type MultiMethodResolver struct {
@@ -40,7 +40,7 @@ func NewResolver(resolvers ...Resolver) (*MultiMethodResolver, error) {
 		method := resolver.Methods()
 		for _, m := range method {
 			if _, ok := r[m]; ok {
-				return nil, fmt.Errorf("duplicate resolver for method: %s", m)
+				return nil, fmt.Errorf("duplicate resolution for method: %s", m)
 			}
 			r[m] = resolver
 			methods = append(methods, m)
@@ -105,7 +105,7 @@ func ParseDIDResolution(resolvedDID []byte) (*ResolutionResult, error) {
 // ResolveKeyForDID resolves a public key from a DID for a given KID.
 func ResolveKeyForDID(ctx context.Context, resolver Resolver, id, kid string) (gocrypto.PublicKey, error) {
 	if resolver == nil {
-		return nil, errors.New("resolver cannot be empty")
+		return nil, errors.New("resolution cannot be empty")
 	}
 	resolved, err := resolver.Resolve(ctx, id, nil)
 	if err != nil {

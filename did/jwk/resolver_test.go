@@ -6,12 +6,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 )
 
 func TestGenerateAndResolveDIDJWK(t *testing.T) {
-	resolvers := []resolver.Resolver{Resolver{}}
-	r, _ := resolver.NewResolver(resolvers...)
+	resolvers := []resolution.Resolver{Resolver{}}
+	r, _ := resolution.NewResolver(resolvers...)
 
 	for _, kt := range GetSupportedDIDJWKTypes() {
 		_, didJWK, err := GenerateDIDJWK(kt)

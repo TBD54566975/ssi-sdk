@@ -20,7 +20,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 
@@ -229,8 +229,8 @@ func TestGenerateAndDecodeDIDKey(t *testing.T) {
 }
 
 func TestGenerateAndResolveDIDKey(t *testing.T) {
-	resolvers := []resolver.Resolver{Resolver{}}
-	r, _ := resolver.NewResolver(resolvers...)
+	resolvers := []resolution.Resolver{Resolver{}}
+	r, _ := resolution.NewResolver(resolvers...)
 
 	for _, kt := range GetSupportedDIDKeyTypes() {
 		_, didKey, err := GenerateDIDKey(kt)

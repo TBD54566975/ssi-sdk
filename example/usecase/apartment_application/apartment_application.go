@@ -20,7 +20,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did/key"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
@@ -162,7 +162,7 @@ func main() {
 		Step 5: The apartment will verify the presentation submission. This is done to make sure the presentation is in compliance with the definition.
 	**/
 
-	r, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+	r, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 	example.HandleExampleError(err, "Failed to build r")
 
 	// Convert the holder signer to a verifier with the audience set as the apartment DID

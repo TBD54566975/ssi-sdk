@@ -7,7 +7,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
@@ -37,7 +37,7 @@ func (Method0) Generate(kt crypto.KeyType, publicKey gocrypto.PublicKey) (*DIDPe
 // Resolve resolves a did:peer into a DID Document
 // To do so, it decodes the key, constructs a verification  method, and returns a DID Document .This allows Method0
 // to implement the DID Resolver interface and be used to expand the did into the DID Document.
-func (Method0) resolve(didDoc did.DID, _ resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
+func (Method0) resolve(didDoc did.DID, _ resolution.ResolutionOption) (*resolution.ResolutionResult, error) {
 	d, ok := didDoc.(DIDPeer)
 	if !ok {
 		return nil, errors.Wrap(util.CastingError, "did:peer")
@@ -71,5 +71,5 @@ func (Method0) resolve(didDoc did.DID, _ resolver.ResolutionOption) (*resolver.R
 		KeyAgreement:         verificationMethodSet,
 		CapabilityDelegation: verificationMethodSet,
 	}
-	return &resolver.ResolutionResult{Document: document}, nil
+	return &resolution.ResolutionResult{Document: document}, nil
 }

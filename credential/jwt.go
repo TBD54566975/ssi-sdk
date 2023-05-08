@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
@@ -270,7 +270,7 @@ func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameter
 // After decoding the signature of each credential in the presentation is verified. If there are any issues during
 // decoding or signature validation, an error is returned. As a result, a successfully decoded VerifiablePresentation
 // object is returned.
-func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier, r resolver.Resolver, token string) (jws.Headers, jwt.Token, *VerifiablePresentation, error) {
+func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier, r resolution.Resolver, token string) (jws.Headers, jwt.Token, *VerifiablePresentation, error) {
 	if r == nil {
 		return nil, nil, nil, errors.New("r cannot be empty")
 	}

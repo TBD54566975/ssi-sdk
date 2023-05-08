@@ -12,7 +12,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
@@ -144,7 +144,7 @@ func (d DIDWeb) Resolve() (*did.Document, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolving did:web DID<%s>", d)
 	}
-	resolutionResult, err := resolver.ParseDIDResolution(docBytes)
+	resolutionResult, err := resolution.ParseDIDResolution(docBytes)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolving did:web DID<%s>", d)
 	}

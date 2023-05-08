@@ -8,14 +8,14 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 )
 
 type Resolver struct{}
 
-var _ resolver.Resolver = (*Resolver)(nil)
+var _ resolution.Resolver = (*Resolver)(nil)
 
-func (Resolver) Resolve(_ context.Context, id string, opts ...resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
+func (Resolver) Resolve(_ context.Context, id string, opts ...resolution.ResolutionOption) (*resolution.ResolutionResult, error) {
 	if !strings.HasPrefix(id, DIDPeerPrefix) {
 		return nil, fmt.Errorf("not a did:peer DID: %s", id)
 	}

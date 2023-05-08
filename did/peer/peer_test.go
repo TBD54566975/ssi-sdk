@@ -11,15 +11,18 @@ import (
 )
 
 func TestEncodePublicKeyWithKeyMultiCodecType(t *testing.T) {
-	// unsupported type
-	_, err := encodePublicKeyWithKeyMultiCodecType(crypto.KeyType("unsupported"), nil)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not a supported key type")
+	t.Run("unsupported key type", func(t *testing.T) {
+		_, err := encodePublicKeyWithKeyMultiCodecType("unsupported", nil)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "not a supported key type")
 
-	// bad public key
-	_, err = encodePublicKeyWithKeyMultiCodecType(crypto.Ed25519, nil)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unknown public key type; could not convert to bytes")
+	})
+
+	t.Run("bad public key", func(t *testing.T) {
+		_, err := encodePublicKeyWithKeyMultiCodecType(crypto.Ed25519, nil)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "unknown public key type; could not convert to bytes")
+	})
 }
 
 func TestDIDPeerValid(t *testing.T) {

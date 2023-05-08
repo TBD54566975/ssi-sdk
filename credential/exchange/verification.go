@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 	"github.com/TBD54566975/ssi-sdk/schema"
 
 	"github.com/goccy/go-json"
@@ -31,14 +31,14 @@ type VerifiedSubmissionData struct {
 
 // VerifyPresentationSubmission verifies a presentation submission for both signature validity and correctness
 // with the specification. It is assumed that the caller knows the submission embed target, and the corresponding
-// presentation definition, and has access to the public key of the signer. A DID resolver is required to resolve
+// presentation definition, and has access to the public key of the signer. A DID resolution is required to resolve
 // the DID and keys of the signer for each credential in the presentation, whose signatures also need to be verified.
 // Note: this method does not support LD cryptosuites, and prefers JWT representations. Future refactors
 // may include an analog method for LD suites.
 // TODO(gabe) remove embed target, have it detected from the submission
-func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver resolver.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) ([]VerifiedSubmissionData, error) { //revive:disable-line
+func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver resolution.Resolver, et EmbedTarget, def PresentationDefinition, submission []byte) ([]VerifiedSubmissionData, error) { //revive:disable-line
 	if resolver == nil {
-		return nil, errors.New("resolver cannot be empty")
+		return nil, errors.New("resolution cannot be empty")
 	}
 	if len(submission) == 0 {
 		return nil, errors.New("submission cannot be empty")

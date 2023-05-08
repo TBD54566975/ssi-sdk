@@ -11,7 +11,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did/key"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 	"github.com/TBD54566975/ssi-sdk/util"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -57,7 +57,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 		_, _, _, err = credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
 		assert.Error(tt, err)
@@ -101,7 +101,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 
 		println(string(submissionBytes))
 
-		resolver, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
 		assert.NoError(tt, err)

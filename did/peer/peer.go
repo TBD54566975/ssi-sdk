@@ -26,7 +26,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
@@ -152,7 +152,7 @@ func (DIDPeer) IsValidPurpose(p PurposeType) bool {
 	return false
 }
 
-func (Method1) resolve(d did.DID, _ resolver.ResolutionOption) (*resolver.ResolutionResult, error) {
+func (Method1) resolve(d did.DID, _ resolution.ResolutionOption) (*resolution.ResolutionResult, error) {
 	if _, ok := d.(DIDPeer); !ok {
 		return nil, errors.Wrap(util.CastingError, DIDPeerPrefix)
 	}

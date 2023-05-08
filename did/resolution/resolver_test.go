@@ -1,4 +1,4 @@
-package resolver
+package resolution
 
 import (
 	"testing"
@@ -7,17 +7,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDIDDocumentMetadata(t *testing.T) {
-	// good
-	var metadata DocumentMetadata
-	assert.True(t, metadata.IsValid())
-
-	// bad
-	badMetadata := DocumentMetadata{
-		Created: "bad",
-		Updated: time.Now().UTC().Format(time.RFC3339),
-	}
-	assert.False(t, badMetadata.IsValid())
+func TestDIDDocumentMetadata_IsValid(t *testing.T) {
+	t.Run("returns true with empty", func(t *testing.T) {
+		var metadata DocumentMetadata
+		assert.True(t, metadata.IsValid())
+	})
+	t.Run("returns false when created field is not a timestamp", func(t *testing.T) {
+		badMetadata := DocumentMetadata{
+			Created: "bad",
+			Updated: time.Now().UTC().Format(time.RFC3339),
+		}
+		assert.False(t, badMetadata.IsValid())
+	})
 }
 
 func TestParseDIDResolution(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 )
 
 var mockPubKeys = []string{
@@ -36,8 +36,8 @@ func FuzzCreateAndResolve(f *testing.F) {
 	keyTypes := GetSupportedDIDKeyTypes()
 	ktLen := len(keyTypes)
 
-	resolvers := []resolver.Resolver{Resolver{}}
-	r, err := resolver.NewResolver(resolvers...)
+	resolvers := []resolution.Resolver{Resolver{}}
+	r, err := resolution.NewResolver(resolvers...)
 	assert.NoError(f, err)
 
 	for i, pk := range mockPubKeys {

@@ -62,7 +62,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/did/key"
 	"github.com/TBD54566975/ssi-sdk/did/peer"
-	"github.com/TBD54566975/ssi-sdk/did/resolver"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 	"github.com/TBD54566975/ssi-sdk/example"
 	emp "github.com/TBD54566975/ssi-sdk/example/usecase/employer_university_flow/pkg"
 )
@@ -174,7 +174,7 @@ func main() {
 	verifier, err := studentSigner.ToVerifier(employerDID)
 	example.HandleExampleError(err, "failed to construct verifier")
 
-	r, err := resolver.NewResolver([]resolver.Resolver{key.Resolver{}, peer.Resolver{}}...)
+	r, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}, peer.Resolver{}}...)
 	example.HandleExampleError(err, "failed to create DID r")
 	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, r, string(submission))
 	example.HandleExampleError(err, "failed to verify jwt")
