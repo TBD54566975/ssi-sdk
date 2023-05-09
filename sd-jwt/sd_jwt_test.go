@@ -521,7 +521,7 @@ func TestToBlindedClaimsAndDisclosures(t *testing.T) {
 		blindedClaimSetData, err := json.Marshal(got)
 		assert.NoError(t, err)
 
-		disclosuresByClaimName := make(map[string]*Disclosure)
+		disclosuresByClaimName := make(map[string]Disclosure)
 		for _, d := range disclosures {
 			disclosuresByClaimName[d.ClaimName] = d
 		}
@@ -580,7 +580,7 @@ func TestToBlindedClaimsAndDisclosures(t *testing.T) {
 		assert.NoError(t, p.Unmarshal(blindedClaimSetData, &v))
 		assert.Len(t, v[0], 1)
 
-		disclosuresByClaimName := make(map[string]*Disclosure)
+		disclosuresByClaimName := make(map[string]Disclosure)
 		for _, d := range disclosures {
 			disclosuresByClaimName[d.ClaimName] = d
 		}

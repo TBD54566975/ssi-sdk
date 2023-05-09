@@ -111,9 +111,9 @@ type claimSetBlinder struct {
 }
 
 // blindElementsRecurvisely returns the blinded version for each element.
-func (csb claimSetBlinder) blindElementsRecurvisely(elems []any) ([]any, []*Disclosure, error) {
+func (csb claimSetBlinder) blindElementsRecurvisely(elems []any) ([]any, []Disclosure, error) {
 	var blinded []any
-	var allDisclosures []*Disclosure
+	var allDisclosures []Disclosure
 	for i, elem := range elems {
 		claimsToBlind := make(map[string]BlindOption)
 
@@ -149,9 +149,9 @@ func (csb claimSetBlinder) blindElementsRecurvisely(elems []any) ([]any, []*Disc
 func (csb claimSetBlinder) toBlindedClaimsAndDisclosures(
 	claims map[string]any,
 	claimsToBlind map[string]BlindOption,
-) (map[string]any, []*Disclosure, error) {
+) (map[string]any, []Disclosure, error) {
 	blindedClaims := make(map[string]any)
-	var allDisclosures []*Disclosure
+	var allDisclosures []Disclosure
 	var hashedDisclosures []string
 
 	for claimName, claimValue := range claims {
@@ -168,7 +168,7 @@ func (csb claimSetBlinder) toBlindedClaimsAndDisclosures(
 				return nil, nil, err
 			}
 
-			allDisclosures = append(allDisclosures, disclosure)
+			allDisclosures = append(allDisclosures, *disclosure)
 			hashedDisclosures = append(hashedDisclosures, disclosure.Digest(csb.sdAlg))
 		case SubClaimBlindOption:
 			switch claimValueTyped := claimValue.(type) {
@@ -223,7 +223,7 @@ func (csb claimSetBlinder) toBlindedClaimsAndDisclosures(
 					return nil, nil, err
 				}
 			}
-			allDisclosures = append(allDisclosures, disclosure)
+			allDisclosures = append(allDisclosures, *disclosure)
 			hashedDisclosures = append(hashedDisclosures, disclosure.Digest(csb.sdAlg))
 		}
 	}
@@ -663,7 +663,7 @@ func getDigestsForMap(c map[string]any) []string {
 }
 
 // createIssuance returns the combined format for issuance
-func createIssuance(sdJWT []byte, disclosures []*Disclosure) ([]byte, error) {
+func createIssuance(sdJWT []byte, disclosures []Disclosure) ([]byte, error) {
 	elems := [][]byte{sdJWT}
 	for _, d := range disclosures {
 		ed, err := d.EncodedDisclosure()
