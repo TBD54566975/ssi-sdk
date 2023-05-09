@@ -3,6 +3,7 @@ package sdjwt
 import (
 	"bytes"
 	"context"
+	gocrypto "crypto"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -39,9 +40,9 @@ type saltGenerator struct {
 	NumBytes int
 }
 
-func NewSaltGenerator() SaltGenerator {
+func NewSaltGenerator(numBytes int) SaltGenerator {
 	return &saltGenerator{
-		NumBytes: 16,
+		NumBytes: numBytes,
 	}
 }
 
@@ -258,6 +259,16 @@ type Signer interface {
 	Sign(blindedClaimsData []byte) ([]byte, error)
 }
 
+// NewSDJWTSigner creates an SDJWTSigner with a default configuration. It uses the passed in signer to sign payloads.
+func NewSDJWTSigner(signer Signer, saltGenerator SaltGenerator) *SDJWTSigner {
+	return &SDJWTSigner{
+		disclosureFactory: disclosureFactory{
+			saltGen: saltGenerator,
+		},
+		signer: signer,
+	}
+}
+
 // BlindAndSign returns an SD-JWT and Disclosures from an arbitrary JSON-encoded payload. The claims to selectively
 // disclose are determined using the claimsToBlind map. The format of the result is the Combined Format for Issuance
 // as specified in https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-04.html#name-combined-format-for-issuanc
@@ -405,7 +416,7 @@ func parseDisclosure(encodedDisclosure string) (*Disclosure, error) {
 
 type VerificationOptions struct {
 	holderBindingOption           HolderBindingOption
-	alg                           jwa.SignatureAlgorithm
+	alg                           string
 	issuerKey                     any
 	desiredNonce, desiredAudience string
 	resolveHolderKey              func(jwt.Token) any
@@ -425,7 +436,7 @@ func VerifySDPresentation(presentation []byte, verificationOptions VerificationO
 	//Validate the signature over the SD-JWT.
 	//Validate the Issuer of the SD-JWT and that the signing key belongs to this Issuer.
 	//Check that the SD-JWT is valid using nbf, iat, and exp claims, if provided in the SD-JWT, and not selectively disclosed.
-	sdToken, err := jwt.Parse([]byte(sdParts[0]), jwt.WithKey(verificationOptions.alg, verificationOptions.issuerKey), jwt.WithValidate(true))
+	sdToken, err := jwt.Parse([]byte(sdParts[0]), jwt.WithKey(jwa.KeyAlgorithmFrom(verificationOptions.alg), verificationOptions.issuerKey), jwt.WithValidate(true))
 	if err != nil {
 		return nil, errors.Wrap(err, "parsing jwt")
 	}
@@ -568,8 +579,8 @@ func processPayload(claims map[string]any, disclosuresByDigest map[string]*Discl
 }
 
 type IssuanceVerificationOptions struct {
-	alg       jwa.SignatureAlgorithm
-	issuerKey any
+	alg       string
+	issuerKey gocrypto.PublicKey
 }
 
 // VerifyIssuance returns an error whenever any of the following happens for the given combined format for issuance:
@@ -578,7 +589,7 @@ type IssuanceVerificationOptions struct {
 // This function is intented to aid with https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-04.html#name-processing-by-the-holder
 func VerifyIssuance(issuance []byte, verificationOptions IssuanceVerificationOptions) error {
 	issuanceParts := strings.Split(string(issuance), "~")
-	sdToken, err := jwt.Parse([]byte(issuanceParts[0]), jwt.WithKey(verificationOptions.alg, verificationOptions.issuerKey), jwt.WithValidate(true))
+	sdToken, err := jwt.Parse([]byte(issuanceParts[0]), jwt.WithKey(jwa.SignatureAlgorithm(verificationOptions.alg), verificationOptions.issuerKey), jwt.WithValidate(true))
 	if err != nil {
 		return errors.Wrap(err, "parsing jwt")
 	}
@@ -620,20 +631,31 @@ func VerifyIssuance(issuance []byte, verificationOptions IssuanceVerificationOpt
 }
 
 func getDigests(claims any) []string {
-	var digests []string
 	switch c := claims.(type) {
 	case map[string]any:
-		for k, v := range c {
-			if k == "_sd" {
-				for _, vv := range v.([]any) {
-					digests = append(digests, vv.(string))
-				}
-			} else {
-				digests = append(digests, getDigests(v)...)
-			}
-		}
+		return getDigestsForMap(c)
 	case []any:
-		for _, v := range c {
+		return getDigestsForSlice(c)
+	}
+	return nil
+}
+
+func getDigestsForSlice(c []any) []string {
+	var digests []string
+	for _, v := range c {
+		digests = append(digests, getDigests(v)...)
+	}
+	return digests
+}
+
+func getDigestsForMap(c map[string]any) []string {
+	var digests []string
+	for k, v := range c {
+		if k == "_sd" {
+			for _, vv := range v.([]any) {
+				digests = append(digests, vv.(string))
+			}
+		} else {
 			digests = append(digests, getDigests(v)...)
 		}
 	}

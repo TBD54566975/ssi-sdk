@@ -10,8 +10,9 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/key"
 	"github.com/goccy/go-json"
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -59,7 +60,7 @@ func TestGetHashAlg(t *testing.T) {
 }
 
 func TestSDJWTSigner_BlindAndSign(t *testing.T) {
-	subjectPrivKey, subjectDID, err := did.GenerateDIDKey(crypto.Ed25519)
+	subjectPrivKey, subjectDID, err := key.GenerateDIDKey(crypto.Ed25519)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, subjectPrivKey)
 	assert.NotEmpty(t, subjectDID)
@@ -181,7 +182,7 @@ func TestSDJWTSigner_BlindAndSign(t *testing.T) {
 }
 
 func createSigner(t *testing.T) *jwx.Signer {
-	issuerPrivKey, issuerDID, err := did.GenerateDIDKey(crypto.P256)
+	issuerPrivKey, issuerDID, err := key.GenerateDIDKey(crypto.P256)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, issuerPrivKey)
 	assert.NotEmpty(t, issuerDID)
@@ -220,7 +221,8 @@ func TestCreatePresentation(t *testing.T) {
 
 func TestVerifySDPresentation(t *testing.T) {
 	jwtAndDisclosures, holderKey, issuerSigner := createCombinedIssuance(t)
-	issuerKey, err := issuerSigner.Key.PublicKey()
+	publicKeyJWK := issuerSigner.ToPublicKeyJWK()
+	issuerKey, err := publicKeyJWK.ToPublicKey()
 	assert.NoError(t, err)
 
 	for _, tc := range []struct {
@@ -271,7 +273,7 @@ func TestVerifySDPresentation(t *testing.T) {
 			processedPayload, err := VerifySDPresentation(sdPresentation,
 				VerificationOptions{
 					holderBindingOption: SkipVerifyHolderBinding,
-					alg:                 issuerSigner.SignatureAlgorithm,
+					alg:                 issuerSigner.ALG,
 					issuerKey:           issuerKey,
 					desiredNonce:        "my_sample_nonce",
 					desiredAudience:     "my_intended_aud",
@@ -301,7 +303,7 @@ func selectDisclosures(t *testing.T, jwtAndDisclosures []byte, claimNames map[st
 }
 
 func createCombinedIssuance(t *testing.T) (sdJWT []byte, subjectPrivKey gocrypto.PrivateKey, signer *jwx.Signer) {
-	subjectPrivKey, subjectDID, err := did.GenerateDIDKey(crypto.P256)
+	subjectPrivKey, subjectDID, err := key.GenerateDIDKey(crypto.P256)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, subjectPrivKey)
 	assert.NotEmpty(t, subjectDID)
@@ -369,7 +371,7 @@ func (s lestratSigner) Sign(blindedClaimsData []byte) ([]byte, error) {
 		return nil, errors.Wrap(err, "parsing blinded claims")
 	}
 
-	signed, err := jwt.Sign(insecureSDJWT, jwt.WithKey(s.signer.SignatureAlgorithm, s.signer.Key))
+	signed, err := jwt.Sign(insecureSDJWT, jwt.WithKey(jwa.KeyAlgorithmFrom(s.signer.ALG), s.signer.PrivateKey))
 	if err != nil {
 		return nil, errors.Wrap(err, "signing JWT credential")
 	}
@@ -600,16 +602,12 @@ func TestToBlindedClaimsAndDisclosures(t *testing.T) {
 
 func TestVerifyIssuance(t *testing.T) {
 	issuerSigner := createSigner(t)
-	issuerKey, err := issuerSigner.Key.PublicKey()
+	publicKeyJwk := issuerSigner.ToPublicKeyJWK()
+	issuerKey, err := publicKeyJwk.ToPublicKey()
 	assert.NoError(t, err)
-	signer := SDJWTSigner{
-		disclosureFactory: disclosureFactory{
-			saltGen: NewSaltGenerator(),
-		},
-		signer: &lestratSigner{
-			*issuerSigner,
-		},
-	}
+	signer := NewSDJWTSigner(&lestratSigner{
+		*issuerSigner,
+	}, NewSaltGenerator(16))
 
 	t.Run("passes for a normal issuance", func(t *testing.T) {
 		issuanceFormat, err := signer.BlindAndSign([]byte(`{"hello":"world"}`), map[string]BlindOption{
@@ -618,7 +616,7 @@ func TestVerifyIssuance(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = VerifyIssuance(issuanceFormat, IssuanceVerificationOptions{
-			alg:       issuerSigner.SignatureAlgorithm,
+			alg:       issuerSigner.ALG,
 			issuerKey: issuerKey,
 		})
 		assert.NoError(t, err)
@@ -631,7 +629,7 @@ func TestVerifyIssuance(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = VerifyIssuance(issuanceFormat, IssuanceVerificationOptions{
-			alg:       issuerSigner.SignatureAlgorithm,
+			alg:       issuerSigner.ALG,
 			issuerKey: issuerKey,
 		})
 		assert.NoError(t, err)
@@ -654,7 +652,7 @@ func TestVerifyIssuance(t *testing.T) {
 		issuanceFormat = append(issuanceFormat, []byte("~"+ed)...)
 
 		err = VerifyIssuance(issuanceFormat, IssuanceVerificationOptions{
-			alg:       issuerSigner.SignatureAlgorithm,
+			alg:       issuerSigner.ALG,
 			issuerKey: issuerKey,
 		})
 		assert.Error(t, err)
