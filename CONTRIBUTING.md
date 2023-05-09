@@ -14,7 +14,7 @@ This guide is for you.
 
 | Requirement | Tested Version | Installation Instructions                              |
 |-------------|----------------|--------------------------------------------------------|
-| Go          | 1.20.3         | [go.dev](https://go.dev/doc/tutorial/compile-install)  |
+| Go          | 1.20.4         | [go.dev](https://go.dev/doc/tutorial/compile-install)  |
 | Mage        | 1.13.0-6       | [magefile.org](https://magefile.org/)                  |
 
 ### Go
@@ -25,7 +25,7 @@ You may verify your `go` installation via the terminal:
 
 ```
 $> go version
-go version go1.20.3 darwin/amd64
+go version go1.20.4 darwin/amd64
 ```
 
 If you do not have go, we recommend installing it by:
