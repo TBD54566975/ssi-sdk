@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/bits-and-blooms/bitset v1.7.0
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
-	github.com/cloudflare/circl v1.3.2
+	github.com/cloudflare/circl v1.3.3
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/go-playground/validator/v10 v10.13.0
 	github.com/goccy/go-json v0.10.2
