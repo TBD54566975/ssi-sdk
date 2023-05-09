@@ -10,7 +10,7 @@ import (
 )
 
 func TestResolver(t *testing.T) {
-	t.Run("bad resolver", func(tt *testing.T) {
+	t.Run("bad resolution", func(tt *testing.T) {
 		emptyResolver, err := NewIONResolver(nil, "")
 		assert.Error(tt, err)
 		assert.Empty(tt, emptyResolver)
@@ -24,27 +24,27 @@ func TestResolver(t *testing.T) {
 		resolver, err := NewIONResolver(http.DefaultClient, "badurl")
 		assert.Error(tt, err)
 		assert.Empty(tt, resolver)
-		assert.Contains(tt, err.Error(), "invalid resolver URL")
+		assert.Contains(tt, err.Error(), "invalid resolution URL")
 
 		httpResolver, err := NewIONResolver(http.DefaultClient, "http://badurl")
 		assert.Error(tt, err)
 		assert.Empty(tt, httpResolver)
-		assert.Contains(tt, err.Error(), "invalid resolver URL scheme; must use https")
+		assert.Contains(tt, err.Error(), "invalid resolution URL scheme; must use https")
 	})
 
-	t.Run("good resolver", func(tt *testing.T) {
+	t.Run("good resolution", func(tt *testing.T) {
 		resolver, err := NewIONResolver(http.DefaultClient, "https://www.realurl.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 	})
 
 	t.Run("resolve an unknown DID", func(tt *testing.T) {
-		gock.New("https://test-ion-resolver.com").
+		gock.New("https://test-ion-resolution.com").
 			Get("/bad").
 			Reply(404)
 		defer gock.Off()
 
-		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolver.com")
+		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolution.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
@@ -55,13 +55,13 @@ func TestResolver(t *testing.T) {
 	})
 
 	t.Run("resolve a DID with a bad response", func(tt *testing.T) {
-		gock.New("https://test-ion-resolver.com").
+		gock.New("https://test-ion-resolution.com").
 			Get("/did:ion:test").
 			Reply(200).
 			BodyString("bad response")
 		defer gock.Off()
 
-		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolver.com")
+		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolution.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
@@ -72,13 +72,13 @@ func TestResolver(t *testing.T) {
 	})
 
 	t.Run("resolve a good DID", func(tt *testing.T) {
-		gock.New("https://test-ion-resolver.com").
+		gock.New("https://test-ion-resolution.com").
 			Get("/did:ion:test").
 			Reply(200).
 			BodyString(`{"didDocument": {"id": "did:ion:test"}}`)
 		defer gock.Off()
 
-		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolver.com")
+		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolution.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
@@ -89,12 +89,12 @@ func TestResolver(t *testing.T) {
 	})
 
 	t.Run("bad anchor", func(tt *testing.T) {
-		gock.New("https://test-ion-resolver.com").
+		gock.New("https://test-ion-resolution.com").
 			Post("/operations").
 			Reply(400)
 		defer gock.Off()
 
-		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolver.com")
+		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolution.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
@@ -104,12 +104,12 @@ func TestResolver(t *testing.T) {
 	})
 
 	t.Run("good anchor", func(tt *testing.T) {
-		gock.New("https://test-ion-resolver.com").
+		gock.New("https://test-ion-resolution.com").
 			Post("/operations").
 			Reply(200)
 		defer gock.Off()
 
-		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolver.com")
+		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolution.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 

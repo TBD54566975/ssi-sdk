@@ -4,13 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
+	"github.com/TBD54566975/ssi-sdk/did/key"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
+	"github.com/TBD54566975/ssi-sdk/util"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -55,7 +57,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 		_, _, _, err = credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
 		assert.Error(tt, err)
@@ -99,7 +101,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 
 		println(string(submissionBytes))
 
-		resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
 		assert.NoError(tt, err)
@@ -846,7 +848,7 @@ func getGenericTestClaim() map[string]any {
 }
 
 func getJWKSignerVerifier(t *testing.T) (*jwx.Signer, *jwx.Verifier) {
-	privKey, didKey, err := did.GenerateDIDKey(crypto.Ed25519)
+	privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
 	require.NoError(t, err)
 
 	expanded, err := didKey.Expand()

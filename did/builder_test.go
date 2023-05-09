@@ -3,8 +3,9 @@ package did
 import (
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 )
 
 // Exercise all builder methods
@@ -101,7 +102,7 @@ func TestDIDDocumentBuilder(t *testing.T) {
 	assert.NoError(t, err)
 
 	// valid type as a []string
-	err = builder.AddAuthentication(exampleAuthenticationEntry)
+	err = builder.AddAuthenticationMethod(exampleAuthenticationEntry)
 	assert.NoError(t, err)
 
 	// set issuer as a string
@@ -115,7 +116,7 @@ func TestDIDDocumentBuilder(t *testing.T) {
 	err = builder.AddCapabilityInvocation(exampleCapabilityInvocationEntry)
 	assert.NoError(t, err)
 
-	err = builder.AddCapabilityDelgation(exampleCapabilityDelegationEntry)
+	err = builder.AddCapabilityDelegation(exampleCapabilityDelegationEntry)
 	assert.NoError(t, err)
 
 	err = builder.AddVerificationMethod(exampleVerificationMethod)

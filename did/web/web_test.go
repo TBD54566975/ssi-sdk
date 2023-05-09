@@ -1,12 +1,13 @@
-package did
+package web
 
 import (
 	"testing"
 
 	"gopkg.in/h2non/gock.v1"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/TBD54566975/ssi-sdk/crypto"
 )
 
 const (

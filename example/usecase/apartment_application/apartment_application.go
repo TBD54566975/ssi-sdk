@@ -19,7 +19,8 @@ import (
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/TBD54566975/ssi-sdk/did/key"
+	"github.com/TBD54566975/ssi-sdk/did/resolution"
 	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
@@ -30,7 +31,7 @@ func main() {
 	**/
 
 	// User Holder
-	holderDIDPrivateKey, holderDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
+	holderDIDPrivateKey, holderDIDKey, err := key.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
 	expanded, err := holderDIDKey.Expand()
 	example.HandleExampleError(err, "Failed to expand DID")
@@ -39,7 +40,7 @@ func main() {
 	example.HandleExampleError(err, "Failed to generate signer")
 
 	// Apt Verifier
-	aptDIDPrivateKey, aptDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
+	aptDIDPrivateKey, aptDIDKey, err := key.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID key")
 	expanded, err = aptDIDKey.Expand()
 	example.HandleExampleError(err, "Failed to expand DID")
@@ -50,7 +51,7 @@ func main() {
 	example.HandleExampleError(err, "Failed to generate verifier")
 
 	// Government Issuer
-	govtDIDPrivateKey, govtDIDKey, err := did.GenerateDIDKey(crypto.Ed25519)
+	govtDIDPrivateKey, govtDIDKey, err := key.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID key")
 	expanded, err = govtDIDKey.Expand()
 	example.HandleExampleError(err, "Failed to expand DID")
@@ -161,14 +162,14 @@ func main() {
 		Step 5: The apartment will verify the presentation submission. This is done to make sure the presentation is in compliance with the definition.
 	**/
 
-	resolver, err := did.NewResolver([]did.Resolver{did.KeyResolver{}}...)
-	example.HandleExampleError(err, "Failed to build resolver")
+	r, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
+	example.HandleExampleError(err, "Failed to build r")
 
 	// Convert the holder signer to a verifier with the audience set as the apartment DID
 	holderVerifier, err := holderSigner.ToVerifier(aptVerifier.ID)
 	example.HandleExampleError(err, "Failed to generate verifier")
 
-	_, err = exchange.VerifyPresentationSubmission(context.Background(), *holderVerifier, resolver, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
+	_, err = exchange.VerifyPresentationSubmission(context.Background(), *holderVerifier, r, exchange.JWTVPTarget, *presentationDefinition, presentationSubmissionBytes)
 	example.HandleExampleError(err, "Failed to verify presentation submission")
 
 	_, _ = fmt.Print("\n\nStep 5: The apartment verifies that the presentation submission is valid and then can cryptographically verify that the birthdate of the tenant is authentic\n\n")

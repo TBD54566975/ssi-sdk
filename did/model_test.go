@@ -3,13 +3,13 @@ package did
 import (
 	"embed"
 	"testing"
-	"time"
 
 	"github.com/goccy/go-json"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
-	"github.com/stretchr/testify/assert"
 )
 
 // These test vectors are taken from the did-core spec example
@@ -61,24 +61,6 @@ func TestDIDDocument(t *testing.T) {
 	assert.False(t, did.IsEmpty())
 }
 
-func TestDIDDocumentMetadata(t *testing.T) {
-	// good
-	metadata := DocumentMetadata{}
-	assert.True(t, metadata.IsValid())
-
-	// bad
-	badMetadata := DocumentMetadata{
-		Created: "bad",
-		Updated: time.Now().UTC().Format(time.RFC3339),
-	}
-	assert.False(t, badMetadata.IsValid())
-}
-
-func getTestVector(fileName string) (string, error) {
-	b, err := testVectorFS.ReadFile("testdata/" + fileName)
-	return string(b), err
-}
-
 func TestKeyTypeToLDKeyType(t *testing.T) {
 	kt, err := KeyTypeToLDKeyType(crypto.Ed25519)
 	assert.NoError(t, err)
@@ -103,4 +85,9 @@ func TestKeyTypeToLDKeyType(t *testing.T) {
 	_, err = KeyTypeToLDKeyType(crypto.KeyType("bad"))
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "keyType bad failed to convert to LDKeyType")
+}
+
+func getTestVector(fileName string) (string, error) {
+	b, err := testVectorFS.ReadFile("testdata/" + fileName)
+	return string(b), err
 }
