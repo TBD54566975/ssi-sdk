@@ -127,6 +127,9 @@ func TestCredentialApplicationBuilder(t *testing.T) {
 
 	assert.False(t, builder.IsEmpty())
 
+	err = builder.SetApplicantID("applicant-id")
+	assert.NoError(t, err)
+
 	err = builder.SetApplicationManifestID("manifest-id")
 	assert.NoError(t, err)
 
@@ -177,6 +180,9 @@ func TestCredentialResponseBuilder(t *testing.T) {
 
 		err = builder.SetManifestID("manifest-id")
 		assert.NoError(t, err)
+
+		err = builder.SetApplicantID("applicant-id")
+		assert.NoError(tt, err)
 
 		err = builder.SetApplicationID("application-id")
 		assert.NoError(tt, err)
