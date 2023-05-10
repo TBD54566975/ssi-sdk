@@ -1,11 +1,9 @@
-module ssi-sdk/sd-jwt
+module github.com/TBD54566975/ssi-sdk/sd-jwt
 
 go 1.20
 
-replace github.com/TBD54566975/ssi-sdk v0.0.3-alpha => ../../ssi-sdk
-
 require (
-	github.com/TBD54566975/ssi-sdk v0.0.3-alpha
+	github.com/TBD54566975/ssi-sdk v0.0.4-alpha
 	github.com/goccy/go-json v0.10.2
 	github.com/lestrrat-go/jwx/v2 v2.0.9-0.20230429214153-5090ec1bd2cd
 	github.com/pkg/errors v0.9.1
