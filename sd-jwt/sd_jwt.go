@@ -18,6 +18,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	sdClaimName    = "_sd"
+	sdAlgClaimName = "_sd_alg"
+	sha256Alg      = "sha-256"
+)
+
 // CreatePresentation creates the Combined Format for Presentation as specified in https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-04.html#name-combined-format-for-present
 // jwtAndDisclosures is a Combined Format for Issuance as specified in https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-04.html#name-combined-format-for-issuanc.
 // disclosuresToPresent is a set of which the indices of the disclosures that the presentation should contain.
@@ -244,8 +250,7 @@ func (csb claimSetBlinder) toBlindedClaimsAndDisclosures(
 		hashedDisclosures[i], hashedDisclosures[j] = hashedDisclosures[j], hashedDisclosures[i]
 	})
 
-	//TODO: Add holder binding as specified in RFC7800
-	blindedClaims["_sd"] = hashedDisclosures
+	blindedClaims[sdClaimName] = hashedDisclosures
 	return blindedClaims, allDisclosures, nil
 }
 
@@ -287,7 +292,7 @@ func (s SDJWTSigner) BlindAndSign(claimsData []byte, claimsToBlind map[string]Bl
 		return nil, errors.Wrap(err, "blinding claims")
 	}
 
-	blindedClaims["_sd_alg"] = "sha-256"
+	blindedClaims[sdAlgClaimName] = sha256Alg
 	blindedClaimsData, err := json.Marshal(blindedClaims)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling blinded claims")
@@ -316,9 +321,9 @@ func sha256Digest(data []byte) []byte {
 
 // GetHashAlg returns the hashFunc specified in the token.
 func GetHashAlg(t jwt.Token) (HashFunc, error) {
-	hashName := "sha-256"
+	hashName := sha256Alg
 	if t != nil {
-		if hashNameValue, ok := t.Get("_sd_alg"); ok {
+		if hashNameValue, ok := t.Get(sdAlgClaimName); ok {
 			hashName, ok = hashNameValue.(string)
 			if !ok {
 				return nil, errors.New("converting _sd_alg claim value to string")
@@ -327,7 +332,7 @@ func GetHashAlg(t jwt.Token) (HashFunc, error) {
 	}
 
 	switch hashName {
-	case "sha-256":
+	case sha256Alg:
 		return sha256Digest, nil
 	default:
 		return nil, errors.Errorf("unsupported hash name %q", hashName)
@@ -419,13 +424,13 @@ type VerificationOptions struct {
 	alg                           string
 	issuerKey                     any
 	desiredNonce, desiredAudience string
-	resolveHolderKey              func(jwt.Token) any
+	resolveHolderKey              func(jwt.Token) gocrypto.PublicKey
 }
 
 // VerifySDPresentation takes in a combined presentation format as defined in https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-04.html#name-combined-format-for-present
 // and Verifies it according to https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-04.html#name-verification-by-the-verifie
 // Succesful verifications return a processed SD-JWT payload.
-// TODO: only accept certain algos for validating the JWT, and the holder binding JWT
+// TODO(https://github.com/TBD54566975/ssi-sdk/issues/378): only accept certain algos for validating the JWT, and the holder binding JWT
 func VerifySDPresentation(presentation []byte, verificationOptions VerificationOptions) (map[string]any, error) {
 	// 2. Separate the Presentation into the SD-JWT, the Disclosures (if any), and the Holder Binding JWT (if provided).
 	sdParts := strings.Split(string(presentation), "~")
@@ -477,7 +482,7 @@ func VerifySDPresentation(presentation []byte, verificationOptions VerificationO
 		holderKey := verificationOptions.resolveHolderKey(sdToken)
 
 		//Ensure that a signing algorithm was used that was deemed secure for the application. Refer to [RFC8725], Sections 3.1 and 3.2 for details. The none algorithm MUST NOT be accepted.
-		// TODO: get the algo from the cnf
+		//TODO(https://github.com/TBD54566975/ssi-sdk/issues/377): support holder binding properly as specified in RFC7800. Alg should be coming from CNF.
 		holderBindingAlg := jwa.ES256K
 
 		//Validate the signature over the Holder Binding JWT.
@@ -523,7 +528,7 @@ func processPayload(claims map[string]any, disclosuresByDigest map[string]*Discl
 			}
 		}
 	}
-	sdClaimValue, ok := claims["_sd"]
+	sdClaimValue, ok := claims[sdClaimName]
 	if !ok {
 		return nil
 	}
@@ -569,8 +574,8 @@ func processPayload(claims map[string]any, disclosuresByDigest map[string]*Discl
 		}
 	}
 
-	delete(claims, "_sd")
-	delete(claims, "_sd_alg")
+	delete(claims, sdClaimName)
+	delete(claims, sdAlgClaimName)
 	for k, v := range newClaims {
 		claims[k] = v
 	}
@@ -651,7 +656,7 @@ func getDigestsForSlice(c []any) []string {
 func getDigestsForMap(c map[string]any) []string {
 	var digests []string
 	for k, v := range c {
-		if k == "_sd" {
+		if k == sdClaimName {
 			for _, vv := range v.([]any) {
 				digests = append(digests, vv.(string))
 			}
