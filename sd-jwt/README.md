@@ -58,3 +58,6 @@ See the [SDK Building](../README.md#building) section.
 
 ## Contributing
 See the general [CONTRIBUTING](../CONTRIBUTING.md) guide.
+
+## Issues
+See current issues [here](https://github.com/TBD54566975/ssi-sdk/issues?q=is%3Aissue+is%3Aopen+label%3Asd-jwt). 
