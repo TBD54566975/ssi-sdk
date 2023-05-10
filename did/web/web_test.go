@@ -131,7 +131,7 @@ func TestDIDWebCreateDocFileBytes(t *testing.T) {
 	})
 
 	t.Run("Unhappy Path", func(tt *testing.T) {
-		_, err := didWebBasic.CreateDocBytes(crypto.KeyType("bad"), nil)
+		_, err := didWebBasic.CreateDocBytes("bad", nil)
 		assert.Error(tt, err)
 	})
 }

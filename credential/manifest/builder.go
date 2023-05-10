@@ -165,6 +165,15 @@ func (cab *CredentialApplicationBuilder) IsEmpty() bool {
 	return reflect.DeepEqual(cab, &CredentialApplicationBuilder{})
 }
 
+func (cab *CredentialApplicationBuilder) SetApplicantID(applicantID string) error {
+	if cab.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+
+	cab.Applicant = applicantID
+	return nil
+}
+
 func (cab *CredentialApplicationBuilder) SetApplicationManifestID(manifestID string) error {
 	if cab.IsEmpty() {
 		return errors.New(BuilderEmptyError)
@@ -235,6 +244,15 @@ func (crb *CredentialResponseBuilder) IsEmpty() bool {
 		return true
 	}
 	return reflect.DeepEqual(crb, &CredentialResponseBuilder{})
+}
+
+func (crb *CredentialResponseBuilder) SetApplicantID(applicantID string) error {
+	if crb.IsEmpty() {
+		return errors.New(BuilderEmptyError)
+	}
+
+	crb.Applicant = applicantID
+	return nil
 }
 
 func (crb *CredentialResponseBuilder) SetManifestID(manifestID string) error {
