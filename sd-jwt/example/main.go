@@ -3,11 +3,10 @@ package main
 import (
 	"fmt"
 
-	sdjwt "ssi-sdk/sd-jwt"
-
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did/key"
+	sdjwt "github.com/TBD54566975/ssi-sdk/sd-jwt"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 )
