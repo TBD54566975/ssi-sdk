@@ -194,16 +194,20 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 	}
 
 	id := string(d)
-
+	suffix, err := d.Suffix()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not parse did:key")
+	}
 	pubKey, cryptoKeyType, err := d.Decode()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not decode did:key")
 	}
 
 	var verificationMethod *did.VerificationMethod
+	keyID := id + "#" + suffix
 	switch publicKeyFormat {
 	case cryptosuite.JSONWebKey2020Type:
-		verificationMethod, err = did.ConstructJWKVerificationMethod(id, id, pubKey, cryptoKeyType)
+		verificationMethod, err = did.ConstructJWKVerificationMethod(keyID, id, pubKey, cryptoKeyType)
 		if err != nil {
 			return nil, errors.Wrapf(err, "could not construct %s verification method", publicKeyFormat)
 		}
@@ -212,7 +216,7 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "could not convert key type to multikey type")
 		}
-		verificationMethod, err = did.ConstructMultibaseVerificationMethod(id, id, pubKey, multiKeyType)
+		verificationMethod, err = did.ConstructMultibaseVerificationMethod(keyID, id, pubKey, multiKeyType)
 		if err != nil {
 			return nil, errors.Wrapf(err, "could not construct %s verification method", publicKeyFormat)
 		}
@@ -221,7 +225,7 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 	}
 
 	// always include the first key as a verification method
-	verificationMethodSet := []did.VerificationMethodSet{id}
+	verificationMethodSet := []did.VerificationMethodSet{keyID}
 
 	// https://w3c-ccg.github.io/did-method-key/#context-creation-algorithm
 	contexts := []string{did.KnownDIDContext}
@@ -232,6 +236,9 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 		case crypto.SECP256k1:
 			contexts = append(contexts, cryptosuite.SECP256k1VerificationKey2019Context)
 		case crypto.Ed25519:
+			if enableEncryptionDerivation {
+				contexts = append(contexts, cryptosuite.X25519KeyAgreementKey2020Context)
+			}
 			contexts = append(contexts, cryptosuite.Ed25519VerificationKey2020Context)
 		case crypto.X25519:
 			contexts = append(contexts, cryptosuite.X25519KeyAgreementKey2020Context)
@@ -249,6 +256,7 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 		Authentication:       verificationMethodSet,
 		AssertionMethod:      verificationMethodSet,
 		CapabilityDelegation: verificationMethodSet,
+		CapabilityInvocation: verificationMethodSet,
 	}
 
 	// https://w3c-ccg.github.io/did-method-key/#derive-encryption-key-algorithm
@@ -281,16 +289,12 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not convert base58 public key to ed25519")
 		}
-		x25519Key, err := toX25519Key(ed25519PubKey.(ed25519.PublicKey))
+		id, x25519Key, err := x25519KeyAndID(vm.ID, ed25519PubKey)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "could not convert ed25519 public key to x25519")
+			return nil, nil, errors.Wrap(err, "could not generate x25519 key and id")
 		}
-		keyAgreementDIDKey, err := CreateDIDKey(crypto.X25519, x25519Key)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "could not multibase encode x25519 public key")
-		}
-		verificationMethod, vmErr = did.ConstructMultibaseVerificationMethod(keyAgreementDIDKey.String(), vm.ID, x25519Key, cryptosuite.X25519KeyAgreementKey2020)
-		verificationMethodSet = []did.VerificationMethodSet{keyAgreementDIDKey.String()}
+		verificationMethod, vmErr = did.ConstructMultibaseVerificationMethod(id, vm.Controller, x25519Key, cryptosuite.X25519KeyAgreementKey2020)
+		verificationMethodSet = []did.VerificationMethodSet{id}
 	} else if vm.Type == cryptosuite.JSONWebKey2020Type && vm.PublicKeyJWK.KTY == string(cryptosuite.OKP) &&
 		vm.PublicKeyJWK.CRV == string(cryptosuite.Ed25519) {
 		// convert key to X25519
@@ -298,20 +302,32 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not convert ed25519 public key to x25519")
 		}
-		x25519Key, err := toX25519Key(ed25519PubKey.(ed25519.PublicKey))
+		id, x25519Key, err := x25519KeyAndID(vm.Controller, ed25519PubKey)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "could not convert ed25519 public key to x25519")
+			return nil, nil, errors.Wrap(err, "could not generate x25519 key and id")
 		}
-		keyAgreementDIDKey, err := CreateDIDKey(crypto.X25519, x25519Key)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "could not multibase encode x25519 public key")
-		}
-		verificationMethod, vmErr = did.ConstructJWKVerificationMethod(keyAgreementDIDKey.String(), vm.ID, x25519Key, crypto.X25519)
-		verificationMethodSet = []did.VerificationMethodSet{keyAgreementDIDKey.String()}
+		verificationMethod, vmErr = did.ConstructJWKVerificationMethod(id, vm.ID, x25519Key, crypto.X25519)
+		verificationMethodSet = []did.VerificationMethodSet{id}
 	} else {
 		verificationMethodSet = []did.VerificationMethodSet{vm.ID}
 	}
 	return verificationMethod, verificationMethodSet, vmErr
+}
+
+func x25519KeyAndID(id string, ed25519PubKey gocrypto.PublicKey) (string, []byte, error) {
+	x25519Key, err := toX25519Key(ed25519PubKey.(ed25519.PublicKey))
+	if err != nil {
+		return "", nil, errors.Wrap(err, "could not convert ed25519 public key to x25519")
+	}
+	keyAgreementDIDKey, err := CreateDIDKey(crypto.X25519, x25519Key)
+	if err != nil {
+		return "", nil, errors.Wrap(err, "could not multibase encode x25519 public key")
+	}
+	suffix, err := keyAgreementDIDKey.Suffix()
+	if err != nil {
+		return "", nil, errors.Wrap(err, "could not get suffix from did:key")
+	}
+	return id + "#" + suffix, x25519Key, nil
 }
 
 func toX25519Key(pubKey ed25519.PublicKey) (x25519.PublicKey, error) {

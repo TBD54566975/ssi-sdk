@@ -275,11 +275,11 @@ func ConstructJWKVerificationMethod(id, controller string, pubKey []byte, crypto
 }
 
 // ConstructMultibaseVerificationMethod builds a DID verification method with a known LD key type as a multibase encoded key
-func ConstructMultibaseVerificationMethod(id, keyReference string, pubKey []byte, keyType cryptosuite.LDKeyType) (*VerificationMethod, error) {
+func ConstructMultibaseVerificationMethod(id, controller string, pubKey []byte, keyType cryptosuite.LDKeyType) (*VerificationMethod, error) {
 	return &VerificationMethod{
-		ID:              keyReference,
+		ID:              id,
 		Type:            keyType,
-		Controller:      id,
+		Controller:      controller,
 		PublicKeyBase58: base58.Encode(pubKey),
 	}, nil
 }
