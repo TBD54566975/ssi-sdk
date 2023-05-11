@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/stretchr/testify/assert"
@@ -24,6 +26,34 @@ const (
 	SECP256k1TestVector     string = "secp256k1.json"
 )
 
+func TestJWK(t *testing.T) {
+	pk := jwx.PublicKeyJWK{
+		KTY: "EC",
+		CRV: "P-256",
+		X:   "igrFmi0whuihKnj9R3Om1SoMph72wUGeFaBbzG2vzns",
+		Y:   "efsX5b10x8yjyrj4ny3pGfLcY7Xby1KzgqOdqnsrJIM",
+	}
+	pubKey, err := pk.ToPublicKey()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, pubKey)
+
+	pkBytes, err := crypto.PubKeyToBytes(pubKey)
+	assert.NoError(t, err)
+
+	didKey, err := CreateDIDKey(crypto.P256, pkBytes)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, didKey)
+
+	didDoc, err := didKey.Expand()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, didDoc)
+
+	didDocBytes, err := json.Marshal(didDoc)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, didDocBytes)
+	println(string(didDocBytes))
+}
+
 func TestKnownTestVectors(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -37,27 +67,28 @@ func TestKnownTestVectors(t *testing.T) {
 		// 	name:     "X25519",
 		// 	testFile: X25519TestVector,
 		// },
-		// {
-		// 	name:     "NIST Curves",
-		// 	testFile: NISTCurvesTestVector,
-		// },
-		// {
-		// 	name:     "RSA",
-		// 	testFile: RSATestVector,
-		// },
-		// {
-		// 	name:     "secp256k1",
-		// 	testFile: SECP256k1TestVector,
-		// },
+		{
+			name:     "NIST Curves",
+			testFile: NISTCurvesTestVector,
+		},
+		{
+			name:     "RSA",
+			testFile: RSATestVector,
+		},
+		{
+			name:     "secp256k1",
+			testFile: SECP256k1TestVector,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
 			testVector := retrieveTestVector(tt, test.testFile)
 			limit := 0
 			for id, vector := range testVector {
-				if limit == 1 {
-					break
-				}
+				// if limit > 0 {
+				// 	break
+				// }
+
 				didKey := DIDKey(id)
 
 				var pubKeyFormatOption Option
@@ -73,14 +104,14 @@ func TestKnownTestVectors(t *testing.T) {
 				assert.Equal(tt, string(didKey), didDoc.ID)
 				assert.Equal(tt, len(didDoc.VerificationMethod), len(vector.DIDDocument.VerificationMethod))
 				assert.Equal(tt, didDoc.Authentication, vector.DIDDocument.Authentication)
-				assert.Equal(tt, didDoc.CapabilityInvocation, vector.DIDDocument.CapabilityInvocation)
 				assert.Equal(tt, didDoc.AssertionMethod, vector.DIDDocument.AssertionMethod)
+				assert.Equal(tt, didDoc.KeyAgreement, vector.DIDDocument.KeyAgreement)
+				assert.Equal(tt, didDoc.CapabilityInvocation, vector.DIDDocument.CapabilityInvocation)
 				assert.Equal(tt, didDoc.CapabilityDelegation, vector.DIDDocument.CapabilityDelegation)
 
 				ourDIDBytes, err := json.Marshal(didDoc)
 				assert.NoError(tt, err)
 				limit++
-
 				println(string(ourDIDBytes))
 			}
 		})
