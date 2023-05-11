@@ -1,14 +1,14 @@
 package cryptosuite
 
 import (
+	"fmt"
+
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	bbs "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
 	"github.com/mr-tron/base58"
 )
 
 const (
-	BLS12381G2Key2020 LDKeyType = "Bls12381G2Key2020"
-
 	G1 CRV = "BLS12381_G1"
 	G2 CRV = "BLS12381_G2"
 )
@@ -47,6 +47,9 @@ func (b BLSKey2020) GetPrivateKey() (*bbs.PrivateKey, error) {
 
 // GenerateBLSKey2020 https://w3c-ccg.github.io/vc-di-bbs/#bls12-381
 func GenerateBLSKey2020(keyType LDKeyType) (*BLSKey2020, error) {
+	if keyType != BLS12381G2Key2020 {
+		return nil, fmt.Errorf("unsupported key type %s", keyType)
+	}
 	pubKey, privKey, err := crypto.GenerateBBSKeyPair()
 	if err != nil {
 		return nil, err

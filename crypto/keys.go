@@ -96,8 +96,10 @@ func PubKeyToBytes(key crypto.PublicKey) ([]byte, error) {
 // It is assumed the key was turned into byte form using the sibling method `PubKeyToBytes`
 func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 	switch kt {
-	case Ed25519, X25519:
+	case Ed25519:
 		return ed25519.PublicKey(keyBytes), nil
+	case X25519:
+		return x25519.PublicKey(keyBytes), nil
 	case SECP256k1:
 		pubKey, err := secp.ParsePubKey(keyBytes)
 		if err != nil {

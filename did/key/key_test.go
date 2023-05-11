@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/goccy/go-json"
 	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-multicodec"
 
@@ -158,23 +157,22 @@ func TestDecodeDIDKey(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, didKey)
 
-		pubKey, ldKeyType, cryptoKeyType, err := didKey.Decode()
+		pubKey, cryptoKeyType, err := didKey.Decode()
 		assert.NoError(t, err)
 		assert.NotEmpty(t, pubKey)
-		assert.Equal(t, ldKeyType, cryptosuite.Ed25519VerificationKey2018)
 		assert.Equal(t, cryptoKeyType, crypto.Ed25519)
 	})
 
 	t.Run("bad DID", func(t *testing.T) {
 		badDID := DIDKey("bad")
-		_, _, _, err := badDID.Decode()
+		_, _, err := badDID.Decode()
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "could not parse did:key")
 	})
 
 	t.Run("DID but not a valid did:key", func(t *testing.T) {
 		badDID := DIDKey("did:key:bad")
-		_, _, _, err := badDID.Decode()
+		_, _, err := badDID.Decode()
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "expected 122 encoding but found 98")
 	})
@@ -218,12 +216,9 @@ func TestGenerateAndDecodeDIDKey(t *testing.T) {
 		assert.NotEmpty(t, privKey)
 		assert.NoError(t, err)
 
-		expectedLLKeyType, _ := did.KeyTypeToLDKeyType(kt)
-
-		pubKey, ldKeyType, cryptoKeyType, err := didKey.Decode()
+		pubKey, cryptoKeyType, err := didKey.Decode()
 		assert.NoError(t, err)
 		assert.NotEmpty(t, pubKey)
-		assert.Equal(t, ldKeyType, expectedLLKeyType)
 		assert.Equal(t, cryptoKeyType, kt)
 	}
 }
@@ -369,8 +364,6 @@ func TestKnownTestVectors(t *testing.T) {
 		did1 := "did:key:z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp"
 		didKey1 := DIDKey(did1)
 		didDoc1, err := didKey1.Expand()
-		b, _ := json.Marshal(didDoc1)
-		println(string(b))
 		assert.NoError(tt, err)
 		assert.Equal(tt, did1, didDoc1.ID)
 		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))

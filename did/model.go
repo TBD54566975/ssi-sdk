@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/multiformats/go-multibase"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
-
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
@@ -83,18 +82,26 @@ func (d *Document) IsValid() error {
 	return util.NewValidator().Struct(d)
 }
 
-// KeyTypeToLDKeyType converts crypto.KeyType to cryptosuite.LDKeyType
-func KeyTypeToLDKeyType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
+// KeyTypeToMultikeyLDType converts crypto.KeyType to cryptosuite.LDKeyType for non JWKs
+func KeyTypeToMultikeyLDType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
 	switch kt {
 	case crypto.Ed25519:
-		return cryptosuite.Ed25519VerificationKey2018, nil
+		return cryptosuite.Ed25519VerificationKey2020, nil
 	case crypto.X25519:
-		return cryptosuite.X25519KeyAgreementKey2019, nil
+		return cryptosuite.X25519KeyAgreementKey2020, nil
 	case crypto.SECP256k1:
 		return cryptosuite.ECDSASECP256k1VerificationKey2019, nil
-	case crypto.P256, crypto.P384, crypto.P521, crypto.RSA:
-		return cryptosuite.JSONWebKey2020Type, nil
+	case crypto.P256:
+		return cryptosuite.P256Key2021, nil
+	case crypto.P384:
+		return cryptosuite.P384Key2021, nil
+	case crypto.P521:
+		return cryptosuite.P521Key2021, nil
+	case crypto.BLS12381G1:
+		return cryptosuite.BLS12381G1Key2020, nil
+	case crypto.BLS12381G2:
+		return cryptosuite.BLS12381G2Key2020, nil
 	default:
-		return "", fmt.Errorf("keyType %+v failed to convert to LDKeyType", kt)
+		return "", fmt.Errorf("keyType %+v failed to convert to multikey LDKeyType", kt)
 	}
 }

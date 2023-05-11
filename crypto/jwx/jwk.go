@@ -416,12 +416,12 @@ func jwkFromEd25519PublicKey(key ed25519.PublicKey) (*PublicKeyJWK, error) {
 		return nil, errors.New("failed casting to ed25519 jwk")
 	}
 
-	ed25519JWKBytes, err := json.Marshal(ed25519JWK)
+	x25519JWKBytes, err := json.Marshal(ed25519JWK)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling ed25519 jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
-	if err = json.Unmarshal(ed25519JWKBytes, &publicKeyJWK); err != nil {
+	if err = json.Unmarshal(x25519JWKBytes, &publicKeyJWK); err != nil {
 		return nil, errors.Wrap(err, "unmarshalling ed25519 jwk")
 	}
 	return &publicKeyJWK, nil
@@ -429,12 +429,50 @@ func jwkFromEd25519PublicKey(key ed25519.PublicKey) (*PublicKeyJWK, error) {
 
 // jwkFromX25519PrivateKey converts a X25519 private key to a JWK
 func jwkFromX25519PrivateKey(key x25519.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
-	return jwkFromEd25519PrivateKey(ed25519.PrivateKey(key))
+	x25519JWKGeneric, err := jwk.FromRaw(key)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "generating x25519 jwk")
+	}
+	x25519JWK, ok := x25519JWKGeneric.(jwk.OKPPrivateKey)
+	if !ok {
+		return nil, nil, errors.New("failed casting x25519 jwk")
+	}
+
+	ed25519JWKBytes, err := json.Marshal(x25519JWK)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "marshalling ed25519 jwk")
+	}
+	var publicKeyJWK PublicKeyJWK
+	if err = json.Unmarshal(ed25519JWKBytes, &publicKeyJWK); err != nil {
+		return nil, nil, errors.Wrap(err, "unmarshalling ed25519 jwk")
+	}
+	var privateKeyJWK PrivateKeyJWK
+	if err = json.Unmarshal(ed25519JWKBytes, &privateKeyJWK); err != nil {
+		return nil, nil, errors.Wrap(err, "unmarshalling ed25519 jwk")
+	}
+	return &publicKeyJWK, &privateKeyJWK, nil
 }
 
 // jwkFromX25519PublicKey converts a X25519 public key to a JWK
 func jwkFromX25519PublicKey(key x25519.PublicKey) (*PublicKeyJWK, error) {
-	return jwkFromEd25519PublicKey(ed25519.PublicKey(key))
+	x25519JWKGeneric, err := jwk.FromRaw(key)
+	if err != nil {
+		return nil, errors.Wrap(err, "generating x25519 jwk")
+	}
+	x25519JWK, ok := x25519JWKGeneric.(jwk.OKPPublicKey)
+	if !ok {
+		return nil, errors.New("failed casting to x25519 jwk")
+	}
+
+	x25519JWKBytes, err := json.Marshal(x25519JWK)
+	if err != nil {
+		return nil, errors.Wrap(err, "marshalling x25519 jwk")
+	}
+	var publicKeyJWK PublicKeyJWK
+	if err = json.Unmarshal(x25519JWKBytes, &publicKeyJWK); err != nil {
+		return nil, errors.Wrap(err, "unmarshalling x25519 jwk")
+	}
+	return &publicKeyJWK, nil
 }
 
 // jwkFromSECP256k1PrivateKey converts a SECP256k1 private key to a JWK

@@ -26,7 +26,7 @@ func FuzzCreateAndDecode(f *testing.F) {
 		didKey, err := CreateDIDKey(kt, pubKey)
 		assert.NoError(t, err)
 
-		recvPubKey, _, _, err := didKey.Decode()
+		recvPubKey, _, err := didKey.Decode()
 		assert.NoError(t, err)
 		assert.Equal(t, pubKey, recvPubKey)
 	})

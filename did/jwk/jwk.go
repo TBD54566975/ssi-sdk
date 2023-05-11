@@ -21,8 +21,7 @@ type (
 
 const (
 	// Prefix did:jwk prefix
-	Prefix         = "did:jwk"
-	JWS2020Context = "https://w3id.org/security/suites/jws-2020/v1"
+	Prefix = "did:jwk"
 )
 
 func (d JWK) IsValid() bool {
@@ -117,7 +116,7 @@ func (d JWK) Expand() (*did.Document, error) {
 	keyID := id + keyReference
 
 	doc := did.Document{
-		Context: []string{did.KnownDIDContext, JWS2020Context},
+		Context: []string{did.KnownDIDContext, cryptosuite.JSONWebKey2020Context},
 		ID:      id,
 		VerificationMethod: []did.VerificationMethod{
 			{

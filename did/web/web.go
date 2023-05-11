@@ -55,14 +55,10 @@ func (DIDWeb) Method() did.Method {
 // expected further turned into a JSON file named did.json and stored under the expected path of the target web domain
 // specification: https://w3c-ccg.github.io/did-method-web/#create-register
 func (d DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*did.Document, error) {
-	ldKeyType, err := did.KeyTypeToLDKeyType(kt)
-	if err != nil {
-		return nil, err
-	}
 	didWebStr := string(d)
 	keyReference := didWebStr + "#owner"
 
-	verificationMethod, err := did.ConstructJWKVerificationMethod(didWebStr, keyReference, publicKey, ldKeyType, kt)
+	verificationMethod, err := did.ConstructJWKVerificationMethod(didWebStr, keyReference, publicKey, kt)
 	if err != nil {
 		return nil, fmt.Errorf("could not construct verification method for DIDWeb %+v", d)
 	}

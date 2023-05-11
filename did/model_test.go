@@ -7,9 +7,6 @@ import (
 	"github.com/goccy/go-json"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 )
 
 // These test vectors are taken from the did-core spec example
@@ -59,32 +56,6 @@ func TestDIDDocument(t *testing.T) {
 		ID: "did:test:123",
 	}
 	assert.False(t, did.IsEmpty())
-}
-
-func TestKeyTypeToLDKeyType(t *testing.T) {
-	kt, err := KeyTypeToLDKeyType(crypto.Ed25519)
-	assert.NoError(t, err)
-	assert.Equal(t, kt, cryptosuite.Ed25519VerificationKey2018)
-
-	kt, err = KeyTypeToLDKeyType(crypto.X25519)
-	assert.NoError(t, err)
-	assert.Equal(t, kt, cryptosuite.X25519KeyAgreementKey2019)
-
-	kt, err = KeyTypeToLDKeyType(crypto.SECP256k1)
-	assert.NoError(t, err)
-	assert.Equal(t, kt, cryptosuite.ECDSASECP256k1VerificationKey2019)
-
-	kt, err = KeyTypeToLDKeyType(crypto.Ed25519)
-	assert.NoError(t, err)
-	assert.Equal(t, kt, cryptosuite.Ed25519VerificationKey2018)
-
-	kt, err = KeyTypeToLDKeyType(crypto.P256)
-	assert.NoError(t, err)
-	assert.Equal(t, kt, cryptosuite.JSONWebKey2020Type)
-
-	_, err = KeyTypeToLDKeyType(crypto.KeyType("bad"))
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "keyType bad failed to convert to LDKeyType")
 }
 
 func getTestVector(fileName string) (string, error) {

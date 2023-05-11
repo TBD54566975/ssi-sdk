@@ -20,8 +20,6 @@ type (
 )
 
 const (
-	JSONWebKey2020Type LDKeyType = "JsonWebKey2020"
-
 	// Supported key types
 
 	OKP KTY = "OKP"
