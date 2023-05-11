@@ -5,10 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
-	"github.com/mr-tron/base58"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,34 +24,15 @@ const (
 	SECP256k1TestVector     string = "secp256k1.json"
 )
 
-func TestMB(t *testing.T) {
-	pk := "4Dy8E9UaZscuPUf2GLxV44RCNL7oxmEXXkgWXaug1WKV"
-	pkBytes, err := base58.Decode(pk)
-	assert.NoError(t, err)
-
-	didKey, err := CreateDIDKey(crypto.X25519, pkBytes)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, didKey)
-
-	didDoc, err := didKey.Expand()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, didDoc)
-
-	didDocBytes, err := json.Marshal(didDoc)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, didDocBytes)
-	println(string(didDocBytes))
-}
-
 func TestKnownTestVectors(t *testing.T) {
 	tests := []struct {
 		name     string
 		testFile string
 	}{
-		// {
-		// 	name:     "Ed25519/X25519",
-		// 	testFile: Ed25519X25519TestVector,
-		// },
+		{
+			name:     "Ed25519/X25519",
+			testFile: Ed25519X25519TestVector,
+		},
 		{
 			name:     "X25519",
 			testFile: X25519TestVector,
@@ -74,12 +53,7 @@ func TestKnownTestVectors(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
 			testVector := retrieveTestVector(tt, test.testFile)
-			limit := 0
 			for id, vector := range testVector {
-				if limit > 0 {
-					break
-				}
-
 				didKey := DIDKey(id)
 
 				var pubKeyFormatOption Option
@@ -108,11 +82,6 @@ func TestKnownTestVectors(t *testing.T) {
 				assert.Equal(tt, vector.DIDDocument.KeyAgreement, didDoc.KeyAgreement)
 				assert.Equal(tt, vector.DIDDocument.CapabilityInvocation, didDoc.CapabilityInvocation)
 				assert.Equal(tt, vector.DIDDocument.CapabilityDelegation, didDoc.CapabilityDelegation)
-
-				ourDIDBytes, err := json.Marshal(didDoc)
-				assert.NoError(tt, err)
-				limit++
-				println(string(ourDIDBytes))
 			}
 		})
 	}

@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lestrrat-go/jwx/v2/x25519"
+	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/jorrizza/ed2curve25519"
 	"github.com/mr-tron/base58"
 	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-multicodec"
-	"golang.org/x/crypto/curve25519"
-
-	"github.com/TBD54566975/ssi-sdk/did"
 
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 
@@ -265,9 +263,11 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 	doc.Context = contexts
 
 	// X25519 doesn't have any property except key agreement
+	x25519Key := false
 	if (publicKeyFormat == cryptosuite.JSONWebKey2020Type && verificationMethod.PublicKeyJWK.CRV == string(cryptosuite.X25519)) ||
 		(publicKeyFormat == cryptosuite.MultikeyType && (verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2020 ||
 			verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2019)) {
+		x25519Key = true
 		doc.Authentication = nil
 		doc.AssertionMethod = nil
 		doc.CapabilityDelegation = nil
@@ -277,7 +277,7 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 
 	// https://w3c-ccg.github.io/did-method-key/#derive-encryption-key-algorithm
 	// the only case we have to consider is if the verification method is X25519
-	if enableEncryptionDerivation {
+	if enableEncryptionDerivation && !x25519Key {
 		keyAgreementVerificationMethod, keyAgreementVerificationMethodSet, err := generateKeyAgreementVerificationMethod(*verificationMethod)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not generate key agreement verification method")
@@ -305,7 +305,7 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not convert base58 public key to ed25519")
 		}
-		id, x25519Key, err := x25519KeyAndID(vm.ID, ed25519PubKey)
+		id, x25519Key, err := x25519KeyAndID(vm.Controller, ed25519PubKey.(ed25519.PublicKey))
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not generate x25519 key and id")
 		}
@@ -318,7 +318,7 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not convert ed25519 public key to x25519")
 		}
-		id, x25519Key, err := x25519KeyAndID(vm.ID, ed25519PubKey)
+		id, x25519Key, err := x25519KeyAndID(vm.Controller, ed25519PubKey.(ed25519.PublicKey))
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not generate x25519 key and id")
 		}
@@ -330,11 +330,11 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 	return verificationMethod, verificationMethodSet, vmErr
 }
 
-func x25519KeyAndID(id string, ed25519PubKey gocrypto.PublicKey) (string, []byte, error) {
-	x25519Key, err := toX25519Key(ed25519PubKey.(ed25519.PublicKey))
-	if err != nil {
-		return "", nil, errors.Wrap(err, "could not convert ed25519 public key to x25519")
+func x25519KeyAndID(id string, ed25519PubKey ed25519.PublicKey) (string, []byte, error) {
+	if len(ed25519PubKey) != ed25519.PublicKeySize {
+		return "", nil, errors.New("ed25519 public key is not the right size")
 	}
+	x25519Key := ed2curve25519.Ed25519PublicKeyToCurve25519(ed25519PubKey)
 	keyAgreementDIDKey, err := CreateDIDKey(crypto.X25519, x25519Key)
 	if err != nil {
 		return "", nil, errors.Wrap(err, "could not multibase encode x25519 public key")
@@ -344,13 +344,6 @@ func x25519KeyAndID(id string, ed25519PubKey gocrypto.PublicKey) (string, []byte
 		return "", nil, errors.Wrap(err, "could not get suffix from did:key")
 	}
 	return id + "#" + suffix, x25519Key, nil
-}
-
-func toX25519Key(pubKey ed25519.PublicKey) (x25519.PublicKey, error) {
-	// Convert the Ed25519 public key to an X25519 public key
-	var xPubKey [32]byte
-	curve25519.ScalarBaseMult(&xPubKey, (*[32]byte)(pubKey))
-	return xPubKey[:], nil
 }
 
 func processExpansionOptions(opts ...Option) (cryptosuite.LDKeyType, bool, error) {
