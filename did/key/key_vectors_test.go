@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
+	"github.com/mr-tron/base58"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,21 +26,12 @@ const (
 	SECP256k1TestVector     string = "secp256k1.json"
 )
 
-func TestJWK(t *testing.T) {
-	pk := jwx.PublicKeyJWK{
-		KTY: "EC",
-		CRV: "P-256",
-		X:   "igrFmi0whuihKnj9R3Om1SoMph72wUGeFaBbzG2vzns",
-		Y:   "efsX5b10x8yjyrj4ny3pGfLcY7Xby1KzgqOdqnsrJIM",
-	}
-	pubKey, err := pk.ToPublicKey()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, pubKey)
-
-	pkBytes, err := crypto.PubKeyToBytes(pubKey)
+func TestMB(t *testing.T) {
+	pk := "4Dy8E9UaZscuPUf2GLxV44RCNL7oxmEXXkgWXaug1WKV"
+	pkBytes, err := base58.Decode(pk)
 	assert.NoError(t, err)
 
-	didKey, err := CreateDIDKey(crypto.P256, pkBytes)
+	didKey, err := CreateDIDKey(crypto.X25519, pkBytes)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, didKey)
 
@@ -63,10 +54,10 @@ func TestKnownTestVectors(t *testing.T) {
 		// 	name:     "Ed25519/X25519",
 		// 	testFile: Ed25519X25519TestVector,
 		// },
-		// {
-		// 	name:     "X25519",
-		// 	testFile: X25519TestVector,
-		// },
+		{
+			name:     "X25519",
+			testFile: X25519TestVector,
+		},
 		{
 			name:     "NIST Curves",
 			testFile: NISTCurvesTestVector,
@@ -85,9 +76,9 @@ func TestKnownTestVectors(t *testing.T) {
 			testVector := retrieveTestVector(tt, test.testFile)
 			limit := 0
 			for id, vector := range testVector {
-				// if limit > 0 {
-				// 	break
-				// }
+				if limit > 0 {
+					break
+				}
 
 				didKey := DIDKey(id)
 
@@ -97,17 +88,24 @@ func TestKnownTestVectors(t *testing.T) {
 				} else {
 					pubKeyFormatOption = PublicKeyFormatMultibase
 				}
-				didDoc, err := didKey.Expand(pubKeyFormatOption)
+
+				var enableEncryptionKeyDerivationOption Option
+				if len(vector.DIDDocument.VerificationMethod) < 2 {
+					enableEncryptionKeyDerivationOption = DisableEncryptionKeyDerivation
+				} else {
+					enableEncryptionKeyDerivationOption = EnableEncryptionKeyDerivation
+				}
+				didDoc, err := didKey.Expand(pubKeyFormatOption, enableEncryptionKeyDerivationOption)
 				assert.NoError(tt, err)
 				assert.NotEmpty(tt, didDoc)
 
 				assert.Equal(tt, string(didKey), didDoc.ID)
-				assert.Equal(tt, len(didDoc.VerificationMethod), len(vector.DIDDocument.VerificationMethod))
-				assert.Equal(tt, didDoc.Authentication, vector.DIDDocument.Authentication)
-				assert.Equal(tt, didDoc.AssertionMethod, vector.DIDDocument.AssertionMethod)
-				assert.Equal(tt, didDoc.KeyAgreement, vector.DIDDocument.KeyAgreement)
-				assert.Equal(tt, didDoc.CapabilityInvocation, vector.DIDDocument.CapabilityInvocation)
-				assert.Equal(tt, didDoc.CapabilityDelegation, vector.DIDDocument.CapabilityDelegation)
+				assert.Equal(tt, len(vector.DIDDocument.VerificationMethod), len(didDoc.VerificationMethod))
+				assert.Equal(tt, vector.DIDDocument.Authentication, didDoc.Authentication)
+				assert.Equal(tt, vector.DIDDocument.AssertionMethod, didDoc.AssertionMethod)
+				assert.Equal(tt, vector.DIDDocument.KeyAgreement, didDoc.KeyAgreement)
+				assert.Equal(tt, vector.DIDDocument.CapabilityInvocation, didDoc.CapabilityInvocation)
+				assert.Equal(tt, vector.DIDDocument.CapabilityDelegation, didDoc.CapabilityDelegation)
 
 				ourDIDBytes, err := json.Marshal(didDoc)
 				assert.NoError(tt, err)

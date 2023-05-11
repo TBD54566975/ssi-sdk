@@ -70,6 +70,11 @@ var (
 		Value: true,
 	}
 
+	DisableEncryptionKeyDerivation = Option{
+		Name:  EnableEncryptionKeyDerivationOption,
+		Value: false,
+	}
+
 	PublicKeyFormatJSONWebKey2020 = Option{
 		Name:  PublicKeyFormatOption,
 		Value: cryptosuite.JSONWebKey2020Type,
@@ -227,6 +232,25 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 	// always include the first key as a verification method
 	verificationMethodSet := []did.VerificationMethodSet{keyID}
 
+	doc := did.Document{
+		ID:                   id,
+		VerificationMethod:   []did.VerificationMethod{*verificationMethod},
+		Authentication:       verificationMethodSet,
+		AssertionMethod:      verificationMethodSet,
+		CapabilityDelegation: verificationMethodSet,
+		CapabilityInvocation: verificationMethodSet,
+	}
+
+	// X25519 doesn't have any property except key agreement
+	if (publicKeyFormat == cryptosuite.JSONWebKey2020Type && verificationMethod.PublicKeyJWK.CRV == string(cryptosuite.X25519)) ||
+		(publicKeyFormat == cryptosuite.MultikeyType && (verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2020 ||
+			verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2019)) {
+		doc.Authentication = nil
+		doc.AssertionMethod = nil
+		doc.CapabilityDelegation = nil
+		doc.CapabilityInvocation = nil
+	}
+
 	// https://w3c-ccg.github.io/did-method-key/#context-creation-algorithm
 	contexts := []string{did.KnownDIDContext}
 	if publicKeyFormat == cryptosuite.JSONWebKey2020Type {
@@ -248,16 +272,7 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 			contexts = append(contexts, cryptosuite.Multikey2021Context)
 		}
 	}
-
-	doc := did.Document{
-		Context:              contexts,
-		ID:                   id,
-		VerificationMethod:   []did.VerificationMethod{*verificationMethod},
-		Authentication:       verificationMethodSet,
-		AssertionMethod:      verificationMethodSet,
-		CapabilityDelegation: verificationMethodSet,
-		CapabilityInvocation: verificationMethodSet,
-	}
+	doc.Context = contexts
 
 	// https://w3c-ccg.github.io/did-method-key/#derive-encryption-key-algorithm
 	// the only case we have to consider is if the verification method is X25519
