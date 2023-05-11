@@ -241,16 +241,6 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 		CapabilityInvocation: verificationMethodSet,
 	}
 
-	// X25519 doesn't have any property except key agreement
-	if (publicKeyFormat == cryptosuite.JSONWebKey2020Type && verificationMethod.PublicKeyJWK.CRV == string(cryptosuite.X25519)) ||
-		(publicKeyFormat == cryptosuite.MultikeyType && (verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2020 ||
-			verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2019)) {
-		doc.Authentication = nil
-		doc.AssertionMethod = nil
-		doc.CapabilityDelegation = nil
-		doc.CapabilityInvocation = nil
-	}
-
 	// https://w3c-ccg.github.io/did-method-key/#context-creation-algorithm
 	contexts := []string{did.KnownDIDContext}
 	if publicKeyFormat == cryptosuite.JSONWebKey2020Type {
@@ -273,6 +263,17 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 		}
 	}
 	doc.Context = contexts
+
+	// X25519 doesn't have any property except key agreement
+	if (publicKeyFormat == cryptosuite.JSONWebKey2020Type && verificationMethod.PublicKeyJWK.CRV == string(cryptosuite.X25519)) ||
+		(publicKeyFormat == cryptosuite.MultikeyType && (verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2020 ||
+			verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2019)) {
+		doc.Authentication = nil
+		doc.AssertionMethod = nil
+		doc.CapabilityDelegation = nil
+		doc.CapabilityInvocation = nil
+		doc.KeyAgreement = []did.VerificationMethodSet{keyID}
+	}
 
 	// https://w3c-ccg.github.io/did-method-key/#derive-encryption-key-algorithm
 	// the only case we have to consider is if the verification method is X25519
@@ -317,11 +318,11 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not convert ed25519 public key to x25519")
 		}
-		id, x25519Key, err := x25519KeyAndID(vm.Controller, ed25519PubKey)
+		id, x25519Key, err := x25519KeyAndID(vm.ID, ed25519PubKey)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "could not generate x25519 key and id")
 		}
-		verificationMethod, vmErr = did.ConstructJWKVerificationMethod(id, vm.ID, x25519Key, crypto.X25519)
+		verificationMethod, vmErr = did.ConstructJWKVerificationMethod(id, vm.Controller, x25519Key, crypto.X25519)
 		verificationMethodSet = []did.VerificationMethodSet{id}
 	} else {
 		verificationMethodSet = []did.VerificationMethodSet{vm.ID}
@@ -358,6 +359,8 @@ func processExpansionOptions(opts ...Option) (cryptosuite.LDKeyType, bool, error
 	var ok bool
 	for _, opt := range opts {
 		switch opt.Name {
+		case "":
+			continue
 		case PublicKeyFormatOption:
 			publicKeyFormat, ok = opt.Value.(cryptosuite.LDKeyType)
 			if !ok {

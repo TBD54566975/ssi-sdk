@@ -92,7 +92,9 @@ func TestKnownTestVectors(t *testing.T) {
 				var enableEncryptionKeyDerivationOption Option
 				if len(vector.DIDDocument.VerificationMethod) < 2 {
 					enableEncryptionKeyDerivationOption = DisableEncryptionKeyDerivation
-				} else {
+				}
+				// note: all other test vectors have this flag set
+				if test.name != "Ed25519/X25519" && test.name != "X25519" {
 					enableEncryptionKeyDerivationOption = EnableEncryptionKeyDerivation
 				}
 				didDoc, err := didKey.Expand(pubKeyFormatOption, enableEncryptionKeyDerivationOption)
