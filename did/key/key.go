@@ -311,6 +311,7 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 		}
 		verificationMethod, vmErr = did.ConstructMultibaseVerificationMethod(id, vm.Controller, x25519Key, cryptosuite.X25519KeyAgreementKey2020)
 		verificationMethodSet = []did.VerificationMethodSet{id}
+		return verificationMethod, verificationMethodSet, vmErr
 	} else if vm.Type == cryptosuite.JSONWebKey2020Type && vm.PublicKeyJWK.KTY == string(cryptosuite.OKP) &&
 		vm.PublicKeyJWK.CRV == string(cryptosuite.Ed25519) {
 		// convert key to X25519
