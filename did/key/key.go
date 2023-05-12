@@ -263,7 +263,7 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 	doc.Context = contexts
 
 	// X25519 doesn't have any property except key agreement
-	x25519Key := false
+	isVerificationMethodX25519Key := false
 	if (publicKeyFormat == cryptosuite.JSONWebKey2020Type && verificationMethod.PublicKeyJWK.CRV == string(cryptosuite.X25519)) ||
 		(publicKeyFormat == cryptosuite.MultikeyType && (verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2020 ||
 			verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2019)) {
