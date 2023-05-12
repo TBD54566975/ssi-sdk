@@ -317,7 +317,7 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 		// convert key to X25519
 		ed25519PubKey, err := vm.PublicKeyJWK.ToPublicKey()
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "could not convert ed25519 public key to x25519")
+			return nil, nil, errors.Wrap(err, "converting ed25519 public key to x25519")
 		}
 		id, x25519Key, err := x25519KeyAndID(vm.Controller, ed25519PubKey.(ed25519.PublicKey))
 		if err != nil {
