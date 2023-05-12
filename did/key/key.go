@@ -331,7 +331,7 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 	return verificationMethod, verificationMethodSet, vmErr
 }
 
-func x25519KeyAndID(id string, ed25519PubKey ed25519.PublicKey) (string, []byte, error) {
+func x25519KeyAndID(id string, ed25519PubKey ed25519.PublicKey) ([]byte, string, error) {
 	if len(ed25519PubKey) != ed25519.PublicKeySize {
 		return "", nil, errors.New("ed25519 public key is not the right size")
 	}
