@@ -255,13 +255,13 @@ func DecodeMultibasePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyTyp
 }
 
 // ConstructJWKVerificationMethod builds a DID verification method with a known LD key type as a JWK
-func ConstructJWKVerificationMethod(id, controller string, pubKey []byte, cryptoKeyType crypto.KeyType) (*VerificationMethod, error) {
-	pubKeyBytes, err := crypto.BytesToPubKey(pubKey, cryptoKeyType)
+func ConstructJWKVerificationMethod(id, controller string, pubKeyBytes []byte, cryptoKeyType crypto.KeyType) (*VerificationMethod, error) {
+	pubKey, err := crypto.BytesToPubKey(pubKeyBytes, cryptoKeyType)
 	if err != nil {
 		return nil, errors.Wrap(err, "converting bytes to public key")
 	}
 
-	pubKeyJWK, err := jwx.PublicKeyToPublicKeyJWK(controller, pubKeyBytes)
+	pubKeyJWK, err := jwx.PublicKeyToPublicKeyJWK(controller, pubKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "could convert did:key to PublicKeyJWK")
 	}

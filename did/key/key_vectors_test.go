@@ -24,6 +24,7 @@ const (
 	SECP256k1TestVector     string = "secp256k1.json"
 )
 
+// https://github.com/w3c-ccg/did-method-key/tree/main/test-vectors
 func TestKnownTestVectors(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -105,7 +106,7 @@ func retrieveTestVector(t *testing.T, fileName string) map[string]didKeyTestVect
 	t.Helper()
 	testDataBytes, err := getTestData(fileName)
 	require.NoError(t, err)
-	output := make(map[string]didKeyTestVector)
+	var output map[string]didKeyTestVector
 	err = json.Unmarshal(testDataBytes, &output)
 	require.NoError(t, err)
 	return output
