@@ -142,7 +142,7 @@ func MultibaseEncodedKey(kt crypto.KeyType, publicKey []byte) (string, error) {
 	codec := append(prefix, publicKey...)
 	encoded, err := multibase.Encode(did.Base58BTCMultiBase, codec)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "multibase encoding")
 	}
 	return encoded, nil
 }
