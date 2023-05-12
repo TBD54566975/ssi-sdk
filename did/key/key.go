@@ -307,7 +307,7 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 		}
 		id, x25519Key, err := x25519KeyAndID(vm.Controller, ed25519PubKey.(ed25519.PublicKey))
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "could not generate x25519 key and id")
+			return nil, nil, errors.Wrap(err, "generating x25519 key and id")
 		}
 		verificationMethod, vmErr = did.ConstructMultibaseVerificationMethod(id, vm.Controller, x25519Key, cryptosuite.X25519KeyAgreementKey2020)
 		verificationMethodSet = []did.VerificationMethodSet{id}
