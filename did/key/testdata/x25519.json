@@ -1,0 +1,86 @@
+{
+  "did:key:z6LSeu9HkTHSfLLeUs2nnzUSNedgDUevfNQgQjQC23ZCit6F": {
+    "didDocument": {
+      "@context": [
+        "https://www.w3.org/ns/did/v1",
+        "https://w3id.org/security/suites/x25519-2019/v1"
+      ],
+      "id": "did:key:z6LSeu9HkTHSfLLeUs2nnzUSNedgDUevfNQgQjQC23ZCit6F",
+      "verificationMethod": [
+        {
+          "id": "did:key:z6LSeu9HkTHSfLLeUs2nnzUSNedgDUevfNQgQjQC23ZCit6F#z6LSeu9HkTHSfLLeUs2nnzUSNedgDUevfNQgQjQC23ZCit6F",
+          "type": "X25519KeyAgreementKey2019",
+          "controller": "did:key:z6LSeu9HkTHSfLLeUs2nnzUSNedgDUevfNQgQjQC23ZCit6F",
+          "publicKeyBase58": "4Dy8E9UaZscuPUf2GLxV44RCNL7oxmEXXkgWXaug1WKV"
+        }
+      ],
+      "keyAgreement": [
+        "did:key:z6LSeu9HkTHSfLLeUs2nnzUSNedgDUevfNQgQjQC23ZCit6F#z6LSeu9HkTHSfLLeUs2nnzUSNedgDUevfNQgQjQC23ZCit6F"
+      ]
+    }
+  },
+  "did:key:z6LStiZsmxiK4odS4Sb6JmdRFuJ6e1SYP157gtiCyJKfrYha": {
+    "didDocument": {
+      "@context": [
+        "https://www.w3.org/ns/did/v1",
+        "https://w3id.org/security/suites/x25519-2019/v1"
+      ],
+      "id": "did:key:z6LStiZsmxiK4odS4Sb6JmdRFuJ6e1SYP157gtiCyJKfrYha",
+      "verificationMethod": [
+        {
+          "id": "did:key:z6LStiZsmxiK4odS4Sb6JmdRFuJ6e1SYP157gtiCyJKfrYha#z6LStiZsmxiK4odS4Sb6JmdRFuJ6e1SYP157gtiCyJKfrYha",
+          "type": "X25519KeyAgreementKey2019",
+          "controller": "did:key:z6LStiZsmxiK4odS4Sb6JmdRFuJ6e1SYP157gtiCyJKfrYha",
+          "publicKeyBase58": "J3PiFeuSyLugy4DKn87TwK5cnruRgPtxouzXUqg99Avp"
+        }
+      ],
+      "keyAgreement": [
+        "did:key:z6LStiZsmxiK4odS4Sb6JmdRFuJ6e1SYP157gtiCyJKfrYha#z6LStiZsmxiK4odS4Sb6JmdRFuJ6e1SYP157gtiCyJKfrYha"
+      ]
+    }
+  },
+  "did:key:z6LSoMdmJz2Djah2P4L9taDmtqeJ6wwd2HhKZvNToBmvaczQ": {
+    "didDocument": {
+      "@context": [
+        "https://www.w3.org/ns/did/v1",
+        "https://w3id.org/security/suites/x25519-2019/v1"
+      ],
+      "id": "did:key:z6LSoMdmJz2Djah2P4L9taDmtqeJ6wwd2HhKZvNToBmvaczQ",
+      "verificationMethod": [
+        {
+          "id": "did:key:z6LSoMdmJz2Djah2P4L9taDmtqeJ6wwd2HhKZvNToBmvaczQ#z6LSoMdmJz2Djah2P4L9taDmtqeJ6wwd2HhKZvNToBmvaczQ",
+          "type": "X25519KeyAgreementKey2019",
+          "controller": "did:key:z6LSoMdmJz2Djah2P4L9taDmtqeJ6wwd2HhKZvNToBmvaczQ",
+          "publicKeyBase58": "CgTbngDMe7yHHfxPMvhpaFRpFoQWKgXAgwenJj8PsFDe"
+        }
+      ],
+      "keyAgreement": [
+        "did:key:z6LSoMdmJz2Djah2P4L9taDmtqeJ6wwd2HhKZvNToBmvaczQ#z6LSoMdmJz2Djah2P4L9taDmtqeJ6wwd2HhKZvNToBmvaczQ"
+      ]
+    }
+  },
+  "did:key:z6LSrzxMVydCourtpA6JLEYupT7ZUQ34hLfQZfRN5H47zLdz": {
+    "didDocument": {
+      "@context": [
+        "https://www.w3.org/ns/did/v1",
+        "https://w3id.org/security/suites/jws-2020/v1"
+      ],
+      "id": "did:key:z6LSrzxMVydCourtpA6JLEYupT7ZUQ34hLfQZfRN5H47zLdz",
+      "verificationMethod": [
+        {
+          "id": "did:key:z6LSrzxMVydCourtpA6JLEYupT7ZUQ34hLfQZfRN5H47zLdz#z6LSrzxMVydCourtpA6JLEYupT7ZUQ34hLfQZfRN5H47zLdz",
+          "type": "JsonWebKey2020",
+          "controller": "did:key:z6LSrzxMVydCourtpA6JLEYupT7ZUQ34hLfQZfRN5H47zLdz",
+          "publicKeyJwk": {
+            "kty": "OKP",
+            "crv": "X25519",
+            "x": "467ap28wHJGEXJAb4mLrokqq8A-txA_KmoQTcj31XzU"
+          }
+        }
+      ],
+      "keyAgreement": [
+        "did:key:z6LSrzxMVydCourtpA6JLEYupT7ZUQ34hLfQZfRN5H47zLdz#z6LSrzxMVydCourtpA6JLEYupT7ZUQ34hLfQZfRN5H47zLdz"
+      ]
+    }
+  }
+}

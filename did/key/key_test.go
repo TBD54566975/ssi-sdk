@@ -12,13 +12,11 @@ import (
 	"testing"
 
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/goccy/go-json"
 	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-multicodec"
 
 	"github.com/multiformats/go-varint"
 
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/did/resolution"
 
@@ -158,23 +156,22 @@ func TestDecodeDIDKey(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, didKey)
 
-		pubKey, ldKeyType, cryptoKeyType, err := didKey.Decode()
+		pubKey, cryptoKeyType, err := didKey.Decode()
 		assert.NoError(t, err)
 		assert.NotEmpty(t, pubKey)
-		assert.Equal(t, ldKeyType, cryptosuite.Ed25519VerificationKey2018)
 		assert.Equal(t, cryptoKeyType, crypto.Ed25519)
 	})
 
 	t.Run("bad DID", func(t *testing.T) {
 		badDID := DIDKey("bad")
-		_, _, _, err := badDID.Decode()
+		_, _, err := badDID.Decode()
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "could not parse did:key")
 	})
 
 	t.Run("DID but not a valid did:key", func(t *testing.T) {
 		badDID := DIDKey("did:key:bad")
-		_, _, _, err := badDID.Decode()
+		_, _, err := badDID.Decode()
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "expected 122 encoding but found 98")
 	})
@@ -218,12 +215,9 @@ func TestGenerateAndDecodeDIDKey(t *testing.T) {
 		assert.NotEmpty(t, privKey)
 		assert.NoError(t, err)
 
-		expectedLLKeyType, _ := did.KeyTypeToLDKeyType(kt)
-
-		pubKey, ldKeyType, cryptoKeyType, err := didKey.Decode()
+		pubKey, cryptoKeyType, err := didKey.Decode()
 		assert.NoError(t, err)
 		assert.NotEmpty(t, pubKey)
-		assert.Equal(t, ldKeyType, expectedLLKeyType)
 		assert.Equal(t, cryptoKeyType, kt)
 	}
 }
@@ -360,152 +354,5 @@ func TestDIDKeySignVerify(t *testing.T) {
 
 		err = rsa.VerifyPKCS1v15(&rsaPubKey, gocrypto.SHA256, digest[:], signature)
 		assert.NoError(t, err)
-	})
-}
-
-// From https://w3c-ccg.github.io/did-method-key/#test-vectors
-func TestKnownTestVectors(t *testing.T) {
-	t.Run("Ed25519 / X25519", func(tt *testing.T) {
-		did1 := "did:key:z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp"
-		didKey1 := DIDKey(did1)
-		didDoc1, err := didKey1.Expand()
-		b, _ := json.Marshal(didDoc1)
-		println(string(b))
-		assert.NoError(tt, err)
-		assert.Equal(tt, did1, didDoc1.ID)
-		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, cryptosuite.Ed25519VerificationKey2018, didDoc1.VerificationMethod[0].Type)
-
-		did2 := "did:key:z6MkjchhfUsD6mmvni8mCdXHw216Xrm9bQe2mBH1P5RDjVJG"
-		didKey2 := DIDKey(did2)
-		didDoc2, err := didKey2.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did2, didDoc2.ID)
-		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, cryptosuite.Ed25519VerificationKey2018, didDoc2.VerificationMethod[0].Type)
-
-		did3 := "did:key:z6MknGc3ocHs3zdPiJbnaaqDi58NGb4pk1Sp9WxWufuXSdxf"
-		didKey3 := DIDKey(did3)
-		didDoc3, err := didKey3.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did3, didDoc3.ID)
-		assert.Equal(tt, 1, len(didDoc3.VerificationMethod))
-		assert.Equal(tt, cryptosuite.Ed25519VerificationKey2018, didDoc3.VerificationMethod[0].Type)
-	})
-
-	t.Run("X25519", func(tt *testing.T) {
-		did1 := "did:key:z6LSeu9HkTHSfLLeUs2nnzUSNedgDUevfNQgQjQC23ZCit6F"
-		didKey1 := DIDKey(did1)
-		didDoc1, err := didKey1.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did1, didDoc1.ID)
-		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, cryptosuite.X25519KeyAgreementKey2019, didDoc1.VerificationMethod[0].Type)
-
-		did2 := "did:key:z6LStiZsmxiK4odS4Sb6JmdRFuJ6e1SYP157gtiCyJKfrYha"
-		didKey2 := DIDKey(did2)
-		didDoc2, err := didKey2.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did2, didDoc2.ID)
-		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, cryptosuite.X25519KeyAgreementKey2019, didDoc2.VerificationMethod[0].Type)
-
-		did3 := "did:key:z6LSoMdmJz2Djah2P4L9taDmtqeJ6wwd2HhKZvNToBmvaczQ"
-		didKey3 := DIDKey(did3)
-		didDoc3, err := didKey3.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did3, didDoc3.ID)
-		assert.Equal(tt, 1, len(didDoc3.VerificationMethod))
-		assert.Equal(tt, cryptosuite.X25519KeyAgreementKey2019, didDoc3.VerificationMethod[0].Type)
-	})
-
-	t.Run("SECP256k1", func(tt *testing.T) {
-		did1 := "did:key:zQ3shokFTS3brHcDQrn82RUDfCZESWL1ZdCEJwekUDPQiYBme"
-		didKey1 := DIDKey(did1)
-		didDoc1, err := didKey1.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did1, didDoc1.ID)
-		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, cryptosuite.ECDSASECP256k1VerificationKey2019, didDoc1.VerificationMethod[0].Type)
-
-		did2 := "did:key:zQ3shtxV1FrJfhqE1dvxYRcCknWNjHc3c5X1y3ZSoPDi2aur2"
-		didKey2 := DIDKey(did2)
-		didDoc2, err := didKey2.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did2, didDoc2.ID)
-		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, cryptosuite.ECDSASECP256k1VerificationKey2019, didDoc2.VerificationMethod[0].Type)
-
-		did3 := "did:key:zQ3shZc2QzApp2oymGvQbzP8eKheVshBHbU4ZYjeXqwSKEn6N"
-		didKey3 := DIDKey(did3)
-		didDoc3, err := didKey3.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did3, didDoc3.ID)
-		assert.Equal(tt, 1, len(didDoc3.VerificationMethod))
-		assert.Equal(tt, cryptosuite.ECDSASECP256k1VerificationKey2019, didDoc3.VerificationMethod[0].Type)
-	})
-
-	t.Run("P-256", func(tt *testing.T) {
-		did1 := "did:key:z4oJ8eV3W6feTMtBxLwjVc4MUhaPD6EnjMB9C7ftTZiA9icBvJsyGm9d5XwAP16ebP7YMFLwUMQdeNL9ey2i5LUX5WDe6"
-		didKey1 := DIDKey(did1)
-		didDoc1, err := didKey1.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did1, didDoc1.ID)
-		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc1.VerificationMethod[0].Type)
-
-		did2 := "did:key:z4oJ8a6VuBxRfoYaeTndoWQuKQo3Jj4hL7CCMuedsEv1LU95qaxyqURZ1vFbwDDrHzsvDEkjsts6qSPefWWbagxXAUUDz"
-		didKey2 := DIDKey(did2)
-		didDoc2, err := didKey2.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did2, didDoc2.ID)
-		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc2.VerificationMethod[0].Type)
-	})
-
-	t.Run("P-384", func(tt *testing.T) {
-		did1 := "did:key:z28xDrLr8uAFFfRFT3TTkecBGheQM9aqkKS9YTfZyiULuoYrFHRmjNcgmEn5822Ym7u5JJBnoNgcsDvFrCbN2YCPzxQd8om98rQnDRM6H19sViGYNxC6S4GYuJm7nxnomTzF6AR7D"
-		didKey1 := DIDKey(did1)
-		didDoc1, err := didKey1.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did1, didDoc1.ID)
-		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc1.VerificationMethod[0].Type)
-
-		did2 := "did:key:z28xDqJhqCm5WSLLP9kcHXA6N5imNeap1akogv3iYkbXhh8szidc2hbd44QZs9R9wRyntHPSUbBSvJfL8Tgv87iqBqGPgTKQUr7EAjNA2FBbZVfHgoC5ySunwdWxffmuTikHrZ2zn"
-		didKey2 := DIDKey(did2)
-		didDoc2, err := didKey2.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did2, didDoc2.ID)
-		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc2.VerificationMethod[0].Type)
-	})
-
-	t.Run("P-521", func(tt *testing.T) {
-		did1 := "did:key:z3ECJtwjQyZEdCHCDuJbLCpmpCb13JCwoyZ9NfDB7TM8YCvd9e1dBUhgd3eMxAwLaxUKrLdyxRqoRbLnpR4p6Fb3GmFWwi437ZqwLjJRQvMWUoKm2A4zjykYQUXoU4VkY1USkhqzy1hRMEZ1CHi8cubrLBextEo7NJytgNdp5dR68bfewFUJ1CftMm"
-		didKey1 := DIDKey(did1)
-		didDoc1, err := didKey1.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did1, didDoc1.ID)
-		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc1.VerificationMethod[0].Type)
-
-		did2 := "did:key:z3ECJtwZ8Cw4w4f9B1AFqZ6CYtbNtoVo5kJmYu6Pn2xAK4cFD1HFdhWLJMoJ3TWF5eyZVGoiChE5bvSJmUG6pHCoNJyYsvMpTALWufZLHUpi9fMRY7gdSxVm1GB5UPK87vakQw62gngJkx2KLTtsw74LQvjYjyvwB4UHGpGxPr1HdHyaDtnkXpyrK1"
-		didKey2 := DIDKey(did2)
-		didDoc2, err := didKey2.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did2, didDoc2.ID)
-		assert.Equal(tt, 1, len(didDoc2.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc2.VerificationMethod[0].Type)
-	})
-
-	t.Run("RSA 2048", func(tt *testing.T) {
-		did1 := "did:key:zgghBUVkqmWS8e1ioRVp2WN9Vw6x4NvnE9PGAyQsPqM3fnfPf8EdauiRVfBTcVDyzhqM5FFC7ekAvuV1cJHawtfgB9wDcru1hPDobk3hqyedijhgWmsYfJCmodkiiFnjNWATE7PvqTyoCjcmrc8yMRXmFPnoASyT5beUd4YZxTE9VfgmavcPy3BSouNmASMQ8xUXeiRwjb7xBaVTiDRjkmyPD7NYZdXuS93gFhyDFr5b3XLg7Rfj9nHEqtHDa7NmAX7iwDAbMUFEfiDEf9hrqZmpAYJracAjTTR8Cvn6mnDXMLwayNG8dcsXFodxok2qksYF4D8ffUxMRmyyQVQhhhmdSi4YaMPqTnC1J6HTG9Yfb98yGSVaWi4TApUhLXFow2ZvB6vqckCNhjCRL2R4MDUSk71qzxWHgezKyDeyThJgdxydrn1osqH94oSeA346eipkJvKqYREXBKwgB5VL6WF4qAK6sVZxJp2dQBfCPVZ4EbsBQaJXaVK7cNcWG8tZBFWZ79gG9Cu6C4u8yjBS8Ux6dCcJPUTLtixQu4z2n5dCsVSNdnP1EEs8ZerZo5pBgc68w4Yuf9KL3xVxPnAB1nRCBfs9cMU6oL1EdyHbqrTfnjE8HpY164akBqe92LFVsk8RusaGsVPrMekT8emTq5y8v8CabuZg5rDs3f9NPEtogjyx49wiub1FecM5B7QqEcZSYiKHgF4mfkteT2"
-		didKey1 := DIDKey(did1)
-		didDoc1, err := didKey1.Expand()
-		assert.NoError(tt, err)
-		assert.Equal(tt, did1, didDoc1.ID)
-		assert.Equal(tt, 1, len(didDoc1.VerificationMethod))
-		assert.Equal(tt, cryptosuite.JSONWebKey2020Type, didDoc1.VerificationMethod[0].Type)
 	})
 }

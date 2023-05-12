@@ -218,13 +218,13 @@ func TestPublicKeyToPublicKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, "OKP", jwk.KTY)
-		assert.Equal(tt, "Ed25519", jwk.CRV)
+		assert.Equal(tt, "X25519", jwk.CRV)
 
 		jwk2, err := PublicKeyToPublicKeyJWK(testKID, &pubKey)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk2)
 		assert.Equal(tt, "OKP", jwk2.KTY)
-		assert.Equal(tt, "Ed25519", jwk2.CRV)
+		assert.Equal(tt, "X25519", jwk2.CRV)
 	})
 
 	t.Run("secp256k1", func(tt *testing.T) {
@@ -367,7 +367,7 @@ func TestPrivateKeyToPrivateKeyJWK(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, jwk)
 		assert.Equal(tt, "OKP", jwk.KTY)
-		assert.Equal(tt, "Ed25519", jwk.CRV)
+		assert.Equal(tt, "X25519", jwk.CRV)
 	})
 
 	t.Run("secp256k1", func(tt *testing.T) {

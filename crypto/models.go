@@ -17,10 +17,13 @@ const (
 	P384           KeyType = "P-384"
 	P521           KeyType = "P-521"
 	RSA            KeyType = "RSA"
+	BLS12381G1     KeyType = "BLS12381G1"
+	BLS12381G2     KeyType = "BLS12381G2"
 	Dilithium2     KeyType = "Dilithium2"
 	Dilithium3     KeyType = "Dilithium3"
 	Dilithium5     KeyType = "Dilithium5"
-	RSAKeySize     int     = 2048
+
+	RSAKeySize int = 2048
 )
 
 const (

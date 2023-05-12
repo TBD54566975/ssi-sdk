@@ -48,7 +48,7 @@ func (Method0) resolve(didDoc did.DID, _ resolution.ResolutionOption) (*resoluti
 		return nil, err
 	}
 
-	pubKey, keyType, cryptoKeyType, err := did.DecodeMultibaseEncodedKey(v)
+	pubKey, _, cryptoKeyType, err := did.DecodeMultibaseEncodedKey(v)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (Method0) resolve(didDoc did.DID, _ resolution.ResolutionOption) (*resoluti
 	keyReference := Hash + v
 	id := string(d)
 
-	verificationMethod, err := did.ConstructJWKVerificationMethod(id, keyReference, pubKey, keyType, cryptoKeyType)
+	verificationMethod, err := did.ConstructJWKVerificationMethod(id, keyReference, pubKey, cryptoKeyType)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
+	"math/big"
 	"reflect"
 
 	"github.com/btcsuite/btcd/btcec/v2"
@@ -60,8 +61,17 @@ func GenerateKeyByKeyType(kt KeyType) (crypto.PublicKey, crypto.PrivateKey, erro
 	return nil, nil, fmt.Errorf("unsupported key type: %s", kt)
 }
 
+type Option struct {
+	Name  string
+	Value any
+}
+
+var (
+	ECDSAMarshalCompressed = Option{Name: "ecdsa-compressed", Value: true}
+)
+
 // PubKeyToBytes constructs a byte representation of a public key, for a set number of supported key types
-func PubKeyToBytes(key crypto.PublicKey) ([]byte, error) {
+func PubKeyToBytes(key crypto.PublicKey, opts ...Option) ([]byte, error) {
 	// dereference the ptr
 	if reflect.ValueOf(key).Kind() == reflect.Ptr {
 		key = reflect.ValueOf(key).Elem().Interface().(crypto.PublicKey)
@@ -76,6 +86,9 @@ func PubKeyToBytes(key crypto.PublicKey) ([]byte, error) {
 		return k.SerializeCompressed(), nil
 	case ecdsa.PublicKey:
 		curve := k.Curve
+		if len(opts) == 1 && opts[0].Name == "ecdsa-compressed" && opts[0].Value.(bool) {
+			return elliptic.MarshalCompressed(k.Curve, k.X, k.Y), nil
+		}
 		return elliptic.Marshal(curve, k.X, k.Y), nil
 	case rsa.PublicKey:
 		return x509.MarshalPKCS1PublicKey(&k), nil
@@ -96,8 +109,10 @@ func PubKeyToBytes(key crypto.PublicKey) ([]byte, error) {
 // It is assumed the key was turned into byte form using the sibling method `PubKeyToBytes`
 func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 	switch kt {
-	case Ed25519, X25519:
+	case Ed25519:
 		return ed25519.PublicKey(keyBytes), nil
+	case X25519:
+		return x25519.PublicKey(keyBytes), nil
 	case SECP256k1:
 		pubKey, err := secp.ParsePubKey(keyBytes)
 		if err != nil {
@@ -112,28 +127,44 @@ func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 			Y:     y,
 		}, nil
 	case P224:
-		x, y := elliptic.Unmarshal(elliptic.P224(), keyBytes)
+		var x, y *big.Int
+		x, y = elliptic.Unmarshal(elliptic.P224(), keyBytes)
+		if x == nil || y == nil {
+			x, y = elliptic.UnmarshalCompressed(elliptic.P224(), keyBytes)
+		}
 		return ecdsa.PublicKey{
 			Curve: elliptic.P224(),
 			X:     x,
 			Y:     y,
 		}, nil
 	case P256:
-		x, y := elliptic.Unmarshal(elliptic.P256(), keyBytes)
+		var x, y *big.Int
+		x, y = elliptic.Unmarshal(elliptic.P256(), keyBytes)
+		if x == nil || y == nil {
+			x, y = elliptic.UnmarshalCompressed(elliptic.P256(), keyBytes)
+		}
 		return ecdsa.PublicKey{
 			Curve: elliptic.P256(),
 			X:     x,
 			Y:     y,
 		}, nil
 	case P384:
-		x, y := elliptic.Unmarshal(elliptic.P384(), keyBytes)
+		var x, y *big.Int
+		x, y = elliptic.Unmarshal(elliptic.P384(), keyBytes)
+		if x == nil || y == nil {
+			x, y = elliptic.UnmarshalCompressed(elliptic.P384(), keyBytes)
+		}
 		return ecdsa.PublicKey{
 			Curve: elliptic.P384(),
 			X:     x,
 			Y:     y,
 		}, nil
 	case P521:
-		x, y := elliptic.Unmarshal(elliptic.P521(), keyBytes)
+		var x, y *big.Int
+		x, y = elliptic.Unmarshal(elliptic.P521(), keyBytes)
+		if x == nil || y == nil {
+			x, y = elliptic.UnmarshalCompressed(elliptic.P521(), keyBytes)
+		}
 		return ecdsa.PublicKey{
 			Curve: elliptic.P521(),
 			X:     x,

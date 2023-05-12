@@ -232,6 +232,8 @@ func AlgFromKeyAndCurve(kty, crv string) (string, error) {
 	curve := crv
 	if kty == jwa.OKP.String() {
 		switch curve {
+		case jwa.X25519.String():
+			return jwa.X25519.String(), nil
 		case jwa.Ed25519.String():
 			return jwa.EdDSA.String(), nil
 		default:
