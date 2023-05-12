@@ -30,7 +30,6 @@ const (
 	Prefix = "did:key"
 
 	// Expansion options
-
 	EnableEncryptionKeyDerivationOption = "EnableEncryptionKeyDerivation"
 	PublicKeyFormatOption               = "PublicKeyFormat"
 )
@@ -338,11 +337,11 @@ func x25519KeyAndID(id string, ed25519PubKey ed25519.PublicKey) ([]byte, string,
 	x25519Key := ed2curve25519.Ed25519PublicKeyToCurve25519(ed25519PubKey)
 	keyAgreementDIDKey, err := CreateDIDKey(crypto.X25519, x25519Key)
 	if err != nil {
-		return "", nil, errors.Wrap(err, "could not multibase encode x25519 public key")
+		return "", nil, errors.Wrap(err, "creating key agreement did key")
 	}
 	suffix, err := keyAgreementDIDKey.Suffix()
 	if err != nil {
-		return "", nil, errors.Wrap(err, "could not get suffix from did:key")
+		return "", nil, errors.Wrap(err, "getting suffix from did:key")
 	}
 	return id + "#" + suffix, x25519Key, nil
 }
