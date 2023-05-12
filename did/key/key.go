@@ -299,7 +299,7 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 		// convert key to X25519
 		base58PubKey, err := base58.Decode(vm.PublicKeyBase58)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "could not decode base58 public key")
+			return nil, nil, errors.Wrap(err, "decoding base58 public key")
 		}
 		ed25519PubKey, err := crypto.BytesToPubKey(base58PubKey, crypto.Ed25519)
 		if err != nil {
