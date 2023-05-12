@@ -303,7 +303,7 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 		}
 		ed25519PubKey, err := crypto.BytesToPubKey(base58PubKey, crypto.Ed25519)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "could not convert base58 public key to ed25519")
+			return nil, nil, errors.Wrap(err, "converting base58 public key to ed25519")
 		}
 		id, x25519Key, err := x25519KeyAndID(vm.Controller, ed25519PubKey.(ed25519.PublicKey))
 		if err != nil {
