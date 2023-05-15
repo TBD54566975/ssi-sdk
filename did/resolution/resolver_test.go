@@ -12,6 +12,15 @@ func TestDIDDocumentMetadata_IsValid(t *testing.T) {
 		var metadata DocumentMetadata
 		assert.True(t, metadata.IsValid())
 	})
+
+	t.Run("test valid time", func(t *testing.T) {
+		now := time.Now().UTC().Format(time.RFC3339)
+		var metadata = DocumentMetadata{
+			Created: now,
+		}
+		assert.True(t, metadata.IsValid())
+	})
+
 	t.Run("returns false when created field is not a timestamp", func(t *testing.T) {
 		badMetadata := DocumentMetadata{
 			Created: "bad",

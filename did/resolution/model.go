@@ -24,8 +24,8 @@ func (r *ResolutionResult) IsEmpty() bool {
 
 // DocumentMetadata https://www.w3.org/TR/did-core/#did-document-metadata
 type DocumentMetadata struct {
-	Created       string `json:"created,omitempty" validate:"datetime"`
-	Updated       string `json:"updated,omitempty" validate:"datetime"`
+	Created       string `json:"created,omitempty"`
+	Updated       string `json:"updated,omitempty"`
 	Deactivated   bool   `json:"deactivated,omitempty"`
 	NextUpdate    string `json:"nextUpdate,omitempty"`
 	VersionID     string `json:"versionId,omitempty"`
@@ -35,6 +35,12 @@ type DocumentMetadata struct {
 }
 
 func (s *DocumentMetadata) IsValid() bool {
+	if s.Created != "" && !util.IsRFC3339Timestamp(s.Created) {
+		return false
+	}
+	if s.Updated != "" && !util.IsRFC3339Timestamp(s.Updated) {
+		return false
+	}
 	return util.NewValidator().Struct(s) == nil
 }
 
