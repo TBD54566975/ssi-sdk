@@ -15,7 +15,7 @@ require (
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/jorrizza/ed2curve25519 v0.1.0
 	github.com/lestrrat-go/jwx/v2 v2.0.9-0.20230429214153-5090ec1bd2cd
-	github.com/magefile/mage v1.14.0
+	github.com/magefile/mage v1.15.0
 	github.com/mr-tron/base58 v1.2.0
 	github.com/multiformats/go-multibase v0.2.0
 	github.com/multiformats/go-multicodec v0.9.0
