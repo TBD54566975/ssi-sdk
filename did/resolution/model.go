@@ -24,8 +24,8 @@ func (r *ResolutionResult) IsEmpty() bool {
 
 // DocumentMetadata https://www.w3.org/TR/did-core/#did-document-metadata
 type DocumentMetadata struct {
-	Created       string `json:"created,omitempty" validate:"datetime"`
-	Updated       string `json:"updated,omitempty" validate:"datetime"`
+	Created       string `json:"created,omitempty" validate:"omitempty,datetime=2006-01-02T15:04:05Z"`
+	Updated       string `json:"updated,omitempty" validate:"omitempty,datetime=2006-01-02T15:04:05Z"`
 	Deactivated   bool   `json:"deactivated,omitempty"`
 	NextUpdate    string `json:"nextUpdate,omitempty"`
 	VersionID     string `json:"versionId,omitempty"`
