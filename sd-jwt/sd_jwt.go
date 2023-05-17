@@ -420,11 +420,18 @@ func parseDisclosure(encodedDisclosure string) (*Disclosure, error) {
 }
 
 type VerificationOptions struct {
-	holderBindingOption           HolderBindingOption
-	alg                           string
-	issuerKey                     any
-	desiredNonce, desiredAudience string
-	resolveHolderKey              func(jwt.Token) gocrypto.PublicKey
+	HolderBindingOption HolderBindingOption
+	Alg                 string
+	IssuerKey           any
+
+	// The nonce and audience to check for when doing holder binding verification.
+	// Needed only when HolderBindingOption == VerifyHolderBinding.
+	DesiredNonce, DesiredAudience string
+
+	// Function that goes from a token, to the public key of the holder bound to the confirmation claim. The key will
+	// be used for integrity checking.
+	// Needed only when HolderBindingOption == VerifyHolderBinding.
+	ResolveHolderKey func(jwt.Token) gocrypto.PublicKey
 }
 
 // VerifySDPresentation takes in a combined presentation format as defined in https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-04.html#name-combined-format-for-present
@@ -441,7 +448,7 @@ func VerifySDPresentation(presentation []byte, verificationOptions VerificationO
 	//Validate the signature over the SD-JWT.
 	//Validate the Issuer of the SD-JWT and that the signing key belongs to this Issuer.
 	//Check that the SD-JWT is valid using nbf, iat, and exp claims, if provided in the SD-JWT, and not selectively disclosed.
-	sdToken, err := jwt.Parse([]byte(sdParts[0]), jwt.WithKey(jwa.KeyAlgorithmFrom(verificationOptions.alg), verificationOptions.issuerKey), jwt.WithValidate(true))
+	sdToken, err := jwt.Parse([]byte(sdParts[0]), jwt.WithKey(jwa.KeyAlgorithmFrom(verificationOptions.Alg), verificationOptions.IssuerKey), jwt.WithValidate(true))
 	if err != nil {
 		return nil, errors.Wrap(err, "parsing jwt")
 	}
@@ -471,7 +478,7 @@ func VerifySDPresentation(presentation []byte, verificationOptions VerificationO
 		return nil, err
 	}
 
-	if verificationOptions.holderBindingOption == VerifyHolderBinding {
+	if verificationOptions.HolderBindingOption == VerifyHolderBinding {
 		// If Holder Binding JWT is not provided, the Verifier MUST reject the Presentation.
 		holderBindingJWT := sdParts[len(presentation)-1]
 		if len(holderBindingJWT) == 0 {
@@ -479,7 +486,7 @@ func VerifySDPresentation(presentation []byte, verificationOptions VerificationO
 		}
 
 		// Determine the public key for the Holder from the SD-JWT.
-		holderKey := verificationOptions.resolveHolderKey(sdToken)
+		holderKey := verificationOptions.ResolveHolderKey(sdToken)
 
 		//Ensure that a signing algorithm was used that was deemed secure for the application. Refer to [RFC8725], Sections 3.1 and 3.2 for details. The none algorithm MUST NOT be accepted.
 		//TODO(https://github.com/TBD54566975/ssi-sdk/issues/377): support holder binding properly as specified in RFC7800. Alg should be coming from CNF.
@@ -497,13 +504,13 @@ func VerifySDPresentation(presentation []byte, verificationOptions VerificationO
 		if !ok {
 			return nil, errors.New("nonce must be present in holder binding jwt")
 		}
-		if nonce != verificationOptions.desiredNonce {
+		if nonce != verificationOptions.DesiredNonce {
 			return nil, errors.New("nonce found does not match desiredNonce")
 		}
 
 		audienceFound := false
 		for _, audience := range holderBindingToken.Audience() {
-			if audience == verificationOptions.desiredAudience {
+			if audience == verificationOptions.DesiredAudience {
 				audienceFound = true
 				break
 			}
@@ -678,4 +685,20 @@ func createIssuance(sdJWT []byte, disclosures []Disclosure) ([]byte, error) {
 		elems = append(elems, []byte(ed))
 	}
 	return bytes.Join(elems, []byte("~")), nil
+}
+
+// SelectDisclosures returns a slice of indices for disclosures contained within the Combined Issuance Format. The
+// indices are selected such that the disclosure's claim name is contained inside the claimNames map.
+func SelectDisclosures(jwtAndDisclosures []byte, claimNames map[string]struct{}) ([]int, error) {
+	var idx []int
+	for i, disclosureData := range bytes.Split(jwtAndDisclosures, []byte("~"))[1:] {
+		disclosure, err := parseDisclosure(string(disclosureData))
+		if err != nil {
+			return nil, err
+		}
+		if _, ok := claimNames[disclosure.ClaimName]; ok {
+			idx = append(idx, i)
+		}
+	}
+	return idx, nil
 }

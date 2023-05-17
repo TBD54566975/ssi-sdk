@@ -1,7 +1,6 @@
 package sdjwt
 
 import (
-	"bytes"
 	gocrypto "crypto"
 	"encoding/base64"
 	"fmt"
@@ -268,16 +267,18 @@ func TestVerifySDPresentation(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			sdPresentation := CreatePresentation(jwtAndDisclosures, selectDisclosures(t, jwtAndDisclosures, tc.claimNames), nil)
+			disclosureIndices, err := SelectDisclosures(jwtAndDisclosures, tc.claimNames)
+			assert.NoError(t, err)
+			sdPresentation := CreatePresentation(jwtAndDisclosures, disclosureIndices, nil)
 
 			processedPayload, err := VerifySDPresentation(sdPresentation,
 				VerificationOptions{
-					holderBindingOption: SkipVerifyHolderBinding,
-					alg:                 issuerSigner.ALG,
-					issuerKey:           issuerKey,
-					desiredNonce:        "my_sample_nonce",
-					desiredAudience:     "my_intended_aud",
-					resolveHolderKey: func(token jwt.Token) any {
+					HolderBindingOption: SkipVerifyHolderBinding,
+					Alg:                 issuerSigner.ALG,
+					IssuerKey:           issuerKey,
+					DesiredNonce:        "my_sample_nonce",
+					DesiredAudience:     "my_intended_aud",
+					ResolveHolderKey: func(token jwt.Token) gocrypto.PublicKey {
 						return holderKey
 					},
 				})
@@ -286,20 +287,6 @@ func TestVerifySDPresentation(t *testing.T) {
 			assert.Equal(t, tc.expectedPayload, processedPayload)
 		})
 	}
-}
-
-func selectDisclosures(t *testing.T, jwtAndDisclosures []byte, claimNames map[string]struct{}) []int {
-	var idx []int
-	for i, disclosure := range bytes.Split(jwtAndDisclosures, []byte("~"))[1:] {
-		decoded, err := base64.RawURLEncoding.DecodeString(string(disclosure))
-		assert.NoError(t, err)
-		var values []any
-		assert.NoError(t, json.Unmarshal(decoded, &values))
-		if _, ok := claimNames[values[1].(string)]; ok {
-			idx = append(idx, i)
-		}
-	}
-	return idx
 }
 
 func createCombinedIssuance(t *testing.T) (sdJWT []byte, subjectPrivKey gocrypto.PrivateKey, signer *jwx.Signer) {
