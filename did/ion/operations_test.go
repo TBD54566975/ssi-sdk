@@ -156,7 +156,7 @@ func TestResolver(t *testing.T) {
 		assert.NotEmpty(tt, resolver)
 
 		// generate a good create op
-		did, createOp, err := NewIONDID(Document{
+		ionDID, createOp, err := NewIONDID(Document{
 			Services: []did.Service{
 				{
 					ID:              "tbd-website",
@@ -167,7 +167,7 @@ func TestResolver(t *testing.T) {
 		})
 
 		assert.NoError(tt, err)
-		assert.NotEmpty(tt, did)
+		assert.NotEmpty(tt, ionDID)
 		assert.NotEmpty(tt, createOp)
 
 		err = resolver.Anchor(context.Background(), createOp)
@@ -177,15 +177,15 @@ func TestResolver(t *testing.T) {
 
 func TestRequests(t *testing.T) {
 	t.Run("bad create request", func(tt *testing.T) {
-		did, createOp, err := NewIONDID(Document{})
+		ionDID, createOp, err := NewIONDID(Document{})
 		assert.Error(tt, err)
-		assert.Empty(tt, did)
+		assert.Empty(tt, ionDID)
 		assert.Empty(tt, createOp)
 		assert.Contains(tt, err.Error(), "document cannot be empty")
 	})
 
 	t.Run("good create request", func(tt *testing.T) {
-		did, createOp, err := NewIONDID(Document{
+		ionDID, createOp, err := NewIONDID(Document{
 			Services: []did.Service{
 				{
 					ID:              "tbd-service-endpoint",
@@ -195,23 +195,23 @@ func TestRequests(t *testing.T) {
 			},
 		})
 		assert.NoError(tt, err)
-		assert.NotEmpty(tt, did)
+		assert.NotEmpty(tt, ionDID)
 		assert.NotEmpty(tt, createOp)
 
 		// check DID object
-		assert.NotEmpty(tt, did.ID())
-		assert.Contains(tt, did.ID(), "did:ion:")
-		assert.Len(tt, did.Operations(), 1)
-		assert.NotEmpty(tt, did.updatePrivateKey)
-		assert.NotEmpty(tt, did.recoveryPrivateKey)
-		assert.NotEqual(tt, did.updatePrivateKey, did.recoveryPrivateKey)
+		assert.NotEmpty(tt, ionDID.ID())
+		assert.Contains(tt, ionDID.ID(), "ionDID:ion:")
+		assert.Len(tt, ionDID.Operations(), 1)
+		assert.NotEmpty(tt, ionDID.updatePrivateKey)
+		assert.NotEmpty(tt, ionDID.recoveryPrivateKey)
+		assert.NotEqual(tt, ionDID.updatePrivateKey, ionDID.recoveryPrivateKey)
 
 		// try to decode long form DID
-		decoded, initialState, err := DecodeLongFormDID(did.LongForm())
+		decoded, initialState, err := DecodeLongFormDID(ionDID.LongForm())
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, decoded)
 		assert.NotEmpty(tt, initialState)
-		assert.Equal(tt, did.ID(), decoded)
+		assert.Equal(tt, ionDID.ID(), decoded)
 
 		// check create op
 		assert.Equal(tt, Create, createOp.Type)
@@ -220,7 +220,7 @@ func TestRequests(t *testing.T) {
 	})
 
 	t.Run("bad update request", func(tt *testing.T) {
-		did, createOp, err := NewIONDID(Document{
+		ionDID, createOp, err := NewIONDID(Document{
 			Services: []did.Service{
 				{
 					ID:   "serviceID",
@@ -229,11 +229,11 @@ func TestRequests(t *testing.T) {
 			},
 		})
 		assert.NoError(tt, err)
-		assert.NotEmpty(tt, did)
+		assert.NotEmpty(tt, ionDID)
 		assert.NotEmpty(tt, createOp)
 
 		badStateChange := StateChange{}
-		updatedDID, updateOp, err := did.Update(badStateChange)
+		updatedDID, updateOp, err := ionDID.Update(badStateChange)
 		assert.Error(tt, err)
 		assert.Empty(tt, updatedDID)
 		assert.Empty(tt, updateOp)
@@ -309,27 +309,27 @@ func TestRequests(t *testing.T) {
 				},
 			},
 		}
-		did, createOp, err := NewIONDID(document)
+		ionDID, createOp, err := NewIONDID(document)
 		assert.NoError(tt, err)
-		assert.NotEmpty(tt, did)
+		assert.NotEmpty(tt, ionDID)
 		assert.NotEmpty(tt, createOp)
 
-		recoveredDID, recoverOp, err := did.Recover(document)
+		recoveredDID, recoverOp, err := ionDID.Recover(document)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, recoveredDID)
 		assert.NotEmpty(tt, recoverOp)
 
 		assert.Equal(tt, Recover, recoverOp.Type)
 		assert.NotEmpty(tt, recoverOp.DIDSuffix)
-		assert.Contains(tt, did.ID(), recoverOp.DIDSuffix)
+		assert.Contains(tt, ionDID.ID(), recoverOp.DIDSuffix)
 		assert.NotEmpty(tt, recoverOp.RevealValue)
 		assert.NotEmpty(tt, recoverOp.Delta)
 		assert.NotEmpty(tt, recoverOp.SignedData)
 
 		// make sure keys are different and op is added
-		assert.NotEqual(tt, did.updatePrivateKey, recoveredDID.updatePrivateKey)
-		assert.NotEqual(tt, did.recoveryPrivateKey, recoveredDID.recoveryPrivateKey)
-		assert.Len(tt, did.Operations(), 1)
+		assert.NotEqual(tt, ionDID.updatePrivateKey, recoveredDID.updatePrivateKey)
+		assert.NotEqual(tt, ionDID.recoveryPrivateKey, recoveredDID.recoveryPrivateKey)
+		assert.Len(tt, ionDID.Operations(), 1)
 		assert.Len(tt, recoveredDID.Operations(), 2)
 	})
 
@@ -351,23 +351,23 @@ func TestRequests(t *testing.T) {
 				},
 			},
 		}
-		did, createOp, err := NewIONDID(document)
+		ionDID, createOp, err := NewIONDID(document)
 		assert.NoError(tt, err)
-		assert.NotEmpty(tt, did)
+		assert.NotEmpty(tt, ionDID)
 		assert.NotEmpty(tt, createOp)
 
-		deactivatedDID, deactivateOp, err := did.Deactivate()
+		deactivatedDID, deactivateOp, err := ionDID.Deactivate()
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, deactivatedDID)
 		assert.NotEmpty(tt, deactivateOp)
 
 		assert.Equal(tt, Deactivate, deactivateOp.Type)
 		assert.NotEmpty(tt, deactivateOp.DIDSuffix)
-		assert.Contains(tt, did.ID(), deactivateOp.DIDSuffix)
+		assert.Contains(tt, ionDID.ID(), deactivateOp.DIDSuffix)
 		assert.NotEmpty(tt, deactivateOp.RevealValue)
 		assert.NotEmpty(tt, deactivateOp.SignedData)
 
-		assert.Len(tt, did.Operations(), 1)
+		assert.Len(tt, ionDID.Operations(), 1)
 		assert.Len(tt, deactivatedDID.Operations(), 2)
 	})
 }
