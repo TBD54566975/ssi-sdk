@@ -200,7 +200,7 @@ func TestRequests(t *testing.T) {
 
 		// check DID object
 		assert.NotEmpty(tt, ionDID.ID())
-		assert.Contains(tt, ionDID.ID(), "ionDID:ion:")
+		assert.Contains(tt, ionDID.ID(), "did:ion:")
 		assert.Len(tt, ionDID.Operations(), 1)
 		assert.NotEmpty(tt, ionDID.updatePrivateKey)
 		assert.NotEmpty(tt, ionDID.recoveryPrivateKey)
