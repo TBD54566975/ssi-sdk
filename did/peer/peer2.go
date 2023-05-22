@@ -26,7 +26,7 @@ func (Method2) Method() did.Method {
 // Resolve Splits the DID string into element.
 // Extract element purpose and decode each key or service.
 // Insert each key or service into the document according to the designated pu
-func (Method2) resolve(didDoc did.DID, _ resolution.ResolutionOption) (*resolution.ResolutionResult, error) {
+func (Method2) resolve(didDoc did.DID, _ resolution.Option) (*resolution.Result, error) {
 	d, ok := didDoc.(DIDPeer)
 	if !ok {
 		return nil, errors.Wrap(util.CastingError, "did:peer")
@@ -93,7 +93,7 @@ func (Method2) resolve(didDoc did.DID, _ resolution.ResolutionOption) (*resoluti
 			return nil, errors.Wrap(util.UnsupportedError, string(entry[0]))
 		}
 	}
-	return &resolution.ResolutionResult{Document: doc}, nil
+	return &resolution.Result{Document: doc}, nil
 }
 
 // Generate If numalgo == 2, the generation mode is similar to Method 0 (and therefore also did:key) with the ability

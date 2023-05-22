@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
+	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,12 +19,12 @@ func TestCreateRequest(t *testing.T) {
 	var publicKey PublicKey
 	retrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
-	var service Service
+	var service did.Service
 	retrieveTestVectorAs(t, "service1.json", &service)
 
 	document := Document{
 		PublicKeys: []PublicKey{publicKey},
-		Services:   []Service{service},
+		Services:   []did.Service{service},
 	}
 
 	createRequest, err := NewCreateRequest(recoveryKey, updateKey, document)
@@ -51,7 +52,7 @@ func TestUpdateRequest(t *testing.T) {
 	var publicKey PublicKey
 	retrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
-	var service Service
+	var service did.Service
 	retrieveTestVectorAs(t, "service1.json", &service)
 
 	signer, err := NewBTCSignerVerifier(updatePrivateKey)
@@ -60,7 +61,7 @@ func TestUpdateRequest(t *testing.T) {
 
 	didSuffix := "EiDyOQbbZAa3aiRzeCkV7LOx3SERjjH93EXoIM3UoN4oWg"
 	stateChange := StateChange{
-		ServicesToAdd:        []Service{service},
+		ServicesToAdd:        []did.Service{service},
 		ServiceIDsToRemove:   []string{"someId1"},
 		PublicKeysToAdd:      []PublicKey{publicKey},
 		PublicKeyIDsToRemove: []string{"someId2"},
@@ -82,10 +83,10 @@ func TestRecoverRequest(t *testing.T) {
 	var publicKey PublicKey
 	retrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
-	var service Service
+	var service did.Service
 	retrieveTestVectorAs(t, "service1.json", &service)
 
-	document := Document{PublicKeys: []PublicKey{publicKey}, Services: []Service{service}}
+	document := Document{PublicKeys: []PublicKey{publicKey}, Services: []did.Service{service}}
 
 	var recoveryKey jwx.PublicKeyJWK
 	retrieveTestVectorAs(t, "jwkes256k1public.json", &recoveryKey)

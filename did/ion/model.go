@@ -2,24 +2,18 @@ package ion
 
 import (
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
+	"github.com/TBD54566975/ssi-sdk/did"
 )
 
 // object models
 
 type Document struct {
-	PublicKeys []PublicKey `json:"publicKeys,omitempty"`
-	Services   []Service   `json:"services,omitempty"`
+	PublicKeys []PublicKey   `json:"publicKeys,omitempty"`
+	Services   []did.Service `json:"services,omitempty"`
 }
 
 func (d Document) IsEmpty() bool {
 	return len(d.PublicKeys) == 0 && len(d.Services) == 0
-}
-
-// Service declaration in a DID Document
-type Service struct {
-	ID              string `json:"id,omitempty"`
-	Type            string `json:"type,omitempty"`
-	ServiceEndpoint any    `json:"serviceEndpoint,omitempty"`
 }
 
 type PublicKey struct {
@@ -33,8 +27,8 @@ type PublicKey struct {
 
 // AddServicesAction https://identity.foundation/sidetree/spec/#add-services
 type AddServicesAction struct {
-	Action   PatchAction `json:"action,omitempty"`
-	Services []Service   `json:"services,omitempty"`
+	Action   PatchAction   `json:"action,omitempty"`
+	Services []did.Service `json:"services,omitempty"`
 }
 
 // RemoveServicesAction https://identity.foundation/sidetree/spec/#remove-services

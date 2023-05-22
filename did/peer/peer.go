@@ -152,7 +152,7 @@ func (DIDPeer) IsValidPurpose(p PurposeType) bool {
 	return false
 }
 
-func (Method1) resolve(d did.DID, _ resolution.ResolutionOption) (*resolution.ResolutionResult, error) {
+func (Method1) resolve(d did.DID, _ resolution.Option) (*resolution.Result, error) {
 	if _, ok := d.(DIDPeer); !ok {
 		return nil, errors.Wrap(util.CastingError, DIDPeerPrefix)
 	}

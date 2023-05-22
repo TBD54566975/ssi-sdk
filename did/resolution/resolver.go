@@ -12,13 +12,13 @@ import (
 	"github.com/TBD54566975/ssi-sdk/did"
 )
 
-// ResolutionOption https://www.w3.org/TR/did-spec-registries/#did-resolution-options
-type ResolutionOption any
+// Option https://www.w3.org/TR/did-spec-registries/#did-resolution-options
+type Option any
 
 // Resolver provides an interface for resolving DIDs as per the spec https://www.w3.org/TR/did-core/#did-resolution
 type Resolver interface {
 	// Resolve Attempts to resolve a DID for a given method
-	Resolve(ctx context.Context, id string, opts ...ResolutionOption) (*ResolutionResult, error)
+	Resolve(ctx context.Context, id string, opts ...Option) (*Result, error)
 	// Methods returns all methods that can be resolved by this resolution.
 	Methods() []did.Method
 }
@@ -50,7 +50,7 @@ func NewResolver(resolvers ...Resolver) (*MultiMethodResolver, error) {
 }
 
 // Resolve attempts to resolve a DID for a given method
-func (dr MultiMethodResolver) Resolve(ctx context.Context, id string, opts ...ResolutionOption) (*ResolutionResult, error) {
+func (dr MultiMethodResolver) Resolve(ctx context.Context, id string, opts ...Option) (*Result, error) {
 	method, err := GetMethodForDID(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get method for DID before resolving")
@@ -75,13 +75,13 @@ func GetMethodForDID(id string) (did.Method, error) {
 }
 
 // ParseDIDResolution attempts to parse a DID Resolution Result or a DID Document
-func ParseDIDResolution(resolvedDID []byte) (*ResolutionResult, error) {
+func ParseDIDResolution(resolvedDID []byte) (*Result, error) {
 	if len(resolvedDID) == 0 {
 		return nil, errors.New("cannot parse empty resolved DID")
 	}
 
 	// first try to parse as a DID Resolver Result
-	var result ResolutionResult
+	var result Result
 	if err := json.Unmarshal(resolvedDID, &result); err == nil {
 		if result.IsEmpty() {
 			return nil, errors.New("empty DID Resolution Result")
@@ -95,7 +95,7 @@ func ParseDIDResolution(resolvedDID []byte) (*ResolutionResult, error) {
 		if didDoc.IsEmpty() {
 			return nil, errors.New("empty DID Document")
 		}
-		return &ResolutionResult{Document: didDoc}, nil
+		return &Result{Document: didDoc}, nil
 	}
 
 	// if that fails we don't know what it is!

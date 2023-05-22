@@ -42,3 +42,7 @@ const (
 	AddServices      PatchAction = "add-services"
 	RemoveServices   PatchAction = "remove-services"
 )
+
+func (p PatchAction) String() string {
+	return string(p)
+}

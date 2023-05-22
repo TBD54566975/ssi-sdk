@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
+	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,14 +19,14 @@ func TestCreateLongFormDID(t *testing.T) {
 	var publicKey PublicKey
 	retrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
-	var service Service
+	var service did.Service
 	retrieveTestVectorAs(t, "service1.json", &service)
 
 	document := Document{
 		PublicKeys: []PublicKey{
 			publicKey,
 		},
-		Services: []Service{
+		Services: []did.Service{
 			service,
 		},
 	}
@@ -45,6 +46,13 @@ func TestCreateLongFormDID(t *testing.T) {
 
 	assert.Equal(t, expectedDID, ourDID)
 	assert.Equal(t, expectedIS, ourInitialState)
+
+	shortFormDID, longFormDID, err := ourInitialState.ToDIDStrings()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, longFormDID)
+	assert.NotEmpty(t, shortFormDID)
+	assert.Equal(t, expectedLongFormDID, longFormDID)
+	assert.Equal(t, "did:ion:EiDyOQbbZAa3aiRzeCkV7LOx3SERjjH93EXoIM3UoN4oWg", shortFormDID)
 }
 
 func TestCreateShortFormDID(t *testing.T) {
@@ -70,14 +78,14 @@ func TestGetShortFormDIDFromLongFormDID(t *testing.T) {
 	var publicKey PublicKey
 	retrieveTestVectorAs(t, "publickeymodel1.json", &publicKey)
 
-	var service Service
+	var service did.Service
 	retrieveTestVectorAs(t, "service1.json", &service)
 
 	document := Document{
 		PublicKeys: []PublicKey{
 			publicKey,
 		},
-		Services: []Service{
+		Services: []did.Service{
 			service,
 		},
 	}
@@ -91,4 +99,152 @@ func TestGetShortFormDIDFromLongFormDID(t *testing.T) {
 	assert.NotEmpty(t, shortFormDID)
 
 	assert.Equal(t, shortFormDID, "did:ion:EiDyOQbbZAa3aiRzeCkV7LOx3SERjjH93EXoIM3UoN4oWg")
+}
+
+func TestPatchesToDIDDocument(t *testing.T) {
+	t.Run("Bad patch", func(tt *testing.T) {
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{struct{ Bad string }{Bad: "bad"}})
+		assert.Empty(tt, doc)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "unknown patch type")
+	})
+
+	t.Run("No patches", func(tt *testing.T) {
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{})
+		assert.Empty(tt, doc)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "no patches to apply")
+	})
+
+	t.Run("Single patch - add keys", func(tt *testing.T) {
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{AddPublicKeysAction{
+			PublicKeys: []PublicKey{{
+				ID:       "did:ion:test#key1",
+				Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
+			}},
+		}})
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, doc)
+		assert.Len(tt, doc.VerificationMethod, 1)
+		assert.Len(tt, doc.Authentication, 1)
+		assert.Equal(tt, "did:ion:test#key1", doc.Authentication[0])
+		assert.Len(tt, doc.AssertionMethod, 1)
+		assert.Equal(tt, "did:ion:test#key1", doc.AssertionMethod[0])
+
+		assert.Empty(tt, doc.KeyAgreement)
+		assert.Empty(tt, doc.CapabilityDelegation)
+		assert.Empty(tt, doc.CapabilityInvocation)
+	})
+
+	t.Run("Add and remove keys patches - invalid remove", func(tt *testing.T) {
+		addKeys := AddPublicKeysAction{
+			PublicKeys: []PublicKey{{
+				ID:       "did:ion:test#key1",
+				Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
+			}},
+		}
+		removeKeys := RemovePublicKeysAction{
+			IDs: []string{"did:ion:test#key2"},
+		}
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{addKeys, removeKeys})
+		assert.Empty(tt, doc)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "could not find key with id did:ion:test#key2")
+	})
+
+	t.Run("Add and remove keys patches - valid remove", func(tt *testing.T) {
+		addKeys := AddPublicKeysAction{
+			PublicKeys: []PublicKey{
+				{
+					ID:       "did:ion:test#key1",
+					Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
+				},
+				{
+					ID:       "did:ion:test#key2",
+					Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
+				},
+			},
+		}
+		removeKeys := RemovePublicKeysAction{
+			IDs: []string{"did:ion:test#key2"},
+		}
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{addKeys, removeKeys})
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, doc)
+		assert.Len(tt, doc.VerificationMethod, 1)
+		assert.Len(tt, doc.Authentication, 1)
+		assert.Equal(tt, "did:ion:test#key1", doc.Authentication[0])
+		assert.Len(tt, doc.AssertionMethod, 1)
+		assert.Equal(tt, "did:ion:test#key1", doc.AssertionMethod[0])
+
+		assert.Empty(tt, doc.KeyAgreement)
+		assert.Empty(tt, doc.CapabilityDelegation)
+		assert.Empty(tt, doc.CapabilityInvocation)
+	})
+
+	t.Run("Add and remove services", func(tt *testing.T) {
+		addServices := AddServicesAction{
+			Services: []did.Service{
+				{
+					ID:              "did:ion:test#service1",
+					Type:            "test",
+					ServiceEndpoint: "https://example.com",
+				},
+				{
+					ID:              "did:ion:test#service2",
+					Type:            "test",
+					ServiceEndpoint: "https://example.com",
+				},
+			},
+		}
+		removeServices := RemoveServicesAction{
+			IDs: []string{"did:ion:test#service2"},
+		}
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{addServices, removeServices})
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, doc)
+		assert.Empty(tt, doc.VerificationMethod)
+		assert.Empty(tt, doc.Authentication)
+		assert.Empty(tt, doc.AssertionMethod)
+		assert.Empty(tt, doc.KeyAgreement)
+		assert.Empty(tt, doc.CapabilityDelegation)
+		assert.Empty(tt, doc.CapabilityInvocation)
+		assert.Len(tt, doc.Services, 1)
+		assert.Equal(tt, "did:ion:test#service1", doc.Services[0].ID)
+	})
+
+	t.Run("Replace patch", func(tt *testing.T) {
+		replaceAction := ReplaceAction{
+			Document: Document{
+				PublicKeys: []PublicKey{
+					{
+						ID:       "did:ion:test#key1",
+						Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
+					},
+				},
+				Services: []did.Service{
+					{
+						ID:              "did:ion:test#service1",
+						Type:            "test",
+						ServiceEndpoint: "https://example.com",
+					},
+				},
+			},
+		}
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{replaceAction})
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, doc)
+		assert.Len(tt, doc.VerificationMethod, 1)
+		assert.Len(tt, doc.Authentication, 1)
+		assert.Equal(tt, "did:ion:test#key1", doc.Authentication[0])
+		assert.Len(tt, doc.AssertionMethod, 1)
+		assert.Equal(tt, "did:ion:test#key1", doc.AssertionMethod[0])
+
+		assert.Empty(tt, doc.KeyAgreement)
+		assert.Empty(tt, doc.CapabilityDelegation)
+		assert.Empty(tt, doc.CapabilityInvocation)
+
+		assert.Len(tt, doc.Services, 1)
+		assert.Equal(tt, "did:ion:test#service1", doc.Services[0].ID)
+	})
 }

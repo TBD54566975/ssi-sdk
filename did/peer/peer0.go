@@ -37,7 +37,7 @@ func (Method0) Generate(kt crypto.KeyType, publicKey gocrypto.PublicKey) (*DIDPe
 // Resolve resolves a did:peer into a DID Document
 // To do so, it decodes the key, constructs a verification  method, and returns a DID Document .This allows Method0
 // to implement the DID Resolver interface and be used to expand the did into the DID Document.
-func (Method0) resolve(didDoc did.DID, _ resolution.ResolutionOption) (*resolution.ResolutionResult, error) {
+func (Method0) resolve(didDoc did.DID, _ resolution.Option) (*resolution.Result, error) {
 	d, ok := didDoc.(DIDPeer)
 	if !ok {
 		return nil, errors.Wrap(util.CastingError, "did:peer")
@@ -71,5 +71,5 @@ func (Method0) resolve(didDoc did.DID, _ resolution.ResolutionOption) (*resoluti
 		KeyAgreement:         verificationMethodSet,
 		CapabilityDelegation: verificationMethodSet,
 	}
-	return &resolution.ResolutionResult{Document: document}, nil
+	return &resolution.Result{Document: document}, nil
 }

@@ -1,9 +1,11 @@
 package ion
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/did"
@@ -15,6 +17,21 @@ import (
 type InitialState struct {
 	SuffixData SuffixData `json:"suffixData,omitempty"`
 	Delta      Delta      `json:"delta,omitempty"`
+}
+
+func (is InitialState) ToDIDStrings() (shortFormDID string, longFormDID string, err error) {
+	shortFormDID, err = CreateShortFormDID(is.SuffixData)
+	if err != nil {
+		return shortFormDID, longFormDID, err
+	}
+	initialStateBytesCanonical, err := CanonicalizeAny(is)
+	if err != nil {
+		err = errors.Wrap(err, "canonicalizing long form DID suffix data")
+		return shortFormDID, longFormDID, err
+	}
+	encoded := Encode(initialStateBytesCanonical)
+	longFormDID = strings.Join([]string{shortFormDID, encoded}, ":")
+	return shortFormDID, longFormDID, nil
 }
 
 // CreateLongFormDID generates a long form DID URI representation from a document, recovery, and update keys,
@@ -39,6 +56,12 @@ func CreateLongFormDID(recoveryKey, updateKey jwx.PublicKeyJWK, document Documen
 	}
 	encoded := Encode(initialStateBytesCanonical)
 	return strings.Join([]string{shortFormDID, encoded}, ":"), nil
+}
+
+// IsLongFormDID checks if a string is a long form DID URI
+func IsLongFormDID(maybeLongFormDID string) bool {
+	split := strings.Split(maybeLongFormDID, ":")
+	return len(split) == 4
 }
 
 // DecodeLongFormDID decodes a long form DID into a short form DID and
@@ -84,4 +107,217 @@ func LongToShortFormDID(longFormDID string) (string, error) {
 		return "", errors.Wrap(err, "decoding long form DID")
 	}
 	return shortFormDID, nil
+}
+
+// PatchesToDIDDocument applies a list of sidetree state patches in order resulting in a DID Document.
+func PatchesToDIDDocument(shortFormDID, longFormDID string, patches []any) (*did.Document, error) {
+	if len(patches) == 0 {
+		return nil, errors.New("no patches to apply")
+	}
+	if shortFormDID == "" {
+		return nil, errors.New("short form DID is required")
+	}
+	doc := did.Document{
+		Context:     []string{"https://www.w3.org/ns/did/v1"},
+		ID:          shortFormDID,
+		AlsoKnownAs: longFormDID,
+	}
+	for _, patch := range patches {
+		knownPatch, err := tryCastPatch(patch)
+		if err != nil {
+			return nil, err
+		}
+		switch knownPatch.(type) {
+		case AddServicesAction:
+			addServicePatch := knownPatch.(AddServicesAction)
+			doc.Services = append(doc.Services, addServicePatch.Services...)
+		case RemoveServicesAction:
+			removeServicePatch := knownPatch.(RemoveServicesAction)
+			for _, id := range removeServicePatch.IDs {
+				for i, service := range doc.Services {
+					if service.ID == id {
+						doc.Services = append(doc.Services[:i], doc.Services[i+1:]...)
+					}
+				}
+			}
+		case AddPublicKeysAction:
+			addKeyPatch := knownPatch.(AddPublicKeysAction)
+			gotDoc, err := addPublicKeysPatch(doc, addKeyPatch)
+			if err != nil {
+				return nil, err
+			}
+			doc = *gotDoc
+		case RemovePublicKeysAction:
+			removeKeyPatch := knownPatch.(RemovePublicKeysAction)
+			gotDoc, err := removePublicKeysPatch(doc, removeKeyPatch)
+			if err != nil {
+				return nil, err
+			}
+			doc = *gotDoc
+		case ReplaceAction:
+			replacePatch := knownPatch.(ReplaceAction)
+			gotDoc, err := replaceActionPatch(doc, replacePatch)
+			if err != nil {
+				return nil, err
+			}
+			doc = *gotDoc
+		default:
+			return nil, fmt.Errorf("unknown patch type: %T", patch)
+		}
+	}
+	return &doc, nil
+}
+
+// tryCastPatch attempts to cast a patch to a known patch type
+func tryCastPatch(patch any) (any, error) {
+	switch patch.(type) {
+	case map[string]any:
+		patchMap := patch.(map[string]any)
+		patchBytes, err := json.Marshal(patch)
+		if err != nil {
+			return nil, errors.Wrap(err, "marshalling patch")
+		}
+		switch patchMap["action"] {
+		case Replace.String():
+			var ra ReplaceAction
+			if err = json.Unmarshal(patchBytes, &ra); err != nil {
+				return nil, errors.Wrap(err, "unmarshalling replace action")
+			}
+			return ra, nil
+		case AddPublicKeys.String():
+			var apa AddPublicKeysAction
+			if err = json.Unmarshal(patchBytes, &apa); err != nil {
+				return nil, errors.Wrap(err, "unmarshalling add public keys action")
+			}
+			return apa, nil
+		case RemovePublicKeys.String():
+			var rpa RemovePublicKeysAction
+			if err = json.Unmarshal(patchBytes, &rpa); err != nil {
+				return nil, errors.Wrap(err, "unmarshalling remove public keys action")
+			}
+			return rpa, nil
+		case AddServices.String():
+			var asa AddServicesAction
+			if err = json.Unmarshal(patchBytes, &asa); err != nil {
+				return nil, errors.Wrap(err, "unmarshalling add services action")
+			}
+			return asa, nil
+		case RemoveServices.String():
+			var rsa RemoveServicesAction
+			if err = json.Unmarshal(patchBytes, &rsa); err != nil {
+				return nil, errors.Wrap(err, "unmarshalling remove services action")
+			}
+			return rsa, nil
+		default:
+			return nil, fmt.Errorf("unknown patch action: %s", patchMap["action"])
+		}
+	case AddServicesAction:
+		return patch.(AddServicesAction), nil
+	case RemoveServicesAction:
+		return patch.(RemoveServicesAction), nil
+	case AddPublicKeysAction:
+		return patch.(AddPublicKeysAction), nil
+	case RemovePublicKeysAction:
+		return patch.(RemovePublicKeysAction), nil
+	case ReplaceAction:
+		return patch.(ReplaceAction), nil
+	default:
+		return nil, fmt.Errorf("unknown patch type: %T", patch)
+	}
+}
+
+func replaceActionPatch(doc did.Document, patch ReplaceAction) (*did.Document, error) {
+	// first zero out all public keys and services
+	doc.VerificationMethod = nil
+	doc.Authentication = nil
+	doc.AssertionMethod = nil
+	doc.KeyAgreement = nil
+	doc.CapabilityInvocation = nil
+	doc.CapabilityDelegation = nil
+	doc.Services = nil
+
+	// now add back what the patch includes
+	gotDoc, err := addPublicKeysPatch(doc, AddPublicKeysAction{PublicKeys: patch.Document.PublicKeys})
+	if err != nil {
+		return nil, err
+	}
+	doc = *gotDoc
+	for _, service := range patch.Document.Services {
+		doc.Services = append(doc.Services, service)
+	}
+	return &doc, nil
+}
+
+func addPublicKeysPatch(doc did.Document, patch AddPublicKeysAction) (*did.Document, error) {
+	for _, key := range patch.PublicKeys {
+		currKey := key
+		doc.VerificationMethod = append(doc.VerificationMethod, did.VerificationMethod{
+			ID:           currKey.ID,
+			Type:         cryptosuite.LDKeyType(currKey.Type),
+			Controller:   doc.ID,
+			PublicKeyJWK: &currKey.PublicKeyJWK,
+		})
+		for _, purpose := range currKey.Purposes {
+			switch purpose {
+			case Authentication:
+				doc.Authentication = append(doc.Authentication, currKey.ID)
+			case AssertionMethod:
+				doc.AssertionMethod = append(doc.AssertionMethod, currKey.ID)
+			case KeyAgreement:
+				doc.KeyAgreement = append(doc.KeyAgreement, currKey.ID)
+			case CapabilityInvocation:
+				doc.CapabilityInvocation = append(doc.CapabilityInvocation, currKey.ID)
+			case CapabilityDelegation:
+				doc.CapabilityDelegation = append(doc.CapabilityDelegation, currKey.ID)
+			default:
+				return nil, fmt.Errorf("unknown key purpose: %s:%s", currKey.ID, purpose)
+			}
+		}
+	}
+	return &doc, nil
+}
+
+func removePublicKeysPatch(doc did.Document, patch RemovePublicKeysAction) (*did.Document, error) {
+	for _, id := range patch.IDs {
+		removed := false
+		for i, key := range doc.VerificationMethod {
+			if key.ID == id {
+				doc.VerificationMethod = append(doc.VerificationMethod[:i], doc.VerificationMethod[i+1:]...)
+				removed = true
+
+				// TODO(gabe): in the future handle the case where the value is not a simple ID
+				// remove from all other key lists
+				for j, auth := range doc.Authentication {
+					if auth == id {
+						doc.Authentication = append(doc.Authentication[:j], doc.Authentication[j+1:]...)
+					}
+				}
+				for j, auth := range doc.AssertionMethod {
+					if auth == id {
+						doc.AssertionMethod = append(doc.AssertionMethod[:j], doc.AssertionMethod[j+1:]...)
+					}
+				}
+				for j, auth := range doc.Authentication {
+					if auth == id {
+						doc.KeyAgreement = append(doc.KeyAgreement[:j], doc.KeyAgreement[j+1:]...)
+					}
+				}
+				for j, auth := range doc.Authentication {
+					if auth == id {
+						doc.CapabilityInvocation = append(doc.CapabilityInvocation[:j], doc.CapabilityInvocation[j+1:]...)
+					}
+				}
+				for j, auth := range doc.Authentication {
+					if auth == id {
+						doc.CapabilityDelegation = append(doc.CapabilityDelegation[:j], doc.CapabilityDelegation[j+1:]...)
+					}
+				}
+				break
+			}
+		}
+		if !removed {
+			return nil, fmt.Errorf("could not find key with id %s", id)
+		}
+	}
+	return &doc, nil
 }
