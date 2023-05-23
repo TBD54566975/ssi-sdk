@@ -219,38 +219,38 @@ func removePublicKeysPatch(doc did.Document, patch RemovePublicKeysAction) (*did
 	for _, id := range patch.IDs {
 		removed := false
 		for i, key := range doc.VerificationMethod {
-			if key.ID == id {
-				doc.VerificationMethod = append(doc.VerificationMethod[:i], doc.VerificationMethod[i+1:]...)
-				removed = true
+			if key.ID != id {
+				continue
+			}
+			doc.VerificationMethod = append(doc.VerificationMethod[:i], doc.VerificationMethod[i+1:]...)
+			removed = true
 
-				// TODO(gabe): in the future handle the case where the value is not a simple ID
-				// remove from all other key lists
-				for j, auth := range doc.Authentication {
-					if auth == id {
-						doc.Authentication = append(doc.Authentication[:j], doc.Authentication[j+1:]...)
-					}
+			// TODO(gabe): in the future handle the case where the value is not a simple ID
+			// remove from all other key lists
+			for j, auth := range doc.Authentication {
+				if auth == id {
+					doc.Authentication = append(doc.Authentication[:j], doc.Authentication[j+1:]...)
 				}
-				for j, auth := range doc.AssertionMethod {
-					if auth == id {
-						doc.AssertionMethod = append(doc.AssertionMethod[:j], doc.AssertionMethod[j+1:]...)
-					}
+			}
+			for j, auth := range doc.AssertionMethod {
+				if auth == id {
+					doc.AssertionMethod = append(doc.AssertionMethod[:j], doc.AssertionMethod[j+1:]...)
 				}
-				for j, auth := range doc.Authentication {
-					if auth == id {
-						doc.KeyAgreement = append(doc.KeyAgreement[:j], doc.KeyAgreement[j+1:]...)
-					}
+			}
+			for j, auth := range doc.Authentication {
+				if auth == id {
+					doc.Authentication = append(doc.Authentication[:j], doc.Authentication[j+1:]...)
 				}
-				for j, auth := range doc.Authentication {
-					if auth == id {
-						doc.CapabilityInvocation = append(doc.CapabilityInvocation[:j], doc.CapabilityInvocation[j+1:]...)
-					}
+			}
+			for j, auth := range doc.CapabilityInvocation {
+				if auth == id {
+					doc.CapabilityInvocation = append(doc.CapabilityInvocation[:j], doc.CapabilityInvocation[j+1:]...)
 				}
-				for j, auth := range doc.Authentication {
-					if auth == id {
-						doc.CapabilityDelegation = append(doc.CapabilityDelegation[:j], doc.CapabilityDelegation[j+1:]...)
-					}
+			}
+			for j, auth := range doc.CapabilityDelegation {
+				if auth == id {
+					doc.CapabilityDelegation = append(doc.CapabilityDelegation[:j], doc.CapabilityDelegation[j+1:]...)
 				}
-				break
 			}
 		}
 		if !removed {

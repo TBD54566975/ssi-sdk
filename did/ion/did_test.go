@@ -106,14 +106,14 @@ func TestPatchesToDIDDocument(t *testing.T) {
 		doc, err := PatchesToDIDDocument("did:ion:test", "", []Patch{AddPublicKeysAction{}})
 		assert.Empty(tt, doc)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "unknown patch type")
+		assert.ErrorContains(tt, err, "unknown patch type")
 	})
 
 	t.Run("No patches", func(tt *testing.T) {
 		doc, err := PatchesToDIDDocument("did:ion:test", "", []Patch{})
 		assert.Empty(tt, doc)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "no patches to apply")
+		assert.ErrorContains(tt, err, "no patches to apply")
 	})
 
 	t.Run("Single patch - add keys", func(tt *testing.T) {
@@ -153,7 +153,7 @@ func TestPatchesToDIDDocument(t *testing.T) {
 		doc, err := PatchesToDIDDocument("did:ion:test", "", []Patch{addKeys, removeKeys})
 		assert.Empty(tt, doc)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "could not find key with id did:ion:test#key2")
+		assert.ErrorContains(tt, err, "could not find key with id did:ion:test#key2")
 	})
 
 	t.Run("Add and remove keys patches - valid remove", func(tt *testing.T) {
