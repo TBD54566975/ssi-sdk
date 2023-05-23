@@ -103,26 +103,28 @@ func TestGetShortFormDIDFromLongFormDID(t *testing.T) {
 
 func TestPatchesToDIDDocument(t *testing.T) {
 	t.Run("Bad patch", func(tt *testing.T) {
-		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{struct{ Bad string }{Bad: "bad"}})
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []Patch{AddPublicKeysAction{}})
 		assert.Empty(tt, doc)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unknown patch type")
 	})
 
 	t.Run("No patches", func(tt *testing.T) {
-		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{})
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []Patch{})
 		assert.Empty(tt, doc)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "no patches to apply")
 	})
 
 	t.Run("Single patch - add keys", func(tt *testing.T) {
-		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{AddPublicKeysAction{
-			PublicKeys: []PublicKey{{
-				ID:       "did:ion:test#key1",
-				Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
-			}},
-		}})
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []Patch{
+			AddPublicKeysAction{
+				Action: AddPublicKeys,
+				PublicKeys: []PublicKey{{
+					ID:       "did:ion:test#key1",
+					Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
+				}},
+			}})
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, doc)
 		assert.Len(tt, doc.VerificationMethod, 1)
@@ -138,15 +140,17 @@ func TestPatchesToDIDDocument(t *testing.T) {
 
 	t.Run("Add and remove keys patches - invalid remove", func(tt *testing.T) {
 		addKeys := AddPublicKeysAction{
+			Action: AddPublicKeys,
 			PublicKeys: []PublicKey{{
 				ID:       "did:ion:test#key1",
 				Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
 			}},
 		}
 		removeKeys := RemovePublicKeysAction{
-			IDs: []string{"did:ion:test#key2"},
+			Action: RemovePublicKeys,
+			IDs:    []string{"did:ion:test#key2"},
 		}
-		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{addKeys, removeKeys})
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []Patch{addKeys, removeKeys})
 		assert.Empty(tt, doc)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "could not find key with id did:ion:test#key2")
@@ -154,6 +158,7 @@ func TestPatchesToDIDDocument(t *testing.T) {
 
 	t.Run("Add and remove keys patches - valid remove", func(tt *testing.T) {
 		addKeys := AddPublicKeysAction{
+			Action: AddPublicKeys,
 			PublicKeys: []PublicKey{
 				{
 					ID:       "did:ion:test#key1",
@@ -166,9 +171,10 @@ func TestPatchesToDIDDocument(t *testing.T) {
 			},
 		}
 		removeKeys := RemovePublicKeysAction{
-			IDs: []string{"did:ion:test#key2"},
+			Action: RemovePublicKeys,
+			IDs:    []string{"did:ion:test#key2"},
 		}
-		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{addKeys, removeKeys})
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []Patch{addKeys, removeKeys})
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, doc)
 		assert.Len(tt, doc.VerificationMethod, 1)
@@ -184,6 +190,7 @@ func TestPatchesToDIDDocument(t *testing.T) {
 
 	t.Run("Add and remove services", func(tt *testing.T) {
 		addServices := AddServicesAction{
+			Action: AddServices,
 			Services: []did.Service{
 				{
 					ID:              "did:ion:test#service1",
@@ -198,9 +205,10 @@ func TestPatchesToDIDDocument(t *testing.T) {
 			},
 		}
 		removeServices := RemoveServicesAction{
-			IDs: []string{"did:ion:test#service2"},
+			Action: RemoveServices,
+			IDs:    []string{"did:ion:test#service2"},
 		}
-		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{addServices, removeServices})
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []Patch{addServices, removeServices})
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, doc)
 		assert.Empty(tt, doc.VerificationMethod)
@@ -215,6 +223,7 @@ func TestPatchesToDIDDocument(t *testing.T) {
 
 	t.Run("Replace patch", func(tt *testing.T) {
 		replaceAction := ReplaceAction{
+			Action: Replace,
 			Document: Document{
 				PublicKeys: []PublicKey{
 					{
@@ -231,7 +240,7 @@ func TestPatchesToDIDDocument(t *testing.T) {
 				},
 			},
 		}
-		doc, err := PatchesToDIDDocument("did:ion:test", "", []any{replaceAction})
+		doc, err := PatchesToDIDDocument("did:ion:test", "", []Patch{replaceAction})
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, doc)
 		assert.Len(tt, doc.VerificationMethod, 1)

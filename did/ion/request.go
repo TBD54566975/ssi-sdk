@@ -14,7 +14,7 @@ const (
 // NewCreateRequest creates a new create request https://identity.foundation/sidetree/spec/#create
 func NewCreateRequest(recoveryKey, updateKey jwx.PublicKeyJWK, document Document) (*CreateRequest, error) {
 	// prepare delta
-	replaceActionPatch := ReplaceAction{
+	replacePatch := ReplaceAction{
 		Action:   Replace,
 		Document: document,
 	}
@@ -23,7 +23,7 @@ func NewCreateRequest(recoveryKey, updateKey jwx.PublicKeyJWK, document Document
 		return nil, err
 	}
 	delta := NewDelta(updateCommitment)
-	delta.AddReplaceAction(replaceActionPatch)
+	delta.AddReplaceAction(replacePatch)
 
 	// prepare suffix data
 	deltaCanonical, err := CanonicalizeAny(delta)

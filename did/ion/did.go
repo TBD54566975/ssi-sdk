@@ -110,7 +110,7 @@ func LongToShortFormDID(longFormDID string) (string, error) {
 }
 
 // PatchesToDIDDocument applies a list of sidetree state patches in order resulting in a DID Document.
-func PatchesToDIDDocument(shortFormDID, longFormDID string, patches []any) (*did.Document, error) {
+func PatchesToDIDDocument(shortFormDID, longFormDID string, patches []Patch) (*did.Document, error) {
 	if len(patches) == 0 {
 		return nil, errors.New("no patches to apply")
 	}
@@ -123,16 +123,12 @@ func PatchesToDIDDocument(shortFormDID, longFormDID string, patches []any) (*did
 		AlsoKnownAs: longFormDID,
 	}
 	for _, patch := range patches {
-		knownPatch, err := tryCastPatch(patch)
-		if err != nil {
-			return nil, err
-		}
-		switch knownPatch.(type) {
-		case AddServicesAction:
-			addServicePatch := knownPatch.(AddServicesAction)
+		switch patch.GetAction() {
+		case AddServices:
+			addServicePatch := patch.(AddServicesAction)
 			doc.Services = append(doc.Services, addServicePatch.Services...)
-		case RemoveServicesAction:
-			removeServicePatch := knownPatch.(RemoveServicesAction)
+		case RemoveServices:
+			removeServicePatch := patch.(RemoveServicesAction)
 			for _, id := range removeServicePatch.IDs {
 				for i, service := range doc.Services {
 					if service.ID == id {
@@ -140,22 +136,22 @@ func PatchesToDIDDocument(shortFormDID, longFormDID string, patches []any) (*did
 					}
 				}
 			}
-		case AddPublicKeysAction:
-			addKeyPatch := knownPatch.(AddPublicKeysAction)
+		case AddPublicKeys:
+			addKeyPatch := patch.(AddPublicKeysAction)
 			gotDoc, err := addPublicKeysPatch(doc, addKeyPatch)
 			if err != nil {
 				return nil, err
 			}
 			doc = *gotDoc
-		case RemovePublicKeysAction:
-			removeKeyPatch := knownPatch.(RemovePublicKeysAction)
+		case RemovePublicKeys:
+			removeKeyPatch := patch.(RemovePublicKeysAction)
 			gotDoc, err := removePublicKeysPatch(doc, removeKeyPatch)
 			if err != nil {
 				return nil, err
 			}
 			doc = *gotDoc
-		case ReplaceAction:
-			replacePatch := knownPatch.(ReplaceAction)
+		case Replace:
+			replacePatch := patch.(ReplaceAction)
 			gotDoc, err := replaceActionPatch(doc, replacePatch)
 			if err != nil {
 				return nil, err
@@ -166,64 +162,6 @@ func PatchesToDIDDocument(shortFormDID, longFormDID string, patches []any) (*did
 		}
 	}
 	return &doc, nil
-}
-
-// tryCastPatch attempts to cast a patch to a known patch type
-func tryCastPatch(patch any) (any, error) {
-	switch patch.(type) {
-	case map[string]any:
-		patchMap := patch.(map[string]any)
-		patchBytes, err := json.Marshal(patch)
-		if err != nil {
-			return nil, errors.Wrap(err, "marshalling patch")
-		}
-		switch patchMap["action"] {
-		case Replace.String():
-			var ra ReplaceAction
-			if err = json.Unmarshal(patchBytes, &ra); err != nil {
-				return nil, errors.Wrap(err, "unmarshalling replace action")
-			}
-			return ra, nil
-		case AddPublicKeys.String():
-			var apa AddPublicKeysAction
-			if err = json.Unmarshal(patchBytes, &apa); err != nil {
-				return nil, errors.Wrap(err, "unmarshalling add public keys action")
-			}
-			return apa, nil
-		case RemovePublicKeys.String():
-			var rpa RemovePublicKeysAction
-			if err = json.Unmarshal(patchBytes, &rpa); err != nil {
-				return nil, errors.Wrap(err, "unmarshalling remove public keys action")
-			}
-			return rpa, nil
-		case AddServices.String():
-			var asa AddServicesAction
-			if err = json.Unmarshal(patchBytes, &asa); err != nil {
-				return nil, errors.Wrap(err, "unmarshalling add services action")
-			}
-			return asa, nil
-		case RemoveServices.String():
-			var rsa RemoveServicesAction
-			if err = json.Unmarshal(patchBytes, &rsa); err != nil {
-				return nil, errors.Wrap(err, "unmarshalling remove services action")
-			}
-			return rsa, nil
-		default:
-			return nil, fmt.Errorf("unknown patch action: %s", patchMap["action"])
-		}
-	case AddServicesAction:
-		return patch.(AddServicesAction), nil
-	case RemoveServicesAction:
-		return patch.(RemoveServicesAction), nil
-	case AddPublicKeysAction:
-		return patch.(AddPublicKeysAction), nil
-	case RemovePublicKeysAction:
-		return patch.(RemovePublicKeysAction), nil
-	case ReplaceAction:
-		return patch.(ReplaceAction), nil
-	default:
-		return nil, fmt.Errorf("unknown patch type: %T", patch)
-	}
 }
 
 func replaceActionPatch(doc did.Document, patch ReplaceAction) (*did.Document, error) {

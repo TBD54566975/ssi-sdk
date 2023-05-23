@@ -33,6 +33,10 @@ const (
 	Recover    OperationType = "recover"
 )
 
+type Patch interface {
+	GetAction() PatchAction
+}
+
 type PatchAction string
 
 const (
