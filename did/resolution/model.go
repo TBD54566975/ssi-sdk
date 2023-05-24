@@ -7,19 +7,19 @@ import (
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
-// ResolutionResult encapsulates the tuple of a DID resolution https://www.w3.org/TR/did-core/#did-resolution
-type ResolutionResult struct {
-	Context            string `json:"@context,omitempty"`
-	ResolutionMetadata `json:"didResolutionMetadata,omitempty"`
-	did.Document       `json:"didDocument,omitempty"`
-	DocumentMetadata   `json:"didDocumentMetadata,omitempty"`
+// Result encapsulates the tuple of a DID resolution https://www.w3.org/TR/did-core/#did-resolution
+type Result struct {
+	Context          string `json:"@context,omitempty"`
+	Metadata         `json:"didResolutionMetadata,omitempty"`
+	did.Document     `json:"didDocument,omitempty"`
+	DocumentMetadata `json:"didDocumentMetadata,omitempty"`
 }
 
-func (r *ResolutionResult) IsEmpty() bool {
+func (r *Result) IsEmpty() bool {
 	if r == nil {
 		return true
 	}
-	return reflect.DeepEqual(r, ResolutionResult{})
+	return reflect.DeepEqual(r, Result{})
 }
 
 // DocumentMetadata https://www.w3.org/TR/did-core/#did-document-metadata
@@ -38,16 +38,16 @@ func (s *DocumentMetadata) IsValid() bool {
 	return util.NewValidator().Struct(s) == nil
 }
 
-// ResolutionError https://www.w3.org/TR/did-core/#did-resolution-metadata
-type ResolutionError struct {
+// Error https://www.w3.org/TR/did-core/#did-resolution-metadata
+type Error struct {
 	Code                       string `json:"code"`
 	InvalidDID                 bool   `json:"invalidDid"`
 	NotFound                   bool   `json:"notFound"`
 	RepresentationNotSupported bool   `json:"representationNotSupported"`
 }
 
-// ResolutionMetadata https://www.w3.org/TR/did-core/#did-resolution-metadata
-type ResolutionMetadata struct {
+// Metadata https://www.w3.org/TR/did-core/#did-resolution-metadata
+type Metadata struct {
 	ContentType string
-	Error       *ResolutionError
+	Error       *Error
 }

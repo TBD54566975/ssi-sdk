@@ -15,7 +15,7 @@ type Resolver struct{}
 
 var _ resolution.Resolver = (*Resolver)(nil)
 
-func (Resolver) Resolve(_ context.Context, id string, opts ...resolution.ResolutionOption) (*resolution.ResolutionResult, error) {
+func (Resolver) Resolve(_ context.Context, id string, opts ...resolution.Option) (*resolution.Result, error) {
 	if !strings.HasPrefix(id, DIDPeerPrefix) {
 		return nil, fmt.Errorf("not a did:peer DID: %s", id)
 	}

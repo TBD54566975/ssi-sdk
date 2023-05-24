@@ -21,7 +21,7 @@ func (Resolver) Methods() []did.Method {
 
 // Resolve fetches and returns the Document from the expected URL
 // specification: https://w3c-ccg.github.io/did-method-web/#read-resolve
-func (Resolver) Resolve(_ context.Context, id string, _ ...resolution.ResolutionOption) (*resolution.ResolutionResult, error) {
+func (Resolver) Resolve(_ context.Context, id string, _ ...resolution.Option) (*resolution.Result, error) {
 	if !strings.HasPrefix(id, WebPrefix) {
 		return nil, fmt.Errorf("not a did:web DID: %s", id)
 	}
@@ -30,5 +30,5 @@ func (Resolver) Resolve(_ context.Context, id string, _ ...resolution.Resolution
 	if err != nil {
 		return nil, errors.Wrapf(err, "cresolving did:web DID: %s", id)
 	}
-	return &resolution.ResolutionResult{Document: *doc}, nil
+	return &resolution.Result{Document: *doc}, nil
 }

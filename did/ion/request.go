@@ -2,6 +2,7 @@ package ion
 
 import (
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
+	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/pkg/errors"
 )
 
@@ -13,7 +14,7 @@ const (
 // NewCreateRequest creates a new create request https://identity.foundation/sidetree/spec/#create
 func NewCreateRequest(recoveryKey, updateKey jwx.PublicKeyJWK, document Document) (*CreateRequest, error) {
 	// prepare delta
-	replaceActionPatch := ReplaceAction{
+	replacePatch := ReplaceAction{
 		Action:   Replace,
 		Document: document,
 	}
@@ -22,7 +23,7 @@ func NewCreateRequest(recoveryKey, updateKey jwx.PublicKeyJWK, document Document
 		return nil, err
 	}
 	delta := NewDelta(updateCommitment)
-	delta.AddReplaceAction(replaceActionPatch)
+	delta.AddReplaceAction(replacePatch)
 
 	// prepare suffix data
 	deltaCanonical, err := CanonicalizeAny(delta)
@@ -212,7 +213,7 @@ func NewDeactivateRequest(didSuffix string, recoveryKey jwx.PublicKeyJWK, signer
 }
 
 type StateChange struct {
-	ServicesToAdd        []Service
+	ServicesToAdd        []did.Service
 	ServiceIDsToRemove   []string
 	PublicKeysToAdd      []PublicKey
 	PublicKeyIDsToRemove []string
@@ -232,7 +233,7 @@ func (s StateChange) IsValid() error {
 
 	// check if services are valid
 	// build index of services to make sure IDs are unique
-	services := make(map[string]Service, len(s.ServicesToAdd))
+	services := make(map[string]did.Service, len(s.ServicesToAdd))
 	for _, service := range s.ServicesToAdd {
 		if _, ok := services[service.ID]; ok {
 			return errors.Errorf("service %s duplicated", service.ID)

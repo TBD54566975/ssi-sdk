@@ -33,6 +33,10 @@ const (
 	Recover    OperationType = "recover"
 )
 
+type Patch interface {
+	GetAction() PatchAction
+}
+
 type PatchAction string
 
 const (
@@ -42,3 +46,7 @@ const (
 	AddServices      PatchAction = "add-services"
 	RemoveServices   PatchAction = "remove-services"
 )
+
+func (p PatchAction) String() string {
+	return string(p)
+}
