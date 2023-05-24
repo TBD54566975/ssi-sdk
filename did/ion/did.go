@@ -231,7 +231,7 @@ func removePublicKeysPatch(doc did.Document, patch RemovePublicKeysAction) (*did
 					doc.Authentication = append(doc.Authentication[:j], doc.Authentication[j+1:]...)
 				}
 			}
-			for j, auth := range doc.AssertionMethod {
+			for j, am := range doc.AssertionMethod {
 				if auth == id {
 					doc.AssertionMethod = append(doc.AssertionMethod[:j], doc.AssertionMethod[j+1:]...)
 				}
