@@ -60,8 +60,7 @@ func CreateLongFormDID(recoveryKey, updateKey jwx.PublicKeyJWK, document Documen
 
 // IsLongFormDID checks if a string is a long form DID URI
 func IsLongFormDID(maybeLongFormDID string) bool {
-	split := strings.Split(maybeLongFormDID, ":")
-	return len(split) == 4
+	return strings.Count(maybeLongFormDID, ":") == 3
 }
 
 // DecodeLongFormDID decodes a long form DID into a short form DID and
