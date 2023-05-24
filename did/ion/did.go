@@ -226,28 +226,28 @@ func removePublicKeysPatch(doc did.Document, patch RemovePublicKeysAction) (*did
 
 			// TODO(gabe): in the future handle the case where the value is not a simple ID
 			// remove from all other key lists
-			for j, auth := range doc.Authentication {
-				if auth == id {
+			for j, a := range doc.Authentication {
+				if a == id {
 					doc.Authentication = append(doc.Authentication[:j], doc.Authentication[j+1:]...)
 				}
 			}
 			for j, am := range doc.AssertionMethod {
-				if auth == id {
+				if am == id {
 					doc.AssertionMethod = append(doc.AssertionMethod[:j], doc.AssertionMethod[j+1:]...)
 				}
 			}
-			for j, auth := range doc.Authentication {
-				if auth == id {
-					doc.Authentication = append(doc.Authentication[:j], doc.Authentication[j+1:]...)
+			for j, ka := range doc.KeyAgreement {
+				if ka == id {
+					doc.KeyAgreement = append(doc.KeyAgreement[:j], doc.KeyAgreement[j+1:]...)
 				}
 			}
-			for j, auth := range doc.CapabilityInvocation {
-				if auth == id {
+			for j, ci := range doc.CapabilityInvocation {
+				if ci == id {
 					doc.CapabilityInvocation = append(doc.CapabilityInvocation[:j], doc.CapabilityInvocation[j+1:]...)
 				}
 			}
-			for j, auth := range doc.CapabilityDelegation {
-				if auth == id {
+			for j, cd := range doc.CapabilityDelegation {
+				if cd == id {
 					doc.CapabilityDelegation = append(doc.CapabilityDelegation[:j], doc.CapabilityDelegation[j+1:]...)
 				}
 			}
