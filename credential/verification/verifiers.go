@@ -63,7 +63,7 @@ func VerifyJSONSchema(cred credential.VerifiableCredential, opts ...Option) erro
 	if err != nil {
 		return err
 	}
-	return credschema.IsCredentialValidForVCJSONSchema(cred, *credSchema)
+	return credschema.IsCredentialValidForJSONSchema(cred, *credSchema)
 }
 
 func optionToCredentialSchema(maybeSchema any) (*credschema.VCJSONSchema, error) {

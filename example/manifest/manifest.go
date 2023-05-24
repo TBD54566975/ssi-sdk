@@ -33,7 +33,7 @@ func getDIDKey() (gocrypto.PrivateKey, *key.DIDKey, error) {
 // Prepare a credential schema that will be used to issue a credential from a successful Credential Manifest
 func prepareResultingCredentialSchema(issuerDID string) schema.VCJSONSchema {
 	return schema.VCJSONSchema{
-		Type:     schema.VCJSONSchemaType,
+		Type:     schema.CredentialSchema2023Type,
 		Version:  "1.0",
 		ID:       uuid.NewString(),
 		Name:     "Drivers License Schema",
@@ -193,7 +193,7 @@ func issueApplicationCredential(id key.DIDKey, s schema.VCJSONSchema) (*credenti
 
 	if err := builder.SetCredentialSchema(credential.CredentialSchema{
 		ID:   s.ID,
-		Type: schema.VCJSONSchemaType,
+		Type: schema.CredentialSchema2023Type,
 	}); err != nil {
 		return nil, err
 	}
@@ -280,7 +280,7 @@ func issueDriversLicenseCredential(issuerDID key.DIDKey, subjectDID string, s sc
 
 	if err := builder.SetCredentialSchema(credential.CredentialSchema{
 		ID:   s.ID,
-		Type: schema.VCJSONSchemaType,
+		Type: schema.CredentialSchema2023Type,
 	}); err != nil {
 		return nil, err
 	}

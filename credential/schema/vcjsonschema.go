@@ -1,77 +1,49 @@
 package schema
 
 import (
+	"fmt"
+
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 )
 
-// StringToVCJSONCredentialSchema marshals a string into a credential json credential schema
-func StringToVCJSONCredentialSchema(maybeVCJSONCredentialSchema string) (*VCJSONSchema, error) {
-	var vcs VCJSONSchema
-	if err := json.Unmarshal([]byte(maybeVCJSONCredentialSchema), &vcs); err != nil {
-		return nil, err
-	}
-
-	schemaBytes, err := json.Marshal(vcs.Schema)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal vc json schema's schema property")
-	}
-	maybeSchema := string(schemaBytes)
-	if err = schema.IsValidJSONSchema(maybeSchema); err != nil {
-		return nil, errors.Wrap(err, "vc json schema did not contain a valid JSON Schema")
-	}
-	return &vcs, nil
+type VCJSONSchemaAccess interface {
+	// GetVCJSONSchema returns a vc json schema for the given ID as a json string
+	GetVCJSONSchema(id string) (string, error)
 }
 
-// IsValidCredentialSchema determines if a given credential schema is compliant with the specification's
-// JSON Schema https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
-func IsValidCredentialSchema(maybeCredentialSchema string) error {
-	vcJSONSchemaSchema, err := schema.LoadSchema(schema.VerifiableCredentialJSONSchemaSchema)
-	if err != nil {
-		return errors.Wrap(err, "could not get known schema for VC JSON Schema")
-	}
-
-	if err = schema.IsValidAgainstJSONSchema(maybeCredentialSchema, vcJSONSchemaSchema); err != nil {
-		return errors.Wrap(err, "credential schema did not validate")
-	}
-
-	if _, err = StringToVCJSONCredentialSchema(maybeCredentialSchema); err != nil {
-		return errors.Wrap(err, "credential schema not valid")
-	}
-
-	return nil
-}
-
-func IsCredentialValidForVCJSONSchema(cred credential.VerifiableCredential, vcJSONSchema VCJSONSchema) error {
-	schemaBytes, err := json.Marshal(vcJSONSchema.Schema)
+// IsCredentialValidForJSONSchema validates a credential against a schema, returning an error if it is not valid
+func IsCredentialValidForJSONSchema(cred credential.VerifiableCredential, s JSONSchema) error {
+	schemaBytes, err := json.Marshal(s)
 	if err != nil {
 		return err
 	}
-	return IsCredentialValidForSchema(cred, string(schemaBytes))
-}
-
-// IsCredentialValidForSchema determines whether a given Verifiable Credential is valid against
-// a specified credential schema
-func IsCredentialValidForSchema(cred credential.VerifiableCredential, s string) error {
-	// First pull out credential subject and remove the ID property
-	credSubjectMap := cred.CredentialSubject
-
-	gotID, _ := credSubjectMap[credential.VerifiableCredentialIDProperty]
-	delete(credSubjectMap, credential.VerifiableCredentialIDProperty)
-
-	// set the id back after validation
-	defer func() { credSubjectMap[credential.VerifiableCredentialIDProperty] = gotID }()
-
-	// JSON-ify the subject
-	subjectBytes, err := json.Marshal(credSubjectMap)
+	credBytes, err := json.Marshal(cred)
 	if err != nil {
 		return err
 	}
-	subjectJSON := string(subjectBytes)
-	if err = schema.IsValidAgainstJSONSchema(subjectJSON, s); err != nil {
+	if err = schema.IsValidAgainstJSONSchema(string(credBytes), string(schemaBytes)); err != nil {
 		return errors.Wrap(err, "credential not valid for schema")
 	}
 	return nil
+}
+
+// GetCredentialSchemaFromCredential returns the credential schema and type for a given credential given
+// a credential schema access, which is used to retrieve the schema
+func GetCredentialSchemaFromCredential(access VCJSONSchemaAccess, cred credential.VerifiableCredential) (string, VCJSONSchemaType, error) {
+	if cred.CredentialSchema == nil {
+		return "", "", errors.New("credential does not contain a credential schema")
+	}
+
+	jsonSchema, err := access.GetVCJSONSchema(cred.CredentialSchema.ID)
+	if err != nil {
+		return "", "", errors.Wrap(err, "error getting schema")
+	}
+
+	if !IsSupportedVCJSONSchemaType(cred.CredentialSchema.Type) {
+		return "", "", fmt.Errorf("credential schema type<%T> is not supported", cred.CredentialSchema.Type)
+	}
+	return jsonSchema, VCJSONSchemaType(cred.CredentialSchema.Type), nil
 }
