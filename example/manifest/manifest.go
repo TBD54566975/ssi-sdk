@@ -367,8 +367,7 @@ func main() {
 	credentialSchema := prepareCredentialSchema()
 
 	// Prepare a credential manifest which requests information needed to issue a driver's license
-	id := credentialSchema.ID()
-	credentialManifest, err := prepareCredentialManifest(*issuerDID, id)
+	credentialManifest, err := prepareCredentialManifest(*issuerDID, credentialSchema.ID())
 	example.HandleExampleError(err, "failed to create manifest")
 
 	// Generate a DID key and its private key for the subject of the credential - the applicant

@@ -32,6 +32,9 @@ func IsCredentialValidForJSONSchema(cred credential.VerifiableCredential, s JSON
 	if !IsSupportedVCJSONSchemaType(cred.CredentialSchema.Type) {
 		return fmt.Errorf("credential schema type<%s> is not supported", cred.CredentialSchema.Type)
 	}
+	if !IsSupportedJSONSchemaVersion(s.Schema()) {
+		return fmt.Errorf("schema version<%s> is not supported", s.Schema())
+	}
 	schemaBytes, err := json.Marshal(s)
 	if err != nil {
 		return errors.Wrap(err, "error marshalling schema")
