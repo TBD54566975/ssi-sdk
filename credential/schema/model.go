@@ -14,10 +14,11 @@ const (
 
 	// Known JSON Schema properties
 
-	JSONSchemaIDProperty          = "$id"
-	JSONSchemaSchemaProperty      = "$schema"
-	JSONSchemaNameProperty        = "name"
-	JSONSchemaDescriptionProperty = "description"
+	JSONSchemaIDProperty           = "$id"
+	JSONSchemaAdditionalIDProperty = "id"
+	JSONSchemaSchemaProperty       = "$schema"
+	JSONSchemaNameProperty         = "name"
+	JSONSchemaDescriptionProperty  = "description"
 )
 
 type (
@@ -43,28 +44,31 @@ func (s JSONSchema) GetProperty(propertyName string) (any, error) {
 	return got, nil
 }
 
-func (s JSONSchema) GetID() string {
+func (s JSONSchema) ID() string {
 	if id, ok := s[JSONSchemaIDProperty].(string); ok {
+		return id
+	}
+	if id, ok := s[JSONSchemaAdditionalIDProperty].(string); ok {
 		return id
 	}
 	return ""
 }
 
-func (s JSONSchema) GetSchema() string {
+func (s JSONSchema) Schema() string {
 	if schema, ok := s[JSONSchemaSchemaProperty].(string); ok {
 		return schema
 	}
 	return ""
 }
 
-func (s JSONSchema) GetName() string {
+func (s JSONSchema) Name() string {
 	if name, ok := s[JSONSchemaNameProperty].(string); ok {
 		return name
 	}
 	return ""
 }
 
-func (s JSONSchema) GetDescription() string {
+func (s JSONSchema) Description() string {
 	if description, ok := s[JSONSchemaDescriptionProperty].(string); ok {
 		return description
 	}

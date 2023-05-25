@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
+	credschema "github.com/TBD54566975/ssi-sdk/credential/schema"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -76,7 +77,7 @@ func TestVerifier(t *testing.T) {
 		// verify cred with schema, no schema passed in
 		sampleCredential.CredentialSchema = &credential.CredentialSchema{
 			ID:   "did:example:MDP8AsFhHzhwUvGNuYkX7T;id=06e126d1-fa44-4882-a243-1e326fbe21db;version=1.0",
-			Type: "JsonSchemaValidator2018",
+			Type: credschema.JSONSchema2023Type.String(),
 		}
 		err = verifier.VerifyCredential(sampleCredential)
 		assert.Error(tt, err)
@@ -121,25 +122,24 @@ func getSampleCredential() credential.VerifiableCredential {
 
 func getVCJSONSchema() string {
 	return `{
-		"type": "https://w3c-ccg.github.io/vc-json-schemas/schema/2.0/schema.json",
-		"version": "1.0",
-		"id": "did:example:MDP8AsFhHzhwUvGNuYkX7T;id=06e126d1-fa44-4882-a243-1e326fbe21db;version=1.0",
-		"name": "Email",
-		"author": "did:example:MDP8AsFhHzhwUvGNuYkX7T",
-		"authored": "2021-01-01T00:00:00+00:00",
-		"schema": {
-			"$id": "email-schema-1.0",
-			"$schema": "https://json-schema.org/draft/2019-09/schema",
-			"description": "Email",
-			"type": "object",
-			"properties": {
-			"emailAddress": {
-				"type": "string",
-					"format": "email"
-			}
-		},
-		"required": ["emailAddress"],
-		"additionalProperties": false
-		}
-	}`
+  "$id": "https://example.com/schemas/email.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "EmailCredential",
+  "description": "EmailCredential using JsonSchema2023",
+  "type": "object",
+  "properties": {
+    "credentialSubject": {
+      "type": "object",
+      "properties": {
+        "emailAddress": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": [
+        "emailAddress"
+      ]
+    }
+  }
+}`
 }
