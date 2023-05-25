@@ -9,6 +9,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+type VCJSONSchemaAccess interface {
+	// GetVCJSONSchema returns a vc json schema for the given ID as a json string according to the given VCJSONSchemaType
+	GetVCJSONSchema(t VCJSONSchemaType, id string) (JSONSchema, error)
+}
+
 // RemoteAccess is used to retrieve a vc json schema from a remote location
 type RemoteAccess struct {
 	baseURL *string

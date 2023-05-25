@@ -9,11 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type VCJSONSchemaAccess interface {
-	// GetVCJSONSchema returns a vc json schema for the given ID as a json string according to the given VCJSONSchemaType
-	GetVCJSONSchema(t VCJSONSchemaType, id string) (JSONSchema, error)
-}
-
 // ValidateCredentialAgainstSchema validates a credential against a schema, returning an error if it is not valid
 // The schema is retrieved from the given VCJSONSchemaAccess using the credential's credential schema ID
 func ValidateCredentialAgainstSchema(access VCJSONSchemaAccess, cred credential.VerifiableCredential) error {
