@@ -3,7 +3,6 @@ package schema
 import (
 	"context"
 	"embed"
-	"fmt"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -53,17 +52,15 @@ func TestValidateCredentialAgainstSchema(t *testing.T) {
 type localAccess struct{}
 
 func (localAccess) GetVCJSONSchema(_ context.Context, _ VCJSONSchemaType, id string) (JSONSchema, error) {
+	var schema string
+	var s JSONSchema
+	var err error
 	switch id {
 	case "https://example.com/schemas/email.json":
-		schema, err := getTestVector(jsonSchema2023Schema1)
+		schema, err = getTestVector(jsonSchema2023Schema1)
 		if err != nil {
 			return nil, err
 		}
-		var s JSONSchema
-		if err = json.Unmarshal([]byte(schema), &s); err != nil {
-			return nil, err
-		}
-		return s, nil
 	case "https://example.com/schemas/email-credential-schema.json":
 		schemaCred, err := getTestVector(credentialSchema2023Schema1)
 		if err != nil {
@@ -77,13 +74,12 @@ func (localAccess) GetVCJSONSchema(_ context.Context, _ VCJSONSchemaType, id str
 		if err != nil {
 			return nil, errors.Wrap(err, "error marshalling credential subject")
 		}
-		var schema JSONSchema
-		if err = json.Unmarshal(credSubjectBytes, &schema); err != nil {
-			return nil, errors.Wrap(err, "error unmarshalling credential subject to schema")
-		}
-		return schema, nil
+		schema = string(credSubjectBytes)
 	}
-	return nil, fmt.Errorf("unsupported schema id: %s", id)
+	if err = json.Unmarshal([]byte(schema), &s); err != nil {
+		return nil, err
+	}
+	return s, nil
 }
 
 func getTestVector(fileName string) (string, error) {

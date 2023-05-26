@@ -299,7 +299,7 @@ func (j *JSONWebSignature2020Proof) SetDetachedJWS(jws string) {
 }
 
 func (j *JSONWebSignature2020Proof) GetDetachedJWS() string {
-	if j != nil {
+	if j == nil {
 		return ""
 	}
 	return j.JWS
