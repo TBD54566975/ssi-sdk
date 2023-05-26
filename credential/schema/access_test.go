@@ -36,8 +36,8 @@ func TestRemoteAccess(t *testing.T) {
 	})
 
 	t.Run("test validate credential against CredentialSchema2023", func(t *testing.T) {
-		gock.New("https://example.com/schemas").
-			Get("/email-credential-schema.json").
+		gock.New("https://example.com/credentials").
+			Get("/3734").
 			Reply(200).BodyString(schemaCred)
 		defer gock.Off()
 

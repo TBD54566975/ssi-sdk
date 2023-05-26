@@ -61,7 +61,7 @@ func (localAccess) GetVCJSONSchema(_ context.Context, _ VCJSONSchemaType, id str
 		if err != nil {
 			return nil, err
 		}
-	case "https://example.com/schemas/email-credential-schema.json":
+	case "https://example.com/credentials/3734":
 		schemaCred, err := getTestVector(credentialSchema2023Schema1)
 		if err != nil {
 			return nil, err
