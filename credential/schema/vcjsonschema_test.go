@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"testing"
@@ -51,7 +52,7 @@ func TestValidateCredentialAgainstSchema(t *testing.T) {
 
 type localAccess struct{}
 
-func (localAccess) GetVCJSONSchema(_ VCJSONSchemaType, id string) (JSONSchema, error) {
+func (localAccess) GetVCJSONSchema(_ context.Context, _ VCJSONSchemaType, id string) (JSONSchema, error) {
 	switch id {
 	case "https://example.com/schemas/email.json":
 		schema, err := getTestVector(jsonSchema2023Schema1)

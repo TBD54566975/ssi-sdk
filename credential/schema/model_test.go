@@ -40,3 +40,23 @@ func TestVCJSONSchema(t *testing.T) {
 	assert.Equal(t, "EmailCredential", vcSchema.Name())
 	assert.Equal(t, "EmailCredential using JsonSchema2023", vcSchema.Description())
 }
+
+func TestIsSupportedVersionAndType(t *testing.T) {
+	t.Run("is supported json schema version", func(t *testing.T) {
+		supportedVersions := GetSupportedJSONSchemaVersions()
+		for _, version := range supportedVersions {
+			assert.True(t, IsSupportedJSONSchemaVersion(version.String()))
+		}
+
+		assert.False(t, IsSupportedJSONSchemaVersion("unsupported"))
+	})
+
+	t.Run("is supported json schema type", func(t *testing.T) {
+		supportedTypes := GetSupportedVCJSONSchemaTypes()
+		for _, schemaType := range supportedTypes {
+			assert.True(t, IsSupportedVCJSONSchemaType(schemaType.String()))
+		}
+
+		assert.False(t, IsSupportedVCJSONSchemaType("unsupported"))
+	})
+}

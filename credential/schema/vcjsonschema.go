@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -56,7 +57,7 @@ func GetCredentialSchemaFromCredential(access VCJSONSchemaAccess, cred credentia
 		return nil, "", fmt.Errorf("credential schema type<%s> is not supported", t)
 	}
 
-	jsonSchema, err := access.GetVCJSONSchema(VCJSONSchemaType(t), cred.CredentialSchema.ID)
+	jsonSchema, err := access.GetVCJSONSchema(context.Background(), VCJSONSchemaType(t), cred.CredentialSchema.ID)
 	if err != nil {
 		return nil, "", errors.Wrap(err, "getting schema")
 	}

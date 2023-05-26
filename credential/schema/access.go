@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -11,7 +12,7 @@ import (
 
 type VCJSONSchemaAccess interface {
 	// GetVCJSONSchema returns a vc json schema for the given ID as a json string according to the given VCJSONSchemaType
-	GetVCJSONSchema(t VCJSONSchemaType, id string) (JSONSchema, error)
+	GetVCJSONSchema(ctx context.Context, t VCJSONSchemaType, id string) (JSONSchema, error)
 }
 
 // RemoteAccess is used to retrieve a vc json schema from a remote location
@@ -31,7 +32,7 @@ func NewRemoteAccess(baseURL *string) *RemoteAccess {
 
 // GetVCJSONSchema returns a vc json schema for the given ID and its type as a json string by making a GET request
 // to the given ID. If a baseURL was provided to NewRemoteAccess, it will be prepended to the ID.
-func (ra *RemoteAccess) GetVCJSONSchema(t VCJSONSchemaType, id string) (JSONSchema, error) {
+func (ra *RemoteAccess) GetVCJSONSchema(ctx context.Context, t VCJSONSchemaType, id string) (JSONSchema, error) {
 	if !IsSupportedVCJSONSchemaType(t.String()) {
 		return nil, fmt.Errorf("credential schema type<%T> is not supported", t)
 	}
@@ -39,7 +40,11 @@ func (ra *RemoteAccess) GetVCJSONSchema(t VCJSONSchemaType, id string) (JSONSche
 	if ra.baseURL != nil {
 		url = *ra.baseURL + id
 	}
-	resp, err := ra.Get(url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating request")
+	}
+	resp, err := ra.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting schema")
 	}
