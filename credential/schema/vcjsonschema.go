@@ -14,7 +14,7 @@ import (
 func ValidateCredentialAgainstSchema(access VCJSONSchemaAccess, cred credential.VerifiableCredential) error {
 	jsonSchema, _, err := GetCredentialSchemaFromCredential(access, cred)
 	if err != nil {
-		return errors.Wrap(err, "error getting schema from credential")
+		return errors.Wrap(err, "getting schema from credential")
 	}
 	if err = IsCredentialValidForJSONSchema(cred, jsonSchema); err != nil {
 		return errors.Wrap(err, "credential not valid for schema")
@@ -32,11 +32,11 @@ func IsCredentialValidForJSONSchema(cred credential.VerifiableCredential, s JSON
 	}
 	schemaBytes, err := json.Marshal(s)
 	if err != nil {
-		return errors.Wrap(err, "error marshalling schema")
+		return errors.Wrap(err, "marshalling schema")
 	}
 	credBytes, err := json.Marshal(cred)
 	if err != nil {
-		return errors.Wrap(err, "error marshalling credential")
+		return errors.Wrap(err, "marshalling credential")
 	}
 	if err = schema.IsValidAgainstJSONSchema(string(credBytes), string(schemaBytes)); err != nil {
 		return errors.Wrap(err, "credential not valid for schema")
@@ -58,7 +58,7 @@ func GetCredentialSchemaFromCredential(access VCJSONSchemaAccess, cred credentia
 
 	jsonSchema, err := access.GetVCJSONSchema(VCJSONSchemaType(t), cred.CredentialSchema.ID)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "error getting schema")
+		return nil, "", errors.Wrap(err, "getting schema")
 	}
 	return jsonSchema, VCJSONSchemaType(t), nil
 }

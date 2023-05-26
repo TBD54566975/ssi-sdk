@@ -24,7 +24,7 @@ var (
 )
 
 func TestValidateCredentialAgainstSchema(t *testing.T) {
-	t.Run("test validate credential against JsonSchema2023", func(t *testing.T) {
+	t.Run("validate credential against JsonSchema2023", func(t *testing.T) {
 		cred, err := getTestVector(jsonSchema2023Credential1)
 		assert.NoError(t, err)
 
@@ -36,7 +36,7 @@ func TestValidateCredentialAgainstSchema(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("test validate credential against CredentialSchema2023", func(t *testing.T) {
+	t.Run("validate credential against CredentialSchema2023", func(t *testing.T) {
 		cred, err := getTestVector(credentialSchema2023Credential1)
 		assert.NoError(t, err)
 
