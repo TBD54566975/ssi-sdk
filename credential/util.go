@@ -33,6 +33,7 @@ func ToCredential(genericCred any) (jws.Headers, jwt.Token, *VerifiableCredentia
 		verifiableCredential := genericCred.(VerifiableCredential)
 		return nil, nil, &verifiableCredential, nil
 	case string:
+		// TODO(gabe) support the case where the string is a json representation of an LD credential
 		// JWT
 		return ParseVerifiableCredentialFromJWT(genericCred.(string))
 	case map[string]any:
@@ -78,6 +79,7 @@ func ToCredentialJSONMap(genericCred any) (map[string]any, error) {
 	case map[string]any:
 		return genericCred.(map[string]any), nil
 	case string:
+		// TODO(gabe) support the case where the string is a json representation of an LD credential
 		// JWT
 		_, token, _, err := ParseVerifiableCredentialFromJWT(genericCred.(string))
 		if err != nil {

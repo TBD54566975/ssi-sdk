@@ -47,10 +47,6 @@ const (
 	DisplayMappingObjectSchema        File = "wr-display-mapping-object.json"
 	EntityStylesSchema                File = "wr-entity-styles.json"
 	LabeledDisplayMappingObjectSchema File = "wr-labeled-display-mapping-object.json"
-
-	// VC JSON Schema Schemas
-
-	VerifiableCredentialJSONSchemaSchema File = "vc-json-schema.json"
 )
 
 func (s File) String() string {
@@ -144,7 +140,6 @@ func GetAllLocalSchemas() (map[string]string, error) {
 		"identity.foundation/wallet-rendering/schemas/display-mapping-object.json":                                 DisplayMappingObjectSchema,
 		"identity.foundation/wallet-rendering/schemas/entity-styles.json":                                          EntityStylesSchema,
 		"identity.foundation/wallet-rendering/schemas/labeled-display-mapping-object.json":                         LabeledDisplayMappingObjectSchema,
-		"w3c-ccg.github.io/vc-json-schemas/credential-schema-2.0":                                                  VerifiableCredentialJSONSchemaSchema,
 	}
 
 	localSchemas := make(map[string]string, len(localFiles))

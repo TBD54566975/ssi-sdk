@@ -31,40 +31,36 @@ func getDIDKey() (gocrypto.PrivateKey, *key.DIDKey, error) {
 }
 
 // Prepare a credential schema that will be used to issue a credential from a successful Credential Manifest
-func prepareResultingCredentialSchema(issuerDID string) schema.VCJSONSchema {
-	return schema.VCJSONSchema{
-		Type:     schema.VCJSONSchemaType,
-		Version:  "1.0",
-		ID:       uuid.NewString(),
-		Name:     "Drivers License Schema",
-		Author:   issuerDID,
-		Authored: time.Now().Format(time.RFC3339),
-		Schema: map[string]any{
-			"id":          "ca-dmv-drivers-license-schema-1.0",
-			"$schema":     "https://json-schema.org/draft/2019-09/schema",
-			"description": "CA DMV Drivers License Schema",
-			"type":        "object",
-			"properties": map[string]any{
-				"firstName": map[string]any{
-					"type": "string",
-				},
-				"lastName": map[string]any{
-					"type": "string",
-				},
-				"dateOfBirth": map[string]any{
-					"type": "string",
-				},
-				"licenseNumber": map[string]any{
-					"type": "string",
-				},
-				"licenseClass": map[string]any{
-					"type": "string",
+func prepareCredentialSchema() schema.JSONSchema {
+	return schema.JSONSchema{
+		"id":          "ca-dmv-drivers-license-schema-1.0",
+		"$schema":     "https://json-schema.org/draft/2019-09/schema",
+		"description": "CA DMV Drivers License Schema",
+		"type":        "object",
+		"properties": map[string]any{
+			"credentialSubject": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"firstName": map[string]any{
+						"type": "string",
+					},
+					"lastName": map[string]any{
+						"type": "string",
+					},
+					"dateOfBirth": map[string]any{
+						"type": "string",
+					},
+					"licenseNumber": map[string]any{
+						"type": "string",
+					},
+					"licenseClass": map[string]any{
+						"type": "string",
+					},
 				},
 			},
-			"required": []string{
-				"firstName", "lastName", "dateOfBirth", "licenseNumber", "licenseClass",
-			},
-			"additionalProperties": false,
+		},
+		"required": []string{
+			"firstName", "lastName", "dateOfBirth", "licenseNumber", "licenseClass",
 		},
 	}
 }
@@ -184,7 +180,7 @@ func prepareCredentialManifest(issuerDID key.DIDKey, licenseSchemaID string) (*m
 
 // Prepare a credential which is required to fill out the credential manifest's application's
 // input descriptor's requirements
-func issueApplicationCredential(id key.DIDKey, s schema.VCJSONSchema) (*credential.VerifiableCredential, error) {
+func issueApplicationCredential(id key.DIDKey, s schema.JSONSchema) (*credential.VerifiableCredential, error) {
 	builder := credential.NewVerifiableCredentialBuilder()
 
 	if err := builder.SetIssuer(id.String()); err != nil {
@@ -192,8 +188,8 @@ func issueApplicationCredential(id key.DIDKey, s schema.VCJSONSchema) (*credenti
 	}
 
 	if err := builder.SetCredentialSchema(credential.CredentialSchema{
-		ID:   s.ID,
-		Type: schema.VCJSONSchemaType,
+		ID:   s.ID(),
+		Type: schema.JSONSchema2023Type.String(),
 	}); err != nil {
 		return nil, err
 	}
@@ -271,7 +267,7 @@ type driversLicenseFields struct {
 	DateOfBirth string `json:"dateOfBirth"`
 }
 
-func issueDriversLicenseCredential(issuerDID key.DIDKey, subjectDID string, s schema.VCJSONSchema, data driversLicenseFields) (*credential.VerifiableCredential, error) {
+func issueDriversLicenseCredential(issuerDID key.DIDKey, subjectDID string, s schema.JSONSchema, data driversLicenseFields) (*credential.VerifiableCredential, error) {
 	builder := credential.NewVerifiableCredentialBuilder()
 
 	if err := builder.SetIssuer(issuerDID.String()); err != nil {
@@ -279,8 +275,8 @@ func issueDriversLicenseCredential(issuerDID key.DIDKey, subjectDID string, s sc
 	}
 
 	if err := builder.SetCredentialSchema(credential.CredentialSchema{
-		ID:   s.ID,
-		Type: schema.VCJSONSchemaType,
+		ID:   s.ID(),
+		Type: schema.JSONSchema2023Type.String(),
 	}); err != nil {
 		return nil, err
 	}
@@ -308,7 +304,7 @@ func issueDriversLicenseCredential(issuerDID key.DIDKey, subjectDID string, s sc
 }
 
 // Prepare a credential given a valid credential application
-func processCredentialApplication(cm manifest.CredentialManifest, ca manifest.CredentialApplicationWrapper, s schema.VCJSONSchema, issuerDID key.DIDKey) (*manifest.CredentialResponseWrapper, error) {
+func processCredentialApplication(cm manifest.CredentialManifest, ca manifest.CredentialApplicationWrapper, s schema.JSONSchema, issuerDID key.DIDKey) (*manifest.CredentialResponseWrapper, error) {
 	credAppRequestBytes, err := json.Marshal(ca)
 	if err != nil {
 		return nil, err
@@ -368,10 +364,10 @@ func main() {
 
 	// Prepare a credential schema that will be issued to issue a credential from a successful Credential Manifest
 	// this is the schema for the license credential
-	credentialSchema := prepareResultingCredentialSchema(issuerDID.String())
+	credentialSchema := prepareCredentialSchema()
 
 	// Prepare a credential manifest which requests information needed to issue a driver's license
-	credentialManifest, err := prepareCredentialManifest(*issuerDID, credentialSchema.ID)
+	credentialManifest, err := prepareCredentialManifest(*issuerDID, credentialSchema.ID())
 	example.HandleExampleError(err, "failed to create manifest")
 
 	// Generate a DID key and its private key for the subject of the credential - the applicant

@@ -4,35 +4,59 @@ import (
 	"testing"
 
 	"github.com/goccy/go-json"
-
 	"github.com/stretchr/testify/assert"
 )
 
-// Round trip to and from our data model
 func TestVCJSONSchema(t *testing.T) {
-	schema, err := getTestVector(vcJSONTestVector1)
-	assert.NoError(t, err)
+	testSchema := `{
+  "$id": "https://example.com/schemas/email.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "EmailCredential",
+  "description": "EmailCredential using JsonSchema2023",
+  "type": "object",
+  "properties": {
+    "credentialSubject": {
+      "type": "object",
+      "properties": {
+        "emailAddress": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": [
+        "emailAddress"
+      ]
+    }
+  }
+}`
 
-	var vcJSONSchema VCJSONSchema
-	err = json.Unmarshal([]byte(schema), &vcJSONSchema)
+	var vcSchema JSONSchema
+	err := json.Unmarshal([]byte(testSchema), &vcSchema)
 	assert.NoError(t, err)
+	assert.NotEmpty(t, vcSchema)
 
-	roundTripBytes, err := json.Marshal(vcJSONSchema)
-	assert.NoError(t, err)
-
-	roundTripString := string(roundTripBytes)
-	assert.JSONEqf(t, schema, roundTripString, "error message")
+	assert.Equal(t, "https://example.com/schemas/email.json", vcSchema.ID())
+	assert.Equal(t, "https://json-schema.org/draft/2020-12/schema", vcSchema.Schema())
+	assert.Equal(t, "EmailCredential", vcSchema.Name())
+	assert.Equal(t, "EmailCredential using JsonSchema2023", vcSchema.Description())
 }
 
-func TestGetPropertyFromSchema(t *testing.T) {
-	schema, err := getTestVector(vcJSONTestVector1)
-	assert.NoError(t, err)
+func TestIsSupportedVersionAndType(t *testing.T) {
+	t.Run("is supported json schema version", func(t *testing.T) {
+		supportedVersions := GetSupportedJSONSchemaVersions()
+		for _, version := range supportedVersions {
+			assert.True(t, IsSupportedJSONSchemaVersion(version.String()))
+		}
 
-	var vcJSONSchema VCJSONSchema
-	err = json.Unmarshal([]byte(schema), &vcJSONSchema)
-	assert.NoError(t, err)
+		assert.False(t, IsSupportedJSONSchemaVersion("unsupported"))
+	})
 
-	property, err := vcJSONSchema.GetProperty("$id")
-	assert.NoError(t, err)
-	assert.EqualValues(t, "email-schema-1.0", property)
+	t.Run("is supported json schema type", func(t *testing.T) {
+		supportedTypes := GetSupportedVCJSONSchemaTypes()
+		for _, schemaType := range supportedTypes {
+			assert.True(t, IsSupportedVCJSONSchemaType(schemaType.String()))
+		}
+
+		assert.False(t, IsSupportedVCJSONSchemaType("unsupported"))
+	})
 }

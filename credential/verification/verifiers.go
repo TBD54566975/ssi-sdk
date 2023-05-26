@@ -6,6 +6,8 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	credschema "github.com/TBD54566975/ssi-sdk/credential/schema"
+	jsonschema "github.com/TBD54566975/ssi-sdk/schema"
+	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 )
 
@@ -63,18 +65,22 @@ func VerifyJSONSchema(cred credential.VerifiableCredential, opts ...Option) erro
 	if err != nil {
 		return err
 	}
-	return credschema.IsCredentialValidForVCJSONSchema(cred, *credSchema)
+	return credschema.IsCredentialValidForJSONSchema(cred, *credSchema)
 }
 
-func optionToCredentialSchema(maybeSchema any) (*credschema.VCJSONSchema, error) {
+func optionToCredentialSchema(maybeSchema any) (*credschema.JSONSchema, error) {
 	schema, ok := maybeSchema.(string)
 	if !ok {
 		return nil, errors.New("the option provided must be a string value representing a Verifiable Credential JSON Schema")
 	}
-	if err := credschema.IsValidCredentialSchema(schema); err != nil {
+	if err := jsonschema.IsValidJSONSchema(schema); err != nil {
 		return nil, errors.Wrap(err, "credential schema is invalid")
 	}
-	return credschema.StringToVCJSONCredentialSchema(schema)
+	var credSchema credschema.JSONSchema
+	if err := json.Unmarshal([]byte(schema), &credSchema); err != nil {
+		return nil, errors.Wrap(err, "credential schema is invalid")
+	}
+	return &credSchema, nil
 }
 
 func GetKnownVerifiers() []Verifier {
