@@ -18,7 +18,7 @@ func TestRemoteAccess(t *testing.T) {
 	schemaCred, err := getTestVector(credentialSchema2023Schema1)
 	require.NoError(t, err)
 
-	t.Run("test validate credential against JsonSchema2023", func(t *testing.T) {
+	t.Run("validate credential against JsonSchema2023", func(t *testing.T) {
 		gock.New("https://example.com/schemas").
 			Get("/email.json").
 			Reply(200).BodyString(schema)
@@ -35,7 +35,7 @@ func TestRemoteAccess(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("test validate credential against CredentialSchema2023", func(t *testing.T) {
+	t.Run("validate credential against CredentialSchema2023", func(t *testing.T) {
 		gock.New("https://example.com/credentials").
 			Get("/3734").
 			Reply(200).BodyString(schemaCred)
