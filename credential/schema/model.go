@@ -1,6 +1,10 @@
 package schema
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/goccy/go-json"
+)
 
 const (
 	// CredentialSchema2023Type https://www.w3.org/TR/vc-json-schema/#credentialschema2023
@@ -33,6 +37,14 @@ func (s VCJSONSchemaType) String() string {
 
 func (s JSONSchemaVersion) String() string {
 	return string(s)
+}
+
+func (s JSONSchema) String() string {
+	schemaBytes, err := json.Marshal(s)
+	if err != nil {
+		return ""
+	}
+	return string(schemaBytes)
 }
 
 // GetProperty returns the value of a property in the schema

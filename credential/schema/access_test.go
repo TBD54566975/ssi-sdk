@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"context"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -18,6 +19,17 @@ func TestRemoteAccess(t *testing.T) {
 	schemaCred, err := getTestVector(credentialSchema2023Schema1)
 	require.NoError(t, err)
 
+	t.Run("access JsonSchema2023", func(t *testing.T) {
+		gock.New("https://example.com/schemas").
+			Get("/email.json").
+			Reply(200).BodyString(schema)
+		defer gock.Off()
+
+		jsonSchema, err := remoteAccess.GetVCJSONSchema(context.Background(), JSONSchema2023Type, "https://example.com/schemas/email.json")
+		assert.NoError(t, err)
+		assert.JSONEq(t, schema, jsonSchema.String())
+	})
+
 	t.Run("validate credential against JsonSchema2023", func(t *testing.T) {
 		gock.New("https://example.com/schemas").
 			Get("/email.json").
@@ -33,6 +45,17 @@ func TestRemoteAccess(t *testing.T) {
 
 		err = ValidateCredentialAgainstSchema(remoteAccess, vc)
 		assert.NoError(t, err)
+	})
+
+	t.Run("access CredentialSchema2023", func(t *testing.T) {
+		gock.New("https://example.com/credentials").
+			Get("/3734").
+			Reply(200).BodyString(schemaCred)
+		defer gock.Off()
+
+		jsonSchema, err := remoteAccess.GetVCJSONSchema(context.Background(), JSONSchema2023Type, "https://example.com/credentials/3734")
+		assert.NoError(t, err)
+		assert.JSONEq(t, schemaCred, jsonSchema.String())
 	})
 
 	t.Run("validate credential against CredentialSchema2023", func(t *testing.T) {
