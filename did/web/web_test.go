@@ -152,7 +152,7 @@ func TestDIDWebValidate(t *testing.T) {
 	t.Run("Unresolvable Path - Validate DID", func(tt *testing.T) {
 		err := didWebNotADomain.Validate(context.Background())
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "failed to validate")
-		assert.Contains(tt, err.Error(), "did:web: is missing the required domain")
+		assert.ErrorContains(tt, err, "resolving doc bytes")
+		assert.ErrorContains(tt, err, "did:web: is missing the required domain")
 	})
 }

@@ -34,7 +34,7 @@ const (
 func (d DIDWeb) Validate(ctx context.Context) error {
 	_, err := d.resolveDocBytes(ctx)
 	if err != nil {
-		return errors.Wrap(err, "failed to validate DID")
+		return errors.Wrap(err, "resolving doc bytes")
 	}
 	return nil
 }
