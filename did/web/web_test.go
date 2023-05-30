@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"testing"
 
 	"gopkg.in/h2non/gock.v1"
@@ -55,13 +56,13 @@ func TestDIDWebResolveDocBytes(t *testing.T) {
 			BodyString(`{"didDocument": {"id": "did:web:demo.ssi-sdk.com"}}`)
 		defer gock.Off()
 
-		docBytes, err := didWebToBeResolved.resolveDocBytes()
+		docBytes, err := didWebToBeResolved.resolveDocBytes(context.Background())
 		assert.NoError(tt, err)
 		assert.Contains(tt, string(docBytes), "did:web:demo.ssi-sdk.com")
 	})
 
 	t.Run("Unresolvable Path", func(tt *testing.T) {
-		_, err := didWebNotADomain.resolveDocBytes()
+		_, err := didWebNotADomain.resolveDocBytes(context.Background())
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "did:web: is missing the required domain")
 	})
@@ -75,7 +76,7 @@ func TestDIDWebResolve(t *testing.T) {
 			BodyString(`{"didDocument": {"id": "did:web:demo.ssi-sdk.com"}}`)
 		defer gock.Off()
 
-		doc, err := didWebToBeResolved.Resolve()
+		doc, err := didWebToBeResolved.Resolve(context.Background())
 		assert.NoError(tt, err)
 		assert.Equal(tt, string(didWebToBeResolved), doc.ID)
 	})
@@ -87,13 +88,13 @@ func TestDIDWebResolve(t *testing.T) {
 			BodyString(`{"didDocument": {"id": "did:web:demo.ssi-sdk.com"}}`)
 		defer gock.Off()
 
-		_, err := didWebCannotBeResolved.Resolve()
+		_, err := didWebCannotBeResolved.Resolve(context.Background())
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "doc.id<did:web:demo.ssi-sdk.com> does not match did:web value<did:web:doesnotexist.com>")
 	})
 
 	t.Run("Unhappy Path - Unknown DID", func(t *testing.T) {
-		_, err := didWebCannotBeResolved.Resolve()
+		_, err := didWebCannotBeResolved.Resolve(context.Background())
 		assert.Error(t, err)
 	})
 }
@@ -133,5 +134,25 @@ func TestDIDWebCreateDocFileBytes(t *testing.T) {
 	t.Run("Unhappy Path", func(tt *testing.T) {
 		_, err := didWebBasic.CreateDocBytes("bad", nil)
 		assert.Error(tt, err)
+	})
+}
+
+func TestDIDWebValidate(t *testing.T) {
+	t.Run("Happy Path - Validate DID", func(tt *testing.T) {
+		gock.New("https://demo.ssi-sdk.com").
+			Get("/.well-known/did.json").
+			Reply(200).
+			BodyString(`{"didDocument": {"id": "did:web:demo.ssi-sdk.com"}}`)
+		defer gock.Off()
+
+		err := didWebToBeResolved.Validate(context.Background())
+		assert.NoError(tt, err)
+	})
+
+	t.Run("Unresolvable Path - Validate DID", func(tt *testing.T) {
+		err := didWebNotADomain.Validate(context.Background())
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "failed to validate")
+		assert.Contains(tt, err.Error(), "did:web: is missing the required domain")
 	})
 }

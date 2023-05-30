@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,9 +30,13 @@ const (
 	WebPrefix           = "did:web"
 )
 
-func (d DIDWeb) IsValid() bool {
-	_, err := d.resolveDocBytes()
-	return err == nil
+// Validate return nil if DID is valid, otherwise the validation error.
+func (d DIDWeb) Validate(ctx context.Context) error {
+	_, err := d.resolveDocBytes(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to validate DID")
+	}
+	return nil
 }
 
 func (d DIDWeb) String() string {
@@ -135,8 +140,8 @@ func (d DIDWeb) GetDocURL() (string, error) {
 	return sb.String(), nil
 }
 
-func (d DIDWeb) Resolve() (*did.Document, error) {
-	docBytes, err := d.resolveDocBytes()
+func (d DIDWeb) Resolve(ctx context.Context) (*did.Document, error) {
+	docBytes, err := d.resolveDocBytes(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolving did:web DID<%s>", d)
 	}
@@ -152,7 +157,7 @@ func (d DIDWeb) Resolve() (*did.Document, error) {
 
 // resolveDocBytes simply performs a http.Get on the expected URL of the DID Document from GetDocURL
 // and returns the bytes of the fetched file
-func (d DIDWeb) resolveDocBytes() ([]byte, error) {
+func (d DIDWeb) resolveDocBytes(ctx context.Context) ([]byte, error) {
 	docURL, err := d.GetDocURL()
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting doc url %+v", d)
@@ -160,7 +165,11 @@ func (d DIDWeb) resolveDocBytes() ([]byte, error) {
 	// Specification https://w3c-ccg.github.io/did-method-web/#read-resolve
 	// 6. Perform an HTTP GET request to the URL using an agent that can successfully negotiate a secure HTTPS
 	// connection, which enforces the security requirements as described in 2.5 Security and privacy considerations.
-	resp, err := http.Get(docURL) // #nosec
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, docURL, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "constructing doc request %+v", docURL)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting doc %+v", docURL)
 	}
