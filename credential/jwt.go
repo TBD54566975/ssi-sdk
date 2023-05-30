@@ -50,7 +50,7 @@ func SignVerifiableCredentialJWT(signer jwx.Signer, cred VerifiableCredential) (
 		return nil, errors.Wrap(err, "could not set exp value")
 	}
 	// remove the issuer from the credential
-	cred.Issuer = ""
+	cred.Issuer = nil
 
 	if err := t.Set(jwt.IssuedAtKey, cred.IssuanceDate); err != nil {
 		return nil, errors.Wrap(err, "could not set iat value")
