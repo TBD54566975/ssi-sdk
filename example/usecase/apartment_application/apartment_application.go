@@ -17,6 +17,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
+	"github.com/TBD54566975/ssi-sdk/credential/integrity"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did/key"
@@ -88,7 +89,7 @@ func main() {
 	example.HandleExampleError(err, "Failed to make verifiable credential")
 	example.HandleExampleError(vc.IsValid(), "Verifiable credential is not valid")
 
-	signedVCBytes, err := credential.SignVerifiableCredentialJWT(*govtSigner, *vc)
+	signedVCBytes, err := integrity.SignVerifiableCredentialJWT(*govtSigner, *vc)
 
 	example.HandleExampleError(err, "Failed to sign vc")
 

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/credential/integrity"
+	"github.com/TBD54566975/ssi-sdk/credential/parsing"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did/resolution"
 	"github.com/TBD54566975/ssi-sdk/schema"
@@ -56,7 +58,7 @@ func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver re
 			return nil, fmt.Errorf("verifier<%T> is not a JWT verifier", verifier)
 		}
 		// verify the VP, which in turn verifies all credentials in it
-		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(ctx, jwtVerifier, resolver, string(submission))
+		_, _, vp, err := integrity.VerifyVerifiablePresentationJWT(ctx, jwtVerifier, resolver, string(submission))
 		if err != nil {
 			return nil, errors.Wrap(err, "validation of the presentation submission failed")
 		}
@@ -135,7 +137,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		}
 
 		// TODO(gabe) add in signature validation of claims here https://github.com/TBD54566975/ssi-sdk/issues/71
-		_, _, cred, err := credential.ToCredential(claim)
+		_, _, cred, err := parsing.ToCredential(claim)
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting claim as json: <%s>", claim)
 		}
@@ -150,7 +152,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 
 		// TODO(gabe) consider enforcing limited disclosure if present
 		// for each field we need to verify at least one path matches
-		credJSON, err := credential.ToCredentialJSONMap(claim)
+		credJSON, err := parsing.ToCredentialJSONMap(claim)
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting credential as json: %v", cred)
 		}

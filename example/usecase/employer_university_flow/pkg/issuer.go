@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TBD54566975/ssi-sdk/credential/integrity"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
 
@@ -61,12 +62,12 @@ func BuildExampleUniversityVC(signer jwx.Signer, universityDID, recipientDID str
 	logrus.Debug(string(dat))
 
 	// sign the credential as a JWT
-	signedCred, err := credential.SignVerifiableCredentialJWT(signer, knownCred)
+	signedCred, err := integrity.SignVerifiableCredentialJWT(signer, knownCred)
 	if err != nil {
 		return "", "", err
 	}
 	cred = string(signedCred)
-	_, credToken, _, err := credential.ParseVerifiableCredentialFromJWT(string(signedCred))
+	_, credToken, _, err := integrity.ParseVerifiableCredentialFromJWT(string(signedCred))
 	if err != nil {
 		return "", "", err
 	}

@@ -1,10 +1,11 @@
-package credential
+package integrity
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -46,18 +47,15 @@ func TestVerifyCredentialSignature(t *testing.T) {
 
 		_, err = VerifyCredentialSignature(context.Background(), map[string]any{"a": "test"}, resolver)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "converting credential from generic type: parsing generic credential as either VC or JWT")
+		assert.Contains(tt, err.Error(), "map is not a valid credential")
 	})
 
 	t.Run("data integrity map credential type missing proof", func(tt *testing.T) {
 		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
 
-		credential := getTestCredential()
-		credMap, err := ToCredentialJSONMap(credential)
-		assert.NoError(tt, err)
-
-		_, err = VerifyCredentialSignature(context.Background(), credMap, resolver)
+		cred := getTestCredential()
+		_, err = VerifyCredentialSignature(context.Background(), cred, resolver)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "credential must have a proof")
 	})
@@ -229,7 +227,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 }
 
 func getTestJWTCredential(t *testing.T, signer jwx.Signer) string {
-	cred := VerifiableCredential{
+	cred := credential.VerifiableCredential{
 		ID:           uuid.NewString(),
 		Context:      []any{"https://www.w3.org/2018/credentials/v1"},
 		Type:         []string{"VerifiableCredential"},
@@ -246,4 +244,14 @@ func getTestJWTCredential(t *testing.T, signer jwx.Signer) string {
 	require.NoError(t, err)
 	require.NotEmpty(t, signed)
 	return string(signed)
+}
+
+func getTestCredential() credential.VerifiableCredential {
+	return credential.VerifiableCredential{
+		Context:           []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
+		Type:              []string{"VerifiableCredential"},
+		Issuer:            "did:example:123",
+		IssuanceDate:      "2021-01-01T19:23:24Z",
+		CredentialSubject: map[string]any{},
+	}
 }

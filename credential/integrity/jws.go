@@ -1,6 +1,7 @@
-package credential
+package integrity
 
 import (
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -14,7 +15,7 @@ const (
 
 // SignVerifiableCredentialJWS is prepared according to https://transmute-industries.github.io/vc-jws/.
 // This is currently an experimental. It's unstable and subject to change. Use at your own peril.
-func SignVerifiableCredentialJWS(signer jwx.Signer, cred VerifiableCredential) ([]byte, error) {
+func SignVerifiableCredentialJWS(signer jwx.Signer, cred credential.VerifiableCredential) ([]byte, error) {
 	payload, err := json.Marshal(cred)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling credential")
@@ -38,7 +39,7 @@ func SignVerifiableCredentialJWS(signer jwx.Signer, cred VerifiableCredential) (
 // ParseVerifiableCredentialFromJWS parses a JWS. Depending on the `cty` header value, it parses as a JWT or simply
 // decodes the payload.
 // This is currently an experimental. It's unstable and subject to change. Use at your own peril.
-func ParseVerifiableCredentialFromJWS(token string) (*jws.Message, *VerifiableCredential, error) {
+func ParseVerifiableCredentialFromJWS(token string) (*jws.Message, *credential.VerifiableCredential, error) {
 	parsed, err := jws.Parse([]byte(token))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "parsing JWS")
@@ -55,7 +56,7 @@ func ParseVerifiableCredentialFromJWS(token string) (*jws.Message, *VerifiableCr
 		return parsed, cred, err
 	}
 
-	var cred VerifiableCredential
+	var cred credential.VerifiableCredential
 	if err = json.Unmarshal(parsed.Payload(), &cred); err != nil {
 		return nil, nil, errors.Wrap(err, "reconstructing Verifiable Credential")
 	}
@@ -66,7 +67,7 @@ func ParseVerifiableCredentialFromJWS(token string) (*jws.Message, *VerifiableCr
 // VerifyVerifiableCredentialJWS verifies the signature validity on the token and parses
 // the token in a verifiable credential.
 // This is currently an experimental. It's unstable and subject to change. Use at your own peril.
-func VerifyVerifiableCredentialJWS(verifier jwx.Verifier, token string) (*jws.Message, *VerifiableCredential, error) {
+func VerifyVerifiableCredentialJWS(verifier jwx.Verifier, token string) (*jws.Message, *credential.VerifiableCredential, error) {
 	if err := verifier.VerifyJWS(token); err != nil {
 		return nil, nil, errors.Wrap(err, "verifying JWS")
 	}

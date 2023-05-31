@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	credutil "github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
+	credutil "github.com/TBD54566975/ssi-sdk/credential/parsing"
 	errresp "github.com/TBD54566975/ssi-sdk/error"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"

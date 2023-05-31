@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/credential/integrity"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/stretchr/testify/assert"
 
@@ -134,7 +135,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 
 		signer, verifier := getJWKSignerVerifier(tt)
 		testVC := getTestVerifiableCredential(signer.ID, signer.ID)
-		credJWT, err := credential.SignVerifiableCredentialJWT(*signer, testVC)
+		credJWT, err := integrity.SignVerifiableCredentialJWT(*signer, testVC)
 		assert.NoError(tt, err)
 		presentationClaim := PresentationClaim{
 			Token:                         util.StringPtr(string(credJWT)),
@@ -182,7 +183,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
 
-		_, _, verifiablePresentation, err := credential.ParseVerifiablePresentationFromJWT(string(submissionBytes))
+		_, _, verifiablePresentation, err := integrity.ParseVerifiablePresentationFromJWT(string(submissionBytes))
 		assert.NoError(tt, err)
 
 		_, err = VerifyPresentationSubmissionVP(def, *verifiablePresentation)
@@ -519,7 +520,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		}
 		signer, _ := getJWKSignerVerifier(tt)
 		testVC := getTestVerifiableCredential("test-issuer", "test-subject")
-		vcData, err := credential.SignVerifiableCredentialJWT(*signer, testVC)
+		vcData, err := integrity.SignVerifiableCredentialJWT(*signer, testVC)
 		assert.NoError(tt, err)
 		b := NewPresentationSubmissionBuilder(def.ID)
 		assert.NoError(tt, b.SetDescriptorMap([]SubmissionDescriptor{

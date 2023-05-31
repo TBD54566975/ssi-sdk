@@ -1,9 +1,11 @@
-package credential
+package parsing
 
 import (
 	"fmt"
 	"reflect"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/credential/integrity"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/goccy/go-json"
 	"github.com/lestrrat-go/jwx/v2/jws"
@@ -12,7 +14,7 @@ import (
 )
 
 // ToCredential turn a generic cred into its known object model
-func ToCredential(genericCred any) (jws.Headers, jwt.Token, *VerifiableCredential, error) {
+func ToCredential(genericCred any) (jws.Headers, jwt.Token, *credential.VerifiableCredential, error) {
 	switch typedCred := genericCred.(type) {
 	case []byte:
 		// could be a JWT
@@ -22,24 +24,24 @@ func ToCredential(genericCred any) (jws.Headers, jwt.Token, *VerifiableCredentia
 		}
 
 		// could also be a vc
-		var cred VerifiableCredential
+		var cred credential.VerifiableCredential
 		if err = json.Unmarshal(genericCred.([]byte), &cred); err != nil {
 			return nil, nil, nil, errors.Wrap(err, "unmarshalling credential object")
 		}
 		return ToCredential(cred)
-	case *VerifiableCredential:
+	case *credential.VerifiableCredential:
 		return nil, nil, typedCred, nil
-	case VerifiableCredential:
+	case credential.VerifiableCredential:
 		return nil, nil, &typedCred, nil
 	case string:
 		// first try the case where the string is JSON of a VC object
-		var cred VerifiableCredential
+		var cred credential.VerifiableCredential
 		if err := json.Unmarshal([]byte(typedCred), &cred); err == nil {
 			return nil, nil, &cred, nil
 		}
 
 		// next try it as a JWT
-		return ParseVerifiableCredentialFromJWT(typedCred)
+		return integrity.ParseVerifiableCredentialFromJWT(typedCred)
 	case map[string]any:
 		// VC or JWTVC JSON
 		credMapBytes, err := json.Marshal(typedCred)
@@ -48,7 +50,7 @@ func ToCredential(genericCred any) (jws.Headers, jwt.Token, *VerifiableCredentia
 		}
 
 		// first try as a VC object
-		var cred VerifiableCredential
+		var cred credential.VerifiableCredential
 		if err = json.Unmarshal(credMapBytes, &cred); err == nil && !cred.IsEmpty() {
 			return nil, nil, &cred, nil
 		}
@@ -74,7 +76,7 @@ func ToCredentialJSONMap(genericCred any) (map[string]any, error) {
 		}
 
 		// could also be a vc
-		var cred VerifiableCredential
+		var cred credential.VerifiableCredential
 		if err = json.Unmarshal(typedCred, &cred); err != nil {
 			return nil, errors.Wrap(err, "unmarshalling credential object")
 		}
@@ -89,7 +91,7 @@ func ToCredentialJSONMap(genericCred any) (map[string]any, error) {
 		}
 
 		// next try it as a JWT
-		_, token, _, err := ParseVerifiableCredentialFromJWT(typedCred)
+		_, token, _, err := integrity.ParseVerifiableCredentialFromJWT(typedCred)
 		if err != nil {
 			return nil, errors.Wrap(err, "parsing credential from JWT")
 		}
@@ -102,7 +104,7 @@ func ToCredentialJSONMap(genericCred any) (map[string]any, error) {
 			return nil, errors.Wrap(err, "unmarshalling credential JWT")
 		}
 		return credJSON, nil
-	case VerifiableCredential, *VerifiableCredential:
+	case credential.VerifiableCredential, *credential.VerifiableCredential:
 		credJSONBytes, err := json.Marshal(typedCred)
 		if err != nil {
 			return nil, errors.Wrap(err, "marshalling credential object")
@@ -117,7 +119,7 @@ func ToCredentialJSONMap(genericCred any) (map[string]any, error) {
 }
 
 // VCJWTJSONToVC converts a JSON representation of a VC JWT into a VerifiableCredential
-func VCJWTJSONToVC(vcJWTJSON []byte) (jws.Headers, jwt.Token, *VerifiableCredential, error) {
+func VCJWTJSONToVC(vcJWTJSON []byte) (jws.Headers, jwt.Token, *credential.VerifiableCredential, error) {
 	// next, try to turn it into a JWT to check if it's a VC JWT
 	token, err := jwt.Parse(vcJWTJSON, jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
@@ -130,7 +132,7 @@ func VCJWTJSONToVC(vcJWTJSON []byte) (jws.Headers, jwt.Token, *VerifiableCredent
 		return nil, nil, nil, errors.Wrap(err, "could not get JWT headers")
 	}
 
-	cred, err := ParseVerifiableCredentialFromToken(token)
+	cred, err := integrity.ParseVerifiableCredentialFromToken(token)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "parsing credential from token")
 	}
