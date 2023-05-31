@@ -67,12 +67,12 @@ func TestVerifyCredentialSignature(t *testing.T) {
 		cred := getTestCredential()
 		_, err = VerifyCredentialSignature(context.Background(), cred, resolver)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "cred must have a proof")
+		assert.Contains(tt, err.Error(), "credential must have a proof")
 
 		// test with a pointer
 		_, err = VerifyCredentialSignature(context.Background(), &cred, resolver)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "cred must have a proof")
+		assert.Contains(tt, err.Error(), "credential must have a proof")
 	})
 
 	t.Run("data integrity credential - as bytes and string", func(tt *testing.T) {
