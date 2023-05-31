@@ -108,7 +108,7 @@ func (j JWSSignatureSuite) Verify(v cryptosuite.Verifier, p cryptosuite.WithEmbe
 	proof := p.GetProof()
 	gotProof, err := JSONWebSignatureProofFromGenericProof(*proof)
 	if err != nil {
-		return errors.Wrap(err, "could not prepare proof for validation; error coercing proof into JsonWebSignature2020 proof")
+		return errors.Wrap(err, "could not prepare proof for verification; error coercing proof into JsonWebSignature2020 proof")
 	}
 
 	// remove proof before verifying
@@ -117,7 +117,7 @@ func (j JWSSignatureSuite) Verify(v cryptosuite.Verifier, p cryptosuite.WithEmbe
 	// make sure we set it back after we're done verifying
 	defer p.SetProof(proof)
 
-	// remove the JWS value in the proof before validation
+	// remove the JWS value in the proof before verification
 	jwsCopy := []byte(gotProof.JWS)
 	gotProof.SetDetachedJWS("")
 

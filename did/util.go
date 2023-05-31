@@ -31,8 +31,8 @@ const (
 	SHA256MultiCodec    = multicodec.Sha2_256
 )
 
-// GetKeyFromVerificationMethod resolves a DID and provides a kid and public key needed for data validation
-// it is possible that a DID has multiple validation methods, in which case a kid must be provided, otherwise
+// GetKeyFromVerificationMethod resolves a DID and provides a kid and public key needed for data verification
+// it is possible that a DID has multiple verification methods, in which case a kid must be provided, otherwise
 // resolution will fail.
 // A KID can be fully qualified (e.g. did:example:123#key-1) or just the fragment (e.g. key-1, #key-1)
 // Some DIDs, like did:key, use the entire DID as the KID, so we need to handle all three cases.
@@ -46,17 +46,17 @@ func GetKeyFromVerificationMethod(did Document, kid string) (gocrypto.PublicKey,
 
 	verificationMethods := did.VerificationMethod
 	if len(verificationMethods) == 0 {
-		return nil, errors.Errorf("did<%s> has no validation methods", did.ID)
+		return nil, errors.Errorf("did<%s> has no verification methods", did.ID)
 	}
 
 	for _, method := range verificationMethods {
-		// make sure the kid matches the validation method
+		// make sure the kid matches the verification method
 		if matchesKIDConstruction(did.ID, kid, method.ID) {
 			return extractKeyFromVerificationMethod(method)
 		}
 	}
 
-	return nil, errors.Errorf("did<%s> has no validation methods with kid: %s", did.ID, kid)
+	return nil, errors.Errorf("did<%s> has no verification methods with kid: %s", did.ID, kid)
 }
 
 // matchesKIDConstruction checks if the targetID matches possible combinations of the did and kid
@@ -97,7 +97,7 @@ func extractKeyFromVerificationMethod(method VerificationMethod) (gocrypto.Publi
 		}
 		return pubKey, nil
 	}
-	return nil, errors.New("no public key found in validation method")
+	return nil, errors.New("no public key found in verification method")
 }
 
 // MultiBaseToPubKeyBytes converts a multibase encoded public key to public key bytes for known multibase encodings
@@ -255,7 +255,7 @@ func DecodeMultibasePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyTyp
 	}
 }
 
-// ConstructJWKVerificationMethod builds a DID validation method with a known LD key type as a JWK
+// ConstructJWKVerificationMethod builds a DID verification method with a known LD key type as a JWK
 func ConstructJWKVerificationMethod(id, controller string, pubKeyBytes []byte, cryptoKeyType crypto.KeyType) (*VerificationMethod, error) {
 	pubKey, err := crypto.BytesToPubKey(pubKeyBytes, cryptoKeyType)
 	if err != nil {
@@ -275,7 +275,7 @@ func ConstructJWKVerificationMethod(id, controller string, pubKeyBytes []byte, c
 	}, nil
 }
 
-// ConstructMultibaseVerificationMethod builds a DID validation method with a known LD key type as a multibase encoded key
+// ConstructMultibaseVerificationMethod builds a DID verification method with a known LD key type as a multibase encoded key
 func ConstructMultibaseVerificationMethod(id, controller string, pubKey []byte, keyType cryptosuite.LDKeyType) (*VerificationMethod, error) {
 	return &VerificationMethod{
 		ID:              id,

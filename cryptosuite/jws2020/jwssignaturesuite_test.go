@@ -153,7 +153,7 @@ func TestCredentialLDProof(t *testing.T) {
 		},
 	}
 
-	// create a copy for value validation later
+	// create a copy for value verification later
 	var preSigned TestCredential
 	err := util.Copy(&knownCred, &preSigned)
 	assert.NoError(t, err)

@@ -158,7 +158,7 @@ func (sv *BTCSignerVerifier) Sign(dataHash []byte) ([]byte, error) {
 	return hex.DecodeString(r + s)
 }
 
-// Verify verifies the given data according to Bitcoin's validation process
+// Verify verifies the given data according to Bitcoin's verification process
 func (sv *BTCSignerVerifier) Verify(data, signature []byte) (bool, error) {
 	r := new(secp256k1.ModNScalar)
 	r.SetBytes((*[32]byte)(signature[:32]))
@@ -196,7 +196,7 @@ func (sv *BTCSignerVerifier) SignJWT(data any) (string, error) {
 	return compactJWS, nil
 }
 
-// VerifyJWS verifies the given data according to the protocol's JWS validation process
+// VerifyJWS verifies the given data according to the protocol's JWS verification process
 func (sv *BTCSignerVerifier) VerifyJWS(jws string) (bool, error) {
 	jwsParts := strings.Split(jws, ".")
 	if len(jwsParts) != 3 {

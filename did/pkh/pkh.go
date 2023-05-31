@@ -44,7 +44,7 @@ const (
 )
 
 // GetDIDPKHContext returns a context which should be manually inserted into each did:pkh document. This will likely
-// change over time as new validation methods are supported, and general-purpose methods are specified.
+// change over time as new verification methods are supported, and general-purpose methods are specified.
 func GetDIDPKHContext() (string, error) {
 	b, err := knownContexts.ReadFile("context/" + pkhContextFilename)
 	return string(b), err
@@ -130,7 +130,7 @@ func GetDIDPKHNetworkForDID(id string) (Network, error) {
 	return "", fmt.Errorf("could not find network for did:pkh DID: %s", id)
 }
 
-// GetVerificationTypeForNetwork returns the validation key type for a given network
+// GetVerificationTypeForNetwork returns the verification key type for a given network
 func GetVerificationTypeForNetwork(n Network) (string, error) {
 	switch n {
 	case Bitcoin, Ethereum, Polygon:
@@ -152,7 +152,7 @@ func (d PKH) Expand() (*did.Document, error) {
 	verificationMethod, err := constructPKHVerificationMethod(d)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "could not construct validation method")
+		return nil, errors.Wrap(err, "could not construct verification method")
 	}
 
 	knownDIDPKHContextJSON, err := GetDIDPKHContext()
@@ -194,7 +194,7 @@ func constructPKHVerificationMethod(didPKH PKH) (*did.VerificationMethod, error)
 	}
 	verificationType, err := GetVerificationTypeForNetwork(network)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not find validation type")
+		return nil, errors.Wrap(err, "could not find verification type")
 	}
 
 	suffix, err := didPKH.Suffix()

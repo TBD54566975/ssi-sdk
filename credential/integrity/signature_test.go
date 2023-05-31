@@ -182,7 +182,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		jwtCred := getTestJWTCredential(tt, *signer)
 		_, err = VerifyJWTCredential(jwtCred, resolver)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "has no validation methods with kid: missing")
+		assert.Contains(tt, err.Error(), "has no verification methods with kid: missing")
 	})
 
 	t.Run("valid credential, bad signature", func(tt *testing.T) {

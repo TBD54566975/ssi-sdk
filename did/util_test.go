@@ -27,7 +27,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 		doc := Document{ID: "test-did"}
 		_, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "has no validation methods")
+		assert.Contains(t, err.Error(), "has no verification methods")
 	})
 
 	t.Run("doc without specified kid", func(t *testing.T) {
@@ -43,7 +43,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 		}
 		_, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "no validation methods with kid: test-kid")
+		assert.Contains(t, err.Error(), "no verification methods with kid: test-kid")
 	})
 
 	t.Run("doc with specified kid, bad multibase key", func(t *testing.T) {
@@ -108,7 +108,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 		}
 		_, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "no public key found in validation method")
+		assert.Contains(t, err.Error(), "no public key found in verification method")
 	})
 
 	t.Run("doc with unqualified kid", func(t *testing.T) {

@@ -142,7 +142,7 @@ func (b BBSPlusSignatureSuite) Verify(v cryptosuite.Verifier, p cryptosuite.With
 	// make sure we set it back after we're done verifying
 	defer p.SetProof(proof)
 
-	// remove the proof value in the proof before validation
+	// remove the proof value in the proof before verification
 	signatureValue, err := decodeProofValue(gotProof.ProofValue)
 	if err != nil {
 		return errors.Wrap(err, "decoding proof value")

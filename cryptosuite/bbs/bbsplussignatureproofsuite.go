@@ -273,7 +273,7 @@ func (b BBSPlusSignatureProofSuite) Verify(v cryptosuite.Verifier, p cryptosuite
 	// make sure we set it back after we're done verifying
 	defer p.SetProof(proof)
 
-	// remove the proof value in the proof before validation
+	// remove the proof value in the proof before verification
 	signatureValue, err := decodeProofValue(gotProof.ProofValue)
 	if err != nil {
 		return errors.Wrap(err, "decoding proof value")
@@ -430,7 +430,7 @@ func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *crypt
 		genericProof["created"] = GetRFC3339Timestamp()
 	}
 
-	// for validation, we must replace the BBS ProofType with the Signature Type
+	// for verification, we must replace the BBS ProofType with the Signature Type
 	genericProof["type"] = BBSPlusSignature2020
 
 	var contexts []any

@@ -52,7 +52,7 @@ type VerificationMethod struct {
 
 // VerificationMethodSet is a union type supporting the `authentication`, `assertionMethod`, `keyAgreement`,
 // `capabilityInvocation`, and `capabilityDelegation` types.
-// A set of one or more validation methods. Each validation method MAY be embedded or referenced.
+// A set of one or more verification methods. Each verification method MAY be embedded or referenced.
 // TODO(gabe) consider changing this to a custom unmarshaler https://stackoverflow.com/a/28016508
 type VerificationMethodSet any
 

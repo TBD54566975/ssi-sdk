@@ -68,7 +68,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		_, verifier := getJWKSignerVerifier(tt)
 		_, err = VerifyPresentationSubmission(context.Background(), *verifier, resolver, JWTVPTarget, def, []byte{0, 1, 2, 3})
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "validation of the presentation submission failed")
+		assert.Contains(tt, err.Error(), "verification of the presentation submission failed")
 	})
 
 	t.Run("Supported embed target, valid submission, invalid credential format", func(tt *testing.T) {
