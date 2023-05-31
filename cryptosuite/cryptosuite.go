@@ -50,6 +50,7 @@ type CryptoSuiteProofType interface {
 	Digest(tbd []byte) ([]byte, error)
 }
 
+// WithEmbeddedProof is an interface that defines functionality needed to get/set proofs on objects with embedded proofs
 type WithEmbeddedProof interface {
 	GetProof() *crypto.Proof
 	SetProof(p *crypto.Proof)

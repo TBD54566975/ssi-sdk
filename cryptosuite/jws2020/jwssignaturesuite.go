@@ -84,7 +84,7 @@ func (j JWSSignatureSuite) Sign(s cryptosuite.Signer, p cryptosuite.WithEmbedded
 		return errors.Wrap(err, "marshaling provable")
 	}
 	if err = json.Unmarshal(pBytes, &genericProvable); err != nil {
-		return errors.Wrap(err, "unmarshaling provable")
+		return errors.Wrap(err, "unmarshalling provable")
 	}
 	tbs, err := j.CreateVerifyHash(genericProvable, proof, opts)
 	if err != nil {
