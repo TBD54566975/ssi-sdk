@@ -129,7 +129,7 @@ func jwxVerifier(id string, jwk PublicKeyJWK, key gocrypto.PublicKey) (*Verifier
 		jwk.ALG = alg
 	}
 	if !IsSupportedJWXSigningVerificationAlgorithm(jwk.ALG) && !IsExperimentalJWXSigningVerificationAlgorithm(jwk.ALG) {
-		return nil, fmt.Errorf("unsupported signing/verification algorithm: %s", jwk.ALG)
+		return nil, fmt.Errorf("unsupported signing/validation algorithm: %s", jwk.ALG)
 	}
 	if convertedPubKey, ok := pubKeyForJWX(key); ok {
 		key = convertedPubKey

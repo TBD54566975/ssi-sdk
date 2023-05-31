@@ -98,7 +98,7 @@ func SignVerifiableCredentialJWT(signer jwx.Signer, cred VerifiableCredential) (
 
 // VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
 // the token in a verifiable credential.
-// TODO(gabe) modify this to add additional verification steps such as credential status, expiration, etc.
+// TODO(gabe) modify this to add additional validation steps such as credential status, expiration, etc.
 // related to https://github.com/TBD54566975/ssi-service/issues/122
 func VerifyVerifiableCredentialJWT(verifier jwx.Verifier, token string) (jws.Headers, jwt.Token, *VerifiableCredential, error) {
 	if err := verifier.Verify(token); err != nil {
@@ -306,7 +306,7 @@ func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier,
 			return nil, nil, nil, errors.Wrapf(err, "verifying credential %d", i)
 		}
 		if !verified {
-			return nil, nil, nil, errors.Errorf("credential %d failed signature verification", i)
+			return nil, nil, nil, errors.Errorf("credential %d failed signature validation", i)
 		}
 	}
 

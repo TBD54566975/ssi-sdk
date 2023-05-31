@@ -1,4 +1,4 @@
-package verification
+package validation
 
 import (
 	"testing"
@@ -9,97 +9,97 @@ import (
 )
 
 func TestVerifier(t *testing.T) {
-	t.Run("Test Basic Verifier", func(tt *testing.T) {
-		// empty verifier
-		_, err := NewCredentialVerifier(nil)
+	t.Run("Test Basic Validator", func(tt *testing.T) {
+		// empty validator
+		_, err := NewCredentialValidator(nil)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "no verifiers provided")
+		assert.Contains(tt, err.Error(), "no validators provided")
 
-		// no op verifier
-		noop := Verifier{
-			ID:         "noop",
-			VerifyFunc: NoOpVerifier,
+		// no op validator
+		noop := Validator{
+			ID:           "noop",
+			ValidateFunc: NoOpValidator,
 		}
-		verifier, err := NewCredentialVerifier([]Verifier{noop})
+		validator, err := NewCredentialValidator([]Validator{noop})
 		assert.NoError(tt, err)
-		assert.NotEmpty(tt, verifier)
+		assert.NotEmpty(tt, validator)
 
-		// verify
-		err = verifier.VerifyCredential(credential.VerifiableCredential{})
+		// validate
+		err = validator.ValidateCredential(credential.VerifiableCredential{})
 		assert.NoError(tt, err)
 
 		sampleCredential := getSampleCredential()
 
-		err = verifier.VerifyCredential(sampleCredential)
+		err = validator.ValidateCredential(sampleCredential)
 		assert.NoError(t, err)
 	})
 
-	t.Run("Expiry Verifier", func(tt *testing.T) {
-		// expiry verifier
-		expiry := Verifier{
-			ID:         "expiration date checking",
-			VerifyFunc: VerifyExpiry,
+	t.Run("Expiry Validator", func(tt *testing.T) {
+		// expiry validator
+		expiry := Validator{
+			ID:           "expiration date checking",
+			ValidateFunc: ValidateExpiry,
 		}
-		verifier, err := NewCredentialVerifier([]Verifier{expiry})
+		validator, err := NewCredentialValidator([]Validator{expiry})
 		assert.NoError(tt, err)
-		assert.NotEmpty(tt, verifier)
+		assert.NotEmpty(tt, validator)
 
 		sampleCredential := getSampleCredential()
 
-		err = verifier.VerifyCredential(sampleCredential)
+		err = validator.ValidateCredential(sampleCredential)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "credential has expired as of 2021-01-01 00:00:00 +0000 UTC")
 	})
 
-	t.Run("Schema Verifier", func(tt *testing.T) {
-		// set up schema verifier
-		schema := Verifier{
-			ID:         "JSON Schema checking",
-			VerifyFunc: VerifyJSONSchema,
+	t.Run("Schema Validator", func(tt *testing.T) {
+		// set up schema validator
+		schema := Validator{
+			ID:           "JSON Schema checking",
+			ValidateFunc: ValidateJSONSchema,
 		}
 
-		verifier, err := NewCredentialVerifier([]Verifier{schema})
+		validator, err := NewCredentialValidator([]Validator{schema})
 		assert.NoError(t, err)
-		assert.NotEmpty(t, verifier)
+		assert.NotEmpty(t, validator)
 
 		sampleCredential := getSampleCredential()
 
-		// verify cred with no schema, no schema passed in
-		err = verifier.VerifyCredential(sampleCredential)
+		// validate cred with no schema, no schema passed in
+		err = validator.ValidateCredential(sampleCredential)
 		assert.NoError(t, err)
 
-		// verify cred with no schema, schema passed in
+		// validate cred with no schema, schema passed in
 		badSchema := `{"bad":"schema"}`
-		err = verifier.VerifyCredential(sampleCredential, WithSchema(badSchema))
+		err = validator.ValidateCredential(sampleCredential, WithSchema(badSchema))
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "credential does not have a credentialSchema property")
 
-		// verify cred with schema, no schema passed in
+		// validate cred with schema, no schema passed in
 		sampleCredential.CredentialSchema = &credential.CredentialSchema{
 			ID:   "did:example:MDP8AsFhHzhwUvGNuYkX7T;id=06e126d1-fa44-4882-a243-1e326fbe21db;version=1.0",
 			Type: credschema.JSONSchema2023Type.String(),
 		}
-		err = verifier.VerifyCredential(sampleCredential)
+		err = validator.ValidateCredential(sampleCredential)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "no schema provided")
 
-		// verify cred with schema, schema passed in, cred with bad data
+		// validate cred with schema, schema passed in, cred with bad data
 		knownSchema := getVCJSONSchema()
-		err = verifier.VerifyCredential(sampleCredential, WithSchema(knownSchema))
+		err = validator.ValidateCredential(sampleCredential, WithSchema(knownSchema))
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "missing properties: 'emailAddress'")
 
-		// verify cred with schema, schema passed in, cred with good data
+		// validate cred with schema, schema passed in, cred with good data
 		sampleCredential.CredentialSubject = map[string]any{
 			"id":           "test-vc-id",
 			"emailAddress": "grandma@aol.com",
 		}
-		err = verifier.VerifyCredential(sampleCredential, WithSchema(knownSchema))
+		err = validator.ValidateCredential(sampleCredential, WithSchema(knownSchema))
 		assert.NoError(tt, err)
 	})
 }
 
-func NoOpVerifier(_ credential.VerifiableCredential, _ ...Option) error {
+func NoOpValidator(_ credential.VerifiableCredential, _ ...Option) error {
 	return nil
 }
 

@@ -17,7 +17,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/util"
 )
 
-// VerifiedSubmissionData is the result of a successful verification of a presentation submission
+// VerifiedSubmissionData is the result of a successful validation of a presentation submission
 // corresponds to the data that was verified, and the filtered data that was used to verify it for a given
 // input descriptor
 type VerifiedSubmissionData struct {
@@ -58,7 +58,7 @@ func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver re
 		// verify the VP, which in turn verifies all credentials in it
 		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(ctx, jwtVerifier, resolver, string(submission))
 		if err != nil {
-			return nil, errors.Wrap(err, "verification of the presentation submission failed")
+			return nil, errors.Wrap(err, "validation of the presentation submission failed")
 		}
 		return VerifyPresentationSubmissionVP(def, *vp)
 	default:
@@ -67,7 +67,7 @@ func VerifyPresentationSubmission(ctx context.Context, verifier any, resolver re
 }
 
 // VerifyPresentationSubmissionVP verifies whether a verifiable presentation is a valid presentation submission
-// for a given presentation definition. No signature verification happens here.
+// for a given presentation definition. No signature validation happens here.
 func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.VerifiablePresentation) ([]VerifiedSubmissionData, error) {
 	if err := vp.IsValid(); err != nil {
 		return nil, errors.Wrap(err, "presentation submission does not contain a valid VP")
@@ -134,7 +134,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 				submissionDescriptor.ID, submissionDescriptor.Path)
 		}
 
-		// TODO(gabe) add in signature verification of claims here https://github.com/TBD54566975/ssi-sdk/issues/71
+		// TODO(gabe) add in signature validation of claims here https://github.com/TBD54566975/ssi-sdk/issues/71
 		_, _, cred, err := credential.ToCredential(claim)
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting claim as json: <%s>", claim)

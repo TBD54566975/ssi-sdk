@@ -231,7 +231,7 @@ type JSONWebKeyVerifier struct {
 	jwx.Verifier
 }
 
-// Verify attempts to verify a `signature` against a given `message`, returning nil if the verification is successful
+// Verify attempts to verify a `signature` against a given `message`, returning nil if the validation is successful
 // and an error should it fail.
 func (v JSONWebKeyVerifier) Verify(message, signature []byte) error {
 	pubKey, err := v.PublicKeyJWK.ToPublicKey()

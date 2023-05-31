@@ -107,7 +107,7 @@ func main() {
 	err = presentationDefinitionBuilder.SetInputDescriptors([]exchange.InputDescriptor{
 		{
 			ID:      "birthdate",
-			Purpose: "Age verification",
+			Purpose: "Age validation",
 			Format: &exchange.ClaimFormat{
 				JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
 			},

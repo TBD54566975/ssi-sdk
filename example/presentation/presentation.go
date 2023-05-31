@@ -76,7 +76,7 @@ func makePresentationRequest(requesterID string, presentationData exchange.Prese
 		return nil, err
 	}
 
-	// TODO: Add better documentation on the verification process
+	// TODO: Add better documentation on the validation process
 	// Seems like needed to know more of: https://github.com/lestrrat-go/jwx/tree/develop/v2/jwt
 	verifier, err := jws2020.NewJSONWebKeyVerifier(audience, jwk.PublicKeyJWK)
 	if err != nil {

@@ -212,7 +212,7 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 	case cryptosuite.JSONWebKey2020Type:
 		verificationMethod, err = did.ConstructJWKVerificationMethod(keyID, id, pubKey, cryptoKeyType)
 		if err != nil {
-			return nil, errors.Wrapf(err, "could not construct %s verification method", publicKeyFormat)
+			return nil, errors.Wrapf(err, "could not construct %s validation method", publicKeyFormat)
 		}
 	case cryptosuite.MultikeyType:
 		multiKeyType, err := did.KeyTypeToMultikeyLDType(cryptoKeyType)
@@ -221,13 +221,13 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 		}
 		verificationMethod, err = did.ConstructMultibaseVerificationMethod(keyID, id, pubKey, multiKeyType)
 		if err != nil {
-			return nil, errors.Wrapf(err, "could not construct %s verification method", publicKeyFormat)
+			return nil, errors.Wrapf(err, "could not construct %s validation method", publicKeyFormat)
 		}
 	default:
 		return nil, fmt.Errorf("unsupported public key format: %s", publicKeyFormat)
 	}
 
-	// always include the first key as a verification method
+	// always include the first key as a validation method
 	verificationMethodSet := []did.VerificationMethodSet{keyID}
 
 	doc := did.Document{
@@ -276,11 +276,11 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 	}
 
 	// https://w3c-ccg.github.io/did-method-key/#derive-encryption-key-algorithm
-	// the only case we have to consider is if the verification method is X25519
+	// the only case we have to consider is if the validation method is X25519
 	if enableEncryptionDerivation && !isVerificationMethodX25519Key {
 		keyAgreementVerificationMethod, keyAgreementVerificationMethodSet, err := generateKeyAgreementVerificationMethod(*verificationMethod)
 		if err != nil {
-			return nil, errors.Wrap(err, "could not generate key agreement verification method")
+			return nil, errors.Wrap(err, "could not generate key agreement validation method")
 		}
 		if keyAgreementVerificationMethod != nil {
 			doc.VerificationMethod = append(doc.VerificationMethod, *keyAgreementVerificationMethod)

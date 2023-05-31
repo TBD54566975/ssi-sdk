@@ -74,7 +74,7 @@ func (Method2) resolve(didDoc did.DID, _ resolution.Option) (*resolution.Result,
 		case PurposeVerificationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to build verification code")
+				return nil, errors.Wrap(err, "failed to build validation code")
 			}
 			doc.Authentication = append(doc.Authentication, *vm)
 		case PurposeCapabilityInvocationCode:

@@ -60,7 +60,7 @@ func (d DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*did.Document, e
 
 	verificationMethod, err := did.ConstructJWKVerificationMethod(didWebStr, keyReference, publicKey, kt)
 	if err != nil {
-		return nil, fmt.Errorf("could not construct verification method for DIDWeb %+v", d)
+		return nil, fmt.Errorf("could not construct validation method for DIDWeb %+v", d)
 	}
 
 	verificationMethodSet := []did.VerificationMethodSet{

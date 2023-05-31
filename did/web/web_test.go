@@ -117,7 +117,7 @@ func TestDIDWebCreateDoc(t *testing.T) {
 	t.Run("Bad Public Key for JWK", func(tt *testing.T) {
 		_, err := didWebBasic.CreateDoc(crypto.P256, nil)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "could not construct verification method for DIDWeb")
+		assert.Contains(tt, err.Error(), "could not construct validation method for DIDWeb")
 	})
 }
 

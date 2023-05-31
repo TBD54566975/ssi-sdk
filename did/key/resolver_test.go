@@ -52,7 +52,7 @@ func TestResolveKeyForDID(t *testing.T) {
 		assert.NoError(tt, err)
 		_, err = resolution.ResolveKeyForDID(context.Background(), r, didKey.String(), "test-kid")
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "has no verification methods with kid: test-kid")
+		assert.Contains(tt, err.Error(), "has no validation methods with kid: test-kid")
 	})
 
 	t.Run("valid did; valid kid", func(tt *testing.T) {

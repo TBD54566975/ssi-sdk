@@ -250,7 +250,7 @@ func bitstringExpansion(compressedBitstring string) ([]string, error) {
 
 // ValidateCredentialInStatusList determines whether a credential is contained in a status list 2021 credential
 // https://w3c-ccg.github.io/vc-status-list-2021/#validate-algorithm
-// NOTE: this method does not perform credential signature/proof block verification
+// NOTE: this method does not perform credential signature/proof block validation
 func ValidateCredentialInStatusList(credentialToValidate credential.VerifiableCredential, statusCredential credential.VerifiableCredential) (bool, error) {
 	// 1. Let credentialToValidate be a verifiable credentials containing a credentialStatus entry that is a StatusList2021Entry.
 	statusListEntryValue, ok := toStatusList2021Entry(credentialToValidate.CredentialStatus)

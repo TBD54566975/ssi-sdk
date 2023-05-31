@@ -112,7 +112,7 @@ func main() {
 	fmt.Println(string(sdPresentation))
 
 	// Amazing! We've been able to only share pieces of information with the bar... but how does the bar know that
-	// this information is legitimate? Easy, let's do some verification!
+	// this information is legitimate? Easy, let's do some validation!
 
 	// First the bar gets the *public* key from the issuer, which is part of the DID document they created.
 	issuerKey, _ := expandedIssuerDID.VerificationMethod[0].PublicKeyJWK.ToPublicKey()
@@ -125,7 +125,7 @@ func main() {
 			IssuerKey:           issuerKey,
 		})
 
-	// A lack of error means that verification worked! Note that this says nothing related to the truthfulness of the
+	// A lack of error means that validation worked! Note that this says nothing related to the truthfulness of the
 	// claim. The bar trusts the issuer (the DMV) for this.
 	if err != nil {
 		fmt.Println("This should never happen")

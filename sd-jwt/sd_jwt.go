@@ -424,7 +424,7 @@ type VerificationOptions struct {
 	Alg                 string
 	IssuerKey           any
 
-	// The nonce and audience to check for when doing holder binding verification.
+	// The nonce and audience to check for when doing holder binding validation.
 	// Needed only when HolderBindingOption == VerifyHolderBinding.
 	DesiredNonce, DesiredAudience string
 

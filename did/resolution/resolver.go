@@ -112,10 +112,10 @@ func ResolveKeyForDID(ctx context.Context, resolver Resolver, id, kid string) (g
 		return nil, errors.Wrapf(err, "resolving DID: %s", id)
 	}
 
-	// next, get the verification information (key) from the did document
+	// next, get the validation information (key) from the did document
 	pubKey, err := did.GetKeyFromVerificationMethod(resolved.Document, kid)
 	if err != nil {
-		return nil, errors.Wrapf(err, "getting verification information from DID Document: %s", id)
+		return nil, errors.Wrapf(err, "getting validation information from DID Document: %s", id)
 	}
 	return pubKey, err
 }

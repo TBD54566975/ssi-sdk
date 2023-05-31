@@ -31,13 +31,7 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, r resolutio
 		if token != nil {
 			return false, errors.New("JWT credentials must include a signature to be verified")
 		}
-		if cred.IsEmpty() {
-			return false, errors.New("credential cannot be empty")
-		}
-		if cred.GetProof() == nil {
-			return false, errors.New("credential must have a proof")
-		}
-		return false, errors.New("data integrity signature verification not yet implemented")
+		return VerifyDataIntegrityCredential(*cred, r)
 	case []byte:
 		// turn it into a string and try again
 		return VerifyCredentialSignature(ctx, string(typedCred), r)
@@ -93,4 +87,15 @@ func VerifyJWTCredential(cred string, r resolution.Resolver) (bool, error) {
 		return false, errors.Wrapf(err, "error verifying credential<%s>", token.JwtID())
 	}
 	return true, nil
+}
+
+func VerifyDataIntegrityCredential(cred VerifiableCredential, r resolution.Resolver) (bool, error) {
+	if cred.IsEmpty() {
+		return false, errors.New("credential cannot be empty")
+	}
+	if cred.GetProof() == nil {
+		return false, errors.New("credential must have a proof")
+	}
+
+	return false, nil
 }
