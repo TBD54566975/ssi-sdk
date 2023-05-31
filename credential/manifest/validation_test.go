@@ -8,6 +8,7 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -215,7 +216,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		cm, ca := getValidTestCredManifestCredApplication(tt)
 
 		cm.PresentationDefinition.InputDescriptors[0].Format = &exchange.ClaimFormat{
-			LDP: &exchange.LDPType{ProofType: []cryptosuite.SignatureType{cryptosuite.JSONWebSignature2020}},
+			LDP: &exchange.LDPType{ProofType: []cryptosuite.SignatureType{jws2020.JSONWebSignature2020}},
 		}
 
 		credAppRequestBytes, err := json.Marshal(ca)

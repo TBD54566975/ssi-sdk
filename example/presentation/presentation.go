@@ -12,11 +12,11 @@ import (
 	"fmt"
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/goccy/go-json"
 
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
 	"github.com/TBD54566975/ssi-sdk/crypto"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/example"
 	"github.com/TBD54566975/ssi-sdk/util"
 )
@@ -55,7 +55,7 @@ func makePresentationRequest(requesterID string, presentationData exchange.Prese
 	// Generate JSON Web Key
 	// The JSONWebKey2020 type specifies a number of key type and curve pairs to enable JOSE conformance
 	// https://w3c-ccg.github.io/lds-jws2020/#dfn-jsonwebkey2020
-	jwk, err := cryptosuite.GenerateJSONWebKey2020(cryptosuite.OKP, cryptosuite.Ed25519)
+	jwk, err := jws2020.GenerateJSONWebKey2020(jws2020.OKP, jws2020.Ed25519)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func makePresentationRequest(requesterID string, presentationData exchange.Prese
 
 	// TODO: Add better documentation on the verification process
 	// Seems like needed to know more of: https://github.com/lestrrat-go/jwx/tree/develop/v2/jwt
-	verifier, err := cryptosuite.NewJSONWebKeyVerifier(audience, jwk.PublicKeyJWK)
+	verifier, err := jws2020.NewJSONWebKeyVerifier(audience, jwk.PublicKeyJWK)
 	if err != nil {
 		return nil, err
 	}

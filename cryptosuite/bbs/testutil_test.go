@@ -1,4 +1,4 @@
-package cryptosuite
+package bbs
 
 import (
 	"github.com/TBD54566975/ssi-sdk/crypto"

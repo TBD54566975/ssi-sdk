@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
@@ -12,7 +13,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/util"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 )
 
 func TestVerifyPresentationSubmission(t *testing.T) {
@@ -98,7 +98,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 		submissionBytes, err := BuildPresentationSubmission(*signer, verifier.ID, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)
@@ -176,7 +176,7 @@ func TestVerifyPresentationSubmissionVP(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 		submissionBytes, err := BuildPresentationSubmission(*signer, "requester", def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)

@@ -24,9 +24,9 @@ type (
 )
 
 const (
-	WebWellKnownURLPath = ".well-known/"
-	WebDIDDocFilename   = "did.json"
-	WebPrefix           = "did:web"
+	WellKnownURLPath = ".well-known/"
+	DIDDocFilename   = "did.json"
+	Prefix           = "did:web"
 )
 
 func (d DIDWeb) IsValid() bool {
@@ -39,7 +39,7 @@ func (d DIDWeb) String() string {
 }
 
 func (d DIDWeb) Suffix() (string, error) {
-	split := strings.Split(d.String(), WebPrefix+":")
+	split := strings.Split(d.String(), Prefix+":")
 	if len(split) != 2 {
 		return "", errors.Wrap(util.InvalidFormatError, "did is malformed")
 	}
@@ -89,8 +89,8 @@ func (d DIDWeb) CreateDocBytes(kt crypto.KeyType, publicKey []byte) ([]byte, err
 // optional path supported
 func (d DIDWeb) GetDocURL() (string, error) {
 	// DIDWeb must be prefixed with d:web:
-	if !strings.HasPrefix(string(d), WebPrefix) {
-		return "", fmt.Errorf("did:web DID %+v is missing prefix %s", d, WebPrefix)
+	if !strings.HasPrefix(string(d), Prefix) {
+		return "", fmt.Errorf("did:web DID %+v is missing prefix %s", d, Prefix)
 	}
 
 	subStrs := strings.Split(string(d), ":")
@@ -110,7 +110,7 @@ func (d DIDWeb) GetDocURL() (string, error) {
 	if numSubStrs == 3 {
 		// 4. If no path has been specified in the URL, append /.well-known.
 		// 5. Append /d.json to complete the URL.
-		urlStr := "https://" + decodedDomain + "/" + WebWellKnownURLPath + WebDIDDocFilename
+		urlStr := "https://" + decodedDomain + "/" + WellKnownURLPath + DIDDocFilename
 		return urlStr, nil
 	}
 
@@ -129,7 +129,7 @@ func (d DIDWeb) GetDocURL() (string, error) {
 			return "", err
 		}
 	}
-	if _, err := sb.WriteString(WebDIDDocFilename); err != nil {
+	if _, err := sb.WriteString(DIDDocFilename); err != nil {
 		return "", err
 	}
 	return sb.String(), nil

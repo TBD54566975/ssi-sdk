@@ -59,7 +59,7 @@ func TestDIDDocumentBuilder(t *testing.T) {
 		"publicKeyMultibase": "z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE",
 	}
 
-	var builderBad DIDDocumentBuilder
+	var builderBad DocumentBuilder
 	_, err := builderBad.Build()
 	assert.Error(t, err)
 	notReadyErr := "builder cannot be empty"

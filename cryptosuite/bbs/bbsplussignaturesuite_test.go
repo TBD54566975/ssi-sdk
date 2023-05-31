@@ -1,9 +1,10 @@
-package cryptosuite
+package bbs
 
 import (
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/goccy/go-json"
 	bbs "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
 	"github.com/mr-tron/base58"
@@ -27,7 +28,7 @@ func TestBBSPlusSignatureSuite(t *testing.T) {
 		},
 	}
 
-	key, err := GenerateBLSKey2020(BLS12381G2Key2020)
+	key, err := GenerateBLSKey2020(cryptosuite.BLS12381G2Key2020)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, key)
 
@@ -35,7 +36,7 @@ func TestBBSPlusSignatureSuite(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, privKey)
 
-	signer := NewBBSPlusSigner("test-key-1", privKey, Authentication)
+	signer := NewBBSPlusSigner("test-key-1", privKey, cryptosuite.Authentication)
 	assert.NotEmpty(t, signer)
 
 	err = suite.Sign(signer, &testCred)
