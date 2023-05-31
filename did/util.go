@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/mr-tron/base58"
 	"github.com/multiformats/go-multibase"
@@ -74,13 +75,13 @@ func extractKeyFromVerificationMethod(method VerificationMethod) (gocrypto.Publi
 		if multiBaseErr != nil {
 			return nil, errors.Wrap(multiBaseErr, "converting multibase key")
 		}
-		return cryptosuite.PubKeyBytesToTypedKey(pubKeyBytes, method.Type)
+		return jws2020.PubKeyBytesToTypedKey(pubKeyBytes, method.Type)
 	case method.PublicKeyBase58 != "":
 		pubKeyDecoded, b58Err := base58.Decode(method.PublicKeyBase58)
 		if b58Err != nil {
 			return nil, errors.Wrap(b58Err, "decoding base58 key")
 		}
-		return cryptosuite.PubKeyBytesToTypedKey(pubKeyDecoded, method.Type)
+		return jws2020.PubKeyBytesToTypedKey(pubKeyDecoded, method.Type)
 	case method.PublicKeyJWK != nil:
 		jwkBytes, jwkErr := json.Marshal(method.PublicKeyJWK)
 		if jwkErr != nil {

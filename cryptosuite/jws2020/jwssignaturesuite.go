@@ -1,4 +1,4 @@
-package cryptosuite
+package jws2020
 
 import (
 	gocrypto "crypto"
@@ -8,20 +8,21 @@ import (
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	. "github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
-// https://w3c-ccg.github.io/ld-cryptosuite-registry/#jsonwebsignature2020
+// https://w3c.github.io/vc-jws-2020/
 
 const (
-	JSONWebSignature2020Context                string        = "https://w3id.org/security/suites/jws-2020/v1"
-	JSONWebSignature2020                       SignatureType = "JsonWebSignature2020"
-	JWSSignatureSuiteID                        string        = "https://w3c-ccg.github.io/security-vocab/#JsonWebSignature2020"
-	JWSSignatureSuiteType                      LDKeyType     = JSONWebKey2020Type
-	JWSSignatureSuiteCanonicalizationAlgorithm string        = "https://w3id.org/security#URDNA2015"
+	JSONWebSignature2020Context                string                    = "https://w3id.org/security/suites/jws-2020/v1"
+	JSONWebSignature2020                       cryptosuite.SignatureType = "JsonWebSignature2020"
+	JWSSignatureSuiteID                        string                    = "https://w3c-ccg.github.io/security-vocab/#JsonWebSignature2020"
+	JWSSignatureSuiteType                                                = cryptosuite.JSONWebKey2020Type
+	JWSSignatureSuiteCanonicalizationAlgorithm string                    = "https://w3id.org/security#URDNA2015"
 	// JWSSignatureSuiteDigestAlgorithm uses https://www.rfc-editor.org/rfc/rfc4634
 	JWSSignatureSuiteDigestAlgorithm gocrypto.Hash = gocrypto.SHA256
 	// JWSSignatureSuiteProofAlgorithm  uses https://www.rfc-editor.org/rfc/rfc7797
@@ -30,19 +31,19 @@ const (
 
 type JWSSignatureSuite struct{}
 
-func GetJSONWebSignature2020Suite() CryptoSuite {
+func GetJSONWebSignature2020Suite() cryptosuite.CryptoSuite {
 	return new(JWSSignatureSuite)
 }
 
 // CryptoSuiteInfo interface
 
-var _ CryptoSuiteInfo = (*JWSSignatureSuite)(nil)
+var _ cryptosuite.CryptoSuiteInfo = (*JWSSignatureSuite)(nil)
 
 func (JWSSignatureSuite) ID() string {
 	return JWSSignatureSuiteID
 }
 
-func (JWSSignatureSuite) Type() LDKeyType {
+func (JWSSignatureSuite) Type() cryptosuite.LDKeyType {
 	return JWSSignatureSuiteType
 }
 
@@ -54,7 +55,7 @@ func (JWSSignatureSuite) MessageDigestAlgorithm() gocrypto.Hash {
 	return JWSSignatureSuiteDigestAlgorithm
 }
 
-func (JWSSignatureSuite) SignatureAlgorithm() SignatureType {
+func (JWSSignatureSuite) SignatureAlgorithm() cryptosuite.SignatureType {
 	return JWSSignatureSuiteProofAlgorithm
 }
 
@@ -62,19 +63,19 @@ func (JWSSignatureSuite) RequiredContexts() []string {
 	return []string{JSONWebSignature2020Context}
 }
 
-func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
+func (j JWSSignatureSuite) Sign(s cryptosuite.Signer, p cryptosuite.WithEmbeddedProof) error {
 	// create proof before running the create verify hash algorithm
 	proof := j.createProof(s.GetKeyID(), s.GetProofPurpose())
 
 	// prepare proof options
-	contexts, err := GetContextsFromProvable(p)
+	contexts, err := cryptosuite.GetContextsFromProvable(p)
 	if err != nil {
 		return errors.Wrap(err, "could not get contexts from provable")
 	}
 
 	// make sure the suite's context(s) are included
-	contexts = ensureRequiredContexts(contexts, j.RequiredContexts())
-	opts := &ProofOptions{Contexts: contexts}
+	contexts = cryptosuite.EnsureRequiredContexts(contexts, j.RequiredContexts())
+	opts := &cryptosuite.ProofOptions{Contexts: contexts}
 
 	// 3. tbs value as a result of create verify hash
 	var genericProvable map[string]any
@@ -103,7 +104,7 @@ func (j JWSSignatureSuite) Sign(s Signer, p Provable) error {
 	return nil
 }
 
-func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
+func (j JWSSignatureSuite) Verify(v cryptosuite.Verifier, p cryptosuite.WithEmbeddedProof) error {
 	proof := p.GetProof()
 	gotProof, err := JSONWebSignatureProofFromGenericProof(*proof)
 	if err != nil {
@@ -121,23 +122,23 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 	gotProof.SetDetachedJWS("")
 
 	// prepare proof options
-	contexts, err := GetContextsFromProvable(p)
+	contexts, err := cryptosuite.GetContextsFromProvable(p)
 	if err != nil {
 		return errors.Wrap(err, "could not get contexts from provable")
 	}
 
 	// make sure the suite's context(s) are included
-	contexts = ensureRequiredContexts(contexts, j.RequiredContexts())
-	opts := &ProofOptions{Contexts: contexts}
+	contexts = cryptosuite.EnsureRequiredContexts(contexts, j.RequiredContexts())
+	opts := &cryptosuite.ProofOptions{Contexts: contexts}
 
 	// run the create verify hash algorithm on both provable and the proof
 	var genericProvable map[string]any
 	pBytes, err := json.Marshal(p)
 	if err != nil {
-		return errors.Wrap(err, "marshaling provable")
+		return errors.Wrap(err, "marshalling provable")
 	}
 	if err = json.Unmarshal(pBytes, &genericProvable); err != nil {
-		return errors.Wrap(err, "unmarshaling provable")
+		return errors.Wrap(err, "unmarshalling provable")
 	}
 	tbv, err := j.CreateVerifyHash(genericProvable, gotProof, opts)
 	if err != nil {
@@ -152,7 +153,7 @@ func (j JWSSignatureSuite) Verify(v Verifier, p Provable) error {
 
 // CryptoSuiteProofType interface
 
-var _ CryptoSuiteProofType = (*JWSSignatureSuite)(nil)
+var _ cryptosuite.CryptoSuiteProofType = (*JWSSignatureSuite)(nil)
 
 func (JWSSignatureSuite) Marshal(data any) ([]byte, error) {
 	// JSONify the provable object
@@ -177,7 +178,7 @@ func (JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	return &canonicalString, nil
 }
 
-func (j JWSSignatureSuite) CreateVerifyHash(doc map[string]any, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
+func (j JWSSignatureSuite) CreateVerifyHash(doc map[string]any, proof crypto.Proof, opts *cryptosuite.ProofOptions) ([]byte, error) {
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := j.prepareProof(proof, opts)
 	if err != nil {
@@ -235,7 +236,7 @@ func (j JWSSignatureSuite) Digest(tbd []byte) ([]byte, error) {
 	return hash[:], nil
 }
 
-func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) (*crypto.Proof, error) {
+func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *cryptosuite.ProofOptions) (*crypto.Proof, error) {
 	proofBytes, err := json.Marshal(proof)
 	if err != nil {
 		return nil, err
@@ -268,12 +269,12 @@ func (j JWSSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) 
 }
 
 type JSONWebSignature2020Proof struct {
-	Type               SignatureType `json:"type,omitempty"`
-	Created            string        `json:"created,omitempty"`
-	JWS                string        `json:"jws,omitempty"`
-	ProofPurpose       ProofPurpose  `json:"proofPurpose,omitempty"`
-	Challenge          string        `json:"challenge,omitempty"`
-	VerificationMethod string        `json:"verificationMethod,omitempty"`
+	Type               cryptosuite.SignatureType `json:"type,omitempty"`
+	Created            string                    `json:"created,omitempty"`
+	JWS                string                    `json:"jws,omitempty"`
+	ProofPurpose       cryptosuite.ProofPurpose  `json:"proofPurpose,omitempty"`
+	Challenge          string                    `json:"challenge,omitempty"`
+	VerificationMethod string                    `json:"verificationMethod,omitempty"`
 }
 
 func JSONWebSignatureProofFromGenericProof(p crypto.Proof) (*JSONWebSignature2020Proof, error) {
@@ -316,9 +317,9 @@ func (j *JSONWebSignature2020Proof) DecodeJWS() ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(jwsParts[2])
 }
 
-func (j JWSSignatureSuite) createProof(verificationMethod string, purpose ProofPurpose) JSONWebSignature2020Proof {
+func (j JWSSignatureSuite) createProof(verificationMethod string, purpose cryptosuite.ProofPurpose) JSONWebSignature2020Proof {
 	var challenge string
-	if purpose == Authentication {
+	if purpose == cryptosuite.Authentication {
 		challenge = uuid.NewString()
 	}
 	return JSONWebSignature2020Proof{

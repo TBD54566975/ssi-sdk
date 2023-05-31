@@ -1,40 +1,41 @@
-package cryptosuite
+package bbs
 
 import (
 	gocrypto "crypto"
 	"encoding/base64"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	. "github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 )
 
 const (
-	BBSSecurityContext                             string        = "https://w3c.github.io/vc-di-bbs/contexts/v1"
-	BBSPlusSignature2020                           SignatureType = "BbsBlsSignature2020"
-	BBSPlusSignatureSuiteID                        string        = "https://w3c-ccg.github.io/ldp-bbs2020/#the-bbs-signature-suite-2020"
-	BBSPlusSignatureSuiteType                      LDKeyType     = BLS12381G2Key2020
-	BBSPlusSignatureSuiteCanonicalizationAlgorithm string        = "https://w3id.org/security#URDNA2015"
+	BBSSecurityContext                             string                    = "https://w3c.github.io/vc-di-bbs/contexts/v1"
+	BBSPlusSignature2020                           cryptosuite.SignatureType = "BbsBlsSignature2020"
+	BBSPlusSignatureSuiteID                        string                    = "https://w3c-ccg.github.io/ldp-bbs2020/#the-bbs-signature-suite-2020"
+	BBSPlusSignatureSuiteType                                                = cryptosuite.BLS12381G2Key2020
+	BBSPlusSignatureSuiteCanonicalizationAlgorithm string                    = "https://w3id.org/security#URDNA2015"
 	// BBSPlusSignatureSuiteDigestAlgorithm uses https://www.rfc-editor.org/rfc/rfc4634
 	BBSPlusSignatureSuiteDigestAlgorithm gocrypto.Hash = gocrypto.BLAKE2b_384
 )
 
 type BBSPlusSignatureSuite struct{}
 
-func GetBBSPlusSignatureSuite() CryptoSuite {
+func GetBBSPlusSignatureSuite() cryptosuite.CryptoSuite {
 	return new(BBSPlusSignatureSuite)
 }
 
 // CryptoSuiteInfo interface
 
-var _ CryptoSuiteInfo = (*BBSPlusSignatureSuite)(nil)
+var _ cryptosuite.CryptoSuiteInfo = (*BBSPlusSignatureSuite)(nil)
 
 func (BBSPlusSignatureSuite) ID() string {
 	return BBSPlusSignatureSuiteID
 }
 
-func (BBSPlusSignatureSuite) Type() LDKeyType {
+func (BBSPlusSignatureSuite) Type() cryptosuite.LDKeyType {
 	return BBSPlusSignatureSuiteType
 }
 
@@ -46,7 +47,7 @@ func (BBSPlusSignatureSuite) MessageDigestAlgorithm() gocrypto.Hash {
 	return BBSPlusSignatureSuiteDigestAlgorithm
 }
 
-func (BBSPlusSignatureSuite) SignatureAlgorithm() SignatureType {
+func (BBSPlusSignatureSuite) SignatureAlgorithm() cryptosuite.SignatureType {
 	return BBSPlusSignature2020
 }
 
@@ -54,20 +55,20 @@ func (BBSPlusSignatureSuite) RequiredContexts() []string {
 	return []string{BBSSecurityContext}
 }
 
-func (b BBSPlusSignatureSuite) Sign(s Signer, p Provable) error {
+func (b BBSPlusSignatureSuite) Sign(s cryptosuite.Signer, p cryptosuite.WithEmbeddedProof) error {
 	// create proof before running the create verify hash algorithm
 	// TODO(gabe) support required reveal values
 	proof := b.createProof(s.GetKeyID(), s.GetProofPurpose(), nil)
 
 	// prepare proof options
-	contexts, err := GetContextsFromProvable(p)
+	contexts, err := cryptosuite.GetContextsFromProvable(p)
 	if err != nil {
 		return errors.Wrap(err, "getting contexts from provable")
 	}
 
 	// make sure the suite's context(s) are included
-	contexts = ensureRequiredContexts(contexts, b.RequiredContexts())
-	opts := &ProofOptions{Contexts: contexts}
+	contexts = cryptosuite.EnsureRequiredContexts(contexts, b.RequiredContexts())
+	opts := &cryptosuite.ProofOptions{Contexts: contexts}
 
 	// 3. tbs value as a result of create verify hash
 	var genericProvable map[string]any
@@ -96,7 +97,7 @@ func (b BBSPlusSignatureSuite) Sign(s Signer, p Provable) error {
 	return nil
 }
 
-func (b BBSPlusSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) (*crypto.Proof, error) {
+func (b BBSPlusSignatureSuite) prepareProof(proof crypto.Proof, opts *cryptosuite.ProofOptions) (*crypto.Proof, error) {
 	proofBytes, err := json.Marshal(proof)
 	if err != nil {
 		return nil, err
@@ -128,7 +129,7 @@ func (b BBSPlusSignatureSuite) prepareProof(proof crypto.Proof, opts *ProofOptio
 	return &p, nil
 }
 
-func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
+func (b BBSPlusSignatureSuite) Verify(v cryptosuite.Verifier, p cryptosuite.WithEmbeddedProof) error {
 	proof := p.GetProof()
 	gotProof, err := BBSPlusProofFromGenericProof(*proof)
 	if err != nil {
@@ -149,14 +150,14 @@ func (b BBSPlusSignatureSuite) Verify(v Verifier, p Provable) error {
 	gotProof.SetProofValue("")
 
 	// prepare proof options
-	contexts, err := GetContextsFromProvable(p)
+	contexts, err := cryptosuite.GetContextsFromProvable(p)
 	if err != nil {
 		return errors.Wrap(err, "getting contexts from provable")
 	}
 
 	// make sure the suite's context(s) are included
-	contexts = ensureRequiredContexts(contexts, b.RequiredContexts())
-	opts := &ProofOptions{Contexts: contexts}
+	contexts = cryptosuite.EnsureRequiredContexts(contexts, b.RequiredContexts())
+	opts := &cryptosuite.ProofOptions{Contexts: contexts}
 
 	// run the create verify hash algorithm on both provable and the proof
 	var genericProvable map[string]any
@@ -194,7 +195,7 @@ func decodeProofValue(proofValue string) ([]byte, error) {
 
 // CryptoSuiteProofType interface
 
-var _ CryptoSuiteProofType = (*BBSPlusSignatureSuite)(nil)
+var _ cryptosuite.CryptoSuiteProofType = (*BBSPlusSignatureSuite)(nil)
 
 func (BBSPlusSignatureSuite) Marshal(data any) ([]byte, error) {
 	// JSONify the provable object
@@ -221,7 +222,7 @@ func (BBSPlusSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 
 // CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
 // augmented by https://w3c-ccg.github.io/ldp-bbs2020/#create-verify-data-algorithm
-func (b BBSPlusSignatureSuite) CreateVerifyHash(doc map[string]any, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
+func (b BBSPlusSignatureSuite) CreateVerifyHash(doc map[string]any, proof crypto.Proof, opts *cryptosuite.ProofOptions) ([]byte, error) {
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := b.prepareProof(proof, opts)
 	if err != nil {
@@ -276,7 +277,7 @@ func (BBSPlusSignatureSuite) Digest(tbd []byte) ([]byte, error) {
 	return tbd, nil
 }
 
-func (b BBSPlusSignatureSuite) createProof(verificationMethod string, purpose ProofPurpose, requiredRevealStatements []int) BBSPlusSignature2020Proof {
+func (b BBSPlusSignatureSuite) createProof(verificationMethod string, purpose cryptosuite.ProofPurpose, requiredRevealStatements []int) BBSPlusSignature2020Proof {
 	return BBSPlusSignature2020Proof{
 		Type:                     b.SignatureAlgorithm(),
 		Created:                  GetRFC3339Timestamp(),
@@ -287,13 +288,13 @@ func (b BBSPlusSignatureSuite) createProof(verificationMethod string, purpose Pr
 }
 
 type BBSPlusSignature2020Proof struct {
-	Type                     SignatureType `json:"type,omitempty"`
-	Created                  string        `json:"created,omitempty"`
-	VerificationMethod       string        `json:"verificationMethod,omitempty"`
-	ProofPurpose             ProofPurpose  `json:"proofPurpose,omitempty"`
-	ProofValue               string        `json:"proofValue,omitempty"`
-	Nonce                    string        `json:"nonce,omitempty"`
-	RequiredRevealStatements []int         `json:"requiredRevealStatements,omitempty"`
+	Type                     cryptosuite.SignatureType `json:"type,omitempty"`
+	Created                  string                    `json:"created,omitempty"`
+	VerificationMethod       string                    `json:"verificationMethod,omitempty"`
+	ProofPurpose             cryptosuite.ProofPurpose  `json:"proofPurpose,omitempty"`
+	ProofValue               string                    `json:"proofValue,omitempty"`
+	Nonce                    string                    `json:"nonce,omitempty"`
+	RequiredRevealStatements []int                     `json:"requiredRevealStatements,omitempty"`
 }
 
 func (b *BBSPlusSignature2020Proof) SetProofValue(proofValue string) {
@@ -301,7 +302,7 @@ func (b *BBSPlusSignature2020Proof) SetProofValue(proofValue string) {
 }
 
 // BBSPlusProofFromGenericProof accepts either a slice with exactly one element, or a single element and creates a
-// BBSPlusProofFromGenericProof by unmarshaling the JSON marshaled representation of the element found in `p`.
+// BBSPlusSignature2020Proof by unmarshaling the JSON marshaled representation of the element found in `p`.
 func BBSPlusProofFromGenericProof(p crypto.Proof) (*BBSPlusSignature2020Proof, error) {
 	// check if the proof is an array
 	if proofArray, ok := p.([]any); ok {

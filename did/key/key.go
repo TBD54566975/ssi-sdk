@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/jorrizza/ed2curve25519"
 	"github.com/mr-tron/base58"
@@ -263,7 +264,7 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 
 	// X25519 doesn't have any property except key agreement
 	isVerificationMethodX25519Key := false
-	if (publicKeyFormat == cryptosuite.JSONWebKey2020Type && verificationMethod.PublicKeyJWK.CRV == string(cryptosuite.X25519)) ||
+	if (publicKeyFormat == cryptosuite.JSONWebKey2020Type && verificationMethod.PublicKeyJWK.CRV == string(jws2020.X25519)) ||
 		(publicKeyFormat == cryptosuite.MultikeyType && (verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2020 ||
 			verificationMethod.Type == cryptosuite.X25519KeyAgreementKey2019)) {
 		isVerificationMethodX25519Key = true
@@ -311,8 +312,8 @@ func generateKeyAgreementVerificationMethod(vm did.VerificationMethod) (*did.Ver
 		verificationMethod, vmErr = did.ConstructMultibaseVerificationMethod(id, vm.Controller, x25519Key, cryptosuite.X25519KeyAgreementKey2020)
 		verificationMethodSet = []did.VerificationMethodSet{id}
 		return verificationMethod, verificationMethodSet, vmErr
-	} else if vm.Type == cryptosuite.JSONWebKey2020Type && vm.PublicKeyJWK.KTY == string(cryptosuite.OKP) &&
-		vm.PublicKeyJWK.CRV == string(cryptosuite.Ed25519) {
+	} else if vm.Type == cryptosuite.JSONWebKey2020Type && vm.PublicKeyJWK.KTY == string(jws2020.OKP) &&
+		vm.PublicKeyJWK.CRV == string(jws2020.Ed25519) {
 		// convert key to X25519
 		ed25519PubKey, err := vm.PublicKeyJWK.ToPublicKey()
 		if err != nil {

@@ -22,9 +22,9 @@ type CryptoSuite interface {
 
 	// Sign https://w3c-ccg.github.io/data-integrity-spec/#proof-algorithm
 	// this method mutates the provided provable object, adding a `proof` block`
-	Sign(s Signer, p Provable) error
+	Sign(s Signer, p WithEmbeddedProof) error
 	// Verify https://w3c-ccg.github.io/data-integrity-spec/#proof-verification-algorithm
-	Verify(v Verifier, p Provable) error
+	Verify(v Verifier, p WithEmbeddedProof) error
 }
 
 type CryptoSuiteInfo interface {
@@ -50,7 +50,7 @@ type CryptoSuiteProofType interface {
 	Digest(tbd []byte) ([]byte, error)
 }
 
-type Provable interface {
+type WithEmbeddedProof interface {
 	GetProof() *crypto.Proof
 	SetProof(p *crypto.Proof)
 }
@@ -109,7 +109,7 @@ func (g *GenericProvable) SetProof(p *crypto.Proof) {
 
 // GetContextsFromProvable searches from a Linked Data `@context` property in the document and returns the value
 // associated with the context, if it exists.
-func GetContextsFromProvable(p Provable) ([]any, error) {
+func GetContextsFromProvable(p WithEmbeddedProof) ([]any, error) {
 	provableBytes, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
@@ -129,8 +129,8 @@ func GetContextsFromProvable(p Provable) ([]any, error) {
 	return interfaceContexts, nil
 }
 
-// attempt to verify that string context(s) exist in the context interface
-func ensureRequiredContexts(context []any, requiredContexts []string) []any {
+// EnsureRequiredContexts attempt to verify that string context(s) exist in the context interface
+func EnsureRequiredContexts(context []any, requiredContexts []string) []any {
 	required := make(map[string]bool)
 	for _, v := range requiredContexts {
 		required[v] = true

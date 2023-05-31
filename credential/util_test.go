@@ -5,6 +5,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,7 +35,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 	})
 
 	t.Run("Data Integrity Cred", func(tt *testing.T) {
-		knownJWK := cryptosuite.JSONWebKey2020{
+		knownJWK := jws2020.JSONWebKey2020{
 			ID: "did:example:123#key-0",
 			PublicKeyJWK: jwx.PublicKeyJWK{
 				KID: "key-0",
@@ -51,10 +52,10 @@ func TestCredentialsFromInterface(t *testing.T) {
 			},
 		}
 
-		signer, err := cryptosuite.NewJSONWebKeySigner("issuer-id", knownJWK.PrivateKeyJWK, cryptosuite.AssertionMethod)
+		signer, err := jws2020.NewJSONWebKeySigner("issuer-id", knownJWK.PrivateKeyJWK, cryptosuite.AssertionMethod)
 		assert.NoError(t, err)
 
-		suite := cryptosuite.GetJSONWebSignature2020Suite()
+		suite := jws2020.GetJSONWebSignature2020Suite()
 
 		testCred := getTestCredential()
 		err = suite.Sign(signer, &testCred)
