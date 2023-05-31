@@ -13,10 +13,10 @@ import (
 
 // ToCredential turn a generic cred into its known object model
 func ToCredential(genericCred any) (jws.Headers, jwt.Token, *VerifiableCredential, error) {
-	switch genericCred.(type) {
+	switch typedCred := genericCred.(type) {
 	case []byte:
 		// could be a JWT
-		headers, token, vcFromJWT, err := ToCredential(string(genericCred.([]byte)))
+		headers, token, vcFromJWT, err := ToCredential(string(typedCred))
 		if err == nil {
 			return headers, token, vcFromJWT, err
 		}
@@ -28,23 +28,21 @@ func ToCredential(genericCred any) (jws.Headers, jwt.Token, *VerifiableCredentia
 		}
 		return ToCredential(cred)
 	case *VerifiableCredential:
-		return nil, nil, genericCred.(*VerifiableCredential), nil
+		return nil, nil, typedCred, nil
 	case VerifiableCredential:
-		verifiableCredential := genericCred.(VerifiableCredential)
-		return nil, nil, &verifiableCredential, nil
+		return nil, nil, &typedCred, nil
 	case string:
 		// first try the case where the string is JSON of a VC object
 		var cred VerifiableCredential
-		if err := json.Unmarshal([]byte(genericCred.(string)), &cred); err == nil {
+		if err := json.Unmarshal([]byte(typedCred), &cred); err == nil {
 			return nil, nil, &cred, nil
 		}
 
 		// next try it as a JWT
-		return ParseVerifiableCredentialFromJWT(genericCred.(string))
+		return ParseVerifiableCredentialFromJWT(typedCred)
 	case map[string]any:
 		// VC or JWTVC JSON
-		credJSON := genericCred.(map[string]any)
-		credMapBytes, err := json.Marshal(credJSON)
+		credMapBytes, err := json.Marshal(typedCred)
 		if err != nil {
 			return nil, nil, nil, errors.Wrap(err, "marshalling credential map")
 		}
@@ -67,31 +65,31 @@ func ToCredential(genericCred any) (jws.Headers, jwt.Token, *VerifiableCredentia
 
 // ToCredentialJSONMap turn a generic cred into a JSON object
 func ToCredentialJSONMap(genericCred any) (map[string]any, error) {
-	switch genericCred.(type) {
+	switch typedCred := genericCred.(type) {
 	case []byte:
 		// could be a JWT
-		credJSON, err := ToCredentialJSONMap(string(genericCred.([]byte)))
+		credJSON, err := ToCredentialJSONMap(string(typedCred))
 		if err == nil {
 			return credJSON, err
 		}
 
 		// could also be a vc
 		var cred VerifiableCredential
-		if err = json.Unmarshal(genericCred.([]byte), &cred); err != nil {
+		if err = json.Unmarshal(typedCred, &cred); err != nil {
 			return nil, errors.Wrap(err, "unmarshalling credential object")
 		}
 		return ToCredentialJSONMap(cred)
 	case map[string]any:
-		return genericCred.(map[string]any), nil
+		return typedCred, nil
 	case string:
 		// first try the case where the string is JSON of a VC object
 		var credJSON map[string]any
-		if err := json.Unmarshal([]byte(genericCred.(string)), &credJSON); err == nil {
+		if err := json.Unmarshal([]byte(typedCred), &credJSON); err == nil {
 			return credJSON, nil
 		}
 
 		// next try it as a JWT
-		_, token, _, err := ParseVerifiableCredentialFromJWT(genericCred.(string))
+		_, token, _, err := ParseVerifiableCredentialFromJWT(typedCred)
 		if err != nil {
 			return nil, errors.Wrap(err, "parsing credential from JWT")
 		}
@@ -105,12 +103,12 @@ func ToCredentialJSONMap(genericCred any) (map[string]any, error) {
 		}
 		return credJSON, nil
 	case VerifiableCredential, *VerifiableCredential:
-		credJSONBytes, err := json.Marshal(genericCred)
+		credJSONBytes, err := json.Marshal(typedCred)
 		if err != nil {
 			return nil, errors.Wrap(err, "marshalling credential object")
 		}
 		var credJSON map[string]any
-		if err := json.Unmarshal(credJSONBytes, &credJSON); err != nil {
+		if err = json.Unmarshal(credJSONBytes, &credJSON); err != nil {
 			return nil, errors.Wrap(err, "unmarshalling credential object")
 		}
 		return credJSON, nil

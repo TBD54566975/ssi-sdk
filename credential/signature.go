@@ -22,9 +22,9 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, r resolutio
 	if r == nil {
 		return false, errors.New("resolution cannot be empty")
 	}
-	switch genericCred.(type) {
+	switch typedCred := genericCred.(type) {
 	case *VerifiableCredential, VerifiableCredential, map[string]any:
-		_, token, cred, err := ToCredential(genericCred)
+		_, token, cred, err := ToCredential(typedCred)
 		if err != nil {
 			return false, errors.Wrap(err, "error converting credential from generic type")
 		}
@@ -40,16 +40,16 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, r resolutio
 		return false, errors.New("data integrity signature verification not yet implemented")
 	case []byte:
 		// turn it into a string and try again
-		return VerifyCredentialSignature(ctx, string(genericCred.([]byte)), r)
+		return VerifyCredentialSignature(ctx, string(typedCred), r)
 	case string:
 		// could be a Data Integrity credential
 		var cred VerifiableCredential
-		if err := json.Unmarshal([]byte(genericCred.(string)), &cred); err == nil {
+		if err := json.Unmarshal([]byte(typedCred), &cred); err == nil {
 			return VerifyCredentialSignature(ctx, cred, r)
 		}
 
 		// could be a JWT
-		return VerifyJWTCredential(genericCred.(string), r)
+		return VerifyJWTCredential(typedCred, r)
 	}
 	return false, fmt.Errorf("invalid credential type: %s", reflect.TypeOf(genericCred).Kind().String())
 }
