@@ -152,7 +152,7 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 }
 
 func TestVerifyPresentationSubmissionVP(t *testing.T) {
-	t.Run("Simple validation", func(tt *testing.T) {
+	t.Run("Simple verification", func(tt *testing.T) {
 		def := PresentationDefinition{
 			ID: "test-id",
 			InputDescriptors: []InputDescriptor{

@@ -23,7 +23,7 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 		assert.Contains(tt, err.Error(), "kid is required")
 	})
 
-	t.Run("doc with no validation methods", func(t *testing.T) {
+	t.Run("doc with no verification methods", func(t *testing.T) {
 		doc := Document{ID: "test-did"}
 		_, err := GetKeyFromVerificationMethod(doc, "test-kid")
 		assert.Error(t, err)

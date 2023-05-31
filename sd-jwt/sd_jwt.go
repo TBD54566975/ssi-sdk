@@ -384,7 +384,7 @@ func parseDisclosures(disclosuresData []string, hashAlg HashFunc) (map[string]*D
 		ds = append(ds, d)
 	}
 	disclosureDigests := make(map[string]*Disclosure, len(ds))
-	//For each Disclosure provided:
+	// For each Disclosure provided:
 	for _, disclosure := range ds {
 		// Calculate the digest over the base64url-encoded string as described in Section 5.1.1.2.
 		disclosureDigests[disclosure.Digest(hashAlg)] = disclosure
@@ -424,7 +424,7 @@ type VerificationOptions struct {
 	Alg                 string
 	IssuerKey           any
 
-	// The nonce and audience to check for when doing holder binding validation.
+	// The nonce and audience to check for when doing holder binding verification.
 	// Needed only when HolderBindingOption == VerifyHolderBinding.
 	DesiredNonce, DesiredAudience string
 
@@ -444,16 +444,16 @@ func VerifySDPresentation(presentation []byte, verificationOptions VerificationO
 
 	// Validate the SD-JWT:
 	//
-	//Ensure that a signing algorithm was used that was deemed secure for the application. Refer to [RFC8725], Sections 3.1 and 3.2 for details. The none algorithm MUST NOT be accepted.
-	//Validate the signature over the SD-JWT.
-	//Validate the Issuer of the SD-JWT and that the signing key belongs to this Issuer.
-	//Check that the SD-JWT is valid using nbf, iat, and exp claims, if provided in the SD-JWT, and not selectively disclosed.
+	// Ensure that a signing algorithm was used that was deemed secure for the application. Refer to [RFC8725], Sections 3.1 and 3.2 for details. The none algorithm MUST NOT be accepted.
+	// Validate the signature over the SD-JWT.
+	// Validate the Issuer of the SD-JWT and that the signing key belongs to this Issuer.
+	// Check that the SD-JWT is valid using nbf, iat, and exp claims, if provided in the SD-JWT, and not selectively disclosed.
 	sdToken, err := jwt.Parse([]byte(sdParts[0]), jwt.WithKey(jwa.KeyAlgorithmFrom(verificationOptions.Alg), verificationOptions.IssuerKey), jwt.WithValidate(true))
 	if err != nil {
 		return nil, errors.Wrap(err, "parsing jwt")
 	}
 
-	//Check that the _sd_alg claim value is understood and the hash algorithm is deemed secure.
+	// Check that the _sd_alg claim value is understood and the hash algorithm is deemed secure.
 	hashAlg, err := GetHashAlg(sdToken)
 	if err != nil {
 		return nil, err
@@ -468,7 +468,7 @@ func VerifySDPresentation(presentation []byte, verificationOptions VerificationO
 
 	// Process the Disclosures and _sd keys in the SD-JWT as follows:
 	//
-	//Create a copy of the SD-JWT payload, if required for further processing.
+	// Create a copy of the SD-JWT payload, if required for further processing.
 	tokenClaims, err := sdToken.AsMap(context.Background())
 	if err != nil {
 		return nil, errors.Wrap(err, "gathering token map")
@@ -488,13 +488,13 @@ func VerifySDPresentation(presentation []byte, verificationOptions VerificationO
 		// Determine the public key for the Holder from the SD-JWT.
 		holderKey := verificationOptions.ResolveHolderKey(sdToken)
 
-		//Ensure that a signing algorithm was used that was deemed secure for the application. Refer to [RFC8725], Sections 3.1 and 3.2 for details. The none algorithm MUST NOT be accepted.
-		//TODO(https://github.com/TBD54566975/ssi-sdk/issues/377): support holder binding properly as specified in RFC7800. Alg should be coming from CNF.
+		// Ensure that a signing algorithm was used that was deemed secure for the application. Refer to [RFC8725], Sections 3.1 and 3.2 for details. The none algorithm MUST NOT be accepted.
+		// TODO(https://github.com/TBD54566975/ssi-sdk/issues/377): support holder binding properly as specified in RFC7800. Alg should be coming from CNF.
 		holderBindingAlg := jwa.ES256K
 
-		//Validate the signature over the Holder Binding JWT.
-		//Check that the Holder Binding JWT is valid using nbf, iat, and exp claims, if provided in the Holder Binding JWT.
-		//Determine that the Holder Binding JWT is bound to the current transaction and was created for this Verifier (replay protection). This is usually achieved by a nonce and aud field within the Holder Binding JWT.
+		// Validate the signature over the Holder Binding JWT.
+		// Check that the Holder Binding JWT is valid using nbf, iat, and exp claims, if provided in the Holder Binding JWT.
+		// Determine that the Holder Binding JWT is bound to the current transaction and was created for this Verifier (replay protection). This is usually achieved by a nonce and aud field within the Holder Binding JWT.
 		holderBindingToken, err := jwt.Parse([]byte(holderBindingJWT), jwt.WithKey(holderBindingAlg, holderKey), jwt.WithValidate(true))
 		if err != nil {
 			return nil, errors.Wrap(err, "parsing and validating holder binding jwt")
@@ -526,7 +526,7 @@ func VerifySDPresentation(presentation []byte, verificationOptions VerificationO
 // found inside disclosuresByDigest.
 func processPayload(claims map[string]any, disclosuresByDigest map[string]*Disclosure, digestsFound map[string]struct{}) error {
 
-	//Find all _sd keys in the SD-JWT payload. For each such key perform the following steps (*):
+	// Find all _sd keys in the SD-JWT payload. For each such key perform the following steps (*):
 	for _, claimValue := range claims {
 		switch claimMap := claimValue.(type) {
 		case map[string]any:
@@ -611,7 +611,7 @@ func VerifyIssuance(issuance []byte, verificationOptions IssuanceVerificationOpt
 		return errors.Wrap(err, "getting token claim map")
 	}
 
-	//Check that the _sd_alg claim value is understood and the hash algorithm is deemed secure.
+	// Check that the _sd_alg claim value is understood and the hash algorithm is deemed secure.
 	hashAlg, err := GetHashAlg(sdToken)
 	if err != nil {
 		return err
