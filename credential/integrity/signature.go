@@ -98,7 +98,9 @@ func VerifyJWTCredential(cred string, r resolution.Resolver) (bool, error) {
 	return true, nil
 }
 
-func VerifyDataIntegrityCredential(cred credential.VerifiableCredential, r resolution.Resolver) (bool, error) {
+// VerifyDataIntegrityCredential verifies the signature of a Data Integrity credential
+// TODO(gabe): https://github.com/TBD54566975/ssi-sdk/issues/196
+func VerifyDataIntegrityCredential(cred credential.VerifiableCredential, _ resolution.Resolver) (bool, error) {
 	if cred.IsEmpty() {
 		return false, errors.New("credential cannot be empty")
 	}
@@ -106,5 +108,5 @@ func VerifyDataIntegrityCredential(cred credential.VerifiableCredential, r resol
 		return false, errors.New("credential must have a proof")
 	}
 
-	return false, nil
+	return false, errors.New("not implemented")
 }
