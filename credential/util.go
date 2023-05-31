@@ -33,8 +33,13 @@ func ToCredential(genericCred any) (jws.Headers, jwt.Token, *VerifiableCredentia
 		verifiableCredential := genericCred.(VerifiableCredential)
 		return nil, nil, &verifiableCredential, nil
 	case string:
-		// TODO(gabe) support the case where the string is a json representation of an LD credential
-		// JWT
+		// first try the case where the string is JSON of a VC object
+		var cred VerifiableCredential
+		if err := json.Unmarshal([]byte(genericCred.(string)), &cred); err == nil {
+			return nil, nil, &cred, nil
+		}
+
+		// next try it as a JWT
 		return ParseVerifiableCredentialFromJWT(genericCred.(string))
 	case map[string]any:
 		// VC or JWTVC JSON
@@ -79,8 +84,13 @@ func ToCredentialJSONMap(genericCred any) (map[string]any, error) {
 	case map[string]any:
 		return genericCred.(map[string]any), nil
 	case string:
-		// TODO(gabe) support the case where the string is a json representation of an LD credential
-		// JWT
+		// first try the case where the string is JSON of a VC object
+		var credJSON map[string]any
+		if err := json.Unmarshal([]byte(genericCred.(string)), &credJSON); err == nil {
+			return credJSON, nil
+		}
+
+		// next try it as a JWT
 		_, token, _, err := ParseVerifiableCredentialFromJWT(genericCred.(string))
 		if err != nil {
 			return nil, errors.Wrap(err, "parsing credential from JWT")
@@ -90,8 +100,7 @@ func ToCredentialJSONMap(genericCred any) (map[string]any, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "marshaling credential JWT")
 		}
-		var credJSON map[string]any
-		if err := json.Unmarshal(tokenJSONBytes, &credJSON); err != nil {
+		if err = json.Unmarshal(tokenJSONBytes, &credJSON); err != nil {
 			return nil, errors.Wrap(err, "unmarshalling credential JWT")
 		}
 		return credJSON, nil
