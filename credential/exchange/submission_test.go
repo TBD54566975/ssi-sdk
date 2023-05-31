@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
 	"github.com/stretchr/testify/assert"
@@ -55,7 +56,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 		submissionBytes, err := BuildPresentationSubmission(*signer, signer.ID, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)
@@ -143,7 +144,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NoError(tt, err)
@@ -249,7 +250,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NoError(tt, err)
@@ -320,7 +321,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 		testVCJWT := getTestJWTVerifiableCredential()
 		presentationClaimJWT := PresentationClaim{
@@ -386,7 +387,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NoError(tt, err)
@@ -419,7 +420,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NoError(tt, err)
@@ -446,7 +447,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NoError(tt, err)
@@ -469,7 +470,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 			},
 			Format: &ClaimFormat{
 				LDP: &LDPType{
-					ProofType: []cryptosuite.SignatureType{cryptosuite.JSONWebSignature2020},
+					ProofType: []cryptosuite.SignatureType{jws2020.JSONWebSignature2020},
 				},
 			},
 		}
@@ -477,7 +478,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NoError(tt, err)
@@ -500,7 +501,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 			},
 			Format: &ClaimFormat{
 				LDPVC: &LDPType{
-					ProofType: []cryptosuite.SignatureType{cryptosuite.JSONWebSignature2020},
+					ProofType: []cryptosuite.SignatureType{jws2020.JSONWebSignature2020},
 				},
 			},
 		}
@@ -508,7 +509,7 @@ func TestProcessInputDescriptor(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &testVC,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
 		assert.NoError(tt, err)
@@ -777,7 +778,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Presentation:                  &vpClaim,
 			LDPFormat:                     LDPVP.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
@@ -786,7 +787,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		assert.True(tt, len(normalized) == 1)
 		assert.NotEmpty(tt, normalized[0].Data)
 		assert.EqualValues(tt, LDPVP, normalized[0].Format)
-		assert.EqualValues(tt, string(cryptosuite.JSONWebSignature2020), normalized[0].AlgOrProofType)
+		assert.EqualValues(tt, string(jws2020.JSONWebSignature2020), normalized[0].AlgOrProofType)
 	})
 
 	t.Run("Normalize VC Claim", func(tt *testing.T) {
@@ -796,7 +797,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Credential:                    &vcClaim,
 			LDPFormat:                     LDPVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(cryptosuite.JSONWebSignature2020),
+			SignatureAlgorithmOrProofType: string(jws2020.JSONWebSignature2020),
 		}
 
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
@@ -805,7 +806,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		assert.True(tt, len(normalized) == 1)
 		assert.NotEmpty(tt, normalized[0].Data)
 		assert.EqualValues(tt, LDPVC, normalized[0].Format)
-		assert.EqualValues(tt, string(cryptosuite.JSONWebSignature2020), normalized[0].AlgOrProofType)
+		assert.EqualValues(tt, string(jws2020.JSONWebSignature2020), normalized[0].AlgOrProofType)
 	})
 }
 

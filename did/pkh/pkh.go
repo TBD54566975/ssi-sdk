@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/pkg/errors"
 
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/util"
 )

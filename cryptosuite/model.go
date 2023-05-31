@@ -4,7 +4,12 @@ type (
 	SignatureType string
 	ProofPurpose  string
 	PayloadFormat string
+	LDKeyType     string
 )
+
+func (ld LDKeyType) String() string {
+	return string(ld)
+}
 
 const (
 	W3CSecurityContext                  string = "https://w3id.org/security/v2"

@@ -1,4 +1,4 @@
-package cryptosuite
+package bbs
 
 import (
 	gocrypto "crypto"
@@ -6,13 +6,14 @@ import (
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	. "github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 )
 
 const (
-	BBSPlusSignatureProof2020 SignatureType = "BbsBlsSignatureProof2020"
+	BBSPlusSignatureProof2020 cryptosuite.SignatureType = "BbsBlsSignatureProof2020"
 )
 
 type BBSPlusSignatureProofSuite struct{}
@@ -23,13 +24,13 @@ func GetBBSPlusSignatureProofSuite() *BBSPlusSignatureProofSuite {
 
 // CryptoSuiteInfo interface
 
-var _ CryptoSuiteInfo = (*BBSPlusSignatureProofSuite)(nil)
+var _ cryptosuite.CryptoSuiteInfo = (*BBSPlusSignatureProofSuite)(nil)
 
 func (BBSPlusSignatureProofSuite) ID() string {
 	return BBSPlusSignatureSuiteID
 }
 
-func (BBSPlusSignatureProofSuite) Type() LDKeyType {
+func (BBSPlusSignatureProofSuite) Type() cryptosuite.LDKeyType {
 	return BBSPlusSignatureSuiteType
 }
 
@@ -41,7 +42,7 @@ func (BBSPlusSignatureProofSuite) MessageDigestAlgorithm() gocrypto.Hash {
 	return BBSPlusSignatureSuiteDigestAlgorithm
 }
 
-func (BBSPlusSignatureProofSuite) SignatureAlgorithm() SignatureType {
+func (BBSPlusSignatureProofSuite) SignatureAlgorithm() cryptosuite.SignatureType {
 	return BBSPlusSignatureProof2020
 }
 
@@ -49,8 +50,8 @@ func (BBSPlusSignatureProofSuite) RequiredContexts() []string {
 	return []string{BBSSecurityContext}
 }
 
-// SelectivelyDisclose takes in a credential (parameter `p` that's Provable) and a map of fields to disclose as an LD frame, and produces a map of the JSON representation of the derived credential. The derived credential only contains the information that was specified in the LD frame, and a proof that's derived from the original credential. Note that a requirement for `p` is that the property `"proof"` must be present when it's marshaled to JSON, and it's value MUST be an object that conforms to a `BBSPlusProof`.
-func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Provable, toDiscloseFrame map[string]any, nonce []byte) (map[string]any, error) {
+// SelectivelyDisclose takes in a credential (parameter `p` that's WithEmbeddedProof) and a map of fields to disclose as an LD frame, and produces a map of the JSON representation of the derived credential. The derived credential only contains the information that was specified in the LD frame, and a proof that's derived from the original credential. Note that a requirement for `p` is that the property `"proof"` must be present when it's marshaled to JSON, and it's value MUST be an object that conforms to a `BBSPlusProof`.
+func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p cryptosuite.WithEmbeddedProof, toDiscloseFrame map[string]any, nonce []byte) (map[string]any, error) {
 	// first compact the document with the security context
 	compactProvable, compactProof, err := b.compactProvable(p)
 	if err != nil {
@@ -99,7 +100,7 @@ func (b BBSPlusSignatureProofSuite) SelectivelyDisclose(v BBSPlusVerifier, p Pro
 	return derivedCred, nil
 }
 
-func (BBSPlusSignatureProofSuite) compactProvable(p Provable) (Provable, *crypto.Proof, error) {
+func (BBSPlusSignatureProofSuite) compactProvable(p cryptosuite.WithEmbeddedProof) (cryptosuite.WithEmbeddedProof, *crypto.Proof, error) {
 	var genericProvable map[string]any
 	provableBytes, err := json.Marshal(p)
 	if err != nil {
@@ -108,7 +109,7 @@ func (BBSPlusSignatureProofSuite) compactProvable(p Provable) (Provable, *crypto
 	if err = json.Unmarshal(provableBytes, &genericProvable); err != nil {
 		return nil, nil, errors.Wrap(err, "unmarshalling provable to generic map")
 	}
-	compactProvable, err := LDCompact(genericProvable, W3CSecurityContext)
+	compactProvable, err := LDCompact(genericProvable, cryptosuite.W3CSecurityContext)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "compacting provable")
 	}
@@ -122,7 +123,7 @@ func (BBSPlusSignatureProofSuite) compactProvable(p Provable) (Provable, *crypto
 	if err != nil {
 		return nil, nil, err
 	}
-	var genericCred GenericProvable
+	var genericCred cryptosuite.GenericProvable
 	if err = json.Unmarshal(compactedProvableBytes, &genericCred); err != nil {
 		return nil, nil, errors.Wrap(err, "unmarshalling compacted provable to generic credential")
 	}
@@ -173,7 +174,7 @@ func (b BBSPlusSignatureProofSuite) prepareBLSProof(bbsPlusProof BBSPlusSignatur
 	if err = json.Unmarshal(marshaledProof, &genericProof); err != nil {
 		return nil, err
 	}
-	genericProof["@context"] = W3CSecurityContext
+	genericProof["@context"] = cryptosuite.W3CSecurityContext
 
 	proofBytes, err := json.Marshal(genericProof)
 	if err != nil {
@@ -259,7 +260,7 @@ func (b BBSPlusSignatureProofSuite) CreateDeriveProof(inputProofDocument any, re
 }
 
 // Verify verifies a BBS Plus derived proof. Note that the underlying value for `v` must be of type `*BBSPlusVerifier`. Bug here: https://github.com/w3c-ccg/ldp-bbs2020/issues/62
-func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
+func (b BBSPlusSignatureProofSuite) Verify(v cryptosuite.Verifier, p cryptosuite.WithEmbeddedProof) error {
 	proof := p.GetProof()
 	gotProof, err := BBSPlusProofFromGenericProof(*proof)
 	if err != nil {
@@ -280,14 +281,14 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 	gotProof.SetProofValue("")
 
 	// prepare proof options
-	contexts, err := GetContextsFromProvable(p)
+	contexts, err := cryptosuite.GetContextsFromProvable(p)
 	if err != nil {
 		return errors.Wrap(err, "getting contexts from provable")
 	}
 
 	// make sure the suite's context(s) are included
-	contexts = ensureRequiredContexts(contexts, b.RequiredContexts())
-	opts := &ProofOptions{Contexts: contexts}
+	contexts = cryptosuite.EnsureRequiredContexts(contexts, b.RequiredContexts())
+	opts := &cryptosuite.ProofOptions{Contexts: contexts}
 
 	// run the create verify hash algorithm on both provable and the proof
 	var genericProvable map[string]any
@@ -320,7 +321,7 @@ func (b BBSPlusSignatureProofSuite) Verify(v Verifier, p Provable) error {
 
 // CryptoSuiteProofType interface
 
-var _ CryptoSuiteProofType = (*BBSPlusSignatureProofSuite)(nil)
+var _ cryptosuite.CryptoSuiteProofType = (*BBSPlusSignatureProofSuite)(nil)
 
 func (BBSPlusSignatureProofSuite) Marshal(data any) ([]byte, error) {
 	// JSONify the provable object
@@ -358,7 +359,7 @@ func canonicalizedLDToStatements(canonicalized string) []string {
 
 // CreateVerifyHash https://w3c-ccg.github.io/data-integrity-spec/#create-verify-hash-algorithm
 // augmented by https://w3c-ccg.github.io/ldp-bbs2020/#create-verify-data-algorithm
-func (b BBSPlusSignatureProofSuite) CreateVerifyHash(doc map[string]any, proof crypto.Proof, opts *ProofOptions) ([]byte, error) {
+func (b BBSPlusSignatureProofSuite) CreateVerifyHash(doc map[string]any, proof crypto.Proof, opts *cryptosuite.ProofOptions) ([]byte, error) {
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := b.prepareProof(proof, opts)
 	if err != nil {
@@ -408,7 +409,7 @@ func (b BBSPlusSignatureProofSuite) CreateVerifyHash(doc map[string]any, proof c
 	return output, nil
 }
 
-func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *ProofOptions) (*crypto.Proof, error) {
+func (b BBSPlusSignatureProofSuite) prepareProof(proof crypto.Proof, opts *cryptosuite.ProofOptions) (*crypto.Proof, error) {
 	proofBytes, err := json.Marshal(proof)
 	if err != nil {
 		return nil, err

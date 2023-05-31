@@ -22,7 +22,7 @@ func (Resolver) Methods() []did.Method {
 // Resolve fetches and returns the Document from the expected URL
 // specification: https://w3c-ccg.github.io/did-method-web/#read-resolve
 func (Resolver) Resolve(_ context.Context, id string, _ ...resolution.Option) (*resolution.Result, error) {
-	if !strings.HasPrefix(id, WebPrefix) {
+	if !strings.HasPrefix(id, Prefix) {
 		return nil, fmt.Errorf("not a did:web DID: %s", id)
 	}
 	didWeb := DIDWeb(id)
