@@ -5,12 +5,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
-	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/did"
 )
 
@@ -131,7 +131,7 @@ func TestGenerateDIDJWK(t *testing.T) {
 				return
 			}
 
-			jsonWebKey, err := cryptosuite.JSONWebKey2020FromPrivateKey(privKey)
+			jsonWebKey, err := jws2020.JSONWebKey2020FromPrivateKey(privKey)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, jsonWebKey)
 

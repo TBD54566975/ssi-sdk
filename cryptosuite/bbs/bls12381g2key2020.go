@@ -1,24 +1,26 @@
-package cryptosuite
+package bbs
 
 import (
 	"fmt"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	bbs "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
 	"github.com/mr-tron/base58"
 )
 
 const (
-	G1 CRV = "BLS12381_G1"
-	G2 CRV = "BLS12381_G2"
+	G1 jws2020.CRV = "BLS12381_G1"
+	G2 jws2020.CRV = "BLS12381_G2"
 )
 
 type BLSKey2020 struct {
-	ID               string    `json:"id,omitempty"`
-	Type             LDKeyType `json:"type,omitempty"`
-	Controller       string    `json:"controller,omitempty"`
-	PublicKeyBase58  string    `json:"publicKeyBase58,omitempty"`
-	PrivateKeyBase58 string    `json:"privateKeyBase58,omitempty"`
+	ID               string                `json:"id,omitempty"`
+	Type             cryptosuite.LDKeyType `json:"type,omitempty"`
+	Controller       string                `json:"controller,omitempty"`
+	PublicKeyBase58  string                `json:"publicKeyBase58,omitempty"`
+	PrivateKeyBase58 string                `json:"privateKeyBase58,omitempty"`
 }
 
 func (b BLSKey2020) GetPublicKey() (*bbs.PublicKey, error) {
@@ -46,8 +48,8 @@ func (b BLSKey2020) GetPrivateKey() (*bbs.PrivateKey, error) {
 }
 
 // GenerateBLSKey2020 https://w3c-ccg.github.io/vc-di-bbs/#bls12-381
-func GenerateBLSKey2020(keyType LDKeyType) (*BLSKey2020, error) {
-	if keyType != BLS12381G2Key2020 {
+func GenerateBLSKey2020(keyType cryptosuite.LDKeyType) (*BLSKey2020, error) {
+	if keyType != cryptosuite.BLS12381G2Key2020 {
 		return nil, fmt.Errorf("unsupported key type %s", keyType)
 	}
 	pubKey, privKey, err := crypto.GenerateBBSKeyPair()
@@ -72,11 +74,11 @@ func GenerateBLSKey2020(keyType LDKeyType) (*BLSKey2020, error) {
 type BBSPlusSigner struct {
 	*crypto.BBSPlusSigner
 	*crypto.BBSPlusVerifier
-	purpose ProofPurpose
-	format  PayloadFormat
+	purpose cryptosuite.ProofPurpose
+	format  cryptosuite.PayloadFormat
 }
 
-func NewBBSPlusSigner(kid string, privKey *bbs.PrivateKey, purpose ProofPurpose) *BBSPlusSigner {
+func NewBBSPlusSigner(kid string, privKey *bbs.PrivateKey, purpose cryptosuite.ProofPurpose) *BBSPlusSigner {
 	signer := crypto.NewBBSPlusSigner(kid, privKey)
 	return &BBSPlusSigner{
 		BBSPlusSigner:   signer,
@@ -93,7 +95,7 @@ func (s *BBSPlusSigner) GetKeyID() string {
 	return s.BBSPlusSigner.GetKeyID()
 }
 
-func (*BBSPlusSigner) GetSignatureType() SignatureType {
+func (*BBSPlusSigner) GetSignatureType() cryptosuite.SignatureType {
 	return BBSPlusSignature2020
 }
 
@@ -101,19 +103,19 @@ func (*BBSPlusSigner) GetSigningAlgorithm() string {
 	return string(BBSPlusSignature2020)
 }
 
-func (s *BBSPlusSigner) SetProofPurpose(purpose ProofPurpose) {
+func (s *BBSPlusSigner) SetProofPurpose(purpose cryptosuite.ProofPurpose) {
 	s.purpose = purpose
 }
 
-func (s *BBSPlusSigner) GetProofPurpose() ProofPurpose {
+func (s *BBSPlusSigner) GetProofPurpose() cryptosuite.ProofPurpose {
 	return s.purpose
 }
 
-func (s *BBSPlusSigner) SetPayloadFormat(format PayloadFormat) {
+func (s *BBSPlusSigner) SetPayloadFormat(format cryptosuite.PayloadFormat) {
 	s.format = format
 }
 
-func (s *BBSPlusSigner) GetPayloadFormat() PayloadFormat {
+func (s *BBSPlusSigner) GetPayloadFormat() cryptosuite.PayloadFormat {
 	return s.format
 }
 

@@ -1,10 +1,11 @@
-package cryptosuite
+package bbs
 
 import (
 	"embed"
 	"encoding/base64"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/goccy/go-json"
 	bbsg2 "github.com/hyperledger/aries-framework-go/pkg/crypto/primitive/bbs12381g2pub"
 	"github.com/mr-tron/base58"
@@ -40,11 +41,11 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 				"id": "did:example:abcd",
 			},
 		}
-		key, err := GenerateBLSKey2020(BLS12381G2Key2020)
+		key, err := GenerateBLSKey2020(cryptosuite.BLS12381G2Key2020)
 		assert.NoError(t, err)
 		privKey, err := key.GetPrivateKey()
 		assert.NoError(t, err)
-		signer := NewBBSPlusSigner("test-key-1", privKey, AssertionMethod)
+		signer := NewBBSPlusSigner("test-key-1", privKey, cryptosuite.AssertionMethod)
 		err = suite.Sign(signer, &testCred)
 		assert.NoError(t, err)
 
@@ -64,7 +65,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NotEmpty(tt, selectiveDisclosure)
 
 		// now verify the derived credential
-		genericCred := GenericProvable(selectiveDisclosure)
+		genericCred := cryptosuite.GenericProvable(selectiveDisclosure)
 		err = proofSuite.Verify(verifier, &genericCred)
 		assert.NoError(tt, err)
 	})
@@ -110,7 +111,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NotEmpty(tt, selectiveDisclosure)
 
 		// now verify the derived credential
-		genericCred := GenericProvable(selectiveDisclosure)
+		genericCred := cryptosuite.GenericProvable(selectiveDisclosure)
 		err = proofSuite.Verify(verifier, &genericCred)
 		assert.NoError(tt, err)
 	})
@@ -120,7 +121,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, revealedDoc)
 
-		var genericCred GenericProvable
+		var genericCred cryptosuite.GenericProvable
 		err = json.Unmarshal([]byte(revealedDoc), &genericCred)
 		assert.NoError(tt, err)
 
@@ -182,7 +183,7 @@ func TestBBSPlusSignatureProofSuite(t *testing.T) {
 
 		credBytes, err := json.Marshal(selectivelyDisclosedCred)
 		assert.NoError(tt, err)
-		var genericCred GenericProvable
+		var genericCred cryptosuite.GenericProvable
 		err = json.Unmarshal(credBytes, &genericCred)
 		assert.NoError(tt, err)
 

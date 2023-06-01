@@ -5,6 +5,8 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
+	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,7 +36,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 	})
 
 	t.Run("Data Integrity Cred", func(tt *testing.T) {
-		knownJWK := cryptosuite.JSONWebKey2020{
+		knownJWK := jws2020.JSONWebKey2020{
 			ID: "did:example:123#key-0",
 			PublicKeyJWK: jwx.PublicKeyJWK{
 				KID: "key-0",
@@ -51,10 +53,10 @@ func TestCredentialsFromInterface(t *testing.T) {
 			},
 		}
 
-		signer, err := cryptosuite.NewJSONWebKeySigner("issuer-id", knownJWK.PrivateKeyJWK, cryptosuite.AssertionMethod)
+		signer, err := jws2020.NewJSONWebKeySigner("issuer-id", knownJWK.PrivateKeyJWK, cryptosuite.AssertionMethod)
 		assert.NoError(t, err)
 
-		suite := cryptosuite.GetJSONWebSignature2020Suite()
+		suite := jws2020.GetJSONWebSignature2020Suite()
 
 		testCred := getTestCredential()
 		err = suite.Sign(signer, &testCred)
@@ -66,6 +68,48 @@ func TestCredentialsFromInterface(t *testing.T) {
 		assert.Equal(tt, testCred.Issuer, parsedCred.Issuer)
 
 		genericCred, err := ToCredentialJSONMap(testCred)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, genericCred)
+		assert.Equal(tt, parsedCred.Issuer, genericCred["issuer"])
+	})
+
+	t.Run("Data Integrity Cred as a JSON string", func(tt *testing.T) {
+		knownJWK := jws2020.JSONWebKey2020{
+			ID: "did:example:123#key-0",
+			PublicKeyJWK: jwx.PublicKeyJWK{
+				KID: "key-0",
+				KTY: "OKP",
+				CRV: "Ed25519",
+				X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
+			},
+			PrivateKeyJWK: jwx.PrivateKeyJWK{
+				KID: "key-0",
+				KTY: "OKP",
+				CRV: "Ed25519",
+				X:   "JYCAGl6C7gcDeKbNqtXBfpGzH0f5elifj7L6zYNj_Is",
+				D:   "pLMxJruKPovJlxF3Lu_x9Aw3qe2wcj5WhKUAXYLBjwE",
+			},
+		}
+
+		signer, err := jws2020.NewJSONWebKeySigner("issuer-id", knownJWK.PrivateKeyJWK, cryptosuite.AssertionMethod)
+		assert.NoError(t, err)
+
+		suite := jws2020.GetJSONWebSignature2020Suite()
+
+		testCred := getTestCredential()
+		err = suite.Sign(signer, &testCred)
+		assert.NoError(t, err)
+
+		credBytes, err := json.Marshal(testCred)
+		assert.NoError(t, err)
+		credJSON := string(credBytes)
+
+		_, _, parsedCred, err := ToCredential(credJSON)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, parsedCred)
+		assert.Equal(tt, testCred.Issuer, parsedCred.Issuer)
+
+		genericCred, err := ToCredentialJSONMap(credJSON)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, genericCred)
 		assert.Equal(tt, parsedCred.Issuer, genericCred["issuer"])

@@ -1,4 +1,4 @@
-package cryptosuite
+package jws2020
 
 import (
 	gocrypto "crypto"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
+	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jws"
@@ -13,10 +14,9 @@ import (
 )
 
 type (
-	KTY       string
-	CRV       string
-	ALG       string
-	LDKeyType string
+	KTY string
+	CRV string
+	ALG string
 )
 
 const (
@@ -37,19 +37,15 @@ const (
 
 // JSONWebKey2020 complies with https://w3c-ccg.github.io/lds-jws2020/#json-web-key-2020
 type JSONWebKey2020 struct {
-	ID                string    `json:"id,omitempty"`
-	Type              LDKeyType `json:"type,omitempty"`
-	Controller        string    `json:"controller,omitempty"`
+	ID                string                `json:"id,omitempty"`
+	Type              cryptosuite.LDKeyType `json:"type,omitempty"`
+	Controller        string                `json:"controller,omitempty"`
 	jwx.PrivateKeyJWK `json:"privateKeyJwk,omitempty"`
 	jwx.PublicKeyJWK  `json:"publicKeyJwk,omitempty"`
 }
 
 func (jwk *JSONWebKey2020) IsValid() error {
 	return util.NewValidator().Struct(jwk)
-}
-
-func (ld LDKeyType) String() string {
-	return string(ld)
 }
 
 // GenerateJSONWebKey2020 The JSONWebKey2020 type specifies a number of key type and curve pairs to enable JOSE conformance
@@ -98,7 +94,7 @@ func JSONWebKey2020FromPrivateKey(key gocrypto.PrivateKey) (*JSONWebKey2020, err
 		return nil, err
 	}
 	return &JSONWebKey2020{
-		Type:          JSONWebKey2020Type,
+		Type:          cryptosuite.JSONWebKey2020Type,
 		PrivateKeyJWK: *privKeyJWK,
 		PublicKeyJWK:  *pubKeyJWK,
 	}, nil
@@ -172,8 +168,8 @@ func GenerateP384JSONWebKey2020() (*JSONWebKey2020, error) {
 // a message and provide a valid JSON Web Signature (JWS) value as a result.
 type JSONWebKeySigner struct {
 	jwx.Signer
-	purpose ProofPurpose
-	format  PayloadFormat
+	purpose cryptosuite.ProofPurpose
+	format  cryptosuite.PayloadFormat
 }
 
 // Sign returns a byte array signature value for a message `tbs`
@@ -193,7 +189,7 @@ func (s *JSONWebKeySigner) GetKeyID() string {
 	return s.KID
 }
 
-func (*JSONWebKeySigner) GetSignatureType() SignatureType {
+func (*JSONWebKeySigner) GetSignatureType() cryptosuite.SignatureType {
 	return JSONWebSignature2020
 }
 
@@ -201,23 +197,23 @@ func (s *JSONWebKeySigner) GetSigningAlgorithm() string {
 	return s.ALG
 }
 
-func (s *JSONWebKeySigner) SetProofPurpose(purpose ProofPurpose) {
+func (s *JSONWebKeySigner) SetProofPurpose(purpose cryptosuite.ProofPurpose) {
 	s.purpose = purpose
 }
 
-func (s *JSONWebKeySigner) GetProofPurpose() ProofPurpose {
+func (s *JSONWebKeySigner) GetProofPurpose() cryptosuite.ProofPurpose {
 	return s.purpose
 }
 
-func (s *JSONWebKeySigner) SetPayloadFormat(format PayloadFormat) {
+func (s *JSONWebKeySigner) SetPayloadFormat(format cryptosuite.PayloadFormat) {
 	s.format = format
 }
 
-func (s *JSONWebKeySigner) GetPayloadFormat() PayloadFormat {
+func (s *JSONWebKeySigner) GetPayloadFormat() cryptosuite.PayloadFormat {
 	return s.format
 }
 
-func NewJSONWebKeySigner(id string, key jwx.PrivateKeyJWK, purpose ProofPurpose) (*JSONWebKeySigner, error) {
+func NewJSONWebKeySigner(id string, key jwx.PrivateKeyJWK, purpose cryptosuite.ProofPurpose) (*JSONWebKeySigner, error) {
 	signer, err := jwx.NewJWXSignerFromJWK(id, key)
 	if err != nil {
 		return nil, err
@@ -260,17 +256,17 @@ func NewJSONWebKeyVerifier(id string, key jwx.PublicKeyJWK) (*JSONWebKeyVerifier
 
 // PubKeyBytesToTypedKey converts a public key byte slice to a crypto.PublicKey based on a given key type, merging
 // both LD key types and JWK key types
-func PubKeyBytesToTypedKey(keyBytes []byte, kt LDKeyType) (gocrypto.PublicKey, error) {
+func PubKeyBytesToTypedKey(keyBytes []byte, kt cryptosuite.LDKeyType) (gocrypto.PublicKey, error) {
 	var convertedKeyType crypto.KeyType
 	switch kt.String() {
-	case JSONWebKey2020Type.String():
+	case cryptosuite.JSONWebKey2020Type.String():
 		// we cannot know this key type based on the bytes alone
 		return keyBytes, nil
-	case crypto.Ed25519.String(), Ed25519VerificationKey2018.String(), Ed25519VerificationKey2020.String():
+	case crypto.Ed25519.String(), cryptosuite.Ed25519VerificationKey2018.String(), cryptosuite.Ed25519VerificationKey2020.String():
 		convertedKeyType = crypto.Ed25519
-	case crypto.X25519.String(), X25519KeyAgreementKey2019.String(), X25519KeyAgreementKey2020.String():
+	case crypto.X25519.String(), cryptosuite.X25519KeyAgreementKey2019.String(), cryptosuite.X25519KeyAgreementKey2020.String():
 		convertedKeyType = crypto.X25519
-	case crypto.SECP256k1.String(), ECDSASECP256k1VerificationKey2019.String():
+	case crypto.SECP256k1.String(), cryptosuite.ECDSASECP256k1VerificationKey2019.String():
 		convertedKeyType = crypto.SECP256k1
 	default:
 		return nil, fmt.Errorf("unsupported key type: %s", kt)
