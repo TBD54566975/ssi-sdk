@@ -37,9 +37,13 @@ func TestBuildPresentationSubmission(t *testing.T) {
 					Constraints: &Constraints{
 						Fields: []Field{
 							{
-								Path:    []string{"$.vc.issuer", "$.issuer"},
+								Path:    []string{"$.iss", "$.vc.issuer", "$.issuer"},
 								ID:      "issuer-input-descriptor",
 								Purpose: "need to check the issuer",
+								Filter: &Filter{
+									Type:      "string",
+									MinLength: 1,
+								},
 							},
 						},
 					},
@@ -75,7 +79,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 					Constraints: &Constraints{
 						Fields: []Field{
 							{
-								Path:    []string{"$.vc.issuer", "$.issuer"},
+								Path:    []string{"$.iss", "$.vc.issuer", "$.issuer"},
 								ID:      "issuer-input-descriptor",
 								Purpose: "need to check the issuer",
 							},
@@ -92,6 +96,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		credJWT, err := integrity.SignVerifiableCredentialJWT(*signer, testVC)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, credJWT)
+
 		presentationClaim := PresentationClaim{
 			Token:                         util.StringPtr(string(credJWT)),
 			JWTFormat:                     JWTVC.Ptr(),
@@ -100,8 +105,6 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		submissionBytes, err := BuildPresentationSubmission(*signer, signer.ID, def, []PresentationClaim{presentationClaim}, JWTVPTarget)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, submissionBytes)
-
-		println(string(submissionBytes))
 
 		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
@@ -123,9 +126,13 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 					Constraints: &Constraints{
 						Fields: []Field{
 							{
-								Path:    []string{"$.vc.issuer", "$.issuer"},
+								Path:    []string{"$.iss", "$.vc.issuer", "$.issuer"},
 								ID:      "issuer-input-descriptor",
 								Purpose: "need to check the issuer",
+								Filter: &Filter{
+									Type:      "string",
+									MinLength: 1,
+								},
 							},
 						},
 					},
@@ -178,10 +185,14 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 					Constraints: &Constraints{
 						Fields: []Field{
 							{
-								Path:     []string{"$.vc.issuer", "$.issuer"},
+								Path:     []string{"$.iss", "$.vc.issuer", "$.issuer"},
 								ID:       "issuer-input-descriptor",
 								Purpose:  "need to check the issuer",
 								Optional: false,
+								Filter: &Filter{
+									Type:      "string",
+									MinLength: 1,
+								},
 							},
 						},
 					},
@@ -205,9 +216,13 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 					Constraints: &Constraints{
 						Fields: []Field{
 							{
-								Path:    []string{"$.vc.issuer", "$.issuer"},
+								Path:    []string{"$.iss", "$.vc.issuer", "$.issuer"},
 								ID:      "issuer-input-descriptor",
 								Purpose: "need to check the issuer",
+								Filter: &Filter{
+									Type:      "string",
+									MinLength: 1,
+								},
 							},
 						},
 					},
@@ -217,9 +232,13 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 					Constraints: &Constraints{
 						Fields: []Field{
 							{
-								Path:    []string{"$.vc.id", "$.id"},
+								Path:    []string{"$.jti", "$.vc.id", "$.id"},
 								ID:      "id-input-descriptor",
 								Purpose: "need to check the id",
+								Filter: &Filter{
+									Type:      "string",
+									MinLength: 1,
+								},
 							},
 						},
 					},

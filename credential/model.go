@@ -16,9 +16,9 @@ type VerifiableCredential struct {
 	// Either a string or a set of strings https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#types
 	Type any `json:"type" validate:"required"`
 	// either a URI or an object containing an `id` property.
-	Issuer any `json:"issuer" validate:"required"`
+	Issuer any `json:"issuer,omitempty" validate:"required"`
 	// https://www.w3.org/TR/xmlschema11-2/#dateTimes
-	IssuanceDate     string `json:"issuanceDate" validate:"required"`
+	IssuanceDate     string `json:"issuanceDate,omitempty" validate:"required"`
 	ExpirationDate   string `json:"expirationDate,omitempty"`
 	CredentialStatus any    `json:"credentialStatus,omitempty" validate:"omitempty,dive"`
 	// This is where the subject's ID *may* be present

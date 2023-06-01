@@ -119,9 +119,13 @@ func TestVerifyPresentationSubmission(t *testing.T) {
 					Constraints: &Constraints{
 						Fields: []Field{
 							{
-								Path:    []string{"$.vc.issuer", "$.issuer"},
+								Path:    []string{"$.iss", "$.vc.issuer", "$.issuer"},
 								ID:      "issuer-input-descriptor",
 								Purpose: "need to check the issuer",
+								Filter: &Filter{
+									Type:      "string",
+									MinLength: 1,
+								},
 							},
 						},
 					},

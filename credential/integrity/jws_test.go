@@ -1,10 +1,12 @@
 package integrity
 
 import (
+	"context"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,61 +20,72 @@ func TestVerifiableCredentialJWS(t *testing.T) {
 	}
 	signer := getTestVectorKey0Signer(t)
 
-	t.Run("JWT as JWS is parsed correctly", func(t *testing.T) {
+	t.Run("JWT as JWS is parsed correctly", func(tt *testing.T) {
 		signedJWT, err := SignVerifiableCredentialJWT(signer, testCredential)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
+
+		parsed, err := jwt.Parse(signedJWT, jwt.WithVerify(false))
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, parsed)
+		tokenMap, err := parsed.AsMap(context.Background())
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, tokenMap)
+		vcClaims, ok := tokenMap["vc"].(map[string]interface{})
+		assert.True(tt, ok)
+		assert.NotEmpty(tt, vcClaims)
+		assert.NotContains(tt, vcClaims, "issuanceDate")
 
 		token := string(signedJWT)
 		jws, parsedCred, err := ParseVerifiableCredentialFromJWS(token)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, jws)
-		assert.Equal(t, &testCredential, parsedCred)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jws)
+		assert.Equal(tt, &testCredential, parsedCred)
 	})
 
-	t.Run("Signing as JWS includes expected protected header", func(t *testing.T) {
+	t.Run("Signing as JWS includes expected protected header", func(tt *testing.T) {
 		signed, err := SignVerifiableCredentialJWS(signer, testCredential)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		msg, err := jws.Parse(signed)
-		assert.NoError(t, err)
-		assert.Len(t, msg.Signatures(), 1)
-		assert.Equal(t, "application/credential+ld+json", msg.Signatures()[0].ProtectedHeaders().ContentType())
+		assert.NoError(tt, err)
+		assert.Len(tt, msg.Signatures(), 1)
+		assert.Equal(tt, "application/credential+ld+json", msg.Signatures()[0].ProtectedHeaders().ContentType())
 	})
 
-	t.Run("JWT as JWS can be verified", func(t *testing.T) {
+	t.Run("JWT as JWS can be verified", func(tt *testing.T) {
 		signed, err := SignVerifiableCredentialJWT(signer, testCredential)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		verifier, err := signer.ToVerifier(signer.ID)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		token := string(signed)
 		err = verifier.VerifyJWS(token)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 	})
 
-	t.Run("Simple JWS can be verified", func(t *testing.T) {
+	t.Run("Simple JWS can be verified", func(tt *testing.T) {
 		signed, err := SignVerifiableCredentialJWS(signer, testCredential)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		verifier, err := signer.ToVerifier(signer.ID)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		token := string(signed)
 		jws, cred, err := VerifyVerifiableCredentialJWS(*verifier, token)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, jws)
-		assert.Equal(t, &testCredential, cred)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jws)
+		assert.Equal(tt, &testCredential, cred)
 	})
 
-	t.Run("Parsing JWS returns original credential", func(t *testing.T) {
+	t.Run("Parsing JWS returns original credential", func(tt *testing.T) {
 		signedJWT, err := SignVerifiableCredentialJWS(signer, testCredential)
-		assert.NoError(t, err)
+		assert.NoError(tt, err)
 
 		token := string(signedJWT)
 		jws, parsedCred, err := ParseVerifiableCredentialFromJWS(token)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, jws)
-		assert.Equal(t, &testCredential, parsedCred)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, jws)
+		assert.Equal(tt, &testCredential, parsedCred)
 	})
 }

@@ -106,7 +106,7 @@ func MakePresentationData(id, inputID, trustedIssuer string) (exchange.Presentat
 				Constraints: &exchange.Constraints{
 					Fields: []exchange.Field{
 						{
-							Path:    []string{"$.vc.issuer", "$.issuer"},
+							Path:    []string{"$.iss", "$.vc.issuer", "$.issuer"},
 							ID:      "issuer-input-descriptor",
 							Purpose: "need to check the issuer",
 							Filter: &exchange.Filter{
