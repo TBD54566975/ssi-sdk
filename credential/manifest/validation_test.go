@@ -5,6 +5,7 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/credential/exchange"
+	"github.com/TBD54566975/ssi-sdk/credential/integrity"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
@@ -413,7 +414,7 @@ func getValidTestCredManifestCredApplicationJWTCred(t *testing.T) (CredentialMan
 	require.NoError(t, err)
 	signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
 	require.NoError(t, err)
-	jwt, err := credential.SignVerifiableCredentialJWT(*signer, vc)
+	jwt, err := integrity.SignVerifiableCredentialJWT(*signer, vc)
 	require.NoError(t, err)
 	require.NotEmpty(t, jwt)
 

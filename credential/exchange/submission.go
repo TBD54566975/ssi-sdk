@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/credential/integrity"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
@@ -165,7 +166,7 @@ func BuildPresentationSubmission(signer any, requester string, def PresentationD
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
 		}
-		return credential.SignVerifiablePresentationJWT(jwtSigner, credential.JWTVVPParameters{Audience: []string{requester}}, *vpSubmission)
+		return integrity.SignVerifiablePresentationJWT(jwtSigner, integrity.JWTVVPParameters{Audience: []string{requester}}, *vpSubmission)
 	default:
 		return nil, fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
 	}

@@ -1,8 +1,10 @@
-package credential
+package parsing
 
 import (
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/credential/integrity"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
@@ -128,7 +130,7 @@ func TestCredentialsFromInterface(t *testing.T) {
 		assert.NoError(tt, err)
 
 		testCred := getTestCredential()
-		signed, err := SignVerifiableCredentialJWT(*signer, testCred)
+		signed, err := integrity.SignVerifiableCredentialJWT(*signer, testCred)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, signed)
 
@@ -149,8 +151,8 @@ func TestCredentialsFromInterface(t *testing.T) {
 	})
 }
 
-func getTestCredential() VerifiableCredential {
-	return VerifiableCredential{
+func getTestCredential() credential.VerifiableCredential {
+	return credential.VerifiableCredential{
 		Context:           []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
 		Type:              []string{"VerifiableCredential"},
 		Issuer:            "did:example:123",

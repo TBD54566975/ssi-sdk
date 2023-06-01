@@ -1,10 +1,11 @@
-package credential
+package integrity
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did/key"
@@ -16,7 +17,7 @@ import (
 )
 
 func TestVerifiableCredentialJWT(t *testing.T) {
-	testCredential := VerifiableCredential{
+	testCredential := credential.VerifiableCredential{
 		ID:           "http://example.edu/credentials/1872",
 		Context:      []any{"https://www.w3.org/2018/credentials/v1", "https://w3id.org/security/suites/jws-2020/v1"},
 		Type:         []string{"VerifiableCredential"},
@@ -90,7 +91,7 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 
 func TestVerifiablePresentationJWT(t *testing.T) {
 	t.Run("bad audience", func(tt *testing.T) {
-		testPresentation := VerifiablePresentation{
+		testPresentation := credential.VerifiablePresentation{
 			Context: []string{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			Type:   []string{"VerifiablePresentation"},
@@ -118,7 +119,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 	})
 
 	t.Run("no VCs", func(tt *testing.T) {
-		testPresentation := VerifiablePresentation{
+		testPresentation := credential.VerifiablePresentation{
 			Context: []string{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			Type:   []string{"VerifiablePresentation"},
@@ -175,7 +176,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		subjectKID := expandedSubjectDID.VerificationMethod[0].ID
 		assert.NotEmpty(tt, subjectKID)
 
-		testCredential := VerifiableCredential{
+		testCredential := credential.VerifiableCredential{
 			ID:           uuid.NewString(),
 			Context:      []any{"https://www.w3.org/2018/credentials/v1"},
 			Type:         []string{"VerifiableCredential"},
@@ -192,7 +193,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		signedVC, err := SignVerifiableCredentialJWT(*issuerSigner, testCredential)
 		assert.NoError(t, err)
 
-		testPresentation := VerifiablePresentation{
+		testPresentation := credential.VerifiablePresentation{
 			Context: []string{"https://www.w3.org/2018/credentials/v1"},
 			Type:    []string{"VerifiablePresentation"},
 			Holder:  subjectDID.String(),

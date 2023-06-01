@@ -1,4 +1,4 @@
-package credential
+package integrity
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/did/resolution"
@@ -23,27 +24,29 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, r resolutio
 		return false, errors.New("resolution cannot be empty")
 	}
 	switch typedCred := genericCred.(type) {
-	case *VerifiableCredential, VerifiableCredential, map[string]any:
-		_, token, cred, err := ToCredential(typedCred)
+	case map[string]any:
+		typedCredBytes, err := json.Marshal(typedCred)
 		if err != nil {
-			return false, errors.Wrap(err, "error converting credential from generic type")
+			return false, errors.Wrap(err, "marshalling credential map")
 		}
-		if token != nil {
-			return false, errors.New("JWT credentials must include a signature to be verified")
+		var cred credential.VerifiableCredential
+		if err = json.Unmarshal(typedCredBytes, &cred); err != nil {
+			return false, errors.Wrap(err, "unmarshalling credential object")
 		}
 		if cred.IsEmpty() {
-			return false, errors.New("credential cannot be empty")
+			return false, errors.New("map is not a valid credential")
 		}
-		if cred.GetProof() == nil {
-			return false, errors.New("credential must have a proof")
-		}
-		return false, errors.New("data integrity signature verification not yet implemented")
+		return VerifyCredentialSignature(ctx, cred, r)
+	case *credential.VerifiableCredential:
+		return VerifyDataIntegrityCredential(*typedCred, r)
+	case credential.VerifiableCredential:
+		return VerifyDataIntegrityCredential(typedCred, r)
 	case []byte:
 		// turn it into a string and try again
 		return VerifyCredentialSignature(ctx, string(typedCred), r)
 	case string:
 		// could be a Data Integrity credential
-		var cred VerifiableCredential
+		var cred credential.VerifiableCredential
 		if err := json.Unmarshal([]byte(typedCred), &cred); err == nil {
 			return VerifyCredentialSignature(ctx, cred, r)
 		}
@@ -93,4 +96,17 @@ func VerifyJWTCredential(cred string, r resolution.Resolver) (bool, error) {
 		return false, errors.Wrapf(err, "error verifying credential<%s>", token.JwtID())
 	}
 	return true, nil
+}
+
+// VerifyDataIntegrityCredential verifies the signature of a Data Integrity credential
+// TODO(gabe): https://github.com/TBD54566975/ssi-sdk/issues/196
+func VerifyDataIntegrityCredential(cred credential.VerifiableCredential, _ resolution.Resolver) (bool, error) {
+	if cred.IsEmpty() {
+		return false, errors.New("credential cannot be empty")
+	}
+	if cred.GetProof() == nil {
+		return false, errors.New("credential must have a proof")
+	}
+
+	return false, errors.New("not implemented")
 }

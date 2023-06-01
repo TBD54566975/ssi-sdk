@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/TBD54566975/ssi-sdk/credential"
+	"github.com/TBD54566975/ssi-sdk/credential/parsing"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 )
@@ -60,7 +60,7 @@ func (ra *RemoteAccess) GetVCJSONSchema(ctx context.Context, t VCJSONSchemaType,
 		if err = json.NewDecoder(resp.Body).Decode(&schemaCred); err != nil {
 			return nil, errors.Wrap(err, "error decoding schema to generic response")
 		}
-		_, _, cred, err := credential.ToCredential(schemaCred)
+		_, _, cred, err := parsing.ToCredential(schemaCred)
 		if err != nil {
 			return nil, errors.Wrap(err, "error decoding schema from credential")
 		}

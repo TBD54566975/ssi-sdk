@@ -1,10 +1,11 @@
-package credential
+package integrity
 
 import (
 	"context"
 	"fmt"
 	"time"
 
+	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did/resolution"
 
@@ -24,7 +25,7 @@ const (
 
 // SignVerifiableCredentialJWT is prepared according to https://w3c.github.io/vc-jwt/#version-1.1
 // which will soon be deprecated by https://w3c.github.io/vc-jwt/ see: https://github.com/TBD54566975/ssi-sdk/issues/191
-func SignVerifiableCredentialJWT(signer jwx.Signer, cred VerifiableCredential) ([]byte, error) {
+func SignVerifiableCredentialJWT(signer jwx.Signer, cred credential.VerifiableCredential) ([]byte, error) {
 	if cred.IsEmpty() {
 		return nil, errors.New("credential cannot be empty")
 	}
@@ -98,9 +99,9 @@ func SignVerifiableCredentialJWT(signer jwx.Signer, cred VerifiableCredential) (
 
 // VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
 // the token in a verifiable credential.
-// TODO(gabe) modify this to add additional verification steps such as credential status, expiration, etc.
+// TODO(gabe) modify this to add additional validation steps such as credential status, expiration, etc.
 // related to https://github.com/TBD54566975/ssi-service/issues/122
-func VerifyVerifiableCredentialJWT(verifier jwx.Verifier, token string) (jws.Headers, jwt.Token, *VerifiableCredential, error) {
+func VerifyVerifiableCredentialJWT(verifier jwx.Verifier, token string) (jws.Headers, jwt.Token, *credential.VerifiableCredential, error) {
 	if err := verifier.Verify(token); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "verifying JWT")
 	}
@@ -111,7 +112,7 @@ func VerifyVerifiableCredentialJWT(verifier jwx.Verifier, token string) (jws.Hea
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiableCredential object is returned.
-func ParseVerifiableCredentialFromJWT(token string) (jws.Headers, jwt.Token, *VerifiableCredential, error) {
+func ParseVerifiableCredentialFromJWT(token string) (jws.Headers, jwt.Token, *credential.VerifiableCredential, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "parsing credential token")
@@ -133,7 +134,7 @@ func ParseVerifiableCredentialFromJWT(token string) (jws.Headers, jwt.Token, *Ve
 }
 
 // ParseVerifiableCredentialFromToken takes a JWT object and parses it into a VerifiableCredential
-func ParseVerifiableCredentialFromToken(token jwt.Token) (*VerifiableCredential, error) {
+func ParseVerifiableCredentialFromToken(token jwt.Token) (*credential.VerifiableCredential, error) {
 	// parse remaining JWT properties and set in the credential
 	vcClaim, ok := token.Get(VCJWTProperty)
 	if !ok {
@@ -143,7 +144,7 @@ func ParseVerifiableCredentialFromToken(token jwt.Token) (*VerifiableCredential,
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling credential claim")
 	}
-	var cred VerifiableCredential
+	var cred credential.VerifiableCredential
 	if err = json.Unmarshal(vcBytes, &cred); err != nil {
 		return nil, errors.Wrap(err, "reconstructing Verifiable Credential")
 	}
@@ -179,7 +180,7 @@ func ParseVerifiableCredentialFromToken(token jwt.Token) (*VerifiableCredential,
 		if cred.CredentialSubject == nil {
 			cred.CredentialSubject = make(map[string]any)
 		}
-		cred.CredentialSubject[VerifiableCredentialIDProperty] = subStr
+		cred.CredentialSubject[credential.VerifiableCredentialIDProperty] = subStr
 	}
 
 	return &cred, nil
@@ -195,7 +196,7 @@ type JWTVVPParameters struct {
 
 // SignVerifiablePresentationJWT transforms a VP into a VP JWT and signs it
 // According to https://w3c.github.io/vc-jwt/#version-1.1
-func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameters, presentation VerifiablePresentation) ([]byte, error) {
+func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameters, presentation credential.VerifiablePresentation) ([]byte, error) {
 	if presentation.IsEmpty() {
 		return nil, errors.New("presentation cannot be empty")
 	}
@@ -270,7 +271,7 @@ func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameter
 // After decoding the signature of each credential in the presentation is verified. If there are any issues during
 // decoding or signature validation, an error is returned. As a result, a successfully decoded VerifiablePresentation
 // object is returned.
-func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier, r resolution.Resolver, token string) (jws.Headers, jwt.Token, *VerifiablePresentation, error) {
+func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier, r resolution.Resolver, token string) (jws.Headers, jwt.Token, *credential.VerifiablePresentation, error) {
 	if r == nil {
 		return nil, nil, nil, errors.New("r cannot be empty")
 	}
@@ -306,7 +307,7 @@ func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier,
 			return nil, nil, nil, errors.Wrapf(err, "verifying credential %d", i)
 		}
 		if !verified {
-			return nil, nil, nil, errors.Errorf("credential %d failed signature verification", i)
+			return nil, nil, nil, errors.Errorf("credential %d failed signature validation", i)
 		}
 	}
 
@@ -318,7 +319,7 @@ func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier,
 // https://www.w3.org/TR/vc-data-model/#jwt-decoding
 // If there are any issues during decoding, an error is returned. As a result, a successfully
 // decoded VerifiablePresentation object is returned.
-func ParseVerifiablePresentationFromJWT(token string) (jws.Headers, jwt.Token, *VerifiablePresentation, error) {
+func ParseVerifiablePresentationFromJWT(token string) (jws.Headers, jwt.Token, *credential.VerifiablePresentation, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "parsing vp token")
@@ -331,7 +332,7 @@ func ParseVerifiablePresentationFromJWT(token string) (jws.Headers, jwt.Token, *
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "could not marshalling vp claim")
 	}
-	var pres VerifiablePresentation
+	var pres credential.VerifiablePresentation
 	if err = json.Unmarshal(vpBytes, &pres); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "reconstructing Verifiable Presentation")
 	}

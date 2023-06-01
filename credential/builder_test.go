@@ -168,13 +168,12 @@ func TestCredentialBuilder(t *testing.T) {
 	err = builder.SetCredentialStatus(status)
 	assert.NoError(t, err)
 
-	// bad cred subject - no id
-	badSubject := CredentialSubject{
+	// cred subject - no id
+	subjectWithMissingID := CredentialSubject{
 		"name": "Satoshi",
 	}
-	err = builder.SetCredentialSubject(badSubject)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "credential subject must have an ID property")
+	err = builder.SetCredentialSubject(subjectWithMissingID)
+	assert.NoError(t, err)
 
 	// good subject
 	subject := CredentialSubject{

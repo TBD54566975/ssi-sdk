@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/TBD54566975/ssi-sdk/credential/integrity"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/goccy/go-json"
 	"github.com/oliveagle/jsonpath"
@@ -64,7 +65,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 
 		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
-		_, _, _, err = credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
+		_, _, _, err = integrity.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "credential must have a proof")
 	})
@@ -92,7 +93,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 		signer, verifier := getJWKSignerVerifier(tt)
 		testVC := getTestVerifiableCredential(signer.ID, signer.ID)
 
-		credJWT, err := credential.SignVerifiableCredentialJWT(*signer, testVC)
+		credJWT, err := integrity.SignVerifiableCredentialJWT(*signer, testVC)
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, credJWT)
 
@@ -107,7 +108,7 @@ func TestBuildPresentationSubmission(t *testing.T) {
 
 		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
-		_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
+		_, _, vp, err := integrity.VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, string(submissionBytes))
 		assert.NoError(tt, err)
 
 		assert.NoError(tt, vp.IsValid())
@@ -358,7 +359,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		assert.Equal(tt, "test-verifiable-credential", asVC.ID)
 		assert.Equal(tt, "Block", asVC.CredentialSubject["company"])
 
-		_, vcJWTToken, asVCJWT, err := credential.ParseVerifiableCredentialFromJWT(*(vp.VerifiableCredential[1].(*string)))
+		_, vcJWTToken, asVCJWT, err := integrity.ParseVerifiableCredentialFromJWT(*(vp.VerifiableCredential[1].(*string)))
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, vcJWTToken)
 		assert.NotEmpty(tt, asVCJWT)

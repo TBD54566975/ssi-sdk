@@ -54,10 +54,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/TBD54566975/ssi-sdk/credential/integrity"
 	"github.com/goccy/go-json"
 	"github.com/sirupsen/logrus"
 
-	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/did/key"
@@ -176,7 +176,7 @@ func main() {
 
 	r, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}, peer.Resolver{}}...)
 	example.HandleExampleError(err, "failed to create DID r")
-	_, _, vp, err := credential.VerifyVerifiablePresentationJWT(context.Background(), *verifier, r, string(submission))
+	_, _, vp, err := integrity.VerifyVerifiablePresentationJWT(context.Background(), *verifier, r, string(submission))
 	example.HandleExampleError(err, "failed to verify jwt")
 
 	dat, err = json.Marshal(vp)

@@ -187,10 +187,6 @@ func (vcb *VerifiableCredentialBuilder) SetCredentialSubject(subject CredentialS
 		return errors.New(BuilderEmptyError)
 	}
 
-	if subject.GetID() == "" {
-		return errors.New("credential subject must have an ID property")
-	}
-
 	vcb.CredentialSubject = subject
 	return nil
 }
