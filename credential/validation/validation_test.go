@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestVerifier(t *testing.T) {
+func TestValidator(t *testing.T) {
 	t.Run("Test Basic Validator", func(tt *testing.T) {
 		// empty validator
 		_, err := NewCredentialValidator(nil)

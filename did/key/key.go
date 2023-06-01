@@ -276,7 +276,7 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 	}
 
 	// https://w3c-ccg.github.io/did-method-key/#derive-encryption-key-algorithm
-	// the only case we have to consider is if the validation method is X25519
+	// the only case we have to consider is if the verification method is X25519
 	if enableEncryptionDerivation && !isVerificationMethodX25519Key {
 		keyAgreementVerificationMethod, keyAgreementVerificationMethodSet, err := generateKeyAgreementVerificationMethod(*verificationMethod)
 		if err != nil {
