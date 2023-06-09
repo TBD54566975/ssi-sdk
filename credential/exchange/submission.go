@@ -13,7 +13,6 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwt"
-	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
 )
 
@@ -462,14 +461,20 @@ func normalizeJSONPath(path string) string {
 // set to true, the processed value will be returned as well.
 func processInputDescriptorField(field Field, claimData map[string]any) (*limitedInputDescriptor, bool) {
 	for _, path := range field.Path {
-		pathedData, err := jsonpath.JsonPathLookup(claimData, path)
-		if err == nil {
-			limited := &limitedInputDescriptor{
-				Path: path,
-				Data: pathedData,
-			}
-			return limited, true
+		jsonPath, err := json.CreatePath(path)
+		if err != nil {
+			continue
 		}
+
+		var pathedData string
+		if err := jsonPath.Get(claimData, &pathedData); err != nil {
+			continue
+		}
+		limited := &limitedInputDescriptor{
+			Path: path,
+			Data: pathedData,
+		}
+		return limited, true
 	}
 	if field.Optional {
 		return nil, true

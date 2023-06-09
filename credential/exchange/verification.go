@@ -12,7 +12,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/schema"
 
 	"github.com/goccy/go-json"
-	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
 
 	"github.com/TBD54566975/ssi-sdk/credential"
@@ -130,8 +129,12 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 		}
 
 		// resolve the claim from the JSON path expression in the submission descriptor
-		claim, err := jsonpath.JsonPathLookup(vpJSON, submissionDescriptor.Path)
+		path, err := json.CreatePath(submissionDescriptor.Path)
 		if err != nil {
+			return nil, errors.Wrap(err, "creating path")
+		}
+		var claim any
+		if err := path.Get(vpJSON, &claim); err != nil {
 			return nil, errors.Wrapf(err, "could not resolve claim from submission descriptor<%s> with path: %s",
 				submissionDescriptor.ID, submissionDescriptor.Path)
 		}
@@ -219,9 +222,15 @@ func toPresentationSubmission(maybePresentationSubmission any) (*PresentationSub
 
 func getDataFromJSONPath(claim any, paths []string) (any, error) {
 	for _, path := range paths {
-		if pathedData, err := jsonpath.JsonPathLookup(claim, path); err == nil {
-			return pathedData, nil
+		jsonPath, err := json.CreatePath(path)
+		if err != nil {
+			continue
 		}
+		var pathedData any
+		if err := jsonPath.Get(claim, &pathedData); err != nil {
+			continue
+		}
+		return pathedData, nil
 	}
 	return "", errors.New("matching path for claim could not be found")
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/credential/integrity"
 	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/goccy/go-json"
-	"github.com/oliveagle/jsonpath"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -619,45 +618,11 @@ func TestConstructLimitedClaim(t *testing.T) {
 		claim := getGenericTestClaim()
 		var limitedDescriptors []limitedInputDescriptor
 
-		typePath := "$.type"
-		typeValue, err := jsonpath.JsonPathLookup(claim, typePath)
-		assert.NoError(tt, err)
-		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
-			Path: typePath,
-			Data: typeValue,
-		})
-
-		issuerPath := "$.issuer"
-		issuerValue, err := jsonpath.JsonPathLookup(claim, issuerPath)
-		assert.NoError(tt, err)
-		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
-			Path: issuerPath,
-			Data: issuerValue,
-		})
-
-		idPath := "$.credentialSubject.id"
-		idValue, err := jsonpath.JsonPathLookup(claim, idPath)
-		assert.NoError(tt, err)
-		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
-			Path: idPath,
-			Data: idValue,
-		})
-
-		namePath := "$.credentialSubject.firstName"
-		nameValue, err := jsonpath.JsonPathLookup(claim, namePath)
-		assert.NoError(tt, err)
-		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
-			Path: namePath,
-			Data: nameValue,
-		})
-
-		favoritesPath := "$.credentialSubject.favorites.citiesByState.CA"
-		favoritesValue, err := jsonpath.JsonPathLookup(claim, favoritesPath)
-		assert.NoError(tt, err)
-		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
-			Path: favoritesPath,
-			Data: favoritesValue,
-		})
+		limitedDescriptors = addLimitedInputDescriptor(tt, "$.type", claim, limitedDescriptors)
+		limitedDescriptors = addLimitedInputDescriptor(tt, "$.issuer", claim, limitedDescriptors)
+		limitedDescriptors = addLimitedInputDescriptor(tt, "$.credentialSubject.id", claim, limitedDescriptors)
+		limitedDescriptors = addLimitedInputDescriptor(tt, "$.credentialSubject.firstName", claim, limitedDescriptors)
+		limitedDescriptors = addLimitedInputDescriptor(tt, "$.credentialSubject.favorites.citiesByState.CA", claim, limitedDescriptors)
 
 		result := constructLimitedClaim(limitedDescriptors)
 		assert.NotEmpty(tt, result)
@@ -690,13 +655,7 @@ func TestConstructLimitedClaim(t *testing.T) {
 		claim := getGenericTestClaim()
 		var limitedDescriptors []limitedInputDescriptor
 
-		filterPath := "$.credentialSubject.address[?(@.number > 0)]"
-		filterValue, err := jsonpath.JsonPathLookup(claim, filterPath)
-		assert.NoError(tt, err)
-		limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
-			Path: filterPath,
-			Data: filterValue,
-		})
+		limitedDescriptors = addLimitedInputDescriptor(tt, "$.credentialSubject.address[?(@.number > 0)]", claim, limitedDescriptors)
 
 		result := constructLimitedClaim(limitedDescriptors)
 		assert.NotEmpty(tt, result)
@@ -711,6 +670,19 @@ func TestConstructLimitedClaim(t *testing.T) {
 		assert.Contains(tt, addressValue, "road street")
 		assert.Contains(tt, addressValue, "USA")
 	})
+}
+
+func addLimitedInputDescriptor(tt *testing.T, path string, claim map[string]any, limitedDescriptors []limitedInputDescriptor) []limitedInputDescriptor {
+	typePath, err := json.CreatePath(path)
+	assert.NoError(tt, err)
+	var typeValue string
+	err = typePath.Get(claim, &typeValue)
+	assert.NoError(tt, err)
+	limitedDescriptors = append(limitedDescriptors, limitedInputDescriptor{
+		Path: typePath.PathString(),
+		Data: typeValue,
+	})
+	return limitedDescriptors
 }
 
 func getTestVerifiableCredential(issuerDID, subjectDID string) credential.VerifiableCredential {

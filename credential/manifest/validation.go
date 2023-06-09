@@ -9,7 +9,6 @@ import (
 	errresp "github.com/TBD54566975/ssi-sdk/error"
 	"github.com/TBD54566975/ssi-sdk/util"
 	"github.com/goccy/go-json"
-	"github.com/oliveagle/jsonpath"
 	"github.com/pkg/errors"
 )
 
@@ -129,7 +128,7 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 		}
 
 		// The descriptor_map object MUST include a path property. The value of this property MUST be a JSONPath string expression.
-		if _, err = jsonpath.Compile(submissionDescriptor.Path); err != nil {
+		if _, err = json.CreatePath(submissionDescriptor.Path); err != nil {
 			err = errresp.NewErrorResponsef(errresp.ApplicationError, "invalid json path: %s", submissionDescriptor.Path)
 			return nil, err
 		}
@@ -168,8 +167,15 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 		}
 
 		// resolve the claim from the JSON path expression in the submission descriptor
-		submittedClaim, pathErr := jsonpath.JsonPathLookup(applicationAndCredsJSON, submissionDescriptor.Path)
-		if pathErr != nil {
+		path, err := json.CreatePath(submissionDescriptor.Path)
+		if err != nil {
+			errMsg := fmt.Sprintf("could not create jsonpath: %s", submissionDescriptor.Path)
+			unfulfilledInputDescriptors[inputDescriptor.ID] = errMsg
+			continue
+		}
+
+		var submittedClaim any
+		if err := path.Get(applicationAndCredsJSON, &submittedClaim); err != nil {
 			errMsg := fmt.Sprintf("could not resolve claim from submission descriptor<%s> with path: %s",
 				submissionDescriptor.ID, submissionDescriptor.Path)
 			unfulfilledInputDescriptors[inputDescriptor.ID] = errMsg
@@ -221,7 +227,13 @@ func IsValidCredentialApplicationForManifest(cm CredentialManifest, applicationA
 
 func findMatchingPath(claim any, paths []string) error {
 	for _, path := range paths {
-		if _, err := jsonpath.JsonPathLookup(claim, path); err == nil {
+		jsonPath, err := json.CreatePath(path)
+		if err != nil {
+			continue
+		}
+
+		var val any
+		if err := jsonPath.Get(claim, &val); err == nil {
 			return nil
 		}
 	}
