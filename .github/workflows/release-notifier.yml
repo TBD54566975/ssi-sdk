@@ -1,0 +1,33 @@
+name: Create Issue On Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  create-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Create Issue
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.DOCS_PAT }}  # Assuming 'PAT' is your Personal Access Token stored as a secret
+        script: |
+          const issueTitle = `A new release ${context.payload.release.tag_name} just cut for ${context.payload.repository.name}.`;
+          const issueBody = `Please check the api docs for compatibility with the release. Here is the [link to release notes](${context.payload.release.html_url}).`;
+          const labels = ['triage', 'priority-1-blocker', 'documentation'];
+          const issue = await github.rest.issues.create({
+            owner: 'TBD54566975',
+            repo: 'developer.tbd.website',
+            title: issueTitle,
+            body: issueBody,
+            labels: labels
+          });
+          return { issueNumber: issue.data.number, releaseTag: context.payload.release.tag_name, repo: context.payload.repository.name };
+    - name: Notify Discord
+      uses: Ilshidur/action-discord@0.3.2
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      with:
+        args: "A new release {{ EVENT_PAYLOAD.release.tag_name }} of project {{ EVENT_PAYLOAD.repository.name }} has been cut. Please check the release notes: {{ EVENT_PAYLOAD.release.html_url }} for compatibility with docs."
