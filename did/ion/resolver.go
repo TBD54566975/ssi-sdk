@@ -96,34 +96,39 @@ func (i Resolver) Resolve(ctx context.Context, id string, _ ...resolution.Option
 
 // Anchor submits an anchor operation to the ION node by appending the operations path to the base URL
 // and making a POST request
-func (i Resolver) Anchor(ctx context.Context, op AnchorOperation) error {
+func (i Resolver) Anchor(ctx context.Context, op AnchorOperation) (*resolution.Result, error) {
 	if i.baseURL.String() == "" {
-		return errors.New("resolution URL cannot be empty")
+		return nil, errors.New("resolution URL cannot be empty")
 	}
 	jsonOpBytes, err := json.Marshal(op)
 	if err != nil {
-		return errors.Wrapf(err, "marshalling anchor operation %+v", op)
+		return nil, errors.Wrapf(err, "marshalling anchor operation %+v", op)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.Join([]string{i.baseURL.String(), "operations"}, "/"), bytes.NewReader(jsonOpBytes))
 	if err != nil {
-		return errors.Wrap(err, "creating request")
+		return nil, errors.Wrap(err, "creating request")
 	}
 	resp, err := i.client.Do(req)
 	if err != nil {
-		return errors.Wrapf(err, "posting anchor operation %+v", op)
+		return nil, errors.Wrapf(err, "posting anchor operation %+v", op)
 	}
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return errors.Wrapf(err, "could not resolve with response %+v", resp)
+		return nil, errors.Wrapf(err, "could not resolve with response %+v", resp)
 	}
 	if !is2xxStatusCode(resp.StatusCode) {
-		return fmt.Errorf("anchor operation failed: %s", string(body))
+		return nil, fmt.Errorf("anchor operation failed: %s", string(body))
 	}
 	logrus.Infof("successfully anchored operation: %s", string(body))
-	return nil
+
+	var resolutionResult resolution.Result
+	if err := json.Unmarshal(body, &resolutionResult); err != nil {
+		return nil, errors.Wrap(err, "unmarshalling anchor response")
+	}
+	return &resolutionResult, nil
 }
 
 func (Resolver) Methods() []did.Method {
