@@ -133,14 +133,15 @@ func TestResolver(t *testing.T) {
 	t.Run("bad anchor", func(tt *testing.T) {
 		gock.New("https://test-ion-resolution.com").
 			Post("/operations").
-			Reply(400)
+			Reply(400).
+			BodyString("{}")
 		defer gock.Off()
 
 		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolution.com")
 		assert.NoError(tt, err)
 		assert.NotEmpty(tt, resolver)
 
-		err = resolver.Anchor(context.Background(), nil)
+		_, err = resolver.Anchor(context.Background(), nil)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "anchor operation failed")
 	})
@@ -148,7 +149,8 @@ func TestResolver(t *testing.T) {
 	t.Run("good anchor", func(tt *testing.T) {
 		gock.New("https://test-ion-resolution.com").
 			Post("/operations").
-			Reply(200)
+			Reply(200).
+			BodyString("{}")
 		defer gock.Off()
 
 		resolver, err := NewIONResolver(http.DefaultClient, "https://test-ion-resolution.com")
@@ -170,7 +172,7 @@ func TestResolver(t *testing.T) {
 		assert.NotEmpty(tt, ionDID)
 		assert.NotEmpty(tt, createOp)
 
-		err = resolver.Anchor(context.Background(), createOp)
+		_, err = resolver.Anchor(context.Background(), createOp)
 		assert.NoError(tt, err)
 	})
 }
