@@ -130,6 +130,59 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 		assert.Equal(t, pubKey, key)
 	})
 
+	t.Run("doc with fully qualified kid and #", func(t *testing.T) {
+		pubKey, _, err := crypto.GenerateEd25519Key()
+		assert.NoError(t, err)
+		b58PubKey := base58.Encode(pubKey)
+		doc := Document{
+			ID: "test-did",
+			VerificationMethod: []VerificationMethod{
+				{
+					ID:              "#test-kid",
+					Type:            "Ed25519VerificationKey2018",
+					PublicKeyBase58: b58PubKey,
+				},
+			},
+		}
+		key, err := GetKeyFromVerificationMethod(doc, "test-did#test-kid")
+		assert.NoError(t, err)
+		assert.Equal(t, pubKey, key)
+	})
+
+	t.Run("mytest", func(t *testing.T) {
+		doc := Document{
+			ID: "did:ion:EiCHF_KsLBoYHpeI39zhk5glhTKRVZLFviwbpTGnZi2weQ",
+			VerificationMethod: []VerificationMethod{
+				{
+					ID:         "#49b93d9e-02aa-456e-bb69-ae41891fe71f",
+					Type:       "Ed25519",
+					Controller: "did:ion:EiCHF_KsLBoYHpeI39zhk5glhTKRVZLFviwbpTGnZi2weQ",
+					PublicKeyJWK: &jwx.PublicKeyJWK{
+						KTY: "OKP",
+						CRV: "Ed25519",
+						X:   "jsGvCkkRsVDKFMUuNVX_S5TNLY9iZMR_pTRH8furisI",
+						ALG: "EdDSA",
+						KID: "e0a8676b-3ff3-4d38-91d9-7717b1bf45d2",
+					},
+				},
+				{
+					ID:         "#externalVerificationMethodId",
+					Type:       "JsonWebKey2020",
+					Controller: "did:ion:EiCHF_KsLBoYHpeI39zhk5glhTKRVZLFviwbpTGnZi2weQ",
+					PublicKeyJWK: &jwx.PublicKeyJWK{
+						KTY: "OKP",
+						CRV: "Ed25519",
+						X:   "CV-aGlld3nVdgnhoZK0D36Wk-9aIMlZjZOK2XhPMnkQ",
+						KID: "myExternalPublicKID",
+					},
+				},
+			},
+		}
+		key, err := GetKeyFromVerificationMethod(doc, "did:ion:EiCHF_KsLBoYHpeI39zhk5glhTKRVZLFviwbpTGnZi2weQ#49b93d9e-02aa-456e-bb69-ae41891fe71f")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, key)
+	})
+
 	t.Run("doc with unqualified kid and #", func(t *testing.T) {
 		pubKey, _, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
@@ -225,4 +278,46 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, key)
 	})
+}
+
+func TestFullyQualifiedVerificationMethodID(t *testing.T) {
+	type args struct {
+		did                  string
+		verificationMethodID string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "simple did simple verification id",
+			args: args{
+				did:                  "did:key:hello",
+				verificationMethodID: "123456",
+			},
+			want: "did:key:hello#123456",
+		},
+		{
+			name: "simple did hashed verification id",
+			args: args{
+				did:                  "did:key:hello",
+				verificationMethodID: "#123456",
+			},
+			want: "did:key:hello#123456",
+		},
+		{
+			name: "simple did full verification id",
+			args: args{
+				did:                  "did:key:hello",
+				verificationMethodID: "did:key:hello#123456",
+			},
+			want: "did:key:hello#123456",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, FullyQualifiedVerificationMethodID(tt.args.did, tt.args.verificationMethodID), "FullyQualifiedVerificationMethodID(%v, %v)", tt.args.did, tt.args.verificationMethodID)
+		})
+	}
 }

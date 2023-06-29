@@ -69,3 +69,44 @@ func getTestVector(fileName string) (string, error) {
 	b, err := testVectors.ReadFile("testdata/" + fileName)
 	return string(b), err
 }
+
+func TestVerifiableCredential_IssuerID(t *testing.T) {
+	tests := []struct {
+		name   string
+		issuer any
+		want   string
+	}{
+		{
+			name:   "issuer as string",
+			issuer: "hello",
+			want:   "hello",
+		},
+		{
+			name:   "issuer as string array",
+			issuer: []string{"hello"},
+			want:   "hello",
+		},
+		{
+			name: "issuer as object with id",
+			issuer: map[string]any{
+				"id": "hello",
+			},
+			want: "hello",
+		},
+		{
+			name: "issuer as anything else",
+			issuer: struct{ Id string }{
+				Id: "hello",
+			},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := &VerifiableCredential{
+				Issuer: tt.issuer,
+			}
+			assert.Equalf(t, tt.want, v.IssuerID(), "IssuerID()")
+		})
+	}
+}

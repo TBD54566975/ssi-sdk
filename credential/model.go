@@ -93,6 +93,19 @@ func (v *VerifiableCredential) IsValid() error {
 	return util.NewValidator().Struct(v)
 }
 
+func (v *VerifiableCredential) IssuerID() string {
+	switch typedIssuer := v.Issuer.(type) {
+	case string:
+		return typedIssuer
+	case []string:
+		return typedIssuer[0]
+	case map[string]any:
+		idValue := typedIssuer["id"]
+		return idValue.(string)
+	}
+	return ""
+}
+
 // VerifiablePresentation https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#presentations-0
 type VerifiablePresentation struct {
 	// Either a string or set of strings
