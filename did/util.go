@@ -4,6 +4,7 @@ import (
 	gocrypto "crypto"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/TBD54566975/ssi-sdk/cryptosuite/jws2020"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -65,7 +66,8 @@ func matchesKIDConstruction(did, kid, targetID string) bool {
 	maybeKID2 := fmt.Sprintf("#%s", kid)        // the kid == the fragment with a #
 	maybeKID3 := fmt.Sprintf("%s#%s", did, kid) // the kid == the DID ID + the fragment with a #
 	maybeKID4 := fmt.Sprintf("%s%s", did, kid)  // the kid == the DID ID + the fragment without a #
-	return targetID == maybeKID1 || targetID == maybeKID2 || targetID == maybeKID3 || targetID == maybeKID4
+	maybeKID5, found := strings.CutPrefix(kid, did)
+	return targetID == maybeKID1 || targetID == maybeKID2 || targetID == maybeKID3 || targetID == maybeKID4 || (found && targetID == maybeKID5)
 }
 
 func extractKeyFromVerificationMethod(method VerificationMethod) (gocrypto.PublicKey, error) {
@@ -283,4 +285,15 @@ func ConstructMultibaseVerificationMethod(id, controller string, pubKey []byte, 
 		Controller:      controller,
 		PublicKeyBase58: base58.Encode(pubKey),
 	}, nil
+}
+
+// FullyQualifiedVerificationMethodID returns a fully qualified URL for a verification method.
+func FullyQualifiedVerificationMethodID(did, verificationMethodID string) string {
+	if strings.HasPrefix(verificationMethodID, "did:") {
+		return verificationMethodID
+	}
+	if strings.HasPrefix(verificationMethodID, "#") {
+		return did + verificationMethodID
+	}
+	return did + "#" + verificationMethodID
 }
