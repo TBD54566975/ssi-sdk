@@ -95,8 +95,8 @@ func TestVerifiableCredential_IssuerID(t *testing.T) {
 		},
 		{
 			name: "issuer as anything else",
-			issuer: struct{ Id string }{
-				Id: "hello",
+			issuer: struct{ ID string }{
+				ID: "hello",
 			},
 			want: "",
 		},
