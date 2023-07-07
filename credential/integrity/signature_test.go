@@ -118,13 +118,13 @@ func TestVerifyCredentialSignature(t *testing.T) {
 
 func TestVerifyJWTCredential(t *testing.T) {
 	t.Run("empty credential", func(tt *testing.T) {
-		_, err := VerifyJWTCredential("", nil)
+		_, err := VerifyJWTCredential(context.Background(), "", nil)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "credential cannot be empty")
 	})
 
 	t.Run("empty resolution", func(tt *testing.T) {
-		_, err := VerifyJWTCredential("not-empty", nil)
+		_, err := VerifyJWTCredential(context.Background(), "not-empty", nil)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "resolution cannot be empty")
 	})
@@ -132,7 +132,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 	t.Run("invalid credential", func(tt *testing.T) {
 		r, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)
-		_, err = VerifyJWTCredential("not-empty", r)
+		_, err = VerifyJWTCredential(context.Background(), "not-empty", r)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "invalid JWT")
 	})
@@ -147,7 +147,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
-		_, err = VerifyJWTCredential(jwtCred, resolver)
+		_, err = VerifyJWTCredential(context.Background(), jwtCred, resolver)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "error getting issuer DID<test-id> to verify credential")
 	})
@@ -165,7 +165,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
-		_, err = VerifyJWTCredential(jwtCred, resolver)
+		_, err = VerifyJWTCredential(context.Background(), jwtCred, resolver)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported method: key")
 	})
@@ -180,7 +180,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
-		_, err = VerifyJWTCredential(jwtCred, resolver)
+		_, err = VerifyJWTCredential(context.Background(), jwtCred, resolver)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "has no verification methods with kid: missing")
 	})
@@ -202,7 +202,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		// modify the signature to make it invalid
 		jwtCred = jwtCred[:len(jwtCred)-5] + "baddata"
 
-		verified, err := VerifyJWTCredential(jwtCred, resolver)
+		verified, err := VerifyJWTCredential(context.Background(), jwtCred, resolver)
 		assert.Error(tt, err)
 		assert.False(tt, verified)
 	})
@@ -220,7 +220,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
-		verified, err := VerifyJWTCredential(jwtCred, resolver)
+		verified, err := VerifyJWTCredential(context.Background(), jwtCred, resolver)
 		assert.NoError(tt, err)
 		assert.True(tt, verified)
 	})

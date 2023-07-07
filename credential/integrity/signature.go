@@ -38,9 +38,9 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, r resolutio
 		}
 		return VerifyCredentialSignature(ctx, cred, r)
 	case *credential.VerifiableCredential:
-		return VerifyDataIntegrityCredential(*typedCred, r)
+		return VerifyDataIntegrityCredential(ctx, *typedCred, r)
 	case credential.VerifiableCredential:
-		return VerifyDataIntegrityCredential(typedCred, r)
+		return VerifyDataIntegrityCredential(ctx, typedCred, r)
 	case []byte:
 		// turn it into a string and try again
 		return VerifyCredentialSignature(ctx, string(typedCred), r)
@@ -52,7 +52,7 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, r resolutio
 		}
 
 		// could be a JWT
-		return VerifyJWTCredential(typedCred, r)
+		return VerifyJWTCredential(ctx, typedCred, r)
 	}
 	return false, fmt.Errorf("invalid credential type: %s", reflect.TypeOf(genericCred).Kind().String())
 }
@@ -60,7 +60,7 @@ func VerifyCredentialSignature(ctx context.Context, genericCred any, r resolutio
 // VerifyJWTCredential verifies the signature of a JWT credential after parsing it to resolve the issuer DID
 // The issuer DID is resolution from the provided resolution, and used to find the issuer's public key matching
 // the KID in the JWT header.
-func VerifyJWTCredential(cred string, r resolution.Resolver) (bool, error) {
+func VerifyJWTCredential(ctx context.Context, cred string, r resolution.Resolver) (bool, error) {
 	if cred == "" {
 		return false, errors.New("credential cannot be empty")
 	}
@@ -77,7 +77,7 @@ func VerifyJWTCredential(cred string, r resolution.Resolver) (bool, error) {
 	if issuerKID == "" {
 		return false, errors.Errorf("missing kid in header of credential<%s>", token.JwtID())
 	}
-	issuerDID, err := r.Resolve(context.Background(), token.Issuer())
+	issuerDID, err := r.Resolve(ctx, token.Issuer())
 	if err != nil {
 		return false, errors.Wrapf(err, "error getting issuer DID<%s> to verify credential<%s>", token.Issuer(), token.JwtID())
 	}
@@ -100,7 +100,7 @@ func VerifyJWTCredential(cred string, r resolution.Resolver) (bool, error) {
 
 // VerifyDataIntegrityCredential verifies the signature of a Data Integrity credential
 // TODO(gabe): https://github.com/TBD54566975/ssi-sdk/issues/196
-func VerifyDataIntegrityCredential(cred credential.VerifiableCredential, _ resolution.Resolver) (bool, error) {
+func VerifyDataIntegrityCredential(_ context.Context, cred credential.VerifiableCredential, _ resolution.Resolver) (bool, error) {
 	if cred.IsEmpty() {
 		return false, errors.New("credential cannot be empty")
 	}
