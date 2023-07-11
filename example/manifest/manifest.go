@@ -224,6 +224,10 @@ func prepareCredentialApplication(cm manifest.CredentialManifest, vc credential.
 		return nil, err
 	}
 
+	if err := builder.SetApplicantID("did:example:123"); err != nil {
+		return nil, err
+	}
+
 	format := string(exchange.JWTVC)
 	if err := builder.SetPresentationSubmission(exchange.PresentationSubmission{
 		ID:           uuid.NewString(),

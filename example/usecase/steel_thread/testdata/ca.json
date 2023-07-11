@@ -2,6 +2,7 @@
   "id": "c0c6e312-ad44-4f18-935e-a6efaad91612",
   "spec_version": "https://identity.foundation/credential-manifest/spec/v1.0.0/",
   "manifest_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "applicant" : "did:example:123",
   "format": {
     "jwt_vc": {
       "alg": [
