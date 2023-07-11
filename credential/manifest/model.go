@@ -93,7 +93,7 @@ type CredentialApplicationWrapper struct {
 type CredentialApplication struct {
 	ID          string                `json:"id" validate:"required"`
 	SpecVersion string                `json:"spec_version" validate:"required"`
-	Applicant   string                `json:"applicant"`
+	Applicant   string                `json:"applicant" validate:"required"`
 	ManifestID  string                `json:"manifest_id" validate:"required"`
 	Format      *exchange.ClaimFormat `json:"format" validate:"required,dive"`
 	// Must be present if the corresponding manifest contains a presentation_definition
