@@ -33,10 +33,30 @@ func SignVerifiableCredentialJWT(signer jwx.Signer, cred credential.VerifiableCr
 		return nil, errors.New("credential cannot already have a proof")
 	}
 
+	t, err := JWTClaimSetFromVC(cred)
+	if err != nil {
+		return nil, err
+	}
+
+	hdrs := jws.NewHeaders()
+	if signer.KID != "" {
+		if err := hdrs.Set(jws.KeyIDKey, signer.KID); err != nil {
+			return nil, errors.Wrap(err, "setting KID protected header")
+		}
+	}
+	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.ALG), signer.PrivateKey, jws.WithProtectedHeaders(hdrs)))
+	if err != nil {
+		return nil, errors.Wrap(err, "signing JWT credential")
+	}
+	return signed, nil
+}
+
+// JWTClaimSetFromVC create a JWT claimset from the given cred according to https://w3c.github.io/vc-jwt/#version-1.1.
+func JWTClaimSetFromVC(cred credential.VerifiableCredential) (jwt.Token, error) {
 	t := jwt.New()
 	if cred.ExpirationDate != "" {
 		if err := t.Set(jwt.ExpirationKey, cred.ExpirationDate); err != nil {
-			return nil, errors.Wrap(err, "could not set exp value")
+			return nil, errors.Wrap(err, "setting exp value")
 		}
 
 		// remove the expiration date from the credential
@@ -48,16 +68,16 @@ func SignVerifiableCredentialJWT(signer jwx.Signer, cred credential.VerifiableCr
 	}
 
 	if err := t.Set(jwt.IssuerKey, cred.Issuer); err != nil {
-		return nil, errors.Wrap(err, "could not set exp value")
+		return nil, errors.Wrap(err, "setting exp value")
 	}
 	// remove the issuer from the credential
 	cred.Issuer = nil
 
 	if err := t.Set(jwt.IssuedAtKey, cred.IssuanceDate); err != nil {
-		return nil, errors.Wrap(err, "could not set iat value")
+		return nil, errors.Wrap(err, "setting iat value")
 	}
 	if err := t.Set(jwt.NotBeforeKey, cred.IssuanceDate); err != nil {
-		return nil, errors.Wrap(err, "could not set nbf value")
+		return nil, errors.Wrap(err, "setting nbf value")
 	}
 	// remove the issuance date from the credential
 	cred.IssuanceDate = ""
@@ -65,7 +85,7 @@ func SignVerifiableCredentialJWT(signer jwx.Signer, cred credential.VerifiableCr
 	idVal := cred.ID
 	if idVal != "" {
 		if err := t.Set(jwt.JwtIDKey, idVal); err != nil {
-			return nil, errors.Wrap(err, "could not set jti value")
+			return nil, errors.Wrap(err, "setting jti value")
 		}
 		// remove the id from the credential
 		cred.ID = ""
@@ -83,18 +103,7 @@ func SignVerifiableCredentialJWT(signer jwx.Signer, cred credential.VerifiableCr
 	if err := t.Set(VCJWTProperty, cred); err != nil {
 		return nil, errors.New("setting credential value")
 	}
-
-	hdrs := jws.NewHeaders()
-	if signer.KID != "" {
-		if err := hdrs.Set(jws.KeyIDKey, signer.KID); err != nil {
-			return nil, errors.Wrap(err, "setting KID protected header")
-		}
-	}
-	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.ALG), signer.PrivateKey, jws.WithProtectedHeaders(hdrs)))
-	if err != nil {
-		return nil, errors.Wrap(err, "signing JWT credential")
-	}
-	return signed, nil
+	return t, nil
 }
 
 // VerifyVerifiableCredentialJWT verifies the signature validity on the token and parses
@@ -121,7 +130,7 @@ func ParseVerifiableCredentialFromJWT(token string) (jws.Headers, jwt.Token, *cr
 	// get headers
 	headers, err := jwx.GetJWSHeaders([]byte(token))
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "could not get JWT headers")
+		return nil, nil, nil, errors.Wrap(err, "getting JWT headers")
 	}
 
 	// parse remaining JWT properties and set in the credential
@@ -330,7 +339,7 @@ func ParseVerifiablePresentationFromJWT(token string) (jws.Headers, jwt.Token, *
 	}
 	vpBytes, err := json.Marshal(vpClaim)
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "could not marshalling vp claim")
+		return nil, nil, nil, errors.Wrap(err, "marshalling vp claim")
 	}
 	var pres credential.VerifiablePresentation
 	if err = json.Unmarshal(vpBytes, &pres); err != nil {
@@ -340,7 +349,7 @@ func ParseVerifiablePresentationFromJWT(token string) (jws.Headers, jwt.Token, *
 	// get headers
 	headers, err := jwx.GetJWSHeaders([]byte(token))
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "could not get JWT headers")
+		return nil, nil, nil, errors.Wrap(err, "getting JWT headers")
 	}
 
 	// parse remaining JWT properties and set in the presentation
