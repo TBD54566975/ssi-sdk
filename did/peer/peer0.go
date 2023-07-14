@@ -56,7 +56,7 @@ func (Method0) resolve(didDoc did.DID, _ resolution.Option) (*resolution.Result,
 	keyReference := Hash + v
 	id := string(d)
 
-	verificationMethod, err := did.ConstructJWKVerificationMethod(id, keyReference, pubKey, cryptoKeyType)
+	verificationMethod, err := did.ConstructJWKVerificationMethod(keyReference, id, pubKey, cryptoKeyType)
 	if err != nil {
 		return nil, err
 	}
