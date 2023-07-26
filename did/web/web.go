@@ -32,11 +32,19 @@ const (
 
 // Validate return nil if DID is valid, otherwise the validation error.
 func (d DIDWeb) Validate(ctx context.Context) error {
-	_, err := d.resolveDocBytes(ctx)
+	docBytes, header, err := d.resolveDocBytes(ctx)
 	if err != nil {
 		return errors.Wrap(err, "resolving doc bytes")
 	}
-	return nil
+	contentType := header.Get("Content-Type")
+	if contentType != util.JSONContentType {
+		return errors.Errorf("header Content-Type received was `%s` but expected `%s`", contentType, "application/json")
+	}
+	var doc did.Document
+	if err := json.Unmarshal(docBytes, &doc); err != nil {
+		return errors.Wrap(err, "unmarshalling received bytes")
+	}
+	return doc.IsValid()
 }
 
 func (d DIDWeb) String() string {
@@ -141,7 +149,7 @@ func (d DIDWeb) GetDocURL() (string, error) {
 }
 
 func (d DIDWeb) Resolve(ctx context.Context) (*did.Document, error) {
-	docBytes, err := d.resolveDocBytes(ctx)
+	docBytes, _, err := d.resolveDocBytes(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolving did:web DID<%s>", d)
 	}
@@ -157,26 +165,28 @@ func (d DIDWeb) Resolve(ctx context.Context) (*did.Document, error) {
 
 // resolveDocBytes simply performs a http.Get on the expected URL of the DID Document from GetDocURL
 // and returns the bytes of the fetched file
-func (d DIDWeb) resolveDocBytes(ctx context.Context) ([]byte, error) {
+func (d DIDWeb) resolveDocBytes(ctx context.Context) ([]byte, http.Header, error) {
 	docURL, err := d.GetDocURL()
 	if err != nil {
-		return nil, errors.Wrapf(err, "getting doc url %+v", d)
+		return nil, nil, errors.Wrapf(err, "getting doc url %+v", d)
 	}
 	// Specification https://w3c-ccg.github.io/did-method-web/#read-resolve
 	// 6. Perform an HTTP GET request to the URL using an agent that can successfully negotiate a secure HTTPS
 	// connection, which enforces the security requirements as described in 2.5 Security and privacy considerations.
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, docURL, nil)
 	if err != nil {
-		return nil, errors.Wrapf(err, "constructing doc request %+v", docURL)
+		return nil, nil, errors.Wrapf(err, "constructing doc request %+v", docURL)
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrapf(err, "getting doc %+v", docURL)
+		return nil, nil, errors.Wrapf(err, "getting doc %+v", docURL)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errors.Wrapf(err, "reading response %+v", resp)
+		return nil, nil, errors.Wrapf(err, "reading response %+v", resp)
 	}
-	return body, nil
+	return body, resp.Header, nil
 }
