@@ -142,7 +142,7 @@ func TestDIDWebValidate(t *testing.T) {
 		gock.New("https://demo.ssi-sdk.com").
 			Get("/.well-known/did.json").
 			Reply(200).
-			BodyString(`{"didDocument": {"id": "did:web:demo.ssi-sdk.com"}}`)
+			JSON(`{"didDocument": {"id": "did:web:demo.ssi-sdk.com"}}`)
 		defer gock.Off()
 
 		err := didWebToBeResolved.Validate(context.Background())

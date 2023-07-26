@@ -181,9 +181,9 @@ func (d DIDWeb) resolveDocBytes(ctx context.Context) ([]byte, http.Header, error
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "getting doc %+v", docURL)
 	}
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "reading response %+v", resp)
