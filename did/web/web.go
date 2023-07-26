@@ -37,7 +37,7 @@ func (d DIDWeb) Validate(ctx context.Context) error {
 		return errors.Wrap(err, "resolving doc bytes")
 	}
 	contentType := header.Get("Content-Type")
-	if contentType != "application/json" {
+	if contentType != util.JSONContentType {
 		return errors.Errorf("header Content-Type received was `%s` but expected `%s`", contentType, "application/json")
 	}
 	var doc did.Document
