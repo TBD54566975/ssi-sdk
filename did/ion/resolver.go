@@ -64,7 +64,16 @@ func (i Resolver) Resolve(ctx context.Context, id string, _ ...resolution.Option
 		if err != nil {
 			return nil, errors.Wrap(err, "reconstructing document from long form DID")
 		}
-		return &resolution.Result{Document: *didDoc}, nil
+		return &resolution.Result{
+			Context:  "https://w3id.org/did-resolution/v1",
+			Document: *didDoc,
+			DocumentMetadata: resolution.DocumentMetadata{
+				EquivalentID: []string{shortFormDID},
+				Method: resolution.Method{
+					Published:          false,
+					RecoveryCommitment: initialState.SuffixData.RecoveryCommitment,
+					UpdateCommitment:   initialState.Delta.UpdateCommitment},
+			}}, nil
 	}
 
 	if i.baseURL.String() == "" {
@@ -79,7 +88,9 @@ func (i Resolver) Resolve(ctx context.Context, id string, _ ...resolution.Option
 		return nil, errors.Wrapf(err, "resolving, with URL: %s", i.baseURL.String())
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolving, with response %+v", resp)
@@ -114,7 +125,9 @@ func (i Resolver) Anchor(ctx context.Context, op AnchorOperation) (*resolution.R
 		return nil, errors.Wrapf(err, "posting anchor operation %+v", op)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not resolve with response %+v", resp)
