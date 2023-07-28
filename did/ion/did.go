@@ -117,18 +117,24 @@ func PatchesToDIDDocument(shortFormDID, longFormDID string, patches []Patch) (*d
 		return nil, errors.New("short form DID is required")
 	}
 	doc := did.Document{
-		Context:     []string{"https://www.w3.org/ns/did/v1"},
-		ID:          shortFormDID,
-		AlsoKnownAs: longFormDID,
+		Context: []any{"https://www.w3.org/ns/did/v1", map[string]any{
+			"@base": longFormDID,
+		}},
+		ID: longFormDID,
 	}
 	for _, patch := range patches {
 		switch patch.GetAction() {
 		case AddServices:
 			addServicePatch := patch.(AddServicesAction)
-			doc.Services = append(doc.Services, addServicePatch.Services...)
+			for _, s := range addServicePatch.Services {
+				s := s
+				s.ID = canonicalID(s.ID)
+				doc.Services = append(doc.Services, s)
+			}
 		case RemoveServices:
 			removeServicePatch := patch.(RemoveServicesAction)
 			for _, id := range removeServicePatch.IDs {
+				id := canonicalID(id)
 				for i, service := range doc.Services {
 					if service.ID == id {
 						doc.Services = append(doc.Services[:i], doc.Services[i+1:]...)
@@ -180,7 +186,9 @@ func replaceActionPatch(doc did.Document, patch ReplaceAction) (*did.Document, e
 	}
 	doc = *gotDoc
 	for _, service := range patch.Document.Services {
-		doc.Services = append(doc.Services, service)
+		s := service
+		s.ID = canonicalID(s.ID)
+		doc.Services = append(doc.Services, s)
 	}
 	return &doc, nil
 }
@@ -188,6 +196,7 @@ func replaceActionPatch(doc did.Document, patch ReplaceAction) (*did.Document, e
 func addPublicKeysPatch(doc did.Document, patch AddPublicKeysAction) (*did.Document, error) {
 	for _, key := range patch.PublicKeys {
 		currKey := key
+		currKey.ID = canonicalID(currKey.ID)
 		doc.VerificationMethod = append(doc.VerificationMethod, did.VerificationMethod{
 			ID:           currKey.ID,
 			Type:         cryptosuite.LDKeyType(currKey.Type),
@@ -214,8 +223,16 @@ func addPublicKeysPatch(doc did.Document, patch AddPublicKeysAction) (*did.Docum
 	return &doc, nil
 }
 
+func canonicalID(id string) string {
+	if strings.Contains(id, "#") {
+		return id
+	}
+	return "#" + id
+}
+
 func removePublicKeysPatch(doc did.Document, patch RemovePublicKeysAction) (*did.Document, error) {
 	for _, id := range patch.IDs {
+		id := canonicalID(id)
 		removed := false
 		for i, key := range doc.VerificationMethod {
 			if key.ID != id {

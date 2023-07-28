@@ -125,8 +125,7 @@ func TestResolver(t *testing.T) {
 			result, err := resolver.Resolve(context.Background(), longFormDID, nil)
 			assert.NoError(ttt, err)
 			assert.NotEmpty(ttt, result)
-			assert.Equal(ttt, "did:ion:EiDyOQbbZAa3aiRzeCkV7LOx3SERjjH93EXoIM3UoN4oWg", result.Document.ID)
-			assert.Equal(ttt, longFormDID, result.Document.AlsoKnownAs)
+			assert.Equal(ttt, longFormDID, result.Document.ID)
 		})
 	})
 
