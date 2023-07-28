@@ -67,7 +67,7 @@ func (i Resolver) Resolve(ctx context.Context, id string, _ ...resolution.Option
 		return &resolution.Result{
 			Context:  "https://w3id.org/did-resolution/v1",
 			Document: *didDoc,
-			DocumentMetadata: resolution.DocumentMetadata{
+			DocumentMetadata: &resolution.DocumentMetadata{
 				EquivalentID: []string{shortFormDID},
 				Method: resolution.Method{
 					Published:          false,

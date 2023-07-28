@@ -9,10 +9,10 @@ import (
 
 // Result encapsulates the tuple of a DID resolution https://www.w3.org/TR/did-core/#did-resolution
 type Result struct {
-	Context          string `json:"@context,omitempty"`
-	*Metadata        `json:"didResolutionMetadata,omitempty"`
-	did.Document     `json:"didDocument,omitempty"`
-	DocumentMetadata `json:"didDocumentMetadata,omitempty"`
+	Context           string `json:"@context,omitempty"`
+	*Metadata         `json:"didResolutionMetadata,omitempty"`
+	did.Document      `json:"didDocument,omitempty"`
+	*DocumentMetadata `json:"didDocumentMetadata,omitempty"`
 }
 
 func (r *Result) IsEmpty() bool {
