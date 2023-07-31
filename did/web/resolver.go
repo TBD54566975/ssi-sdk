@@ -28,7 +28,7 @@ func (Resolver) Resolve(ctx context.Context, id string, _ ...resolution.Option) 
 	didWeb := DIDWeb(id)
 	doc, err := didWeb.Resolve(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "cresolving did:web DID: %s", id)
+		return nil, errors.Wrapf(err, "resolving did:web DID: %s", id)
 	}
 	return &resolution.Result{Document: *doc}, nil
 }
