@@ -30,6 +30,5 @@ func (Resolver) Resolve(ctx context.Context, id string, _ ...resolution.Option) 
 	if err != nil {
 		return nil, errors.Wrapf(err, "resolving did:web DID: %s", id)
 	}
-	return &resolution.Result{
-		Document: *doc}, nil
+	return &resolution.Result{Document: *doc}, nil
 }
