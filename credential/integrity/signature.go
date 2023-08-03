@@ -92,7 +92,7 @@ func VerifyJWTCredential(ctx context.Context, cred string, r resolution.Resolver
 		return false, errors.Wrapf(err, "error constructing verifier for credential<%s>", token.JwtID())
 	}
 	// verify the signature
-	if err = credVerifier.Verify(cred); err != nil {
+	if _, _, _, err = VerifyVerifiableCredentialJWT(*credVerifier, cred); err != nil {
 		return false, errors.Wrapf(err, "error verifying credential<%s>", token.JwtID())
 	}
 	return true, nil
@@ -109,4 +109,46 @@ func VerifyDataIntegrityCredential(_ context.Context, cred credential.Verifiable
 	}
 
 	return false, errors.New("not implemented")
+}
+
+// VerifyJWTPresentation verifies the signature of a JWT presentation after parsing it to resolve the issuer DID
+// The issuer DID is resolution from the provided resolution, and used to find the issuer's public key matching
+// the KID in the JWT header.
+func VerifyJWTPresentation(ctx context.Context, pres string, r resolution.Resolver) (bool, error) {
+	if pres == "" {
+		return false, errors.New("presentation cannot be empty")
+	}
+	if r == nil {
+		return false, errors.New("resolution cannot be empty")
+	}
+	headers, token, _, err := ParseVerifiablePresentationFromJWT(pres)
+	if err != nil {
+		return false, errors.Wrap(err, "parsing JWT")
+	}
+
+	// get key to verify the presentation with
+	issuerKID := headers.KeyID()
+	if issuerKID == "" {
+		return false, errors.Errorf("missing kid in header of presentation<%s>", token.JwtID())
+	}
+	issuerDID, err := r.Resolve(ctx, token.Issuer())
+	if err != nil {
+		return false, errors.Wrapf(err, "error getting issuer DID<%s> to verify presentation<%s>", token.Issuer(), token.JwtID())
+	}
+	issuerKey, err := did.GetKeyFromVerificationMethod(issuerDID.Document, issuerKID)
+	if err != nil {
+		return false, errors.Wrapf(err, "error getting key to verify presentation<%s>", token.JwtID())
+	}
+
+	// construct a verifier
+	presVerifier, err := jwx.NewJWXVerifier(issuerDID.ID, issuerKID, issuerKey)
+	if err != nil {
+		return false, errors.Wrapf(err, "error constructing verifier for presentation<%s>", token.JwtID())
+	}
+	// verify the signature
+	if _, _, _, err = VerifyVerifiablePresentationJWT(ctx, *presVerifier, r, pres); err != nil {
+		return false, errors.Wrapf(err, "error verifying presentation<%s>", token.JwtID())
+	}
+
+	return true, nil
 }

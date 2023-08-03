@@ -266,3 +266,168 @@ func getTestCredential() credential.VerifiableCredential {
 		CredentialSubject: map[string]any{},
 	}
 }
+
+func TestVerifyJWTPresentation(t *testing.T) {
+	t.Run("empty presentation", func(tt *testing.T) {
+		_, err := VerifyJWTPresentation(context.Background(), "", nil)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "presentation cannot be empty")
+	})
+
+	t.Run("empty resolution", func(tt *testing.T) {
+		_, err := VerifyJWTPresentation(context.Background(), "not-empty", nil)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "resolution cannot be empty")
+	})
+
+	t.Run("invalid presentation", func(tt *testing.T) {
+		r, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
+		assert.NoError(tt, err)
+		_, err = VerifyJWTPresentation(context.Background(), "not-empty", r)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "invalid JWT")
+	})
+
+	t.Run("valid presentation, not signed by DID", func(tt *testing.T) {
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
+		assert.NoError(tt, err)
+
+		_, privKey, err := crypto.GenerateEd25519Key()
+		assert.NoError(tt, err)
+		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
+		assert.NoError(tt, err)
+
+		jwtPres := getTestJWTPresentation(tt, *signer, true)
+		_, err = VerifyJWTPresentation(context.Background(), jwtPres, resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "error getting issuer DID<test-id> to verify presentation")
+	})
+
+	t.Run("valid presentation, signed by DID the resolution can't resolve", func(tt *testing.T) {
+		resolver, err := resolution.NewResolver([]resolution.Resolver{web.Resolver{}}...)
+		assert.NoError(tt, err)
+
+		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
+		assert.NoError(tt, err)
+		expanded, err := didKey.Expand()
+		assert.NoError(tt, err)
+		kid := expanded.VerificationMethod[0].ID
+		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		assert.NoError(tt, err)
+
+		jwtCred := getTestJWTPresentation(tt, *signer, true)
+		_, err = VerifyJWTPresentation(context.Background(), jwtCred, resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "unsupported method: key")
+	})
+
+	t.Run("valid presentation, kid not found", func(tt *testing.T) {
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
+		assert.NoError(tt, err)
+
+		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
+		assert.NoError(tt, err)
+		signer, err := jwx.NewJWXSigner(didKey.String(), "missing", privKey)
+		assert.NoError(tt, err)
+
+		jwtPres := getTestJWTPresentation(tt, *signer, true)
+		_, err = VerifyJWTPresentation(context.Background(), jwtPres, resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "has no verification methods with kid: missing")
+	})
+
+	t.Run("valid presentation, bad signature", func(tt *testing.T) {
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
+		assert.NoError(tt, err)
+
+		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
+		assert.NoError(tt, err)
+		expanded, err := didKey.Expand()
+		assert.NoError(tt, err)
+		kid := expanded.VerificationMethod[0].ID
+		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		assert.NoError(tt, err)
+
+		jwtPres := getTestJWTPresentation(tt, *signer, true)
+
+		// modify the signature to make it invalid
+		jwtPres = jwtPres[:len(jwtPres)-5] + "baddata"
+
+		verified, err := VerifyJWTPresentation(context.Background(), jwtPres, resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "verifying JWT: could not verify message using any of the signatures or keys")
+		assert.False(tt, verified)
+	})
+
+	t.Run("valid presentation, bad credential", func(tt *testing.T) {
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
+		assert.NoError(tt, err)
+
+		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
+		assert.NoError(tt, err)
+		expanded, err := didKey.Expand()
+		assert.NoError(tt, err)
+		kid := expanded.VerificationMethod[0].ID
+		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		assert.NoError(tt, err)
+
+		jwtPres := getTestJWTPresentation(tt, *signer, false)
+
+		verified, err := VerifyJWTPresentation(context.Background(), jwtPres, resolver)
+		assert.Error(tt, err)
+		assert.Contains(tt, err.Error(), "verifying credential 0: parsing JWT: parsing credential token")
+		assert.False(tt, verified)
+	})
+
+	t.Run("valid presentation", func(tt *testing.T) {
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
+		assert.NoError(tt, err)
+
+		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
+		assert.NoError(tt, err)
+		expanded, err := didKey.Expand()
+		assert.NoError(tt, err)
+		kid := expanded.VerificationMethod[0].ID
+		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		assert.NoError(tt, err)
+
+		jwtPres := getTestJWTPresentation(tt, *signer, true)
+		verified, err := VerifyJWTPresentation(context.Background(), jwtPres, resolver)
+		assert.NoError(tt, err)
+		assert.True(tt, verified)
+	})
+}
+
+func getTestJWTPresentation(t *testing.T, signer jwx.Signer, goodCred bool) string {
+	cred := credential.VerifiableCredential{
+		ID:           uuid.NewString(),
+		Context:      []any{"https://www.w3.org/2018/credentials/v1"},
+		Type:         []string{"VerifiableCredential"},
+		Issuer:       signer.ID,
+		IssuanceDate: time.Now().Format(time.RFC3339),
+		CredentialSubject: map[string]any{
+			"id":            "did:example:123",
+			"favoriteColor": "green",
+			"favoriteFood":  "pizza",
+		},
+	}
+
+	signedCred, err := SignVerifiableCredentialJWT(signer, cred)
+	require.NoError(t, err)
+	require.NotEmpty(t, signedCred)
+
+	if !goodCred {
+		// modify the signature to make it invalid
+		signedCred = signedCred[:len(signedCred)-25]
+	}
+
+	pres := credential.VerifiablePresentation{
+		Context:              []any{"https://www.w3.org/2018/credentials/v1"},
+		Type:                 []string{"VerifiablePresentation"},
+		Holder:               signer.ID,
+		VerifiableCredential: []any{string(signedCred)},
+	}
+	signedPres, err := SignVerifiablePresentationJWT(signer, nil, pres)
+	require.NoError(t, err)
+	return string(signedPres)
+}
