@@ -297,7 +297,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
 		assert.NoError(tt, err)
 
-		jwtPres := getTestJWTPresentation(tt, *signer, goodCred)
+		jwtPres := getTestJWTPresentation(tt, *signer)
 		_, err = VerifyJWTPresentation(context.Background(), jwtPres, resolver)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "error getting issuer DID<test-id> to verify presentation")
@@ -315,7 +315,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
 		assert.NoError(tt, err)
 
-		jwtCred := getTestJWTPresentation(tt, *signer, goodCred)
+		jwtCred := getTestJWTPresentation(tt, *signer)
 		_, err = VerifyJWTPresentation(context.Background(), jwtCred, resolver)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "unsupported method: key")
@@ -330,7 +330,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		signer, err := jwx.NewJWXSigner(didKey.String(), "missing", privKey)
 		assert.NoError(tt, err)
 
-		jwtPres := getTestJWTPresentation(tt, *signer, goodCred)
+		jwtPres := getTestJWTPresentation(tt, *signer)
 		_, err = VerifyJWTPresentation(context.Background(), jwtPres, resolver)
 		assert.Error(tt, err)
 		assert.Contains(tt, err.Error(), "has no verification methods with kid: missing")
@@ -348,7 +348,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
 		assert.NoError(tt, err)
 
-		jwtPres := getTestJWTPresentation(tt, *signer, goodCred)
+		jwtPres := getTestJWTPresentation(tt, *signer)
 
 		// modify the signature to make it invalid
 		jwtPres = jwtPres[:len(jwtPres)-5] + "baddata"
@@ -371,7 +371,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
 		assert.NoError(tt, err)
 
-		jwtPres := getTestJWTPresentation(tt, *signer, noCred)
+		jwtPres := geTestJWTPresentationNoCred(tt, *signer)
 
 		verified, err := VerifyJWTPresentation(context.Background(), jwtPres, resolver)
 		assert.NoError(tt, err)
@@ -390,7 +390,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
 		assert.NoError(tt, err)
 
-		jwtPres := getTestJWTPresentation(tt, *signer, badCred)
+		jwtPres := getTestJWTPresentationBadCred(tt, *signer)
 
 		verified, err := VerifyJWTPresentation(context.Background(), jwtPres, resolver)
 		assert.Error(tt, err)
@@ -410,23 +410,15 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
 		assert.NoError(tt, err)
 
-		jwtPres := getTestJWTPresentation(tt, *signer, goodCred)
+		jwtPres := getTestJWTPresentation(tt, *signer)
 		verified, err := VerifyJWTPresentation(context.Background(), jwtPres, resolver)
 		assert.NoError(tt, err)
 		assert.True(tt, verified)
 	})
 }
 
-type credStatus int
-
-const (
-	badCred credStatus = iota
-	goodCred
-	noCred
-)
-
 // cred status is a control flag. 0 = bad cred, 1 = good cred, 2 = no cred
-func getTestJWTPresentation(t *testing.T, signer jwx.Signer, credStatus credStatus) string {
+func getTestJWTPresentation(t *testing.T, signer jwx.Signer) string {
 	cred := credential.VerifiableCredential{
 		ID:           uuid.NewString(),
 		Context:      []any{"https://www.w3.org/2018/credentials/v1"},
@@ -444,10 +436,38 @@ func getTestJWTPresentation(t *testing.T, signer jwx.Signer, credStatus credStat
 	require.NoError(t, err)
 	require.NotEmpty(t, signedCred)
 
-	if credStatus == badCred {
-		// modify the signature to make it invalid
-		signedCred = signedCred[:len(signedCred)-25]
+	pres := credential.VerifiablePresentation{
+		Context:              []any{"https://www.w3.org/2018/credentials/v1"},
+		Type:                 []string{"VerifiablePresentation"},
+		Holder:               signer.ID,
+		VerifiableCredential: []any{string(signedCred)},
 	}
+
+	signedPres, err := SignVerifiablePresentationJWT(signer, nil, pres)
+	require.NoError(t, err)
+	return string(signedPres)
+}
+
+func getTestJWTPresentationBadCred(t *testing.T, signer jwx.Signer) string {
+	cred := credential.VerifiableCredential{
+		ID:           uuid.NewString(),
+		Context:      []any{"https://www.w3.org/2018/credentials/v1"},
+		Type:         []string{"VerifiableCredential"},
+		Issuer:       signer.ID,
+		IssuanceDate: time.Now().Format(time.RFC3339),
+		CredentialSubject: map[string]any{
+			"id":            "did:example:123",
+			"favoriteColor": "green",
+			"favoriteFood":  "pizza",
+		},
+	}
+
+	signedCred, err := SignVerifiableCredentialJWT(signer, cred)
+	require.NoError(t, err)
+	require.NotEmpty(t, signedCred)
+
+	// modify the signature to make it invalid
+	signedCred = signedCred[:len(signedCred)-25]
 
 	pres := credential.VerifiablePresentation{
 		Context:              []any{"https://www.w3.org/2018/credentials/v1"},
@@ -455,8 +475,17 @@ func getTestJWTPresentation(t *testing.T, signer jwx.Signer, credStatus credStat
 		Holder:               signer.ID,
 		VerifiableCredential: []any{string(signedCred)},
 	}
-	if credStatus == noCred {
-		pres.VerifiableCredential = nil
+
+	signedPres, err := SignVerifiablePresentationJWT(signer, nil, pres)
+	require.NoError(t, err)
+	return string(signedPres)
+}
+
+func geTestJWTPresentationNoCred(t *testing.T, signer jwx.Signer) string {
+	pres := credential.VerifiablePresentation{
+		Context: []any{"https://www.w3.org/2018/credentials/v1"},
+		Type:    []string{"VerifiablePresentation"},
+		Holder:  signer.ID,
 	}
 
 	signedPres, err := SignVerifiablePresentationJWT(signer, nil, pres)
