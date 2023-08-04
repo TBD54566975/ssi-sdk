@@ -118,6 +118,34 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		assert.Contains(tt, err.Error(), "audience mismatch")
 	})
 
+	t.Run("no audience", func(tt *testing.T) {
+		signer := getTestVectorKey0Signer(tt)
+
+		testPresentation := credential.VerifiablePresentation{
+			Context: []string{"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"},
+			Type:   []string{"VerifiablePresentation"},
+			Holder: signer.ID,
+		}
+
+		signed, err := SignVerifiablePresentationJWT(signer, nil, testPresentation)
+		assert.NoError(tt, err)
+
+		verifier, err := signer.ToVerifier(signer.ID)
+		assert.NoError(tt, err)
+
+		token := string(signed)
+		err = verifier.Verify(token)
+		assert.NoError(tt, err)
+
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
+		require.NoError(tt, err)
+		require.NotEmpty(tt, resolver)
+
+		_, _, _, err = VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, token)
+		assert.NoError(tt, err)
+	})
+
 	t.Run("no VCs", func(tt *testing.T) {
 		signer := getTestVectorKey0Signer(tt)
 
