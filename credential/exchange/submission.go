@@ -166,7 +166,7 @@ func BuildPresentationSubmission(signer any, requester string, def PresentationD
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to fulfill presentation definition with given credentials")
 		}
-		return integrity.SignVerifiablePresentationJWT(jwtSigner, integrity.JWTVVPParameters{Audience: []string{requester}}, *vpSubmission)
+		return integrity.SignVerifiablePresentationJWT(jwtSigner, &integrity.JWTVVPParameters{Audience: []string{requester}}, *vpSubmission)
 	default:
 		return nil, fmt.Errorf("presentation submission embed target <%s> is not implemented", et)
 	}

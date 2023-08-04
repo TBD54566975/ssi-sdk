@@ -90,15 +90,16 @@ func TestVerifiableCredentialJWT(t *testing.T) {
 
 func TestVerifiablePresentationJWT(t *testing.T) {
 	t.Run("bad audience", func(tt *testing.T) {
+		signer := getTestVectorKey0Signer(tt)
+
 		testPresentation := credential.VerifiablePresentation{
 			Context: []string{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			Type:   []string{"VerifiablePresentation"},
-			Holder: "did:example:123",
+			Holder: signer.ID,
 		}
 
-		signer := getTestVectorKey0Signer(tt)
-		signed, err := SignVerifiablePresentationJWT(signer, JWTVVPParameters{Audience: []string{"bad-audience"}}, testPresentation)
+		signed, err := SignVerifiablePresentationJWT(signer, &JWTVVPParameters{Audience: []string{"bad-audience"}}, testPresentation)
 		assert.NoError(tt, err)
 
 		verifier, err := signer.ToVerifier(signer.ID)
@@ -117,16 +118,45 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		assert.Contains(tt, err.Error(), "audience mismatch")
 	})
 
-	t.Run("no VCs", func(tt *testing.T) {
+	t.Run("no audience", func(tt *testing.T) {
+		signer := getTestVectorKey0Signer(tt)
+
 		testPresentation := credential.VerifiablePresentation{
 			Context: []string{"https://www.w3.org/2018/credentials/v1",
 				"https://w3id.org/security/suites/jws-2020/v1"},
 			Type:   []string{"VerifiablePresentation"},
-			Holder: "did:example:123",
+			Holder: signer.ID,
 		}
 
+		signed, err := SignVerifiablePresentationJWT(signer, nil, testPresentation)
+		assert.NoError(tt, err)
+
+		verifier, err := signer.ToVerifier(signer.ID)
+		assert.NoError(tt, err)
+
+		token := string(signed)
+		err = verifier.Verify(token)
+		assert.NoError(tt, err)
+
+		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
+		require.NoError(tt, err)
+		require.NotEmpty(tt, resolver)
+
+		_, _, _, err = VerifyVerifiablePresentationJWT(context.Background(), *verifier, resolver, token)
+		assert.NoError(tt, err)
+	})
+
+	t.Run("no VCs", func(tt *testing.T) {
 		signer := getTestVectorKey0Signer(tt)
-		signed, err := SignVerifiablePresentationJWT(signer, JWTVVPParameters{Audience: []string{signer.ID}}, testPresentation)
+
+		testPresentation := credential.VerifiablePresentation{
+			Context: []string{"https://www.w3.org/2018/credentials/v1",
+				"https://w3id.org/security/suites/jws-2020/v1"},
+			Type:   []string{"VerifiablePresentation"},
+			Holder: signer.ID,
+		}
+
+		signed, err := SignVerifiablePresentationJWT(signer, &JWTVVPParameters{Audience: []string{signer.ID}}, testPresentation)
 		assert.NoError(tt, err)
 
 		verifier, err := signer.ToVerifier(signer.ID)
@@ -204,7 +234,7 @@ func TestVerifiablePresentationJWT(t *testing.T) {
 		// sign the presentation from the subject to the issuer
 		subjectSigner, err := jwx.NewJWXSigner(subjectDID.String(), subjectKID, subjectPrivKey)
 		assert.NoError(tt, err)
-		signed, err := SignVerifiablePresentationJWT(*subjectSigner, JWTVVPParameters{Audience: []string{issuerDID.String()}}, testPresentation)
+		signed, err := SignVerifiablePresentationJWT(*subjectSigner, &JWTVVPParameters{Audience: []string{issuerDID.String()}}, testPresentation)
 		assert.NoError(tt, err)
 
 		// parse the VP

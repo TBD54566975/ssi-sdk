@@ -205,7 +205,7 @@ type JWTVVPParameters struct {
 
 // SignVerifiablePresentationJWT transforms a VP into a VP JWT and signs it
 // According to https://w3c.github.io/vc-jwt/#version-1.1
-func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameters, presentation credential.VerifiablePresentation) ([]byte, error) {
+func SignVerifiablePresentationJWT(signer jwx.Signer, parameters *JWTVVPParameters, presentation credential.VerifiablePresentation) ([]byte, error) {
 	if presentation.IsEmpty() {
 		return nil, errors.New("presentation cannot be empty")
 	}
@@ -219,7 +219,7 @@ func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameter
 	// NOTE: according to the JWT encoding rules (https://www.w3.org/TR/vc-data-model/#jwt-encoding) aud is a required
 	// property; however, aud is not required according to the JWT spec. Requiring audience limits a number of cases
 	// where JWT-VPs can be used, so we do not enforce this requirement.
-	if parameters.Audience != nil {
+	if parameters != nil && parameters.Audience != nil {
 		if err := t.Set(jwt.AudienceKey, parameters.Audience); err != nil {
 			return nil, errors.Wrap(err, "setting audience value")
 		}
@@ -236,7 +236,7 @@ func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameter
 		return nil, errors.Wrap(err, "setting nonce value")
 	}
 
-	if parameters.Expiration > 0 {
+	if parameters != nil && parameters.Expiration > 0 {
 		if err := t.Set(jwt.ExpirationKey, parameters.Expiration); err != nil {
 			return nil, errors.Wrap(err, "setting exp value")
 		}
@@ -251,8 +251,11 @@ func SignVerifiablePresentationJWT(signer jwx.Signer, parameters JWTVVPParameter
 		presentation.ID = ""
 	}
 	if presentation.Holder != "" {
+		if presentation.Holder != signer.ID {
+			return nil, errors.New("holder must be the same as the signer")
+		}
 		if err := t.Set(jwt.IssuerKey, presentation.Holder); err != nil {
-			return nil, errors.New("setting subject value")
+			return nil, errors.New("setting iss value")
 		}
 		// remove from VP
 		presentation.Holder = ""
@@ -296,16 +299,18 @@ func VerifyVerifiablePresentationJWT(ctx context.Context, verifier jwx.Verifier,
 		return nil, nil, nil, errors.Wrap(err, "parsing VP from JWT")
 	}
 
-	// make sure the audience matches the verifier
-	audMatch := false
-	for _, aud := range vpToken.Audience() {
-		if aud == verifier.ID || aud == verifier.KID {
-			audMatch = true
-			break
+	// make sure the audience matches the verifier, if we have an audience
+	if len(vpToken.Audience()) != 0 {
+		audMatch := false
+		for _, aud := range vpToken.Audience() {
+			if aud == verifier.ID || aud == verifier.KID {
+				audMatch = true
+				break
+			}
 		}
-	}
-	if !audMatch {
-		return nil, nil, nil, errors.Errorf("audience mismatch: expected [%s] or [%s], got %s", verifier.ID, verifier.KID, vpToken.Audience())
+		if !audMatch {
+			return nil, nil, nil, errors.Errorf("audience mismatch: expected [%s] or [%s], got %s", verifier.ID, verifier.KID, vpToken.Audience())
+		}
 	}
 
 	// verify signature for each credential in the vp
