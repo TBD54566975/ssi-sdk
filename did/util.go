@@ -62,12 +62,22 @@ func GetKeyFromVerificationMethod(did Document, kid string) (gocrypto.PublicKey,
 
 // matchesKIDConstruction checks if the targetID matches possible combinations of the did and kid
 func matchesKIDConstruction(did, kid, targetID string) bool {
-	maybeKID1 := kid                            // the kid == the kid
-	maybeKID2 := fmt.Sprintf("#%s", kid)        // the kid == the fragment with a #
-	maybeKID3 := fmt.Sprintf("%s#%s", did, kid) // the kid == the DID ID + the fragment with a #
-	maybeKID4 := fmt.Sprintf("%s%s", did, kid)  // the kid == the DID ID + the fragment without a #
-	maybeKID5, found := strings.CutPrefix(kid, did)
-	return targetID == maybeKID1 || targetID == maybeKID2 || targetID == maybeKID3 || targetID == maybeKID4 || (found && targetID == maybeKID5)
+	maybeKID1 := kid                                // the kid == the kid
+	maybeKID2 := fmt.Sprintf("#%s", kid)            // the kid == the fragment with a #
+	maybeKID3 := fmt.Sprintf("%s#%s", did, kid)     // the kid == the DID ID + the fragment with a #
+	maybeKID4 := fmt.Sprintf("%s%s", did, kid)      // the kid == the DID ID + the fragment without a #
+	maybeKID5, found := strings.CutPrefix(kid, did) // the kid == the did
+
+	var maybeKID6 string // the kid == the did with a fragment, but the doc only references the fragment without a #
+	var maybeKID7 string // the kid == the did with a fragment, but the doc only references the fragment with a #
+	fullyQualifiedKIDIndex := strings.LastIndex(kid, "#")
+	if fullyQualifiedKIDIndex > 0 {
+		maybeKID6 = kid[fullyQualifiedKIDIndex:]   // the kid == the fragment with a #
+		maybeKID7 = kid[fullyQualifiedKIDIndex+1:] // the kid == the fragment without a #
+	}
+
+	return targetID == maybeKID1 || targetID == maybeKID2 || targetID == maybeKID3 || targetID == maybeKID4 ||
+		(found && targetID == maybeKID5) || targetID == maybeKID6 || targetID == maybeKID7
 }
 
 func extractKeyFromVerificationMethod(method VerificationMethod) (gocrypto.PublicKey, error) {

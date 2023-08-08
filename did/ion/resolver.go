@@ -16,6 +16,42 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// LocalResolver is a resolver that can resolve long form ION DIDs
+type LocalResolver struct{}
+
+func (LocalResolver) Resolve(_ context.Context, id string, _ ...resolution.Option) (*resolution.Result, error) {
+	if id == "" {
+		return nil, errors.New("id cannot be empty")
+	}
+	if !IsLongFormDID(id) {
+		return nil, errors.New("id is not a long form DID")
+	}
+	shortFormDID, initialState, err := DecodeLongFormDID(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid long form DID")
+	}
+	didDoc, err := PatchesToDIDDocument(shortFormDID, id, initialState.Delta.Patches)
+	if err != nil {
+		return nil, errors.Wrap(err, "reconstructing document from long form DID")
+	}
+	return &resolution.Result{
+		Context:  "https://w3id.org/did-resolution/v1",
+		Document: *didDoc,
+		DocumentMetadata: &resolution.DocumentMetadata{
+			EquivalentID: []string{shortFormDID},
+			Method: resolution.Method{
+				Published:          false,
+				RecoveryCommitment: initialState.SuffixData.RecoveryCommitment,
+				UpdateCommitment:   initialState.Delta.UpdateCommitment},
+		}}, nil
+}
+
+func (LocalResolver) Methods() []did.Method {
+	return []did.Method{did.IONMethod}
+}
+
+var _ resolution.Resolver = (*LocalResolver)(nil)
+
 type Resolver struct {
 	client  *http.Client
 	baseURL url.URL
