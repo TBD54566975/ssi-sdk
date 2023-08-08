@@ -199,11 +199,11 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 		assert.Equal(t, pubKey, key)
 	})
 
-	t.Run("doc without fully qualified kid, but kid is fully qualified", func(t *testing.T) {
+	t.Run("doc without fully qualified kid, but kid is fully qualified with #", func(t *testing.T) {
 		pubKey, _, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 		b58PubKey := base58.Encode(pubKey)
-		docWithHash := Document{
+		doc := Document{
 			ID: "test-did",
 			VerificationMethod: []VerificationMethod{
 				{
@@ -214,13 +214,27 @@ func TestGetKeyFromVerificationInformation(t *testing.T) {
 			},
 		}
 
-		key, err := GetKeyFromVerificationMethod(docWithHash, "test-did#test-kid")
+		key, err := GetKeyFromVerificationMethod(doc, "test-did#test-kid")
 		assert.NoError(t, err)
 		assert.Equal(t, pubKey, key)
+	})
 
-		docWithHash.VerificationMethod[0].ID = "test-kid"
-		docWithoutHash := docWithHash
-		key, err = GetKeyFromVerificationMethod(docWithoutHash, "test-did#test-kid")
+	t.Run("doc without fully qualified kid, but kid is fully qualified without #", func(t *testing.T) {
+		pubKey, _, err := crypto.GenerateEd25519Key()
+		assert.NoError(t, err)
+		b58PubKey := base58.Encode(pubKey)
+		doc := Document{
+			ID: "test-did",
+			VerificationMethod: []VerificationMethod{
+				{
+					ID:              "test-kid",
+					Type:            "Ed25519VerificationKey2018",
+					PublicKeyBase58: b58PubKey,
+				},
+			},
+		}
+
+		key, err := GetKeyFromVerificationMethod(doc, "test-did#test-kid")
 		assert.NoError(t, err)
 		assert.Equal(t, pubKey, key)
 	})
