@@ -19,7 +19,7 @@ import (
 // LocalResolver is a resolver that can resolve long form ION DIDs
 type LocalResolver struct{}
 
-func (l LocalResolver) Resolve(_ context.Context, id string, _ ...resolution.Option) (*resolution.Result, error) {
+func (LocalResolver) Resolve(_ context.Context, id string, _ ...resolution.Option) (*resolution.Result, error) {
 	if id == "" {
 		return nil, errors.New("id cannot be empty")
 	}
@@ -46,7 +46,7 @@ func (l LocalResolver) Resolve(_ context.Context, id string, _ ...resolution.Opt
 		}}, nil
 }
 
-func (l LocalResolver) Methods() []did.Method {
+func (LocalResolver) Methods() []did.Method {
 	return []did.Method{did.IONMethod}
 }
 
