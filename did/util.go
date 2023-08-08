@@ -70,10 +70,10 @@ func matchesKIDConstruction(did, kid, targetID string) bool {
 
 	var maybeKID6 string // the kid == the did with a fragment, but the doc only references the fragment without a #
 	var maybeKID7 string // the kid == the did with a fragment, but the doc only references the fragment with a #
-	isFullyQualifiedKID := strings.LastIndex(kid, "#")
-	if isFullyQualifiedKID > 0 {
-		maybeKID6 = kid[isFullyQualifiedKID:]   // the kid == the fragment with a #
-		maybeKID7 = kid[isFullyQualifiedKID+1:] // the kid == the fragment without a #
+	fullyQualifiedKIDIndex := strings.LastIndex(kid, "#")
+	if fullyQualifiedKIDIndex > 0 {
+		maybeKID6 = kid[fullyQualifiedKIDIndex:]   // the kid == the fragment with a #
+		maybeKID7 = kid[fullyQualifiedKIDIndex+1:] // the kid == the fragment without a #
 	}
 
 	return targetID == maybeKID1 || targetID == maybeKID2 || targetID == maybeKID3 || targetID == maybeKID4 ||
