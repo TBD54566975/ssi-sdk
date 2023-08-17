@@ -77,7 +77,7 @@ func TestValidator(t *testing.T) {
 		// validate cred with schema, no schema passed in
 		sampleCredential.CredentialSchema = &credential.CredentialSchema{
 			ID:   "did:example:MDP8AsFhHzhwUvGNuYkX7T;id=06e126d1-fa44-4882-a243-1e326fbe21db;version=1.0",
-			Type: credschema.JSONSchema2023Type.String(),
+			Type: credschema.JSONSchemaType.String(),
 		}
 		err = validator.ValidateCredential(sampleCredential)
 		assert.Error(tt, err)
