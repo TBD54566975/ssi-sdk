@@ -54,7 +54,7 @@ func (ra *RemoteAccess) GetVCJSONSchema(ctx context.Context, t VCJSONSchemaType,
 	}
 
 	switch t {
-	case JsonSchemaCredentialType:
+	case JSONSchemaCredentialType:
 		// either a jwt or credential json
 		var schemaCred any
 		if err = json.NewDecoder(resp.Body).Decode(&schemaCred); err != nil {

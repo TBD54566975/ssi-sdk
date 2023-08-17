@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	// JsonSchemaCredentialType https://www.w3.org/TR/vc-json-schema/#jsonschemacredential
-	JsonSchemaCredentialType VCJSONSchemaType = "JsonSchemaCredential"
+	// JSONSchemaCredentialType https://www.w3.org/TR/vc-json-schema/#jsonschemacredential
+	JSONSchemaCredentialType VCJSONSchemaType = "JsonSchemaCredential"
 	// JSONSchemaType https://www.w3.org/TR/vc-json-schema/#jsonschema
 	JSONSchemaType VCJSONSchemaType = "JsonSchema"
 
@@ -114,5 +114,5 @@ func IsSupportedVCJSONSchemaType(t string) bool {
 
 // GetSupportedVCJSONSchemaTypes returns the supported VC JSON Schema types
 func GetSupportedVCJSONSchemaTypes() []VCJSONSchemaType {
-	return []VCJSONSchemaType{JsonSchemaCredentialType, JSONSchemaType}
+	return []VCJSONSchemaType{JSONSchemaCredentialType, JSONSchemaType}
 }
