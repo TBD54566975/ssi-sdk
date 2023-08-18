@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	jsonSchema2023Credential1       string = "jsonschema2023-credential-1.json"
-	jsonSchema2023Schema1           string = "jsonschema2023-schema-1.json"
-	credentialSchema2023Credential1 string = "credentialschema2023-credential-1.json"
-	credentialSchema2023Schema1     string = "credentialschema2023-schema-1.json"
+	jsonSchemaCredential1           string = "jsonschema-credential-1.json"
+	jsonSchemaSchema1               string = "jsonschema-schema-1.json"
+	jsonSchemaCredentialCredential1 string = "jsonschemacredential-credential-1.json"
+	jsonSchemaCredentialSchema1     string = "jsonschemacredential-schema-1.json"
 )
 
 var (
@@ -24,8 +24,8 @@ var (
 )
 
 func TestValidateCredentialAgainstSchema(t *testing.T) {
-	t.Run("validate credential against JsonSchema2023", func(t *testing.T) {
-		cred, err := getTestVector(jsonSchema2023Credential1)
+	t.Run("validate credential against JsonSchema", func(t *testing.T) {
+		cred, err := getTestVector(jsonSchemaCredential1)
 		assert.NoError(t, err)
 
 		var vc credential.VerifiableCredential
@@ -36,8 +36,8 @@ func TestValidateCredentialAgainstSchema(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("validate credential against CredentialSchema2023", func(t *testing.T) {
-		cred, err := getTestVector(credentialSchema2023Credential1)
+	t.Run("validate credential against JsonSchemaCredential", func(t *testing.T) {
+		cred, err := getTestVector(jsonSchemaCredentialCredential1)
 		assert.NoError(t, err)
 
 		var vc credential.VerifiableCredential
@@ -57,12 +57,12 @@ func (localAccess) GetVCJSONSchema(_ context.Context, _ VCJSONSchemaType, id str
 	var err error
 	switch id {
 	case "https://example.com/schemas/email.json":
-		schema, err = getTestVector(jsonSchema2023Schema1)
+		schema, err = getTestVector(jsonSchemaSchema1)
 		if err != nil {
 			return nil, err
 		}
 	case "https://example.com/credentials/3734":
-		schemaCred, err := getTestVector(credentialSchema2023Schema1)
+		schemaCred, err := getTestVector(jsonSchemaCredentialSchema1)
 		if err != nil {
 			return nil, err
 		}
@@ -70,11 +70,11 @@ func (localAccess) GetVCJSONSchema(_ context.Context, _ VCJSONSchemaType, id str
 		if err = json.Unmarshal([]byte(schemaCred), &cred); err != nil {
 			return nil, err
 		}
-		credSubjectBytes, err := json.Marshal(cred.CredentialSubject)
+		jsonSchemaBytes, err := json.Marshal(cred.CredentialSubject.GetJSONSchema())
 		if err != nil {
 			return nil, errors.Wrap(err, "error marshalling credential subject")
 		}
-		schema = string(credSubjectBytes)
+		schema = string(jsonSchemaBytes)
 	}
 	if err = json.Unmarshal([]byte(schema), &s); err != nil {
 		return nil, err

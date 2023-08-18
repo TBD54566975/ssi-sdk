@@ -189,7 +189,7 @@ func issueApplicationCredential(id key.DIDKey, s schema.JSONSchema) (*credential
 
 	if err := builder.SetCredentialSchema(credential.CredentialSchema{
 		ID:   s.ID(),
-		Type: schema.JSONSchema2023Type.String(),
+		Type: schema.JSONSchemaType.String(),
 	}); err != nil {
 		return nil, err
 	}
@@ -280,7 +280,7 @@ func issueDriversLicenseCredential(issuerDID key.DIDKey, subjectDID string, s sc
 
 	if err := builder.SetCredentialSchema(credential.CredentialSchema{
 		ID:   s.ID(),
-		Type: schema.JSONSchema2023Type.String(),
+		Type: schema.JSONSchemaType.String(),
 	}); err != nil {
 		return nil, err
 	}

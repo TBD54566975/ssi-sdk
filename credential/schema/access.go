@@ -54,7 +54,7 @@ func (ra *RemoteAccess) GetVCJSONSchema(ctx context.Context, t VCJSONSchemaType,
 	}
 
 	switch t {
-	case CredentialSchema2023Type:
+	case JSONSchemaCredentialType:
 		// either a jwt or credential json
 		var schemaCred any
 		if err = json.NewDecoder(resp.Body).Decode(&schemaCred); err != nil {
@@ -64,16 +64,17 @@ func (ra *RemoteAccess) GetVCJSONSchema(ctx context.Context, t VCJSONSchemaType,
 		if err != nil {
 			return nil, errors.Wrap(err, "error decoding schema from credential")
 		}
-		credSubjectBytes, err := json.Marshal(cred.CredentialSubject)
+		jsonSchemaValue := cred.CredentialSubject.GetJSONSchema()
+		credSubjectBytes, err := json.Marshal(jsonSchemaValue)
 		if err != nil {
-			return nil, errors.Wrap(err, "error marshalling credential subject")
+			return nil, errors.Wrap(err, "error marshalling jsonSchema property in the credential subject")
 		}
 		var schema JSONSchema
 		if err = json.Unmarshal(credSubjectBytes, &schema); err != nil {
 			return nil, errors.Wrap(err, "error unmarshalling credential subject to schema")
 		}
 		return schema, nil
-	case JSONSchema2023Type:
+	case JSONSchemaType:
 		var schema JSONSchema
 		if err = json.NewDecoder(resp.Body).Decode(&schema); err != nil {
 			return nil, errors.Wrap(err, "error decoding schema")

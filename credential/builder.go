@@ -15,6 +15,8 @@ const (
 	VerifiableCredentialsLinkedDataContext string = "https://www.w3.org/2018/credentials/v1"
 	VerifiableCredentialType               string = "VerifiableCredential"
 	VerifiableCredentialIDProperty         string = "id"
+	// VerifiableCredentialJSONSchemaProperty as defined by https://www.w3.org/TR/vc-json-schema/#jsonschemacredential
+	VerifiableCredentialJSONSchemaProperty string = "jsonSchema"
 	VerifiablePresentationType             string = "VerifiablePresentation"
 
 	BuilderEmptyError string = "builder cannot be empty"

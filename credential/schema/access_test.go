@@ -13,10 +13,10 @@ import (
 
 func TestRemoteAccess(t *testing.T) {
 	remoteAccess := NewRemoteAccess(nil)
-	schema, err := getTestVector(jsonSchema2023Schema1)
+	schema, err := getTestVector(jsonSchemaSchema1)
 	require.NoError(t, err)
 
-	schemaCred, err := getTestVector(credentialSchema2023Schema1)
+	schemaCred, err := getTestVector(jsonSchemaCredentialSchema1)
 	require.NoError(t, err)
 
 	t.Run("access JsonSchema2023", func(t *testing.T) {
@@ -25,7 +25,7 @@ func TestRemoteAccess(t *testing.T) {
 			Reply(200).BodyString(schema)
 		defer gock.Off()
 
-		jsonSchema, err := remoteAccess.GetVCJSONSchema(context.Background(), JSONSchema2023Type, "https://example.com/schemas/email.json")
+		jsonSchema, err := remoteAccess.GetVCJSONSchema(context.Background(), JSONSchemaType, "https://example.com/schemas/email.json")
 		assert.NoError(t, err)
 		assert.JSONEq(t, schema, jsonSchema.String())
 	})
@@ -36,7 +36,7 @@ func TestRemoteAccess(t *testing.T) {
 			Reply(200).BodyString(schema)
 		defer gock.Off()
 
-		cred, err := getTestVector(jsonSchema2023Credential1)
+		cred, err := getTestVector(jsonSchemaCredential1)
 		assert.NoError(t, err)
 
 		var vc credential.VerifiableCredential
@@ -53,7 +53,7 @@ func TestRemoteAccess(t *testing.T) {
 			Reply(200).BodyString(schemaCred)
 		defer gock.Off()
 
-		jsonSchema, err := remoteAccess.GetVCJSONSchema(context.Background(), JSONSchema2023Type, "https://example.com/credentials/3734")
+		jsonSchema, err := remoteAccess.GetVCJSONSchema(context.Background(), JSONSchemaType, "https://example.com/credentials/3734")
 		assert.NoError(t, err)
 		assert.JSONEq(t, schemaCred, jsonSchema.String())
 	})
@@ -64,7 +64,7 @@ func TestRemoteAccess(t *testing.T) {
 			Reply(200).BodyString(schemaCred)
 		defer gock.Off()
 
-		cred, err := getTestVector(credentialSchema2023Credential1)
+		cred, err := getTestVector(jsonSchemaCredentialCredential1)
 		assert.NoError(t, err)
 
 		var vc credential.VerifiableCredential
