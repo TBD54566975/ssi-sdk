@@ -14,7 +14,7 @@ const (
 
 	Draft202012 JSONSchemaVersion = "https://json-schema.org/draft/2020-12/schema"
 	Draft201909 JSONSchemaVersion = "https://json-schema.org/draft/2019-09/schema"
-	Draft7      JSONSchemaVersion = "https://json-schema.org/draft-07/schema"
+	Draft7      JSONSchemaVersion = "https://json-schema.org/draft-07/schema#"
 
 	// Known JSON Schema properties
 
