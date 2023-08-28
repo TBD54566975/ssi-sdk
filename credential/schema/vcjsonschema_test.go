@@ -67,7 +67,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchema(t *testing.T) {
 			assert.NotEqual(t, cred.CredentialSchema.ID, schema["$id"])
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "credential schema ID<https://example.com/schemas/email.json> does not match schema ID<https://example.com/schemas/email2.json>")
+			assert.ErrorContains(t, err, "credential schema ID<https://example.com/schemas/email.json> does not match schema ID<https://example.com/schemas/email2.json>")
 		})
 	})
 
@@ -87,7 +87,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchema(t *testing.T) {
 			assert.NotEqual(t, cred.CredentialSchema.Type, JSONSchemaType.String())
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "credential schema type<JsonSchemaCredential> does not match schema type<JsonSchema>")
+			assert.ErrorContains(t, err, "credential schema type<JsonSchemaCredential> does not match schema type<JsonSchema>")
 		})
 
 		t.Run("invalid type", func(t *testing.T) {
@@ -97,7 +97,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchema(t *testing.T) {
 			assert.NotEqual(t, cred.CredentialSchema.Type, JSONSchemaType.String())
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "credential schema type<bad> is not supported")
+			assert.ErrorContains(t, err, "credential schema type<bad> is not supported")
 		})
 	})
 
@@ -132,7 +132,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchema(t *testing.T) {
 
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "not a valid URI")
+			assert.ErrorContains(t, err, "not a valid URI")
 		})
 	})
 
@@ -151,7 +151,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchema(t *testing.T) {
 			delete(schema, "$schema")
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "credential schema does not contain a `$schema` property")
+			assert.ErrorContains(t, err, "credential schema does not contain a `$schema` property")
 		})
 	})
 }
@@ -174,7 +174,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchemaCredential(t *testing.T) {
 			assert.NotEqual(t, cred.CredentialSchema.ID, schema["id"])
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaCredentialType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "credential schema ID<https://example.com/credentials/3734> does not match schema ID<bad>")
+			assert.ErrorContains(t, err, "credential schema ID<https://example.com/credentials/3734> does not match schema ID<bad>")
 		})
 	})
 
@@ -194,7 +194,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchemaCredential(t *testing.T) {
 			assert.NotEqual(t, cred.CredentialSchema.Type, JSONSchemaCredentialType.String())
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaCredentialType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "credential schema type<JsonSchema> does not match schema type<JsonSchemaCredential>")
+			assert.ErrorContains(t, err, "credential schema type<JsonSchema> does not match schema type<JsonSchemaCredential>")
 		})
 
 		t.Run("invalid type", func(t *testing.T) {
@@ -204,7 +204,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchemaCredential(t *testing.T) {
 			assert.NotEqual(t, cred.CredentialSchema.Type, JSONSchemaCredentialType.String())
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaCredentialType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "credential schema type<bad> is not supported")
+			assert.ErrorContains(t, err, "credential schema type<bad> is not supported")
 		})
 	})
 
@@ -228,7 +228,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchemaCredential(t *testing.T) {
 			schema["credentialSubject"] = credSubject
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaCredentialType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "credential schema's credential subject does not contain a `type`")
+			assert.ErrorContains(t, err, "credential schema's credential subject does not contain a `type`")
 		})
 
 		t.Run("missing jsonSchema property", func(t *testing.T) {
@@ -239,7 +239,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchemaCredential(t *testing.T) {
 			schema["credentialSubject"] = credSubject
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaCredentialType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "credential schema's credential subject does not contain a valid `jsonSchema`")
+			assert.ErrorContains(t, err, "credential schema's credential subject does not contain a valid `jsonSchema`")
 		})
 
 		t.Run("jsonSchema property is not a valid json schema", func(t *testing.T) {
@@ -250,7 +250,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchemaCredential(t *testing.T) {
 			schema["credentialSubject"] = credSubject
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaCredentialType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "credential schema's credential subject does not contain a valid `jsonSchema`")
+			assert.ErrorContains(t, err, "credential schema's credential subject does not contain a valid `jsonSchema`")
 		})
 	})
 
@@ -302,7 +302,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchemaCredential(t *testing.T) {
 			schema["credentialSubject"] = schemaCredSubject
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaCredentialType)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "credential schema does not contain a `$schema` property")
+			assert.ErrorContains(t, err, "credential schema does not contain a `$schema` property")
 		})
 	})
 }
