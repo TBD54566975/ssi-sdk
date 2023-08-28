@@ -277,8 +277,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchemaCredential(t *testing.T) {
 			schema["credentialSubject"] = schemaSubject
 
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaCredentialType)
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "not a valid URI")
+			assert.ErrorContains(t, err, "not a valid URI")
 		})
 	})
 

@@ -61,7 +61,7 @@ func (cs CredentialSubject) GetJSONSchema() map[string]any {
 	if gotSchema, ok := cs[VerifiableCredentialJSONSchemaProperty]; ok {
 		schema, ok = gotSchema.(map[string]any)
 		if !ok {
-			schema = nil
+			return nil
 		}
 	}
 	return schema
