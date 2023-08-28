@@ -11,6 +11,7 @@ const (
 	JSONSchemaCredentialType VCJSONSchemaType = "JsonSchemaCredential"
 	// JSONSchemaType https://www.w3.org/TR/vc-json-schema/#jsonschema
 	JSONSchemaType VCJSONSchemaType = "JsonSchema"
+	TypeProperty   string           = "type"
 
 	Draft202012 JSONSchemaVersion = "https://json-schema.org/draft/2020-12/schema"
 	Draft201909 JSONSchemaVersion = "https://json-schema.org/draft/2019-09/schema"
@@ -28,6 +29,7 @@ const (
 type (
 	VCJSONSchemaType  string
 	JSONSchemaVersion string
+	VCJSONSchema      map[string]any
 	JSONSchema        map[string]any
 )
 
@@ -37,6 +39,14 @@ func (s VCJSONSchemaType) String() string {
 
 func (s JSONSchemaVersion) String() string {
 	return string(s)
+}
+
+func (s VCJSONSchema) String() string {
+	schemaBytes, err := json.Marshal(s)
+	if err != nil {
+		return ""
+	}
+	return string(schemaBytes)
 }
 
 func (s JSONSchema) String() string {

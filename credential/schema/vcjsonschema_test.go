@@ -7,7 +7,6 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	"github.com/goccy/go-json"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +22,7 @@ var (
 	testVectors embed.FS
 )
 
-func TestValidateCredentialAgainstSchema(t *testing.T) {
+func TestValidateCredentialAgainstSchema_JsonSchema(t *testing.T) {
 	t.Run("validate credential against JsonSchema", func(t *testing.T) {
 		cred, err := getTestVector(jsonSchemaCredential1)
 		assert.NoError(t, err)
@@ -36,6 +35,24 @@ func TestValidateCredentialAgainstSchema(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("ID - The value MUST be a URL that identifies the schema associated with the verifiable credential.", func(t *testing.T) {
+
+	})
+
+	t.Run("the type property MUST be JsonSchema", func(t *testing.T) {
+
+	})
+
+	t.Run("the $id property MUST be present and its value MUST represent a valid URI", func(t *testing.T) {
+
+	})
+
+	t.Run("the $schema property MUST be present", func(t *testing.T) {
+
+	})
+}
+
+func TestValidateCredentialAgainstSchema_JsonSchemaCredential(t *testing.T) {
 	t.Run("validate credential against JsonSchemaCredential", func(t *testing.T) {
 		cred, err := getTestVector(jsonSchemaCredentialCredential1)
 		assert.NoError(t, err)
@@ -47,13 +64,33 @@ func TestValidateCredentialAgainstSchema(t *testing.T) {
 		err = ValidateCredentialAgainstSchema(&localAccess{}, vc)
 		assert.NoError(t, err)
 	})
+
+	t.Run("ID - The value MUST be a URL that identifies the schema associated with the verifiable credential.", func(t *testing.T) {
+
+	})
+
+	t.Run("the type property MUST be JsonSchemaCredential", func(t *testing.T) {
+
+	})
+
+	t.Run("the credentialSubject property MUST contain two properties: type - the value of which MUST be "+
+		"JsonSchema; jsonSchema - an object which contains a valid JSON Schema", func(t *testing.T) {
+	})
+
+	t.Run("the $id property MUST be present and its value MUST represent a valid URI", func(t *testing.T) {
+
+	})
+
+	t.Run("the $schema property MUST be present", func(t *testing.T) {
+
+	})
 }
 
 type localAccess struct{}
 
-func (localAccess) GetVCJSONSchema(_ context.Context, _ VCJSONSchemaType, id string) (JSONSchema, error) {
+func (localAccess) GetVCJSONSchema(_ context.Context, _ VCJSONSchemaType, id string) (VCJSONSchema, error) {
 	var schema string
-	var s JSONSchema
+	var s VCJSONSchema
 	var err error
 	switch id {
 	case "https://example.com/schemas/email.json":
@@ -66,15 +103,7 @@ func (localAccess) GetVCJSONSchema(_ context.Context, _ VCJSONSchemaType, id str
 		if err != nil {
 			return nil, err
 		}
-		var cred credential.VerifiableCredential
-		if err = json.Unmarshal([]byte(schemaCred), &cred); err != nil {
-			return nil, err
-		}
-		jsonSchemaBytes, err := json.Marshal(cred.CredentialSubject.GetJSONSchema())
-		if err != nil {
-			return nil, errors.Wrap(err, "error marshalling credential subject")
-		}
-		schema = string(jsonSchemaBytes)
+		schema = schemaCred
 	}
 	if err = json.Unmarshal([]byte(schema), &s); err != nil {
 		return nil, err
