@@ -7,7 +7,7 @@ const (
 	DIDDocumentPublicKeyIDDuplicated           ErrorCode = "DidDocumentPublicKeyIdDuplicated"
 	DIDDocumentPublicKeyMissingOrIncorrectType ErrorCode = "DidDocumentPublicKeyMissingOrIncorrectType"
 	DIDDocumentServiceIDDuplicated             ErrorCode = "DidDocumentServiceIdDuplicated"
-	DIDSuffixIncorrectLength                   ErrorCode = "DidSuffixIncorrectLength"
+	DIDSuffixIncorrectLength                   ErrorCode = "DidSuffixIncorrectLength" // #nosec
 	EncodedStringIncorrectEncoding             ErrorCode = "EncodedStringIncorrectEncoding"
 	IDNotUsingBase64URLCharacterSet            ErrorCode = "IdNotUsingBase64UrlCharacterSet"
 	IDTooLong                                  ErrorCode = "IdTooLong"
