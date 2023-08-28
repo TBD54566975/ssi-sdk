@@ -26,6 +26,13 @@ func ValidateCredentialAgainstSchema(access VCJSONSchemaAccess, cred credential.
 
 // IsCredentialValidForJSONSchema validates a credential against a schema, returning an error if it is not valid
 func IsCredentialValidForJSONSchema(cred credential.VerifiableCredential, vcs VCJSONSchema, t VCJSONSchemaType) error {
+	if cred.IsEmpty() {
+		return errors.New("credential is empty")
+	}
+	if len(vcs) == 0 {
+		return errors.New("credential schema is empty")
+	}
+
 	credsSchemaType := cred.CredentialSchema.Type
 	if !IsSupportedVCJSONSchemaType(credsSchemaType) {
 		return fmt.Errorf("credential schema type<%s> is not supported", credsSchemaType)
@@ -42,19 +49,20 @@ func IsCredentialValidForJSONSchema(cred credential.VerifiableCredential, vcs VC
 		schemaID = s.ID()
 	case JSONSchemaCredentialType:
 		var vc credential.VerifiableCredential
-		if err := json.Unmarshal([]byte(vcs.String()), &vc); err != nil {
+		schemaString := vcs.String()
+		if err := json.Unmarshal([]byte(schemaString), &vc); err != nil {
 			return errors.Wrap(err, "unmarshalling schema")
 		}
 		schemaType, ok := vc.CredentialSubject[TypeProperty]
 		if !ok {
-			return errors.New("credential schema does not contain a `type`")
+			return errors.New("credential schema's credential subject does not contain a `type`")
 		}
 		if schemaType != JSONSchemaType.String() {
 			return fmt.Errorf("credential schema's credential subject type<%s> does not match schema type<%s>", schemaType, JSONSchemaType)
 		}
 		s = vc.CredentialSubject.GetJSONSchema()
 		if len(s) == 0 {
-			return errors.New("credential subject does not contain a `jsonSchema`")
+			return errors.New("credential schema's credential subject does not contain a valid `jsonSchema`")
 		}
 		schemaID = vc.ID
 	}
@@ -66,7 +74,7 @@ func IsCredentialValidForJSONSchema(cred credential.VerifiableCredential, vcs VC
 
 	// check if the ID in the credential's credentialSchema matches the ID of the schema
 	if cred.CredentialSchema.ID != schemaID {
-		return fmt.Errorf("credential schema ID<%s> does not match schema ID<%s>", cred.CredentialSchema.ID, s.ID())
+		return fmt.Errorf("credential schema ID<%s> does not match schema ID<%s>", cred.CredentialSchema.ID, schemaID)
 	}
 
 	// check if the $schema property is present and valid

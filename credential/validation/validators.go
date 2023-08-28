@@ -6,7 +6,6 @@ import (
 
 	"github.com/TBD54566975/ssi-sdk/credential"
 	credschema "github.com/TBD54566975/ssi-sdk/credential/schema"
-	jsonschema "github.com/TBD54566975/ssi-sdk/schema"
 	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 )
@@ -44,8 +43,7 @@ func WithSchema(schema string) Option {
 	}
 }
 
-// ValidateJSONSchema verifies a credential's data against a Verifiable Credential JSON Schema:
-// https://w3c-ccg.github.io/vc-json-schemas/v2/index.html#credential_schema_definition
+// ValidateJSONSchema verifies a credential's data against a Verifiable Credential JSON Schema
 // There is a required single option which is a string JSON value representing the Credential Schema Object
 func ValidateJSONSchema(cred credential.VerifiableCredential, opts ...Option) error {
 	hasSchemaProperty := cred.CredentialSchema != nil
@@ -61,22 +59,20 @@ func ValidateJSONSchema(cred credential.VerifiableCredential, opts ...Option) er
 	if !hasSchemaProperty {
 		return errors.New("credential does not have a credentialSchema property")
 	}
+	schemaType := cred.CredentialSchema.Type
 	credSchema, err := optionToCredentialSchema(schema)
 	if err != nil {
 		return err
 	}
-	return credschema.IsCredentialValidForJSONSchema(cred, *credSchema)
+	return credschema.IsCredentialValidForJSONSchema(cred, *credSchema, credschema.VCJSONSchemaType(schemaType))
 }
 
-func optionToCredentialSchema(maybeSchema any) (*credschema.JSONSchema, error) {
+func optionToCredentialSchema(maybeSchema any) (*credschema.VCJSONSchema, error) {
 	schema, ok := maybeSchema.(string)
 	if !ok {
 		return nil, errors.New("the option provided must be a string value representing a Verifiable Credential JSON Schema")
 	}
-	if err := jsonschema.IsValidJSONSchema(schema); err != nil {
-		return nil, errors.Wrap(err, "credential schema is invalid")
-	}
-	var credSchema credschema.JSONSchema
+	var credSchema credschema.VCJSONSchema
 	if err := json.Unmarshal([]byte(schema), &credSchema); err != nil {
 		return nil, errors.Wrap(err, "credential schema is invalid")
 	}

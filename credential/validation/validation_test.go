@@ -76,7 +76,7 @@ func TestValidator(t *testing.T) {
 
 		// validate cred with schema, no schema passed in
 		sampleCredential.CredentialSchema = &credential.CredentialSchema{
-			ID:   "did:example:MDP8AsFhHzhwUvGNuYkX7T;id=06e126d1-fa44-4882-a243-1e326fbe21db;version=1.0",
+			ID:   "https://example.com/schemas/email.json",
 			Type: credschema.JSONSchemaType.String(),
 		}
 		err = validator.ValidateCredential(sampleCredential)
@@ -125,7 +125,7 @@ func getVCJSONSchema() string {
   "$id": "https://example.com/schemas/email.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "name": "EmailCredential",
-  "description": "EmailCredential using JsonSchema2023",
+  "description": "EmailCredential using JsonSchema",
   "type": "object",
   "properties": {
     "credentialSubject": {
