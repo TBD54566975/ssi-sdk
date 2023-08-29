@@ -102,7 +102,7 @@ func parseJSONSchemaCredential(vcs VCJSONSchema) (JSONSchema, string, error) {
 	if schemaType != JSONSchemaType.String() {
 		return nil, "", fmt.Errorf("credential schema's credential subject type<%s> does not match schema type<%s>", schemaType, JSONSchemaType)
 	}
-	if vc.CredentialSchema != nil {
+	if vc.CredentialSchema == nil {
 		return nil, "", errors.New("credential schema's credential subject does not contain a `credentialSchema`")
 	}
 	credSchema := vc.CredentialSchema
