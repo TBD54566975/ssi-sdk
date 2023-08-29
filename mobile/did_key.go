@@ -1,4 +1,4 @@
-package did
+package mobile
 
 import (
 	"github.com/TBD54566975/ssi-sdk/crypto"
