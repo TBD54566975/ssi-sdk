@@ -48,23 +48,11 @@ func IsCredentialValidForJSONSchema(cred credential.VerifiableCredential, vcs VC
 		s = JSONSchema(vcs)
 		schemaID = s.ID()
 	case JSONSchemaCredentialType:
-		var vc credential.VerifiableCredential
-		schemaString := vcs.String()
-		if err := json.Unmarshal([]byte(schemaString), &vc); err != nil {
-			return errors.Wrap(err, "unmarshalling schema")
+		var err error
+		s, schemaID, err = parseJSONSchemaCredential(vcs)
+		if err != nil {
+			return errors.Wrap(err, "parsing credential schema")
 		}
-		schemaType, ok := vc.CredentialSubject[TypeProperty]
-		if !ok {
-			return errors.New("credential schema's credential subject does not contain a `type`")
-		}
-		if schemaType != JSONSchemaType.String() {
-			return fmt.Errorf("credential schema's credential subject type<%s> does not match schema type<%s>", schemaType, JSONSchemaType)
-		}
-		s = vc.CredentialSubject.GetJSONSchema()
-		if len(s) == 0 {
-			return errors.New("credential schema's credential subject does not contain a valid `jsonSchema`")
-		}
-		schemaID = vc.ID
 	}
 
 	// check the ID is a valid URI
@@ -98,6 +86,42 @@ func IsCredentialValidForJSONSchema(cred credential.VerifiableCredential, vcs VC
 		return errors.Wrap(err, "credential not valid for schema")
 	}
 	return nil
+}
+
+// JsonSchemaCredential helper for IsCredentialValidForJSONSchema
+func parseJSONSchemaCredential(vcs VCJSONSchema) (JSONSchema, string, error) {
+	var vc credential.VerifiableCredential
+	schemaString := vcs.String()
+	if err := json.Unmarshal([]byte(schemaString), &vc); err != nil {
+		return nil, "", errors.Wrap(err, "unmarshalling schema")
+	}
+	schemaType, ok := vc.CredentialSubject[TypeProperty]
+	if !ok {
+		return nil, "", errors.New("credential schema's credential subject does not contain a `type`")
+	}
+	if schemaType != JSONSchemaType.String() {
+		return nil, "", fmt.Errorf("credential schema's credential subject type<%s> does not match schema type<%s>", schemaType, JSONSchemaType)
+	}
+	if vc.CredentialSchema == nil {
+		return nil, "", errors.New("credential schema's credential subject does not contain a `credentialSchema`")
+	}
+	credSchema := vc.CredentialSchema
+	if credSchema.ID != JSONSchemaCredentialSchemaID {
+		return nil, "", fmt.Errorf("credential schema's credential schema id<%s> does not match known id<%s>", credSchema.ID, JSONSchemaCredentialSchemaID)
+	}
+	if credSchema.Type != JSONSchemaType.String() {
+		return nil, "", fmt.Errorf("credential schema's credential schema type<%s> does not match known type<%s>", credSchema.Type, JSONSchemaType)
+	}
+	if credSchema.DigestSRI != JSONSchemaCredentialDigestSRI {
+		return nil, "", fmt.Errorf("credential schema's credential schema digest sri<%s> does not match known sri<%s>", credSchema.DigestSRI, JSONSchemaCredentialDigestSRI)
+	}
+
+	s := vc.CredentialSubject.GetJSONSchema()
+	if len(s) == 0 {
+		return nil, "", errors.New("credential schema's credential subject does not contain a valid `jsonSchema`")
+	}
+	schemaID := vc.ID
+	return s, schemaID, nil
 }
 
 // GetCredentialSchemaFromCredential returns the credential schema and type for a given credential given

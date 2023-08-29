@@ -68,8 +68,9 @@ func (cs CredentialSubject) GetJSONSchema() map[string]any {
 }
 
 type CredentialSchema struct {
-	ID   string `json:"id" validate:"required"`
-	Type string `json:"type" validate:"required"`
+	ID        string `json:"id" validate:"required"`
+	Type      string `json:"type" validate:"required"`
+	DigestSRI string `json:"digestSRI,omitempty"`
 }
 
 type RefreshService struct {
