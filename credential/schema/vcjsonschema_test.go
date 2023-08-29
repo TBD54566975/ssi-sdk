@@ -254,7 +254,7 @@ func TestIsCredentialValidForJSONSchema_JsonSchemaCredential(t *testing.T) {
 		})
 	})
 
-	t.Run("2.2 The value of the credentialSchema property MUST always be set to [known json schema]", func(t *testing.T) {
+	t.Run("The value of the credentialSchema property MUST always be set to [known json schema]", func(t *testing.T) {
 		t.Run("valid credentialSchema", func(t *testing.T) {
 			cred := getTestVCJSONSchemaCredential()
 			schema := getTestVCJSONSchemaSchema()
@@ -286,6 +286,19 @@ func TestIsCredentialValidForJSONSchema_JsonSchemaCredential(t *testing.T) {
 			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaCredentialType)
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "credential schema's credential schema type<NotJsonSchema> does not match known type<JsonSchema>")
+		})
+
+		t.Run("credentialSchema wrong digestSRI", func(t *testing.T) {
+			cred := getTestVCJSONSchemaCredential()
+			schema := getTestVCJSONSchemaSchema()
+			schema["credentialSchema"] = map[string]any{
+				"id":        JSONSchemaCredentialSchemaID,
+				"type":      JSONSchemaType,
+				"digestSRI": "bad",
+			}
+			err := IsCredentialValidForJSONSchema(cred, schema, JSONSchemaCredentialType)
+			assert.Error(t, err)
+			assert.ErrorContains(t, err, "credential schema's credential schema digest sri<bad> does not match known sri")
 		})
 
 		t.Run("credentialSchema missing digestSRI", func(t *testing.T) {
