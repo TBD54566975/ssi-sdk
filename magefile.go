@@ -25,7 +25,8 @@ import (
 )
 
 const (
-	Go = "go"
+	Go       = "go"
+	gomobile = "gomobile"
 )
 
 // Build builds the library.
@@ -304,4 +305,35 @@ func Vuln() error {
 
 func installGoVulnIfNotPresent() error {
 	return installIfNotPresent("govulncheck", "golang.org/x/vuln/cmd/govulncheck@latest")
+}
+
+func installGoMobileIfNotPresent() error {
+	return installIfNotPresent(gomobile, "golang.org/x/mobile/cmd/gomobile@latest")
+}
+
+// IOS Generates the iOS packages
+// Note: this command also installs "gomobile" if not present
+func IOS() error {
+	if err := installGoMobileIfNotPresent(); err != nil {
+		logrus.WithError(err).Fatal("Error installing gomobile")
+		return err
+	}
+
+	println("Building iOS...")
+	bindIOS := sh.RunCmd(gomobile, "bind", "-target", "ios", "-tags", "jwx_es256k")
+	return bindIOS("./mobile")
+}
+
+// Android Generates the Android packages
+// Note: this command also installs "gomobile" if not present
+func Android() error {
+	if err := installGoMobileIfNotPresent(); err != nil {
+		logrus.WithError(err).Fatal("Error installing gomobile")
+		return err
+	}
+
+	apiLevel := "33"
+	println("Building Android - API Level: " + apiLevel + "...")
+	bindAndroid := sh.RunCmd("gomobile", "bind", "-target", "android", "-androidapi", "33", "-tags", "jwx_es256k")
+	return bindAndroid("./mobile")
 }
