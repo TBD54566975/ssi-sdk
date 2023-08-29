@@ -102,20 +102,20 @@ func parseJSONSchemaCredential(vcs VCJSONSchema) (JSONSchema, string, error) {
 	if schemaType != JSONSchemaType.String() {
 		return nil, "", fmt.Errorf("credential schema's credential subject type<%s> does not match schema type<%s>", schemaType, JSONSchemaType)
 	}
-	if vc.CredentialSchema == nil {
+	if vc.CredentialSchema != nil {
 		return nil, "", errors.New("credential schema's credential subject does not contain a `credentialSchema`")
-	} else {
-		credSchema := vc.CredentialSchema
-		if credSchema.ID != JSONSchemaCredentialSchemaID {
-			return nil, "", fmt.Errorf("credential schema's credential schema id<%s> does not match known id<%s>", credSchema.ID, JSONSchemaCredentialSchemaID)
-		}
-		if credSchema.Type != JSONSchemaType.String() {
-			return nil, "", fmt.Errorf("credential schema's credential schema type<%s> does not match known type<%s>", credSchema.Type, JSONSchemaType)
-		}
-		if credSchema.DigestSRI != JSONSchemaCredentialDigestSRI {
-			return nil, "", fmt.Errorf("credential schema's credential schema digest sri<%s> does not match known sri<%s>", credSchema.DigestSRI, JSONSchemaCredentialDigestSRI)
-		}
 	}
+	credSchema := vc.CredentialSchema
+	if credSchema.ID != JSONSchemaCredentialSchemaID {
+		return nil, "", fmt.Errorf("credential schema's credential schema id<%s> does not match known id<%s>", credSchema.ID, JSONSchemaCredentialSchemaID)
+	}
+	if credSchema.Type != JSONSchemaType.String() {
+		return nil, "", fmt.Errorf("credential schema's credential schema type<%s> does not match known type<%s>", credSchema.Type, JSONSchemaType)
+	}
+	if credSchema.DigestSRI != JSONSchemaCredentialDigestSRI {
+		return nil, "", fmt.Errorf("credential schema's credential schema digest sri<%s> does not match known sri<%s>", credSchema.DigestSRI, JSONSchemaCredentialDigestSRI)
+	}
+
 	s := vc.CredentialSubject.GetJSONSchema()
 	if len(s) == 0 {
 		return nil, "", errors.New("credential schema's credential subject does not contain a valid `jsonSchema`")
