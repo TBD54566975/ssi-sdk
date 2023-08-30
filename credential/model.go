@@ -59,14 +59,18 @@ func (cs CredentialSubject) GetID() string {
 func (cs CredentialSubject) GetJSONSchema() map[string]any {
 	var schema map[string]any
 	if gotSchema, ok := cs[VerifiableCredentialJSONSchemaProperty]; ok {
-		schema = gotSchema.(map[string]any)
+		schema, ok = gotSchema.(map[string]any)
+		if !ok {
+			return nil
+		}
 	}
 	return schema
 }
 
 type CredentialSchema struct {
-	ID   string `json:"id" validate:"required"`
-	Type string `json:"type" validate:"required"`
+	ID        string `json:"id" validate:"required"`
+	Type      string `json:"type" validate:"required"`
+	DigestSRI string `json:"digestSRI,omitempty"`
 }
 
 type RefreshService struct {

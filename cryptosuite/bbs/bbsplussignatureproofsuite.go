@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	BBSPlusSignatureProof2020 cryptosuite.SignatureType = "BbsBlsSignatureProof2020"
+	BBSPlusSignatureProof2020 cryptosuite.SignatureType = "BbsBlsSignatureProof2020" //  #nosec
 )
 
 type BBSPlusSignatureProofSuite struct{}

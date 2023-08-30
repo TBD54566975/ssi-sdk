@@ -19,7 +19,7 @@ func TestRemoteAccess(t *testing.T) {
 	schemaCred, err := getTestVector(jsonSchemaCredentialSchema1)
 	require.NoError(t, err)
 
-	t.Run("access JsonSchema2023", func(t *testing.T) {
+	t.Run("access JsonSchema", func(t *testing.T) {
 		gock.New("https://example.com/schemas").
 			Get("/email.json").
 			Reply(200).BodyString(schema)
@@ -30,7 +30,7 @@ func TestRemoteAccess(t *testing.T) {
 		assert.JSONEq(t, schema, jsonSchema.String())
 	})
 
-	t.Run("validate credential against JsonSchema2023", func(t *testing.T) {
+	t.Run("validate credential against JsonSchema", func(t *testing.T) {
 		gock.New("https://example.com/schemas").
 			Get("/email.json").
 			Reply(200).BodyString(schema)
@@ -47,7 +47,7 @@ func TestRemoteAccess(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("access CredentialSchema2023", func(t *testing.T) {
+	t.Run("access JsonSchema", func(t *testing.T) {
 		gock.New("https://example.com/credentials").
 			Get("/3734").
 			Reply(200).BodyString(schemaCred)
@@ -58,7 +58,7 @@ func TestRemoteAccess(t *testing.T) {
 		assert.JSONEq(t, schemaCred, jsonSchema.String())
 	})
 
-	t.Run("validate credential against CredentialSchema2023", func(t *testing.T) {
+	t.Run("validate credential against JsonSchemaCredential", func(t *testing.T) {
 		gock.New("https://example.com/credentials").
 			Get("/3734").
 			Reply(200).BodyString(schemaCred)

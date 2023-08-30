@@ -12,7 +12,7 @@ func TestVCJSONSchema(t *testing.T) {
   "$id": "https://example.com/schemas/email.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "name": "EmailCredential",
-  "description": "EmailCredential using JsonSchema2023",
+  "description": "EmailCredential using JsonSchema",
   "type": "object",
   "properties": {
     "credentialSubject": {
@@ -38,7 +38,7 @@ func TestVCJSONSchema(t *testing.T) {
 	assert.Equal(t, "https://example.com/schemas/email.json", vcSchema.ID())
 	assert.Equal(t, "https://json-schema.org/draft/2020-12/schema", vcSchema.Schema())
 	assert.Equal(t, "EmailCredential", vcSchema.Name())
-	assert.Equal(t, "EmailCredential using JsonSchema2023", vcSchema.Description())
+	assert.Equal(t, "EmailCredential using JsonSchema", vcSchema.Description())
 }
 
 func TestIsSupportedVersionAndType(t *testing.T) {
