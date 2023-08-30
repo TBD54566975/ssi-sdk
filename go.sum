@@ -42,8 +42,8 @@ github.com/hyperledger/aries-framework-go/component/models v0.0.0-20230501135648
 github.com/hyperledger/aries-framework-go/component/storageutil v0.0.0-20230427134832-0c9969493bd3 h1:JGYA9l5zTlvsvfnXT9hYPpCokAjmVKX0/r7njba7OX4=
 github.com/hyperledger/aries-framework-go/spi v0.0.0-20230427134832-0c9969493bd3 h1:ytWmOQZIYQfVJ4msFvrqlp6d+ZLhT43wS8rgE2m+J1A=
 github.com/hyperledger/aries-framework-go/spi v0.0.0-20230427134832-0c9969493bd3/go.mod h1:oryUyWb23l/a3tAP9KW+GBbfcfqp9tZD4y5hSkFrkqI=
-github.com/jarcoal/httpmock v1.3.0 h1:2RJ8GP0IIaWwcC9Fp2BmVi8Kog3v2Hn7VXM3fTd+nuc=
-github.com/jarcoal/httpmock v1.3.0/go.mod h1:3yb8rc4BI7TCBhFY8ng0gjuLKJNquuDNiPaZjnENuYg=
+github.com/jarcoal/httpmock v1.3.1 h1:iUx3whfZWVf3jT01hQTO/Eo5sAYtB2/rqaUuOtpInww=
+github.com/jarcoal/httpmock v1.3.1/go.mod h1:3yb8rc4BI7TCBhFY8ng0gjuLKJNquuDNiPaZjnENuYg=
 github.com/jorrizza/ed2curve25519 v0.1.0 h1:P58ZEiVKW4vknYuGyOXuskMm82rTJyGhgRGrMRcCE8E=
 github.com/jorrizza/ed2curve25519 v0.1.0/go.mod h1:27VPNk2FnNqLQNvvVymiX41VE/nokPyn5HHP7gtfYlo=
 github.com/kilic/bls12-381 v0.1.1-0.20210503002446-7b7597926c69 h1:kMJlf8z8wUcpyI+FQJIdGjAhfTww1y0AbQEv86bpVQI=
