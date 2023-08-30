@@ -9,7 +9,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
-	"math/big"
 	"reflect"
 
 	"github.com/btcsuite/btcd/btcec/v2"
@@ -67,7 +66,8 @@ type Option struct {
 }
 
 var (
-	ECDSAMarshalCompressed = Option{Name: "ecdsa-compressed", Value: true}
+	ECDSAMarshalCompressed   = Option{Name: "ecdsa-compressed", Value: true}
+	ECDSAUnmarshalCompressed = Option{Name: "ecdsa-compressed", Value: true}
 )
 
 // PubKeyToBytes constructs a byte representation of a public key, for a set number of supported key types
@@ -85,11 +85,25 @@ func PubKeyToBytes(key crypto.PublicKey, opts ...Option) ([]byte, error) {
 	case secp.PublicKey:
 		return k.SerializeCompressed(), nil
 	case ecdsa.PublicKey:
-		curve := k.Curve
-		if len(opts) == 1 && opts[0].Name == "ecdsa-compressed" && opts[0].Value.(bool) {
+		if k.Curve == btcec.S256() {
+			x := new(btcec.FieldVal)
+			x.SetByteSlice(k.X.Bytes())
+			y := new(btcec.FieldVal)
+			y.SetByteSlice(k.Y.Bytes())
+			return btcec.NewPublicKey(x, y).SerializeCompressed(), nil
+		}
+
+		// check if we should marshal the key in compressed form
+		if len(opts) == 1 && opts[0] == ECDSAMarshalCompressed {
 			return elliptic.MarshalCompressed(k.Curve, k.X, k.Y), nil
 		}
-		return elliptic.Marshal(curve, k.X, k.Y), nil
+
+		// go from ecdsa public key to bytes
+		pk, err := x509.MarshalPKIXPublicKey(&k)
+		if err != nil {
+			return nil, err
+		}
+		return pk, nil
 	case rsa.PublicKey:
 		return x509.MarshalPKCS1PublicKey(&k), nil
 	case dilithium.PublicKey:
@@ -107,7 +121,7 @@ func PubKeyToBytes(key crypto.PublicKey, opts ...Option) ([]byte, error) {
 
 // BytesToPubKey reconstructs a public key given some bytes and a target key type
 // It is assumed the key was turned into byte form using the sibling method `PubKeyToBytes`
-func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
+func BytesToPubKey(keyBytes []byte, kt KeyType, opts ...Option) (crypto.PublicKey, error) {
 	switch kt {
 	case Ed25519:
 		return ed25519.PublicKey(keyBytes), nil
@@ -120,56 +134,35 @@ func BytesToPubKey(keyBytes []byte, kt KeyType) (crypto.PublicKey, error) {
 		}
 		return *pubKey, nil
 	case SECP256k1ECDSA:
-		x, y := elliptic.Unmarshal(btcec.S256(), keyBytes)
-		return ecdsa.PublicKey{
-			Curve: btcec.S256(),
-			X:     x,
-			Y:     y,
-		}, nil
-	case P224:
-		var x, y *big.Int
-		x, y = elliptic.Unmarshal(elliptic.P224(), keyBytes)
-		if x == nil || y == nil {
-			x, y = elliptic.UnmarshalCompressed(elliptic.P224(), keyBytes)
+		pk, err := secp.ParsePubKey(keyBytes)
+		if err != nil {
+			return nil, err
 		}
-		return ecdsa.PublicKey{
-			Curve: elliptic.P224(),
-			X:     x,
-			Y:     y,
-		}, nil
-	case P256:
-		var x, y *big.Int
-		x, y = elliptic.Unmarshal(elliptic.P256(), keyBytes)
-		if x == nil || y == nil {
-			x, y = elliptic.UnmarshalCompressed(elliptic.P256(), keyBytes)
+		return *pk.ToECDSA(), nil
+	case P224, P256, P384, P521:
+		// check if we should unmarshal the key in compressed form
+		if len(opts) == 1 && opts[0] == ECDSAUnmarshalCompressed {
+			switch kt {
+			case P224:
+				x, y := elliptic.UnmarshalCompressed(elliptic.P224(), keyBytes)
+				return ecdsa.PublicKey{Curve: elliptic.P224(), X: x, Y: y}, nil
+			case P256:
+				x, y := elliptic.UnmarshalCompressed(elliptic.P256(), keyBytes)
+				return ecdsa.PublicKey{Curve: elliptic.P256(), X: x, Y: y}, nil
+			case P384:
+				x, y := elliptic.UnmarshalCompressed(elliptic.P384(), keyBytes)
+				return ecdsa.PublicKey{Curve: elliptic.P384(), X: x, Y: y}, nil
+			case P521:
+				x, y := elliptic.UnmarshalCompressed(elliptic.P521(), keyBytes)
+				return ecdsa.PublicKey{Curve: elliptic.P521(), X: x, Y: y}, nil
+			}
 		}
-		return ecdsa.PublicKey{
-			Curve: elliptic.P256(),
-			X:     x,
-			Y:     y,
-		}, nil
-	case P384:
-		var x, y *big.Int
-		x, y = elliptic.Unmarshal(elliptic.P384(), keyBytes)
-		if x == nil || y == nil {
-			x, y = elliptic.UnmarshalCompressed(elliptic.P384(), keyBytes)
+
+		key, err := x509.ParsePKIXPublicKey(keyBytes)
+		if err != nil {
+			return nil, err
 		}
-		return ecdsa.PublicKey{
-			Curve: elliptic.P384(),
-			X:     x,
-			Y:     y,
-		}, nil
-	case P521:
-		var x, y *big.Int
-		x, y = elliptic.Unmarshal(elliptic.P521(), keyBytes)
-		if x == nil || y == nil {
-			x, y = elliptic.UnmarshalCompressed(elliptic.P521(), keyBytes)
-		}
-		return ecdsa.PublicKey{
-			Curve: elliptic.P521(),
-			X:     x,
-			Y:     y,
-		}, nil
+		return *key.(*ecdsa.PublicKey), nil
 	case RSA:
 		pubKey, err := x509.ParsePKCS1PublicKey(keyBytes)
 		if err != nil {
