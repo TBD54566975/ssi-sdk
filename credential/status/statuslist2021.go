@@ -58,12 +58,12 @@ type StatusList2021Credential struct {
 func GenerateStatusList2021Credential(id string, issuer string, purpose StatusPurpose, issuedCredentials []credential.VerifiableCredential) (*credential.VerifiableCredential, error) {
 	statusListIndices, err := prepareCredentialsForStatusList(purpose, issuedCredentials)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not generate status list credential")
+		return nil, errors.Wrap(err, "generating status list credential")
 	}
 
 	bitString, err := bitstringGeneration(statusListIndices)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not generate bitstring for status list credential")
+		return nil, errors.Wrap(err, "generating bitstring for status list credential")
 	}
 
 	rlc := StatusList2021Credential{
@@ -89,7 +89,7 @@ func GenerateStatusList2021Credential(id string, issuer string, purpose StatusPu
 	}
 	rlcJSON, err := util.ToJSONMap(rlc)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not turn RLC to JSON")
+		return nil, errors.Wrap(err, "turning RLC to JSON")
 	}
 	if err = builder.SetCredentialSubject(rlcJSON); err != nil {
 		return nil, errors.Wrap(err, errMsgFragment+"subject")
@@ -97,7 +97,7 @@ func GenerateStatusList2021Credential(id string, issuer string, purpose StatusPu
 
 	statusListCredential, err := builder.Build()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not build status list credential")
+		return nil, errors.Wrap(err, "building status list credential")
 	}
 	return statusListCredential, nil
 }
@@ -151,11 +151,11 @@ func prepareCredentialsForStatusList(purpose StatusPurpose, credentials []creden
 func getStatusEntry(maybeCredentialStatus any) (*StatusList2021Entry, error) {
 	statusBytes, err := json.Marshal(maybeCredentialStatus)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal credential status property")
+		return nil, errors.Wrap(err, "marshaling credential status property")
 	}
 	var statusEntry StatusList2021Entry
 	if err = json.Unmarshal(statusBytes, &statusEntry); err != nil {
-		return nil, errors.Wrap(err, "could not unmarshal credential status property")
+		return nil, errors.Wrap(err, "unmarshaling credential status property")
 	}
 	return &statusEntry, util.IsValidStruct(statusEntry)
 }
@@ -185,7 +185,7 @@ func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
 
 	bitstringBinary, err := b.MarshalBinary()
 	if err != nil {
-		return "", errors.Wrap(err, "could not generate bitstring binary representation")
+		return "", errors.Wrap(err, "generating bitstring binary representation")
 	}
 
 	// 3. Generate a compressed bitstring by using the GZIP compression algorithm [RFC1952] on the bitstring and then
@@ -193,11 +193,11 @@ func bitstringGeneration(statusListCredentialIndices []string) (string, error) {
 	var buf bytes.Buffer
 	zw := gzip.NewWriter(&buf)
 	if _, err = zw.Write(bitstringBinary); err != nil {
-		return "", errors.Wrap(err, "could not compress status list bitstring using GZIP")
+		return "", errors.Wrap(err, "compressing status list bitstring using GZIP")
 	}
 
 	if err = zw.Close(); err != nil {
-		return "", errors.Wrap(err, "could not close gzip writer")
+		return "", errors.Wrap(err, "closing gzip writer")
 	}
 
 	base64Bitstring := base64.StdEncoding.EncodeToString(buf.Bytes())
@@ -214,27 +214,27 @@ func bitstringExpansion(compressedBitstring string) ([]string, error) {
 	// bitstring and then expanding the output using the GZIP decompression algorithm [RFC1952].
 	decoded, err := base64.StdEncoding.DecodeString(compressedBitstring)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not decode compressed bitstring")
+		return nil, errors.Wrap(err, "decoding compressed bitstring")
 	}
 
 	bitstringReader := bytes.NewReader(decoded)
 	zr, err := gzip.NewReader(bitstringReader)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not unzip status list bitstring using GZIP")
+		return nil, errors.Wrap(err, "unzipping status list bitstring using GZIP")
 	}
 
 	unzipped, err := io.ReadAll(zr)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not expand status list bitstring using GZIP")
+		return nil, errors.Wrap(err, "expanding status list bitstring using GZIP")
 	}
 
 	if err := zr.Close(); err != nil {
-		return nil, errors.Wrap(err, "could not close gzip reader")
+		return nil, errors.Wrap(err, "closing gzip reader")
 	}
 
 	b := bitset.New(uint(len(unzipped)))
 	if err := b.UnmarshalBinary(unzipped); err != nil {
-		return nil, errors.Wrap(err, "could not unmarshal binary bitstring")
+		return nil, errors.Wrap(err, "unmarshaling binary bitstring")
 	}
 
 	// find set bits to reconstruct the status list indices

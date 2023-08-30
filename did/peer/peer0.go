@@ -28,7 +28,7 @@ func (Method0) Generate(kt crypto.KeyType, publicKey gocrypto.PublicKey) (*DIDPe
 	var didPeer DIDPeer
 	encoded, err := encodePublicKeyWithKeyMultiCodecType(kt, publicKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not encode public key for did:peer")
+		return nil, errors.Wrap(err, "encoding public key for did:peer")
 	}
 	didPeer = buildDIDPeerFromEncoded(0, encoded)
 	return &didPeer, err

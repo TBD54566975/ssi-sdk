@@ -236,12 +236,12 @@ func (d DIDPeer) decodeServiceBlock(s string) (*did.Service, error) {
 	encoder := b64.RawURLEncoding.WithPadding(padding)
 	decoded, err := encoder.DecodeString(s2)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to decode service for did:peer")
+		return nil, errors.Wrap(err, "decoding service for did:peer")
 	}
 
 	var psbe ServiceBlockEncoded
 	if err = json.Unmarshal(decoded, &psbe); err != nil {
-		return nil, errors.Wrap(err, "could not decode JSON for peer service block")
+		return nil, errors.Wrap(err, "decoding JSON for peer service block")
 	}
 	serviceBlock := did.Service{
 		Type:            psbe.ServiceType,

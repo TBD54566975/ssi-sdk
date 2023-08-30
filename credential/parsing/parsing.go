@@ -129,7 +129,7 @@ func VCJWTJSONToVC(vcJWTJSON []byte) (jws.Headers, jwt.Token, *credential.Verifi
 	// get headers
 	headers, err := jwx.GetJWSHeaders(vcJWTJSON)
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "could not get JWT headers")
+		return nil, nil, nil, errors.Wrap(err, "getting JWT headers")
 	}
 
 	cred, err := integrity.ParseVerifiableCredentialFromToken(token)

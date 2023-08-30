@@ -41,20 +41,20 @@ func (ra *RemoteAccess) GetVCJSONSchema(ctx context.Context, t VCJSONSchemaType,
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "error creating request")
+		return nil, errors.Wrap(err, "creating request")
 	}
 	resp, err := ra.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting schema")
+		return nil, errors.Wrap(err, "getting schema")
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Errorf("error getting schema, status code: %d", resp.StatusCode)
+		return nil, errors.Errorf("getting schema, status code: %d", resp.StatusCode)
 	}
 
 	var schema VCJSONSchema
 	if err = json.NewDecoder(resp.Body).Decode(&schema); err != nil {
-		return nil, errors.Wrap(err, "error decoding schema")
+		return nil, errors.Wrap(err, "decoding schema")
 	}
 	return schema, nil
 }

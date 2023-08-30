@@ -70,7 +70,7 @@ func (j JWSSignatureSuite) Sign(s cryptosuite.Signer, p cryptosuite.WithEmbedded
 	// prepare proof options
 	contexts, err := cryptosuite.GetContextsFromProvable(p)
 	if err != nil {
-		return errors.Wrap(err, "could not get contexts from provable")
+		return errors.Wrap(err, "getting contexts from provable")
 	}
 
 	// make sure the suite's context(s) are included
@@ -94,7 +94,7 @@ func (j JWSSignatureSuite) Sign(s cryptosuite.Signer, p cryptosuite.WithEmbedded
 	// 4 & 5. create the signature over the provable data as a JWS
 	signature, err := s.Sign(tbs)
 	if err != nil {
-		return errors.Wrap(err, "could not sign provable value")
+		return errors.Wrap(err, "signing provable value")
 	}
 
 	// set the signature on the proof object and return
@@ -108,7 +108,7 @@ func (j JWSSignatureSuite) Verify(v cryptosuite.Verifier, p cryptosuite.WithEmbe
 	proof := p.GetProof()
 	gotProof, err := JSONWebSignatureProofFromGenericProof(*proof)
 	if err != nil {
-		return errors.Wrap(err, "could not prepare proof for verification; error coercing proof into JsonWebSignature2020 proof")
+		return errors.Wrap(err, "preparing proof for verification; error coercing proof into JsonWebSignature2020 proof")
 	}
 
 	// remove proof before verifying
@@ -124,7 +124,7 @@ func (j JWSSignatureSuite) Verify(v cryptosuite.Verifier, p cryptosuite.WithEmbe
 	// prepare proof options
 	contexts, err := cryptosuite.GetContextsFromProvable(p)
 	if err != nil {
-		return errors.Wrap(err, "could not get contexts from provable")
+		return errors.Wrap(err, "getting contexts from provable")
 	}
 
 	// make sure the suite's context(s) are included
@@ -146,7 +146,7 @@ func (j JWSSignatureSuite) Verify(v cryptosuite.Verifier, p cryptosuite.WithEmbe
 	}
 
 	if err = v.Verify(tbv, jwsCopy); err != nil {
-		return errors.Wrap(err, "could not verify JWS")
+		return errors.Wrap(err, "verifying JWS")
 	}
 	return nil
 }
@@ -172,7 +172,7 @@ func (JWSSignatureSuite) Canonicalize(marshaled []byte) (*string, error) {
 	}
 	normalized, err := LDNormalize(generic)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not canonicalize provable document")
+		return nil, errors.Wrap(err, "canonicalizing provable document")
 	}
 	canonicalString := normalized.(string)
 	return &canonicalString, nil
@@ -182,45 +182,45 @@ func (j JWSSignatureSuite) CreateVerifyHash(doc map[string]any, proof crypto.Pro
 	// first, make sure "created" exists in the proof and insert an LD context property for the proof vocabulary
 	preparedProof, err := j.prepareProof(proof, opts)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not prepare proof for the create verify hash algorithm")
+		return nil, errors.Wrap(err, "preparing proof for the create verify hash algorithm")
 	}
 
 	// marshal doc to prepare for canonicalizaiton
 	marshaledProvable, err := j.Marshal(doc)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal doc")
+		return nil, errors.Wrap(err, "marshaling doc")
 	}
 
 	// canonicalize doc using the suite's method
 	canonicalProvable, err := j.Canonicalize(marshaledProvable)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not canonicalize doc")
+		return nil, errors.Wrap(err, "canonicalizing doc")
 	}
 
 	// marshal proof to prepare for canonicalizaiton
 	marshaledOptions, err := j.Marshal(preparedProof)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal proof")
+		return nil, errors.Wrap(err, "marshaling proof")
 	}
 
 	// 4.1 canonicalize  proof using the suite's method
 	canonicalizedOptions, err := j.Canonicalize(marshaledOptions)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not canonicalize proof")
+		return nil, errors.Wrap(err, "canonicalizing proof")
 	}
 
 	// 4.2 set output to the result of the hash of the canonicalized options document
 	canonicalizedOptionsBytes := []byte(*canonicalizedOptions)
 	optionsDigest, err := j.Digest(canonicalizedOptionsBytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not take digest of proof")
+		return nil, errors.Wrap(err, "taking digest of proof")
 	}
 
 	// 4.3 hash the canonicalized doc and append it to the output
 	canonicalDoc := []byte(*canonicalProvable)
 	documentDigest, err := j.Digest(canonicalDoc)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not take digest of doc")
+		return nil, errors.Wrap(err, "taking digest of doc")
 	}
 
 	// 5. return the output
