@@ -66,8 +66,7 @@ type Option struct {
 }
 
 var (
-	ECDSAMarshalCompressed   = Option{Name: "ecdsa-compressed", Value: true}
-	ECDSAUnmarshalCompressed = Option{Name: "ecdsa-compressed", Value: true}
+	ECDSACompressed = Option{Name: "ecdsa-compressed", Value: true}
 )
 
 // PubKeyToBytes constructs a byte representation of a public key, for a set number of supported key types
@@ -94,7 +93,7 @@ func PubKeyToBytes(key crypto.PublicKey, opts ...Option) ([]byte, error) {
 		}
 
 		// check if we should marshal the key in compressed form
-		if len(opts) == 1 && opts[0] == ECDSAMarshalCompressed {
+		if len(opts) == 1 && opts[0] == ECDSACompressed {
 			return elliptic.MarshalCompressed(k.Curve, k.X, k.Y), nil
 		}
 
@@ -141,7 +140,7 @@ func BytesToPubKey(keyBytes []byte, kt KeyType, opts ...Option) (crypto.PublicKe
 		return *pk.ToECDSA(), nil
 	case P224, P256, P384, P521:
 		// check if we should unmarshal the key in compressed form
-		if len(opts) == 1 && opts[0] == ECDSAUnmarshalCompressed {
+		if len(opts) == 1 && opts[0] == ECDSACompressed {
 			switch kt {
 			case P224:
 				x, y := elliptic.UnmarshalCompressed(elliptic.P224(), keyBytes)

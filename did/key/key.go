@@ -103,7 +103,7 @@ func GenerateDIDKey(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDKey, error) {
 		return nil, nil, errors.Wrap(err, "could not generate key for did:key")
 	}
 
-	pubKeyBytes, err := crypto.PubKeyToBytes(pubKey, crypto.ECDSAMarshalCompressed)
+	pubKeyBytes, err := crypto.PubKeyToBytes(pubKey, crypto.ECDSACompressed)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not convert public key to byte")
 	}

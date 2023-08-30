@@ -115,6 +115,11 @@ For information on versioning refer to our [versioning guide](doc/VERSIONING.md)
 
 The latest version is...nothing! No releases have been made.
 
+# Mobile
+
+Using the [gomobile](https://pkg.go.dev/golang.org/x/mobile/cmd/gomobile) tool, we can generate a library that can be
+used in mobile applications. For more information view the [mobile README](mobile/README.md).
+
 # Examples
 
 A set of code examples can be found in the [examples directory](example). We welcome
