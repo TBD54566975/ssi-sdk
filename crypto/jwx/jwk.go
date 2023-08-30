@@ -176,7 +176,8 @@ func (k *PublicKeyJWK) ToPublicKey() (gocrypto.PublicKey, error) {
 		}
 		k.ALG = alg
 	}
-	if IsSupportedJWXSigningVerificationAlgorithm(k.ALG) {
+
+	if IsSupportedJWXSigningVerificationAlgorithm(k.ALG) || IsSupportedKeyAgreementType(k.ALG) {
 		return k.toSupportedPublicKey()
 	}
 	if IsExperimentalJWXSigningVerificationAlgorithm(k.ALG) {

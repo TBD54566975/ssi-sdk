@@ -128,7 +128,7 @@ func jwxVerifier(id string, jwk PublicKeyJWK, key gocrypto.PublicKey) (*Verifier
 		}
 		jwk.ALG = alg
 	}
-	if !IsSupportedJWXSigningVerificationAlgorithm(jwk.ALG) && !IsExperimentalJWXSigningVerificationAlgorithm(jwk.ALG) {
+	if !IsSupportedJWXSigningVerificationAlgorithm(jwk.ALG) && !IsSupportedKeyAgreementType(jwk.KTY) {
 		return nil, fmt.Errorf("unsupported signing/verification algorithm: %s", jwk.ALG)
 	}
 	if convertedPubKey, ok := pubKeyForJWX(key); ok {
@@ -278,6 +278,19 @@ func GetSupportedJWXSigningVerificationAlgorithms() []string {
 		jwa.ES512.String(),
 		jwa.EdDSA.String(),
 	}
+}
+
+func IsSupportedKeyAgreementType(keyAgreementType string) bool {
+	for _, supported := range GetSupportedKeyAgreementTypes() {
+		if keyAgreementType == supported {
+			return true
+		}
+	}
+	return false
+}
+
+func GetSupportedKeyAgreementTypes() []string {
+	return []string{jwa.X25519.String()}
 }
 
 // IsExperimentalJWXSigningVerificationAlgorithm returns true if the algorithm is supported for experimental signing or verifying JWXs

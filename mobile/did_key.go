@@ -10,8 +10,8 @@ import (
 
 // GetSupportedKeyTypes returns a list of supported key types as string values
 func GetSupportedKeyTypes() []string {
-	keyTypes := make([]string, len(crypto.GetSupportedKeyTypes()))
-	for _, kt := range crypto.GetSupportedKeyTypes() {
+	keyTypes := make([]string, 0, len(key.GetSupportedDIDKeyTypes()))
+	for _, kt := range key.GetSupportedDIDKeyTypes() {
 		keyTypes = append(keyTypes, string(kt))
 	}
 	return keyTypes
@@ -95,7 +95,7 @@ func CreateDIDKey(requestBytes []byte) ([]byte, error) {
 		logrus.WithError(err).Error("failed to convert public key jwk to public key")
 		return nil, err
 	}
-	pubKeyBytes, err := crypto.PubKeyToBytes(publicKey)
+	pubKeyBytes, err := crypto.PubKeyToBytes(publicKey, crypto.ECDSAMarshalCompressed)
 	if err != nil {
 		logrus.WithError(err).Error("failed to convert public key to bytes")
 		return nil, err
