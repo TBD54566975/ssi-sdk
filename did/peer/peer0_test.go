@@ -34,6 +34,8 @@ func TestPeerResolveMethod0(t *testing.T) {
 	testDoc := getSampleDIDDocumentMethod0()
 	assert.Equal(t, testDoc.Context, resolved.Document.Context)
 	assert.Equal(t, testDoc.ID, resolved.ID)
+	assert.Equal(t, len(resolved.VerificationMethod), 1)
+	assert.Equal(t, testDoc.ID, resolved.VerificationMethod[0].Controller)
 }
 
 func makeSamplePeerDIDDocument0() *did.Document {
