@@ -129,7 +129,7 @@ func MultiBaseToPubKeyBytes(mb string) ([]byte, error) {
 	// n = # bytes for the int, which we expect to be two from our multicodec
 	_, n, err := varint.FromUvarint(decoded)
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing multibase varint")
+		return nil, errors.Wrap(err, "parsing multibase varint")
 	}
 	if n != 2 {
 		return nil, errors.New("error parsing multibase varint")
@@ -236,7 +236,7 @@ func DecodeMultibaseEncodedKey(d string) ([]byte, cryptosuite.LDKeyType, crypto.
 func DecodeMultibasePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyType, error) {
 	encoding, decoded, err := multibase.Decode(string(data))
 	if err != nil {
-		return nil, "", errors.Wrap(err, "failed to decode public key")
+		return nil, "", errors.Wrap(err, "decoding public key")
 	}
 
 	if encoding != Base58BTCMultiBase {
@@ -246,7 +246,7 @@ func DecodeMultibasePublicKeyWithType(data []byte) ([]byte, cryptosuite.LDKeyTyp
 	// n = # bytes for the int, which we expect to be two from our multicodec
 	multiCodec, n, err := varint.FromUvarint(decoded)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "failed to decode public key from varint")
+		return nil, "", errors.Wrap(err, "decoding public key from varint")
 	}
 
 	pubKeyBytes := decoded[n:]

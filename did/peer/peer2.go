@@ -68,25 +68,25 @@ func (Method2) resolve(didDoc did.DID, _ resolution.Option) (*resolution.Result,
 		case PurposeEncryptionCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to build encryption code")
+				return nil, errors.Wrap(err, "building encryption code")
 			}
 			doc.KeyAgreement = append(doc.KeyAgreement, *vm)
 		case PurposeVerificationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to build verification code")
+				return nil, errors.Wrap(err, "building verification code")
 			}
 			doc.Authentication = append(doc.Authentication, *vm)
 		case PurposeCapabilityInvocationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to build capabilities invocation code")
+				return nil, errors.Wrap(err, "building capabilities invocation code")
 			}
 			doc.CapabilityInvocation = append(doc.CapabilityInvocation, *vm)
 		case PurposeCapabilityDelegationCode:
 			vm, err := d.buildVerificationMethod(entry[1:], string(d))
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to build capability delegation code")
+				return nil, errors.Wrap(err, "building capability delegation code")
 			}
 			doc.CapabilityDelegation = append(doc.CapabilityDelegation, *vm)
 		default:
@@ -135,7 +135,7 @@ func (m Method2) Generate() (*DIDPeer, error) {
 			enc, err = didPeer.encodeService(service)
 
 			if err != nil {
-				return nil, errors.Wrap(err, "could not encode service for did:peer")
+				return nil, errors.Wrap(err, "encoding service for did:peer")
 			}
 
 		case gocrypto.PublicKey:
@@ -143,7 +143,7 @@ func (m Method2) Generate() (*DIDPeer, error) {
 			key := value.(gocrypto.PublicKey)
 			enc, err = encodePublicKeyWithKeyMultiCodecType(m.KT, key)
 			if err != nil {
-				return nil, errors.Wrap(err, "could not encode public key for did:peer")
+				return nil, errors.Wrap(err, "encoding public key for did:peer")
 			}
 		default:
 			return nil, errors.Wrap(util.NotImplementedError, fmt.Sprintf("encoding of %s did:peer", tt))

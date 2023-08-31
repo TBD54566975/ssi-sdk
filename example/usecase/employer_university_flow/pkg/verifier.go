@@ -18,11 +18,11 @@ import (
 func ValidateAccess(verifier jwx.Verifier, r resolution.Resolver, submissionBytes []byte) error {
 	_, _, vp, err := integrity.VerifyVerifiablePresentationJWT(context.Background(), verifier, r, string(submissionBytes))
 	if err != nil {
-		return errors.Wrap(err, "failed to validate VP signature")
+		return errors.Wrap(err, "validating VP signature")
 	}
 
 	if err = vp.IsValid(); err != nil {
-		return errors.Wrap(err, "failed to validate VP")
+		return errors.Wrap(err, "validating VP")
 	}
 	return nil
 }

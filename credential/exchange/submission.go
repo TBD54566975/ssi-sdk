@@ -151,7 +151,7 @@ func BuildPresentationSubmission(signer any, requester string, def PresentationD
 	}
 	normalizedClaims, err := normalizePresentationClaims(claims)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to normalize some presentation claims")
+		return nil, errors.Wrap(err, "normalizing some presentation claims")
 	}
 	if len(normalizedClaims) == 0 {
 		return nil, errors.New("no claims remain after normalization; cannot continue processing")
@@ -296,7 +296,7 @@ func BuildPresentationSubmissionVP(submitter string, def PresentationDefinition,
 		// in the case where we've seen the claim, we need to check as to not add a nil claim value
 		if claim.claim != nil {
 			if err := builder.AddVerifiableCredentials(claim.claim); err != nil {
-				return nil, errors.Wrap(err, "could not add claim to verifiable presentation")
+				return nil, errors.Wrap(err, "adding claim to verifiable presentation")
 			}
 		}
 	}
