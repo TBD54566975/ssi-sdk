@@ -115,6 +115,27 @@ func TestJWKToPublicKeyJWK(t *testing.T) {
 		assert.Equal(tt, publicKey, gotPubKey)
 	})
 
+	t.Run("X25519", func(tt *testing.T) {
+		// known public key
+		publicKey, _, err := crypto.GenerateX25519Key()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, publicKey)
+
+		// to our representation of a jwk
+		pubKeyJWK, err := PublicKeyToPublicKeyJWK(testKID, publicKey)
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, pubKeyJWK)
+
+		assert.Equal(tt, "OKP", pubKeyJWK.KTY)
+		assert.Equal(tt, "X25519", pubKeyJWK.CRV)
+
+		// convert back
+		gotPubKey, err := pubKeyJWK.ToPublicKey()
+		assert.NoError(tt, err)
+		assert.NotEmpty(tt, gotPubKey)
+		assert.Equal(tt, publicKey, gotPubKey)
+	})
+
 	t.Run("Dilithium 2", func(tt *testing.T) {
 		// known private key
 		publicKey, _, err := crypto.GenerateDilithiumKeyPair(dilithium.Mode2)

@@ -1,6 +1,6 @@
 module github.com/TBD54566975/ssi-sdk/sd-jwt
 
-go 1.20
+go 1.21
 
 require (
 	github.com/TBD54566975/ssi-sdk v0.0.4-alpha
