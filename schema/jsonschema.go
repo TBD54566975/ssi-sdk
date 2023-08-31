@@ -49,7 +49,7 @@ func IsValidJSON(maybeJSON string) bool {
 func IsAnyValidAgainstJSONSchema(data any, schema string) error {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
-		return errors.Wrap(err, "could not marshal data to JSON")
+		return errors.Wrap(err, "marshaling data to JSON")
 	}
 	return IsValidAgainstJSONSchema(string(jsonBytes), schema)
 }
@@ -71,7 +71,7 @@ func IsValidAgainstJSONSchema(data, schema string) error {
 	}
 	jsonInterface, err := util.ToJSONInterface(data)
 	if err != nil {
-		return errors.Wrap(err, "could not convert json to interface")
+		return errors.Wrap(err, "converting json to interface")
 	}
 	return jsonSchema.Validate(jsonInterface)
 }

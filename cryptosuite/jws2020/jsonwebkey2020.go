@@ -138,7 +138,7 @@ func GenerateX25519JSONWebKey2020() (*JSONWebKey2020, error) {
 func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateSECP256k1Key()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not generate secp256k1 key")
+		return nil, errors.Wrap(err, "generating secp256k1 key")
 	}
 	return JSONWebKey2020FromPrivateKey(privKey)
 }
@@ -148,7 +148,7 @@ func GenerateSECP256k1JSONWebKey2020() (*JSONWebKey2020, error) {
 func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateP256Key()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not generate p-256 key")
+		return nil, errors.Wrap(err, "generating p-256 key")
 	}
 	return JSONWebKey2020FromPrivateKey(privKey)
 }
@@ -158,7 +158,7 @@ func GenerateP256JSONWebKey2020() (*JSONWebKey2020, error) {
 func GenerateP384JSONWebKey2020() (*JSONWebKey2020, error) {
 	_, privKey, err := crypto.GenerateP384Key()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not generate p-384 key")
+		return nil, errors.Wrap(err, "generating p-384 key")
 	}
 	return JSONWebKey2020FromPrivateKey(privKey)
 }

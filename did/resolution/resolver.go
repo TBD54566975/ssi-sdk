@@ -53,7 +53,7 @@ func NewResolver(resolvers ...Resolver) (*MultiMethodResolver, error) {
 func (dr MultiMethodResolver) Resolve(ctx context.Context, id string, opts ...Option) (*Result, error) {
 	method, err := GetMethodForDID(id)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get method for DID before resolving")
+		return nil, errors.Wrap(err, "getting method for DID before resolving")
 	}
 	if resolver, ok := dr.resolvers[method]; ok {
 		return resolver.Resolve(ctx, id, opts)

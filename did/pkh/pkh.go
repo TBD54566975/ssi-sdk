@@ -152,17 +152,17 @@ func (d PKH) Expand() (*did.Document, error) {
 	verificationMethod, err := constructPKHVerificationMethod(d)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "could not construct verification method")
+		return nil, errors.Wrap(err, "constructing verification method")
 	}
 
 	knownDIDPKHContextJSON, err := GetDIDPKHContext()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get known context json")
+		return nil, errors.Wrap(err, "getting known context json")
 	}
 
 	contextJSON, err := util.ToJSONInterface(knownDIDPKHContextJSON)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not convert known context to json")
+		return nil, errors.Wrap(err, "converting known context to json")
 	}
 
 	verificationMethodSet := []did.VerificationMethodSet{
@@ -190,11 +190,11 @@ func constructPKHVerificationMethod(didPKH PKH) (*did.VerificationMethod, error)
 
 	network, err := GetDIDPKHNetworkForDID(didPKH.String())
 	if err != nil {
-		return nil, errors.Wrap(err, "could not find network")
+		return nil, errors.Wrap(err, "finding network")
 	}
 	verificationType, err := GetVerificationTypeForNetwork(network)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not find verification type")
+		return nil, errors.Wrap(err, "finding verification type")
 	}
 
 	suffix, err := didPKH.Suffix()

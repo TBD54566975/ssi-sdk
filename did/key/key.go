@@ -100,17 +100,17 @@ func GenerateDIDKey(kt crypto.KeyType) (gocrypto.PrivateKey, *DIDKey, error) {
 
 	pubKey, privKey, err := crypto.GenerateKeyByKeyType(kt)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not generate key for did:key")
+		return nil, nil, errors.Wrap(err, "generating key for did:key")
 	}
 
 	pubKeyBytes, err := crypto.PubKeyToBytes(pubKey, crypto.ECDSAMarshalCompressed)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not convert public key to byte")
+		return nil, nil, errors.Wrap(err, "converting public key to byte")
 	}
 
 	didKey, err := CreateDIDKey(kt, pubKeyBytes)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not create DID key")
+		return nil, nil, errors.Wrap(err, "creating DID key")
 	}
 	return privKey, didKey, err
 }
@@ -126,7 +126,7 @@ func CreateDIDKey(kt crypto.KeyType, publicKey []byte) (*DIDKey, error) {
 	// did:key:<multibase encoded, multicodec identified, public key>
 	encoded, err := MultibaseEncodedKey(kt, publicKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not multibase encode key")
+		return nil, errors.Wrap(err, "multibase encoding key")
 	}
 	didKey := DIDKey(fmt.Sprintf("%s:%s", Prefix, encoded))
 	return &didKey, nil
@@ -152,7 +152,7 @@ func MultibaseEncodedKey(kt crypto.KeyType, publicKey []byte) (string, error) {
 func (d DIDKey) Decode() ([]byte, crypto.KeyType, error) {
 	parsed, err := d.Suffix()
 	if err != nil {
-		return nil, "", errors.Wrap(err, "could not parse did:key")
+		return nil, "", errors.Wrap(err, "parsing did:key")
 	}
 	if parsed == "" {
 		return nil, "", fmt.Errorf("could not decode did:key value: %s", string(d))
@@ -160,7 +160,7 @@ func (d DIDKey) Decode() ([]byte, crypto.KeyType, error) {
 
 	encoding, decoded, err := multibase.Decode(parsed)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "could not decode did:key")
+		return nil, "", errors.Wrap(err, "decoding did:key")
 	}
 	if encoding != did.Base58BTCMultiBase {
 		return nil, "", fmt.Errorf("expected %d encoding but found %d", did.Base58BTCMultiBase, encoding)
@@ -199,11 +199,11 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 	id := string(d)
 	suffix, err := d.Suffix()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse did:key")
+		return nil, errors.Wrap(err, "parsing did:key")
 	}
 	pubKey, cryptoKeyType, err := d.Decode()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not decode did:key")
+		return nil, errors.Wrap(err, "decoding did:key")
 	}
 
 	var verificationMethod *did.VerificationMethod
@@ -217,7 +217,7 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 	case cryptosuite.MultikeyType:
 		multiKeyType, err := did.KeyTypeToMultikeyLDType(cryptoKeyType)
 		if err != nil {
-			return nil, errors.Wrap(err, "could not convert key type to multikey type")
+			return nil, errors.Wrap(err, "converting key type to multikey type")
 		}
 		verificationMethod, err = did.ConstructMultibaseVerificationMethod(keyID, id, pubKey, multiKeyType)
 		if err != nil {
@@ -280,7 +280,7 @@ func (d DIDKey) Expand(opts ...Option) (*did.Document, error) {
 	if enableEncryptionDerivation && !isVerificationMethodX25519Key {
 		keyAgreementVerificationMethod, keyAgreementVerificationMethodSet, err := generateKeyAgreementVerificationMethod(*verificationMethod)
 		if err != nil {
-			return nil, errors.Wrap(err, "could not generate key agreement verification method")
+			return nil, errors.Wrap(err, "generating key agreement verification method")
 		}
 		if keyAgreementVerificationMethod != nil {
 			doc.VerificationMethod = append(doc.VerificationMethod, *keyAgreementVerificationMethod)

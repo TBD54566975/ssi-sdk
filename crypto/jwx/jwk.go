@@ -340,7 +340,7 @@ func jwkFromRSAPrivateKey(key rsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, er
 	}
 	rsaJWKBytes, err := json.Marshal(rsaJWKGeneric)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to marshal rsa jwk")
+		return nil, nil, errors.Wrap(err, "marshalling rsa jwk")
 	}
 	var publicKeyJWK PublicKeyJWK
 	if err = json.Unmarshal(rsaJWKBytes, &publicKeyJWK); err != nil {

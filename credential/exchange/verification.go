@@ -97,7 +97,7 @@ func VerifyPresentationSubmissionVP(def PresentationDefinition, vp credential.Ve
 	// turn the vp into JSON so we can use the paths from the submission descriptor to resolve each claim
 	vpJSON, err := util.ToJSONMap(vp)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not turn VP into JSON representation")
+		return nil, errors.Wrap(err, "turning VP into JSON representation")
 	}
 
 	// store results for each input descriptor

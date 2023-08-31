@@ -378,6 +378,12 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		assert.True(tt, verified)
 	})
 
+	t.Run("mytests", func(t *testing.T) {
+		_, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
+		assert.NoError(t, err)
+		assert.Contains(t, didKey.String(), "did:key:z6Mk")
+	})
+
 	t.Run("valid presentation, bad credential", func(tt *testing.T) {
 		resolver, err := resolution.NewResolver([]resolution.Resolver{key.Resolver{}}...)
 		assert.NoError(tt, err)

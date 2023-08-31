@@ -211,7 +211,7 @@ func GetKeyTypeFromPrivateKey(key crypto.PrivateKey) (KeyType, error) {
 	case dilithium.PrivateKey:
 		mode, err := GetModeFromDilithiumPrivateKey(k)
 		if err != nil {
-			return "", errors.Wrap(err, "failed to get dilithium mode from private key")
+			return "", errors.Wrap(err, "getting dilithium mode from private key")
 		}
 		switch mode {
 		case dilithium.Mode2:

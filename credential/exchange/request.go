@@ -117,7 +117,7 @@ func VerifyPresentationRequest(verifier any, pt PresentationRequestType, request
 func VerifyJWTPresentationRequest(verifier jwx.Verifier, request []byte) (*PresentationDefinition, error) {
 	_, parsed, err := verifier.VerifyAndParse(string(request))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not verify and parse jwt presentation request")
+		return nil, errors.Wrap(err, "verifying and parse jwt presentation request")
 	}
 	presDefGeneric, ok := parsed.Get(PresentationDefinitionKey)
 	if !ok {
@@ -125,11 +125,11 @@ func VerifyJWTPresentationRequest(verifier jwx.Verifier, request []byte) (*Prese
 	}
 	presDefBytes, err := json.Marshal(presDefGeneric)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal token into bytes for presentation definition")
+		return nil, errors.Wrap(err, "marshalling token into bytes for presentation definition")
 	}
 	var def PresentationDefinition
 	if err := json.Unmarshal(presDefBytes, &def); err != nil {
-		return nil, errors.Wrap(err, "could not unmarshal token into presentation definition")
+		return nil, errors.Wrap(err, "unmarshalling token into presentation definition")
 	}
 	return &def, nil
 }

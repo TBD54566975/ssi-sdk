@@ -22,11 +22,11 @@ func (s *Signer) SignJWS(payload []byte) ([]byte, error) {
 func (*Signer) Parse(token string) (jws.Headers, jwt.Token, error) {
 	parsed, err := jwt.Parse([]byte(token), jwt.WithValidate(false), jwt.WithVerify(false))
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not parse JWT")
+		return nil, nil, errors.Wrap(err, "parsing JWT")
 	}
 	headers, err := GetJWSHeaders([]byte(token))
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not get JWS headers")
+		return nil, nil, errors.Wrap(err, "getting JWS headers")
 	}
 	return headers, parsed, nil
 }
@@ -44,7 +44,7 @@ func (v *Verifier) VerifyJWS(token string) error {
 func (*Verifier) ParseJWS(token string) (*jws.Signature, error) {
 	parsed, err := jws.Parse([]byte(token))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse JWS")
+		return nil, errors.Wrap(err, "parsing JWS")
 	}
 	signatures := parsed.Signatures()
 	if len(signatures) != 1 {
