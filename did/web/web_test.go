@@ -106,6 +106,12 @@ func TestDIDWebCreateDoc(t *testing.T) {
 		doc, err := didWebBasic.CreateDoc(crypto.Ed25519, pk)
 		assert.NoError(tt, err)
 		assert.Equal(tt, string(didWebBasic), doc.ID)
+		tt.Run("Validate Owner Verification Method", func(t *testing.T) {
+			assert.Equal(t, len(doc.VerificationMethod), 1)
+			ownerMethod := doc.VerificationMethod[0]
+			assert.Contains(t, ownerMethod.ID, "owner")
+			assert.Equal(t, ownerMethod.Controller, doc.ID)
+		})
 	})
 
 	t.Run("Unsupported Key Type", func(tt *testing.T) {

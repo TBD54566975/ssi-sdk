@@ -71,7 +71,7 @@ func (d DIDWeb) CreateDoc(kt crypto.KeyType, publicKey []byte) (*did.Document, e
 	didWebStr := string(d)
 	keyReference := didWebStr + "#owner"
 
-	verificationMethod, err := did.ConstructJWKVerificationMethod(didWebStr, keyReference, publicKey, kt)
+	verificationMethod, err := did.ConstructJWKVerificationMethod(keyReference, didWebStr, publicKey, kt)
 	if err != nil {
 		return nil, fmt.Errorf("could not construct verification method for DIDWeb %+v", d)
 	}
