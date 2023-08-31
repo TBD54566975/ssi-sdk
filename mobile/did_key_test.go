@@ -70,3 +70,29 @@ func TestCreateDIDKey(t *testing.T) {
 		assert.Equal(t, didKey.DID, createDIDKeyResult.DID)
 	}
 }
+
+func TestExpandDIDKey(t *testing.T) {
+	supportedKeyTypes := GetSupportedKeyTypes()
+	assert.NotEmpty(t, supportedKeyTypes)
+
+	for _, kt := range supportedKeyTypes {
+		result, err := GenerateDIDKey(kt)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, result)
+
+		var didKeyResult GenerateDIDKeyResult
+		err = json.Unmarshal(result, &didKeyResult)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, didKeyResult.DID)
+		assert.NotEmpty(t, didKeyResult.JWK)
+
+		expandedDIDKey, err := ExpandDIDKey(didKeyResult.DID)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, expandedDIDKey)
+
+		var doc Document
+		err = json.Unmarshal(expandedDIDKey, &doc)
+		assert.NoError(t, err)
+		assert.Equal(t, didKeyResult.DID, doc.DIDDocument["id"])
+	}
+}

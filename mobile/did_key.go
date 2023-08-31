@@ -17,8 +17,12 @@ func GetSupportedKeyTypes() []string {
 	return keyTypes
 }
 
+// GenerateDIDKeyResult is a struct that contains the DID and JWK of a newly generated DID key
+// It is returned as a result of the GenerateDIDKey function
 type GenerateDIDKeyResult struct {
-	DID string         `json:"did"`
+	// DID is the string of the DID Key created, such as did:key:z6Mk...
+	DID string `json:"did"`
+	// JWK is the JSON Web Key (private key) of the newly created DID Key
 	JWK map[string]any `json:"jwk"`
 }
 
@@ -61,12 +65,17 @@ func GenerateDIDKey(kt string) ([]byte, error) {
 	return json.Marshal(result)
 }
 
+// CreateDIDKeyRequest is a struct that contains the key type and public key JWK of a DID key to be created
 type CreateDIDKeyRequest struct {
-	KeyType      string         `json:"keyType"`
+	// KeyType is the type of key to be created, such as "Ed25519VerificationKey2018"
+	KeyType string `json:"keyType"`
+	// PublicKeyJWK is the JSON Web Key (public key) of the DID Key to be created
 	PublicKeyJWK map[string]any `json:"publicKeyJwk"`
 }
 
+// CreateDIDKeyResult is a struct that contains the DID of a newly created DID key
 type CreateDIDKeyResult struct {
+	// DID is the string of the DID Key created, such as did:key:z6Mk...
 	DID string `json:"did"`
 }
 
@@ -111,11 +120,14 @@ func CreateDIDKey(requestBytes []byte) ([]byte, error) {
 	return json.Marshal(result)
 }
 
+// Document is a struct that contains the DID document of a DID key
 type Document struct {
+	// DIDDocument is the JSON representation of the DID document of a DID key
 	DIDDocument map[string]any `json:"didDocument"`
 }
 
 // ExpandDIDKey expands a DID key string and returns a JSON representation of the expanded key
+// Returns a JSON representation of Document
 func ExpandDIDKey(didKey string) ([]byte, error) {
 	expanded, err := key.DIDKey(didKey).Expand()
 	if err != nil {
