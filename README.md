@@ -1,5 +1,5 @@
 [![godoc ssi-sdk](https://img.shields.io/badge/godoc-ssi--sdk-blue)](https://pkg.go.dev/github.com/TBD54566975/ssi-sdk)
-[![go version 1.21.0](https://img.shields.io/badge/go_version-1.21.0-brightgreen)](https://golang.org/)
+[![go version 1.21.3](https://img.shields.io/badge/go_version-1.21.3-brightgreen)](https://golang.org/)
 [![Go Report Card A+](https://goreportcard.com/badge/github.com/TBD54566975/ssi-sdk)](https://goreportcard.com/report/github.com/TBD54566975/ssi-sdk)
 [![license Apache 2](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/ssi-sdk/blob/main/LICENSE)
 [![issues](https://img.shields.io/github/issues/TBD54566975/ssi-sdk)](https://github.com/TBD54566975/ssi-sdk/issues)
