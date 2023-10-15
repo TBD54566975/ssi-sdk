@@ -307,6 +307,22 @@ func BytesToPrivKey(keyBytes []byte, kt KeyType) (crypto.PrivateKey, error) {
 	}
 }
 
+// SECP256k1ECDSAPubKeyToSECP256k1 converts an ecdsa.PublicKey to a secp.PublicKey
+func SECP256k1ECDSAPubKeyToSECP256k1(key ecdsa.PublicKey) secp.PublicKey {
+	x := new(btcec.FieldVal)
+	x.SetByteSlice(key.X.Bytes())
+	y := new(btcec.FieldVal)
+	y.SetByteSlice(key.Y.Bytes())
+	return *btcec.NewPublicKey(x, y)
+}
+
+// SECP256k1ECDSASPrivKeyToSECP256k1 converts an ecdsa.PrivateKey to a secp.PrivateKey
+func SECP256k1ECDSASPrivKeyToSECP256k1(key ecdsa.PrivateKey) secp.PrivateKey {
+	scalar := new(btcec.ModNScalar)
+	scalar.SetByteSlice(key.D.Bytes())
+	return *secp.NewPrivateKey(scalar)
+}
+
 func GenerateEd25519Key() (ed25519.PublicKey, ed25519.PrivateKey, error) {
 	return ed25519.GenerateKey(rand.Reader)
 }

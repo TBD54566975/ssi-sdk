@@ -218,3 +218,17 @@ func TestDilithiumKeys(t *testing.T) {
 		}
 	})
 }
+
+func TestSECP256k1Conversions(t *testing.T) {
+	pk, sk, err := GenerateSECP256k1Key()
+	assert.NoError(t, err)
+
+	ecdsaPK := pk.ToECDSA()
+	ecdsaSK := sk.ToECDSA()
+
+	gotPK := SECP256k1ECDSAPubKeyToSECP256k1(*ecdsaPK)
+	gotSK := SECP256k1ECDSASPrivKeyToSECP256k1(*ecdsaSK)
+
+	assert.Equal(t, pk, gotPK)
+	assert.Equal(t, sk, gotSK)
+}

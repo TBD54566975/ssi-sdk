@@ -1,6 +1,7 @@
 package jwx
 
 import (
+	"crypto/ecdsa"
 	"testing"
 
 	"github.com/TBD54566975/ssi-sdk/crypto"
@@ -13,7 +14,6 @@ func TestKeyToJWK(t *testing.T) {
 	for _, keyType := range crypto.GetSupportedJWKKeyTypes() {
 		t.Run(string(keyType), func(tt *testing.T) {
 			pub, priv, err := crypto.GenerateKeyByKeyType(keyType)
-
 			assert.NoError(tt, err)
 			assert.NotEmpty(tt, pub)
 			assert.NotEmpty(tt, priv)
@@ -35,6 +35,14 @@ func TestKeyToJWK(t *testing.T) {
 			pubKey, err := pubKeyJWK.ToPublicKey()
 			assert.NoError(tt, err)
 			assert.NotEmpty(tt, pubKey)
+
+			if keyType == crypto.SECP256k1 {
+				pubKey = crypto.SECP256k1ECDSAPubKeyToSECP256k1(pubKey.(ecdsa.PublicKey))
+				privKey = crypto.SECP256k1ECDSASPrivKeyToSECP256k1(privKey.(ecdsa.PrivateKey))
+			}
+
+			assert.Equal(tt, priv, privKey)
+			assert.Equal(tt, pub, pubKey)
 		})
 	}
 

@@ -67,7 +67,7 @@ func IsSupportedKeyType(kt KeyType) bool {
 // GetSupportedJWKKeyTypes returns a list of supported JWK key types
 // RSA, secp256k1, and P-224 are not supported by the lib we use for JWK
 func GetSupportedJWKKeyTypes() []KeyType {
-	return []KeyType{Ed25519, X25519, SECP256k1ECDSA, P256, P384, P521}
+	return []KeyType{Ed25519, X25519, SECP256k1, SECP256k1ECDSA, P256, P384, P521}
 }
 
 // GetSupportedKeyTypes returns a list of supported key types
