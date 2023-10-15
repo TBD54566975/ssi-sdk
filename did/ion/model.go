@@ -21,10 +21,10 @@ func (d Document) IsEmpty() bool {
 }
 
 type PublicKey struct {
-	ID           string             `json:"id,omitempty"`
-	Type         string             `json:"type,omitempty"`
-	PublicKeyJWK jwx.PublicKeyJWK   `json:"publicKeyJwk,omitempty"`
-	Purposes     []PublicKeyPurpose `json:"purposes,omitempty"`
+	ID           string                 `json:"id,omitempty"`
+	Type         string                 `json:"type,omitempty"`
+	PublicKeyJWK jwx.PublicKeyJWK       `json:"publicKeyJwk,omitempty"`
+	Purposes     []did.PublicKeyPurpose `json:"purposes,omitempty"`
 }
 
 // action models

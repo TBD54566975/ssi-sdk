@@ -189,7 +189,7 @@ func TestPatchesToDIDDocument(t *testing.T) {
 				Action: AddPublicKeys,
 				PublicKeys: []PublicKey{{
 					ID:       "did:ion:test#key1",
-					Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
+					Purposes: []did.PublicKeyPurpose{did.Authentication, did.AssertionMethod},
 				}},
 			}})
 		assert.NoError(tt, err)
@@ -210,7 +210,7 @@ func TestPatchesToDIDDocument(t *testing.T) {
 			Action: AddPublicKeys,
 			PublicKeys: []PublicKey{{
 				ID:       "did:ion:test#key1",
-				Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
+				Purposes: []did.PublicKeyPurpose{did.Authentication, did.AssertionMethod},
 			}},
 		}
 		removeKeys := RemovePublicKeysAction{
@@ -229,11 +229,11 @@ func TestPatchesToDIDDocument(t *testing.T) {
 			PublicKeys: []PublicKey{
 				{
 					ID:       "did:ion:test#key1",
-					Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
+					Purposes: []did.PublicKeyPurpose{did.Authentication, did.AssertionMethod},
 				},
 				{
 					ID:       "did:ion:test#key2",
-					Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
+					Purposes: []did.PublicKeyPurpose{did.Authentication, did.AssertionMethod},
 				},
 			},
 		}
@@ -295,7 +295,7 @@ func TestPatchesToDIDDocument(t *testing.T) {
 				PublicKeys: []PublicKey{
 					{
 						ID:       "did:ion:test#key1",
-						Purposes: []PublicKeyPurpose{Authentication, AssertionMethod},
+						Purposes: []did.PublicKeyPurpose{did.Authentication, did.AssertionMethod},
 					},
 				},
 				Services: []did.Service{
