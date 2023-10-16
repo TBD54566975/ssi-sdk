@@ -7,16 +7,6 @@ const (
 	Testnet Network = "testnet"
 )
 
-type PublicKeyPurpose string
-
-const (
-	Authentication       PublicKeyPurpose = "authentication"
-	AssertionMethod      PublicKeyPurpose = "assertionMethod"
-	CapabilityInvocation PublicKeyPurpose = "capabilityInvocation"
-	CapabilityDelegation PublicKeyPurpose = "capabilityDelegation"
-	KeyAgreement         PublicKeyPurpose = "keyAgreement"
-)
-
 type OperationKeyType string
 
 const (

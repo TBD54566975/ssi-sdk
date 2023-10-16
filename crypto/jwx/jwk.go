@@ -4,6 +4,7 @@ import (
 	gocrypto "crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
+	"crypto/elliptic"
 	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
@@ -83,7 +84,7 @@ func (k *PrivateKeyJWK) ToPrivateKey() (gocrypto.PrivateKey, error) {
 		}
 		k.ALG = alg
 	}
-	if IsSupportedJWXSigningVerificationAlgorithm(k.ALG) {
+	if IsSupportedJWXSigningVerificationAlgorithm(k.ALG) || IsSupportedKeyAgreementType(k.ALG) {
 		return k.toSupportedPrivateKey()
 	}
 	if IsExperimentalJWXSigningVerificationAlgorithm(k.ALG) {
@@ -303,6 +304,9 @@ func PrivateKeyToPrivateKeyJWK(keyID string, key gocrypto.PrivateKey) (*PublicKe
 	case secp256k1.PrivateKey:
 		pubKeyJWK, privKeyJWK, err = jwkFromSECP256k1PrivateKey(k)
 	case ecdsa.PrivateKey:
+		if k.Curve == elliptic.P224() {
+			return nil, nil, fmt.Errorf("unsupported curve: %s", k.Curve.Params().Name)
+		}
 		pubKeyJWK, privKeyJWK, err = jwkFromECDSAPrivateKey(k)
 	case mode2.PrivateKey:
 		privKey := dilithium.Mode2.PrivateKeyFromBytes(k.Bytes())

@@ -205,15 +205,15 @@ func addPublicKeysPatch(doc did.Document, patch AddPublicKeysAction) (*did.Docum
 		})
 		for _, purpose := range currKey.Purposes {
 			switch purpose {
-			case Authentication:
+			case did.Authentication:
 				doc.Authentication = append(doc.Authentication, currKey.ID)
-			case AssertionMethod:
+			case did.AssertionMethod:
 				doc.AssertionMethod = append(doc.AssertionMethod, currKey.ID)
-			case KeyAgreement:
+			case did.KeyAgreement:
 				doc.KeyAgreement = append(doc.KeyAgreement, currKey.ID)
-			case CapabilityInvocation:
+			case did.CapabilityInvocation:
 				doc.CapabilityInvocation = append(doc.CapabilityInvocation, currKey.ID)
-			case CapabilityDelegation:
+			case did.CapabilityDelegation:
 				doc.CapabilityDelegation = append(doc.CapabilityDelegation, currKey.ID)
 			default:
 				return nil, fmt.Errorf("unknown key purpose: %s:%s", currKey.ID, purpose)

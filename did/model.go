@@ -105,3 +105,13 @@ func KeyTypeToMultikeyLDType(kt crypto.KeyType) (cryptosuite.LDKeyType, error) {
 		return "", fmt.Errorf("keyType %+v failed to convert to multikey LDKeyType", kt)
 	}
 }
+
+type PublicKeyPurpose string
+
+const (
+	Authentication       PublicKeyPurpose = "authentication"
+	AssertionMethod      PublicKeyPurpose = "assertionMethod"
+	CapabilityInvocation PublicKeyPurpose = "capabilityInvocation"
+	CapabilityDelegation PublicKeyPurpose = "capabilityDelegation"
+	KeyAgreement         PublicKeyPurpose = "keyAgreement"
+)
