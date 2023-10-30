@@ -14,7 +14,7 @@ require (
 	github.com/hyperledger/aries-framework-go v0.3.2
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/jorrizza/ed2curve25519 v0.1.0
-	github.com/lestrrat-go/jwx/v2 v2.0.13
+	github.com/lestrrat-go/jwx/v2 v2.0.15
 	github.com/magefile/mage v1.15.0
 	github.com/mr-tron/base58 v1.2.0
 	github.com/multiformats/go-multibase v0.2.0
