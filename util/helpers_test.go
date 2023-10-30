@@ -6,6 +6,7 @@ import (
 
 	"github.com/piprate/json-gold/ld"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestInterfaceToStrings(t *testing.T) {
@@ -95,7 +96,8 @@ func TestMergeUniqueValues(t *testing.T) {
 
 func TestLDProcessor(t *testing.T) {
 	testJSONDLContextURLStr := "http://schema.org/"
-	ldProcessor := NewLDProcessor()
+	ldProcessor, err := NewLDProcessor()
+	require.NoError(t, err)
 
 	t.Run("caching document loader", func(tt *testing.T) {
 		numOfLoads := 5
@@ -109,7 +111,8 @@ func TestLDProcessor(t *testing.T) {
 		dtNonCached := time.Now().Sub(t0)
 		tt.Logf("non-cached document loader for %d tests dt: %v\n", numOfLoads, dtNonCached)
 
-		ldProcessor := NewLDProcessor()
+		ldProcessor, err := NewLDProcessor()
+		require.NoError(tt, err)
 		t1 := time.Now()
 		for i := 0; i < numOfLoads; i++ {
 			doc, err := ldProcessor.DocumentLoader.LoadDocument(testJSONDLContextURLStr)

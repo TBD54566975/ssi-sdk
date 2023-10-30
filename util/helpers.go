@@ -1,17 +1,18 @@
 package util
 
 import (
+	_ "embed"
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-json"
 	"github.com/hyperledger/aries-framework-go/pkg/doc/signature/jsonld"
 	"github.com/piprate/json-gold/ld"
-
-	"github.com/go-playground/validator/v10"
 )
 
 type LDProcessor struct {
@@ -30,22 +31,107 @@ func IsValidStruct(data any) error {
 	return NewValidator().Struct(data)
 }
 
-func NewLDProcessor() LDProcessor {
+//go:embed known_contexts/w3c_2018_credentials_v1.json
+var w3c2018CredentialsV1 string
+
+//go:embed known_contexts/w3c_2018_credentials_examples_v1.json
+var w3c2018CredentialsExamplesV1 string
+
+//go:embed known_contexts/w3c_ns_did_v1.json
+var w3cNamespaceDIDV1 string
+
+//go:embed known_contexts/w3c_vc_di_bbs_contexts_v1.json
+var w3cVCDIBBSV1 string
+
+//go:embed known_contexts/w3c_jws_2020_v1.json
+var w3cJWS2020V1 string
+
+//go:embed known_contexts/w3id_security_v1.json
+var w3idSecurityV1 string
+
+//go:embed known_contexts/w3id_security_v2.json
+var w3idSecurityV2 string
+
+//go:embed known_contexts/w3id_citizenship_v1.json
+var w3idCitizenshipV1 string
+
+//go:embed known_contexts/w3_ns_odrl.json
+var w3NamespaceODRL string
+
+func NewLDProcessor() (*LDProcessor, error) {
 	// JSON LD processing
 	proc := ld.NewJsonLdProcessor()
+
 	// Initialize a new doc loader with caching capability
 	// LDProcessor is expected to be re-used for multiple json-ld operations
-	docLoader := ld.NewRFC7324CachingDocumentLoader(nil)
+	docLoader, err := NewLDDocumentLoader()
+	if err != nil {
+		return nil, err
+	}
 	options := ld.NewJsonLdOptions("")
 	options.Format = "application/n-quads"
 	options.Algorithm = "URDNA2015"
 	options.ProcessingMode = ld.JsonLd_1_1
 	options.ProduceGeneralizedRdf = true
 	options.DocumentLoader = docLoader
-	return LDProcessor{
+	return &LDProcessor{
 		JsonLdProcessor: proc,
 		JsonLdOptions:   options,
+	}, nil
+}
+
+func NewLDDocumentLoader() (*ld.CachingDocumentLoader, error) {
+	rfcDocLoader := ld.NewRFC7324CachingDocumentLoader(nil)
+	docLoader := ld.NewCachingDocumentLoader(rfcDocLoader)
+
+	// We cache the contexts we know we'll use over and over.
+	if err := preloadContext(docLoader, w3c2018CredentialsV1, "https://www.w3.org/2018/credentials/v1"); err != nil {
+		return nil, err
 	}
+	if err := preloadContext(docLoader, w3c2018CredentialsExamplesV1, "https://www.w3.org/2018/credentials/examples/v1"); err != nil {
+		return nil, err
+	}
+	if err := preloadContext(docLoader, w3cNamespaceDIDV1, "https://www.w3.org/ns/did/v1"); err != nil {
+		return nil, err
+	}
+	if err := preloadContext(docLoader, w3cVCDIBBSV1, "https://w3c.github.io/vc-di-bbs/contexts/v1"); err != nil {
+		return nil, err
+	}
+	if err := preloadContext(docLoader, w3cJWS2020V1, "https://w3id.org/security/suites/jws-2020/v1"); err != nil {
+		return nil, err
+	}
+	if err := preloadContext(docLoader, w3idSecurityV1, "https://w3id.org/security/v1"); err != nil {
+		return nil, err
+	}
+	if err := preloadContext(docLoader, w3idSecurityV2, "https://w3id.org/security/v2"); err != nil {
+		return nil, err
+	}
+	if err := preloadContext(docLoader, w3idCitizenshipV1, "https://w3id.org/citizenship/v1"); err != nil {
+		return nil, err
+	}
+	if err := preloadContext(docLoader, w3NamespaceODRL, "https://www.w3.org/ns/odrl.jsonld"); err != nil {
+		return nil, err
+	}
+	return docLoader, nil
+}
+
+func preloadContext(docLoader *ld.CachingDocumentLoader, contents string, url string) error {
+	f, err := os.CreateTemp("", "")
+	if err != nil {
+		return err
+	}
+	defer func(name string) {
+		_ = os.Remove(name)
+	}(f.Name())
+	if _, err := f.Write([]byte(contents)); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return docLoader.PreloadWithMapping(map[string]string{
+		url: f.Name(),
+	})
 }
 
 func (l LDProcessor) GetOptions() *ld.JsonLdOptions {
@@ -69,7 +155,10 @@ func (l LDProcessor) GetContextFromMap(dataMap map[string]any) (*ld.Context, err
 }
 
 func LDNormalize(document any) (any, error) {
-	processor := NewLDProcessor()
+	processor, err := NewLDProcessor()
+	if err != nil {
+		return nil, err
+	}
 	return processor.Normalize(document, processor.GetOptions())
 }
 
@@ -91,7 +180,10 @@ func LDFrame(document any, frame any) (any, error) {
 			return nil, err
 		}
 	}
-	docLoader := ld.NewRFC7324CachingDocumentLoader(nil)
+	docLoader, err := NewLDDocumentLoader()
+	if err != nil {
+		return nil, err
+	}
 	// use the aries processor for special framing logic necessary for blank nodes
 	return jsonld.Default().Frame(docAny.(map[string]any),
 		frameAny.(map[string]any), jsonld.WithDocumentLoader(docLoader), jsonld.WithFrameBlankNodes())
@@ -99,7 +191,10 @@ func LDFrame(document any, frame any) (any, error) {
 
 // LDCompact runs https://www.w3.org/TR/json-ld-api/#compaction-algorithms which shortens IRIs in the document
 func LDCompact(document any, context string) (map[string]any, error) {
-	processor := NewLDProcessor()
+	processor, err := NewLDProcessor()
+	if err != nil {
+		return nil, err
+	}
 	contextsMap := map[string]any{
 		"@context": context,
 	}
@@ -131,11 +226,6 @@ func Copy(src any, dst any) error {
 		return err
 	}
 	return json.Unmarshal(bytes, dst)
-}
-
-func ToJSON(i any) (string, error) {
-	b, err := json.Marshal(i)
-	return string(b), err
 }
 
 func ToJSONInterface(data string) (any, error) {
@@ -189,12 +279,6 @@ type AppendError []string
 
 func NewAppendError() *AppendError {
 	return new(AppendError)
-}
-
-func NewAppendErrorFromError(err error) *AppendError {
-	ae := new(AppendError)
-	ae.Append(err)
-	return ae
 }
 
 func (a *AppendError) Append(err error) {
