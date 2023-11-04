@@ -42,7 +42,7 @@ go run example.main.go
 The best usage examples can be found in the [sd_jwt_test.go](sd_jwt_test.go) file.
 
 ## API Reference
-See our [oficial godocs](https://pkg.go.dev/github.com/TBD54566975/ssi-sdk/sd-jwt).
+See our [official godocs](https://pkg.go.dev/github.com/TBD54566975/ssi-sdk/sd-jwt).
 
 ## Configuration
 Configuration is done via dependency injection on the `SDJWTSigner` struct. 
