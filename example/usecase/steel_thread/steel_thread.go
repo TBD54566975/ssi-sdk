@@ -44,7 +44,8 @@ var (
 func (t *Entity) GenerateWallet() {
 	walletDIDPrivateKey, walletDIDKey, err := key.GenerateDIDKey(crypto.Ed25519)
 	example.HandleExampleError(err, "Failed to generate DID")
-	walletSigner, err := jwx.NewJWXSigner(walletDIDKey.String(), walletDIDKey.String(), walletDIDPrivateKey)
+	kid := walletDIDKey.String()
+	walletSigner, err := jwx.NewJWXSigner(walletDIDKey.String(), &kid, walletDIDPrivateKey)
 	example.HandleExampleError(err, "Failed to generate signer")
 	walletVerifier, err := walletSigner.ToVerifier(walletSigner.ID)
 	example.HandleExampleError(err, "Failed to generate verifier")

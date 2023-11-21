@@ -9,8 +9,6 @@ import (
 )
 
 func TestKeyToJWK(t *testing.T) {
-	testKID := "test-kid"
-
 	for _, keyType := range crypto.GetSupportedJWKKeyTypes() {
 		t.Run(string(keyType), func(tt *testing.T) {
 			pub, priv, err := crypto.GenerateKeyByKeyType(keyType)
@@ -18,12 +16,12 @@ func TestKeyToJWK(t *testing.T) {
 			assert.NotEmpty(tt, pub)
 			assert.NotEmpty(tt, priv)
 
-			pubKeyJWK, privKeyJWK, err := PrivateKeyToPrivateKeyJWK(testKID, priv)
+			pubKeyJWK, privKeyJWK, err := PrivateKeyToPrivateKeyJWK(nil, priv)
 			assert.NoError(tt, err)
 			assert.NotEmpty(tt, pubKeyJWK)
 			assert.NotEmpty(tt, privKeyJWK)
 
-			otherPubKeyJWK, err := PublicKeyToPublicKeyJWK(testKID, pub)
+			otherPubKeyJWK, err := PublicKeyToPublicKeyJWK(nil, pub)
 			assert.NoError(tt, err)
 			assert.NotEmpty(tt, otherPubKeyJWK)
 			assert.Equal(tt, pubKeyJWK, otherPubKeyJWK)
@@ -54,12 +52,12 @@ func TestKeyToJWK(t *testing.T) {
 			assert.NotEmpty(tt, pub)
 			assert.NotEmpty(tt, priv)
 
-			pubKeyJWK, privKeyJWK, err := PrivateKeyToPrivateKeyJWK(testKID, priv)
+			pubKeyJWK, privKeyJWK, err := PrivateKeyToPrivateKeyJWK(nil, priv)
 			assert.NoError(tt, err)
 			assert.NotEmpty(tt, pubKeyJWK)
 			assert.NotEmpty(tt, privKeyJWK)
 
-			otherPubKeyJWK, err := PublicKeyToPublicKeyJWK(testKID, pub)
+			otherPubKeyJWK, err := PublicKeyToPublicKeyJWK(nil, pub)
 			assert.NoError(tt, err)
 			assert.NotEmpty(tt, otherPubKeyJWK)
 			assert.Equal(tt, pubKeyJWK, otherPubKeyJWK)

@@ -238,7 +238,7 @@ func (k *PublicKeyJWK) toDilithiumPublicKey() (gocrypto.PublicKey, error) {
 }
 
 // PublicKeyToPublicKeyJWK converts a public key to a PublicKeyJWK
-func PublicKeyToPublicKeyJWK(kid string, key gocrypto.PublicKey) (*PublicKeyJWK, error) {
+func PublicKeyToPublicKeyJWK(kid *string, key gocrypto.PublicKey) (*PublicKeyJWK, error) {
 	// dereference the ptr, which could be a nested ptr
 	for reflect.ValueOf(key).Kind() == reflect.Ptr {
 		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PublicKey)
@@ -271,7 +271,9 @@ func PublicKeyToPublicKeyJWK(kid string, key gocrypto.PublicKey) (*PublicKeyJWK,
 	if err != nil {
 		return nil, err
 	}
-	pubKeyJWK.KID = kid
+	if kid != nil {
+		pubKeyJWK.KID = *kid
+	}
 	if pubKeyJWK.ALG == "" {
 		alg, err := AlgFromKeyAndCurve(pubKeyJWK.KTY, pubKeyJWK.CRV)
 		if err != nil {
@@ -283,7 +285,7 @@ func PublicKeyToPublicKeyJWK(kid string, key gocrypto.PublicKey) (*PublicKeyJWK,
 }
 
 // PrivateKeyToPrivateKeyJWK converts a private key to a PrivateKeyJWK
-func PrivateKeyToPrivateKeyJWK(keyID string, key gocrypto.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
+func PrivateKeyToPrivateKeyJWK(keyID *string, key gocrypto.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK, error) {
 	// dereference the ptr, which could be nested
 	for reflect.ValueOf(key).Kind() == reflect.Ptr {
 		key = reflect.ValueOf(key).Elem().Interface().(gocrypto.PrivateKey)
@@ -323,8 +325,10 @@ func PrivateKeyToPrivateKeyJWK(keyID string, key gocrypto.PrivateKey) (*PublicKe
 	if err != nil {
 		return nil, nil, err
 	}
-	pubKeyJWK.KID = keyID
-	privKeyJWK.KID = keyID
+	if keyID != nil {
+		pubKeyJWK.KID = *keyID
+		privKeyJWK.KID = *keyID
+	}
 	if privKeyJWK.ALG == "" {
 		alg, err := AlgFromKeyAndCurve(privKeyJWK.KTY, privKeyJWK.CRV)
 		if err != nil {
@@ -363,6 +367,9 @@ func jwkFromRSAPublicKey(key rsa.PublicKey) (*PublicKeyJWK, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "generating rsa jwk")
 	}
+	if err = jwk.AssignKeyID(rsaJWKGeneric); err != nil {
+		return nil, errors.Wrap(err, "assigning jwk kid")
+	}
 	rsaJWKBytes, err := json.Marshal(rsaJWKGeneric)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling rsa jwk")
@@ -379,6 +386,9 @@ func jwkFromEd25519PrivateKey(key ed25519.PrivateKey) (*PublicKeyJWK, *PrivateKe
 	ed25519JWKGeneric, err := jwk.FromRaw(key)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating ed25519 jwk")
+	}
+	if err = jwk.AssignKeyID(ed25519JWKGeneric); err != nil {
+		return nil, nil, errors.Wrap(err, "assigning jwk kid")
 	}
 	ed25519JWKBytes, err := json.Marshal(ed25519JWKGeneric)
 	if err != nil {
@@ -401,6 +411,9 @@ func jwkFromEd25519PublicKey(key ed25519.PublicKey) (*PublicKeyJWK, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "generating ed25519 jwk")
 	}
+	if err = jwk.AssignKeyID(ed25519JWKGeneric); err != nil {
+		return nil, errors.Wrap(err, "assigning jwk kid")
+	}
 	x25519JWKBytes, err := json.Marshal(ed25519JWKGeneric)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling ed25519 jwk")
@@ -417,6 +430,9 @@ func jwkFromX25519PrivateKey(key x25519.PrivateKey) (*PublicKeyJWK, *PrivateKeyJ
 	x25519JWKGeneric, err := jwk.FromRaw(key)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating x25519 jwk")
+	}
+	if err = jwk.AssignKeyID(x25519JWKGeneric); err != nil {
+		return nil, nil, errors.Wrap(err, "assigning jwk kid")
 	}
 	x25519JWKBytes, err := json.Marshal(x25519JWKGeneric)
 	if err != nil {
@@ -439,6 +455,9 @@ func jwkFromX25519PublicKey(key x25519.PublicKey) (*PublicKeyJWK, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "generating x25519 jwk")
 	}
+	if err = jwk.AssignKeyID(x25519JWKGeneric); err != nil {
+		return nil, errors.Wrap(err, "assigning jwk kid")
+	}
 	x25519JWKBytes, err := json.Marshal(x25519JWKGeneric)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling x25519 jwk")
@@ -456,6 +475,9 @@ func jwkFromSECP256k1PrivateKey(key secp256k1.PrivateKey) (*PublicKeyJWK, *Priva
 	secp256k1JWKGeneric, err := jwk.FromRaw(ecdsaPrivKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating secp256k1 jwk")
+	}
+	if err = jwk.AssignKeyID(secp256k1JWKGeneric); err != nil {
+		return nil, nil, errors.Wrap(err, "assigning jwk kid")
 	}
 	secp256k1JWKBytes, err := json.Marshal(secp256k1JWKGeneric)
 	if err != nil {
@@ -479,6 +501,9 @@ func jwkFromSECP256k1PublicKey(key secp256k1.PublicKey) (*PublicKeyJWK, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "generating secp256k1 jwk")
 	}
+	if err = jwk.AssignKeyID(secp256k1JWK); err != nil {
+		return nil, errors.Wrap(err, "assigning jwk kid")
+	}
 	secp256k1JWKBytes, err := json.Marshal(secp256k1JWK)
 	if err != nil {
 		return nil, errors.Wrap(err, "marshalling secp256k1 jwk")
@@ -495,6 +520,9 @@ func jwkFromECDSAPrivateKey(key ecdsa.PrivateKey) (*PublicKeyJWK, *PrivateKeyJWK
 	ecdsaKeyGeneric, err := jwk.FromRaw(key)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating ecdsa jwk")
+	}
+	if err = jwk.AssignKeyID(ecdsaKeyGeneric); err != nil {
+		return nil, nil, errors.Wrap(err, "assigning jwk kid")
 	}
 	ecdsaKeyBytes, err := json.Marshal(ecdsaKeyGeneric)
 	if err != nil {
@@ -545,6 +573,9 @@ func jwkFromECDSAPublicKey(key ecdsa.PublicKey) (*PublicKeyJWK, error) {
 	ecdsaKeyGeneric, err := jwk.FromRaw(key)
 	if err != nil {
 		return nil, errors.Wrap(err, "generating ecdsa jwk")
+	}
+	if err = jwk.AssignKeyID(ecdsaKeyGeneric); err != nil {
+		return nil, errors.Wrap(err, "assigning jwk kid")
 	}
 	ecdsaKeyBytes, err := json.Marshal(ecdsaKeyGeneric)
 	if err != nil {

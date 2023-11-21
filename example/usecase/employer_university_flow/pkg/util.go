@@ -40,7 +40,7 @@ func MakePresentationRequest(key gocrypto.PrivateKey, keyID string, presentation
 	example.WriteNote("Presentation Request (JWT) is created")
 
 	// Signer uses a private key
-	signer, err = jwx.NewJWXSigner(requesterID, keyID, key)
+	signer, err = jwx.NewJWXSigner(requesterID, &keyID, key)
 	if err != nil {
 		return nil, nil, err
 	}

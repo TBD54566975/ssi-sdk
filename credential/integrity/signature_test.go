@@ -103,7 +103,7 @@ func TestVerifyCredentialSignature(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), &kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
@@ -145,7 +145,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(tt, err)
-		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWXSigner("test-id", nil, privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
@@ -163,7 +163,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), &kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
@@ -178,13 +178,13 @@ func TestVerifyJWTCredential(t *testing.T) {
 
 		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
 		assert.NoError(tt, err)
-		signer, err := jwx.NewJWXSigner(didKey.String(), "missing", privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), nil, privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
 		_, err = VerifyJWTCredential(context.Background(), jwtCred, resolver)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "has no verification methods with kid: missing")
+		assert.Contains(tt, err.Error(), "has no verification methods with kid: ")
 	})
 
 	t.Run("valid credential, bad signature", func(tt *testing.T) {
@@ -196,7 +196,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), &kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
@@ -218,7 +218,7 @@ func TestVerifyJWTCredential(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), &kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTCredential(tt, *signer)
@@ -294,7 +294,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(tt, err)
-		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWXSigner("test-id", nil, privKey)
 		assert.NoError(tt, err)
 
 		jwtPres := getTestJWTPresentation(tt, *signer)
@@ -312,7 +312,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), &kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtCred := getTestJWTPresentation(tt, *signer)
@@ -327,13 +327,13 @@ func TestVerifyJWTPresentation(t *testing.T) {
 
 		privKey, didKey, err := key.GenerateDIDKey(crypto.Ed25519)
 		assert.NoError(tt, err)
-		signer, err := jwx.NewJWXSigner(didKey.String(), "missing", privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), nil, privKey)
 		assert.NoError(tt, err)
 
 		jwtPres := getTestJWTPresentation(tt, *signer)
 		_, err = VerifyJWTPresentation(context.Background(), jwtPres, resolver)
 		assert.Error(tt, err)
-		assert.Contains(tt, err.Error(), "has no verification methods with kid: missing")
+		assert.Contains(tt, err.Error(), "has no verification methods with kid: ")
 	})
 
 	t.Run("valid presentation, bad signature", func(tt *testing.T) {
@@ -345,7 +345,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), &kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtPres := getTestJWTPresentation(tt, *signer)
@@ -368,7 +368,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), &kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtPres := geTestJWTPresentationNoCred(tt, *signer)
@@ -393,7 +393,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), &kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtPres := getTestJWTPresentationBadCred(tt, *signer)
@@ -413,7 +413,7 @@ func TestVerifyJWTPresentation(t *testing.T) {
 		expanded, err := didKey.Expand()
 		assert.NoError(tt, err)
 		kid := expanded.VerificationMethod[0].ID
-		signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+		signer, err := jwx.NewJWXSigner(didKey.String(), &kid, privKey)
 		assert.NoError(tt, err)
 
 		jwtPres := getTestJWTPresentation(tt, *signer)

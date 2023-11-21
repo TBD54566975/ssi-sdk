@@ -87,7 +87,7 @@ func VerifyJWTCredential(ctx context.Context, cred string, r resolution.Resolver
 	}
 
 	// construct a verifier
-	credVerifier, err := jwx.NewJWXVerifier(issuerDID.ID, issuerKID, issuerKey)
+	credVerifier, err := jwx.NewJWXVerifier(issuerDID.ID, &issuerKID, issuerKey)
 	if err != nil {
 		return false, errors.Wrapf(err, "error constructing verifier for credential<%s>", token.JwtID())
 	}
@@ -141,7 +141,7 @@ func VerifyJWTPresentation(ctx context.Context, pres string, r resolution.Resolv
 	}
 
 	// construct a verifier
-	presVerifier, err := jwx.NewJWXVerifier(issuerDID.ID, issuerKID, issuerKey)
+	presVerifier, err := jwx.NewJWXVerifier(issuerDID.ID, &issuerKID, issuerKey)
 	if err != nil {
 		return false, errors.Wrapf(err, "error constructing verifier for presentation<%s>", token.JwtID())
 	}

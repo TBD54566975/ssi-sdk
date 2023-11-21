@@ -133,7 +133,7 @@ func main() {
 	example.WriteStep("Example University Creates VC for Holder", step)
 	step++
 
-	universitySigner, err := jwx.NewJWXSigner(universityDID, universityKID, universityKey)
+	universitySigner, err := jwx.NewJWXSigner(universityDID, &universityKID, universityKey)
 	example.HandleExampleError(err, "failed to build university signer")
 	vcID, vc, err := emp.BuildExampleUniversityVC(*universitySigner, universityDID, studentDID)
 	example.HandleExampleError(err, "failed to build vc")
@@ -161,7 +161,7 @@ func main() {
 	presentationRequestJWT, employerSigner, err := emp.MakePresentationRequest(employerKey, employerKID, presentationData, employerDID, studentDID)
 	example.HandleExampleError(err, "failed to make presentation request")
 
-	studentSigner, err := jwx.NewJWXSigner(studentDID, studentKID, studentKey)
+	studentSigner, err := jwx.NewJWXSigner(studentDID, &studentKID, studentKey)
 	example.HandleExampleError(err, "failed to build json web key signer")
 
 	example.WriteNote("Student returns claims via a Presentation Submission")

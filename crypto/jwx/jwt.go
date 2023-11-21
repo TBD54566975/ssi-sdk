@@ -22,7 +22,7 @@ type Signer struct {
 }
 
 // NewJWXSigner creates a new signer from a private key to sign and produce JWS values
-func NewJWXSigner(id, kid string, key gocrypto.PrivateKey) (*Signer, error) {
+func NewJWXSigner(id string, kid *string, key gocrypto.PrivateKey) (*Signer, error) {
 	_, privateKeyJWK, err := PrivateKeyToPrivateKeyJWK(kid, key)
 	if err != nil {
 		return nil, errors.Wrap(err, "converting private key to JWK")
@@ -94,7 +94,7 @@ type Verifier struct {
 }
 
 // NewJWXVerifier creates a new verifier from a public key to verify JWTs and JWS signatures
-func NewJWXVerifier(id, kid string, key gocrypto.PublicKey) (*Verifier, error) {
+func NewJWXVerifier(id string, kid *string, key gocrypto.PublicKey) (*Verifier, error) {
 	publicKeyJWK, err := PublicKeyToPublicKeyJWK(kid, key)
 	if err != nil {
 		return nil, errors.Wrap(err, "converting public key to JWK")

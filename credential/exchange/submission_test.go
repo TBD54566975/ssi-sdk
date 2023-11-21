@@ -875,7 +875,7 @@ func getJWKSignerVerifier(t *testing.T) (*jwx.Signer, *jwx.Verifier) {
 	expanded, err := didKey.Expand()
 	require.NoError(t, err)
 	kid := expanded.VerificationMethod[0].ID
-	signer, err := jwx.NewJWXSigner(didKey.String(), kid, privKey)
+	signer, err := jwx.NewJWXSigner(didKey.String(), &kid, privKey)
 	require.NoError(t, err)
 
 	verifier, err := signer.ToVerifier(didKey.String())

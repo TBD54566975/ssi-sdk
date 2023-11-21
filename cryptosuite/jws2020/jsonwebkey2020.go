@@ -89,7 +89,7 @@ func GenerateJSONWebKey2020(kty KTY, crv CRV) (*JSONWebKey2020, error) {
 // JSONWebKey2020FromPrivateKey returns a JsonWebKey2020 value from a given private key, containing both JWK
 // public and private key representations of the key.
 func JSONWebKey2020FromPrivateKey(key gocrypto.PrivateKey) (*JSONWebKey2020, error) {
-	pubKeyJWK, privKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK("", key)
+	pubKeyJWK, privKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(nil, key)
 	if err != nil {
 		return nil, err
 	}

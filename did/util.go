@@ -275,7 +275,7 @@ func ConstructJWKVerificationMethod(id, controller string, pubKeyBytes []byte, c
 		return nil, errors.Wrap(err, "converting bytes to public key")
 	}
 
-	pubKeyJWK, err := jwx.PublicKeyToPublicKeyJWK(controller, pubKey)
+	pubKeyJWK, err := jwx.PublicKeyToPublicKeyJWK(&controller, pubKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "could convert did:key to PublicKeyJWK")
 	}

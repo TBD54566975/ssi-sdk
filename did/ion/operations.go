@@ -41,7 +41,6 @@ import (
 	"github.com/TBD54566975/ssi-sdk/crypto/jwx"
 	"github.com/TBD54566975/ssi-sdk/did"
 	"github.com/TBD54566975/ssi-sdk/util"
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -130,7 +129,7 @@ func NewIONDID(doc Document) (*DID, *CreateRequest, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating update keypair")
 	}
-	updatePubKeyJWK, updatePrivKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(uuid.NewString(), updatePrivateKey)
+	updatePubKeyJWK, updatePrivKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(nil, updatePrivateKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "converting update key pair to JWK")
 	}
@@ -140,7 +139,7 @@ func NewIONDID(doc Document) (*DID, *CreateRequest, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating recovery keypair")
 	}
-	recoveryPubKeyJWK, recoveryPrivKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(uuid.NewString(), recoveryPrivateKey)
+	recoveryPubKeyJWK, recoveryPrivKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(nil, recoveryPrivateKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "converting recovery keypair to JWK")
 	}
@@ -186,7 +185,7 @@ func (d DID) Update(stateChange StateChange) (*DID, *UpdateRequest, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating next update keypair")
 	}
-	nextUpdatePubKeyJWK, nextUpdatePrivKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(uuid.NewString(), nextUpdatePrivateKey)
+	nextUpdatePubKeyJWK, nextUpdatePrivKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(nil, nextUpdatePrivateKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "converting next update key pair to JWK")
 	}
@@ -229,7 +228,7 @@ func (d DID) Recover(doc Document) (*DID, *RecoverRequest, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating nest recovery keypair")
 	}
-	nextRecoveryPubKeyJWK, nextRecoveryPrivKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(uuid.NewString(), nextRecoveryPrivateKey)
+	nextRecoveryPubKeyJWK, nextRecoveryPrivKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(nil, nextRecoveryPrivateKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "converting next recovery key pair to JWK")
 	}
@@ -239,7 +238,7 @@ func (d DID) Recover(doc Document) (*DID, *RecoverRequest, error) {
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generating next update keypair")
 	}
-	nextUpdatePubKeyJWK, nextUpdatePrivKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(uuid.NewString(), nextUpdatePrivateKey)
+	nextUpdatePubKeyJWK, nextUpdatePrivKeyJWK, err := jwx.PrivateKeyToPrivateKeyJWK(nil, nextUpdatePrivateKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "converting next update key pair to JWK")
 	}
