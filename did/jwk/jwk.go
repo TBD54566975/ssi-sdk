@@ -57,7 +57,7 @@ func GenerateDIDJWK(kt crypto.KeyType) (gocrypto.PrivateKey, *JWK, error) {
 		return nil, nil, errors.Wrap(err, "generating key for did:jwk")
 	}
 	// kid not needed since it will be set on expansion
-	pubKeyJWK, err := jwx.PublicKeyToPublicKeyJWK("", pubKey)
+	pubKeyJWK, err := jwx.PublicKeyToPublicKeyJWK(nil, pubKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "converting public key to JWK")
 	}

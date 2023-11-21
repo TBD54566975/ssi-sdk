@@ -85,7 +85,7 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 			assert.NotEmpty(t, privKey)
 
 			// create key access with the key
-			signer, err := NewJWXSigner(testID, testKID, privKey)
+			signer, err := NewJWXSigner(testID, &testKID, privKey)
 			assert.NoError(t, err)
 			assert.NotEmpty(t, signer)
 
@@ -99,7 +99,7 @@ func TestSignVerifyJWTForEachSupportedKeyType(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, verifier)
 
-			sameVerifier, err := NewJWXVerifier(testID, testKID, pubKey)
+			sameVerifier, err := NewJWXVerifier(testID, &testKID, pubKey)
 			assert.NoError(t, err)
 			assert.Equal(t, verifier, sameVerifier)
 

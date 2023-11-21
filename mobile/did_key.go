@@ -40,7 +40,8 @@ func GenerateDIDKey(kt string) ([]byte, error) {
 		return nil, err
 	}
 
-	_, jwkPrivateKey, err := jwx.PrivateKeyToPrivateKeyJWK(expanded.VerificationMethod[0].ID, privateKey)
+	id := expanded.VerificationMethod[0].ID
+	_, jwkPrivateKey, err := jwx.PrivateKeyToPrivateKeyJWK(&id, privateKey)
 	if err != nil {
 		logrus.WithError(err).Error("failed to convert private key to jwk")
 		return nil, err

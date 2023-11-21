@@ -14,7 +14,7 @@ func TestBuildPresentationRequest(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWXSigner("test-id", nil, privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
@@ -34,14 +34,14 @@ func TestBuildPresentationRequest(t *testing.T) {
 
 		kid, ok := headers.Get("kid")
 		assert.True(t, ok)
-		assert.Equal(t, "test-kid", kid)
+		assert.NotEmpty(t, kid)
 	})
 
 	t.Run("Happy Path", func(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWXSigner("test-id", nil, privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()
@@ -61,14 +61,14 @@ func TestBuildPresentationRequest(t *testing.T) {
 
 		kid, ok := headers.Get("kid")
 		assert.True(t, ok)
-		assert.Equal(t, "test-kid", kid)
+		assert.NotEmpty(t, kid)
 	})
 
 	t.Run("Unsupported Request Method", func(t *testing.T) {
 		_, privKey, err := crypto.GenerateEd25519Key()
 		assert.NoError(t, err)
 
-		signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
+		signer, err := jwx.NewJWXSigner("test-id", nil, privKey)
 		assert.NoError(t, err)
 
 		testDef := getDummyPresentationDefinition()

@@ -151,7 +151,7 @@ func TestExpandDIDJWK(t *testing.T) {
 		assert.NotEmpty(t, pk)
 		assert.NotEmpty(t, sk)
 
-		gotJWK, err := jwx.PublicKeyToPublicKeyJWK("test-kid", pk)
+		gotJWK, err := jwx.PublicKeyToPublicKeyJWK(nil, pk)
 		assert.NoError(t, err)
 
 		didJWK, err := CreateDIDJWK(*gotJWK)

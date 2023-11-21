@@ -412,7 +412,7 @@ func getValidTestCredManifestCredApplicationJWTCred(t *testing.T) (CredentialMan
 	// turn into a jwt
 	_, privKey, err := crypto.GenerateEd25519Key()
 	require.NoError(t, err)
-	signer, err := jwx.NewJWXSigner("test-id", "test-kid", privKey)
+	signer, err := jwx.NewJWXSigner("test-id", nil, privKey)
 	require.NoError(t, err)
 	jwt, err := integrity.SignVerifiableCredentialJWT(*signer, vc)
 	require.NoError(t, err)
