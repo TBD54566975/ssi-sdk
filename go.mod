@@ -7,7 +7,7 @@ require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
 	github.com/cloudflare/circl v1.3.6
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
-	github.com/go-playground/validator/v10 v10.15.1
+	github.com/go-playground/validator/v10 v10.16.0
 	github.com/goccy/go-json v0.10.2
 	github.com/google/uuid v1.4.0
 	github.com/gowebpki/jcs v1.0.1
