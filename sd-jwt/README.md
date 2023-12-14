@@ -35,7 +35,7 @@ See the terminal command below.
 ```shell
 git clone github.com/TBD54566975/ssi-sdk.git
 cd ssi-sdk/sd-jwt
-go run example.main.go
+go run example/main.go
 ```
 
 ## Usage
