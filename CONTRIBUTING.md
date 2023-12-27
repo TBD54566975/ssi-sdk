@@ -1,6 +1,6 @@
 # Contribution Guide
 
-This repo acts as a one-stop, opinionated toolkit for all things Self Sovereign Identity (SSI). Before contributing, we recommend that you review the [README](README.md), dig into some of the specifications it mentions, take a look at recent PRs, and issues. The SDK is intended to be used in any go project. Our [SSI Service](github.com/TBD54566975/ssi-service) makes use of the SDK for much of its core functionality.
+This repo acts as a one-stop, opinionated toolkit for all things Self Sovereign Identity (SSI). Before contributing, we recommend that you review the [README](README.md), dig into some of the specifications it mentions, take a look at recent PRs, and issues. The SDK is intended to be used in any go project. Our [SSI Service](https://github.com/TBD54566975/ssi-service) makes use of the SDK for much of its core functionality.
 
 When you're ready you may:
 * Propose ideas in our SSI [discord](https://discord.com/channels/937858703112155166/969272692891086868) channel
@@ -12,7 +12,7 @@ When you're ready you may:
 
 | Requirement | Tested Version | Installation Instructions                              |
 |-------------|----------------|--------------------------------------------------------|
-| Go          | 1.21.4         | [go.dev](https://go.dev/doc/tutorial/compile-install)  |
+| Go          | 1.21.5         | [go.dev](https://go.dev/doc/tutorial/compile-install)  |
 | Mage        | 1.13.0-6       | [magefile.org](https://magefile.org/)                  |
 
 ### Go
@@ -23,7 +23,7 @@ You may verify your `go` installation via the terminal:
 
 ```
 $> go version
-go version go1.21.4 darwin/amd64
+go version go1.21.5 darwin/amd64
 ```
 
 If you do not have go, we recommend installing it by:
