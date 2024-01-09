@@ -26,8 +26,8 @@ type Document struct {
 	// As per https://www.w3.org/TR/did-core/#did-subject intermediate representations of DID Documents do not
 	// require an ID property. The provided test vectors demonstrate IRs. As such, the property is optional.
 	ID                   string                  `json:"id,omitempty"`
-	Controller           string                  `json:"controller,omitempty"`
-	AlsoKnownAs          string                  `json:"alsoKnownAs,omitempty"`
+	Controller           any                     `json:"controller,omitempty"`
+	AlsoKnownAs          any                     `json:"alsoKnownAs,omitempty"`
 	VerificationMethod   []VerificationMethod    `json:"verificationMethod,omitempty" validate:"dive"`
 	Authentication       []VerificationMethodSet `json:"authentication,omitempty" validate:"dive"`
 	AssertionMethod      []VerificationMethodSet `json:"assertionMethod,omitempty" validate:"dive"`
@@ -65,6 +65,8 @@ type Service struct {
 	ServiceEndpoint any      `json:"serviceEndpoint" validate:"required"`
 	RoutingKeys     []string `json:"routingKeys,omitempty"`
 	Accept          []string `json:"accept,omitempty"`
+	Sig             any      `json:"sig,omitempty"`
+	Enc             any      `json:"enc,omitempty"`
 }
 
 func (s *Service) IsValid() bool {
