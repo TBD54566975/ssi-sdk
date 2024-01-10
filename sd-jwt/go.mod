@@ -12,7 +12,7 @@ require (
 
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
-	github.com/cloudflare/circl v1.3.3 // indirect
+	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
