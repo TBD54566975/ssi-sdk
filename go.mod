@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/bits-and-blooms/bitset v1.13.0
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
-	github.com/cloudflare/circl v1.3.6
+	github.com/cloudflare/circl v1.3.7
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/go-playground/validator/v10 v10.15.1
 	github.com/goccy/go-json v0.10.2
@@ -58,7 +58,7 @@ require (
 	github.com/pquerna/cachecontrol v0.1.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	golang.org/x/crypto v0.16.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
