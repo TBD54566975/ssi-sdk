@@ -7,7 +7,7 @@ require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
 	github.com/cloudflare/circl v1.3.7
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
-	github.com/go-playground/validator/v10 v10.15.1
+	github.com/go-playground/validator/v10 v10.18.0
 	github.com/goccy/go-json v0.10.2
 	github.com/google/uuid v1.5.0
 	github.com/gowebpki/jcs v1.0.1
@@ -27,7 +27,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/term v0.15.0
+	golang.org/x/term v0.17.0
 	golang.org/x/text v0.14.0
 	gopkg.in/h2non/gock.v1 v1.1.2
 )
@@ -35,7 +35,7 @@ require (
 require (
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
@@ -45,7 +45,7 @@ require (
 	github.com/hyperledger/aries-framework-go/spi v0.0.0-20230427134832-0c9969493bd3 // indirect
 	github.com/kilic/bls12-381 v0.1.1-0.20210503002446-7b7597926c69 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
-	github.com/leodido/go-urn v1.2.4 // indirect
+	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.4 // indirect
@@ -58,9 +58,9 @@ require (
 	github.com/pquerna/cachecontrol v0.1.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
-	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.1.6 // indirect
 )
