@@ -20,13 +20,13 @@ type VerifiableCredential struct {
 	// https://www.w3.org/TR/xmlschema11-2/#dateTimes
 	IssuanceDate     string `json:"issuanceDate,omitempty" validate:"required"`
 	ExpirationDate   string `json:"expirationDate,omitempty"`
-	CredentialStatus any    `json:"credentialStatus,omitempty" validate:"omitempty,dive"`
+	CredentialStatus any    `json:"credentialStatus,omitempty" validate:"omitempty"`
 	// This is where the subject's ID *may* be present
 	CredentialSubject CredentialSubject `json:"credentialSubject" validate:"required"`
-	CredentialSchema  *CredentialSchema `json:"credentialSchema,omitempty" validate:"omitempty,dive"`
-	RefreshService    *RefreshService   `json:"refreshService,omitempty" validate:"omitempty,dive"`
+	CredentialSchema  *CredentialSchema `json:"credentialSchema,omitempty" validate:"omitempty"`
+	RefreshService    *RefreshService   `json:"refreshService,omitempty" validate:"omitempty"`
 	TermsOfUse        []TermsOfUse      `json:"termsOfUse,omitempty" validate:"omitempty,dive"`
-	Evidence          []any             `json:"evidence,omitempty" validate:"omitempty,dive"`
+	Evidence          []any             `json:"evidence,omitempty" validate:"omitempty"`
 	// For embedded proof support
 	// Proof is a digital signature over a credential https://www.w3.org/TR/2021/REC-vc-data-model-20211109/#proofs-signatures
 	Proof *crypto.Proof `json:"proof,omitempty"`
