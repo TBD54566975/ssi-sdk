@@ -31,7 +31,9 @@ const (
 )
 
 const (
-	// EdDSA uses an ed25519 key
+	// Ed25519DSA uses an ed25519 key as per https://datatracker.ietf.org/doc/draft-ietf-jose-fully-specified-algorithms/
+	Ed25519DSA SignatureAlgorithm = "Ed25519"
+	// Deprecated: used Ed25519; EdDSA uses an ed25519 key
 	EdDSA SignatureAlgorithm = "EdDSA"
 	// ES256K uses a secp256k1 key
 	ES256K SignatureAlgorithm = "ES256K"
@@ -41,6 +43,9 @@ const (
 	ES384 SignatureAlgorithm = "ES384"
 	// PS256 uses a 2048-bit RSA key
 	PS256 SignatureAlgorithm = "PS256"
+
+	// ECDHESA256KW is a key agreement scheme using X25519 as per https://datatracker.ietf.org/doc/html/rfc7518#section-4.6
+	ECDHESA256KW SignatureAlgorithm = "ECDH-ES+A256KW"
 
 	// Experimental
 
@@ -93,7 +98,7 @@ func IsSupportedSignatureAlg(sa SignatureAlgorithm) bool {
 
 // GetSupportedSignatureAlgs returns a list of supported signature algorithms
 func GetSupportedSignatureAlgs() []SignatureAlgorithm {
-	return []SignatureAlgorithm{EdDSA, ES256K, ES256, ES384, PS256}
+	return []SignatureAlgorithm{Ed25519DSA, ES256K, ES256, ES384, PS256}
 }
 
 // GetExperimentalSignatureAlgs returns a list of experimental signature algorithms

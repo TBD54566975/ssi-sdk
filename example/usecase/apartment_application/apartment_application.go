@@ -110,7 +110,7 @@ func main() {
 			ID:      "birthdate",
 			Purpose: "Age verification",
 			Format: &exchange.ClaimFormat{
-				JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+				JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 			},
 			Constraints: &exchange.Constraints{Fields: []exchange.Field{
 				{
@@ -148,7 +148,7 @@ func main() {
 	presentationClaim := exchange.PresentationClaim{
 		Token:                         util.StringPtr(string(signedVCBytes)),
 		JWTFormat:                     exchange.JWTVC.Ptr(),
-		SignatureAlgorithmOrProofType: string(crypto.EdDSA),
+		SignatureAlgorithmOrProofType: string(crypto.Ed25519DSA),
 	}
 
 	presentationSubmissionBytes, err := exchange.BuildPresentationSubmission(*holderSigner, aptDIDKey.String(), *presentationDefinition, []exchange.PresentationClaim{presentationClaim}, exchange.JWTVPTarget)
