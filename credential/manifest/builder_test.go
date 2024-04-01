@@ -84,7 +84,7 @@ func TestCredentialManifestBuilder(t *testing.T) {
 
 	// good format
 	err = builder.SetClaimFormat(exchange.ClaimFormat{
-		JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+		JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 	})
 	assert.NoError(t, err)
 
@@ -140,7 +140,7 @@ func TestCredentialApplicationBuilder(t *testing.T) {
 
 	// set good claim format
 	err = builder.SetApplicationClaimFormat(exchange.ClaimFormat{
-		JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+		JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 	})
 	assert.NoError(t, err)
 

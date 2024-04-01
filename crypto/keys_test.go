@@ -9,136 +9,136 @@ import (
 
 func TestKeyToBytes(t *testing.T) {
 	for _, keyType := range GetSupportedKeyTypes() {
-		t.Run(string(keyType), func(tt *testing.T) {
+		t.Run(string(keyType), func(t *testing.T) {
 			pub, priv, err := GenerateKeyByKeyType(keyType)
 
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, pub)
-			assert.NotEmpty(tt, priv)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, pub)
+			assert.NotEmpty(t, priv)
 
 			pubKeyBytes, err := PubKeyToBytes(pub)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, pubKeyBytes)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, pubKeyBytes)
 
 			reconstructedPub, err := BytesToPubKey(pubKeyBytes, keyType)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, reconstructedPub)
-			assert.EqualValues(tt, pub, reconstructedPub)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, reconstructedPub)
+			assert.EqualValues(t, pub, reconstructedPub)
 
 			privKeyBytes, err := PrivKeyToBytes(priv)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, privKeyBytes)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, privKeyBytes)
 
 			reconstructedPriv, err := BytesToPrivKey(privKeyBytes, keyType)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, reconstructedPriv)
-			assert.EqualValues(tt, priv, reconstructedPriv)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, reconstructedPriv)
+			assert.EqualValues(t, priv, reconstructedPriv)
 
 			kt, err := GetKeyTypeFromPrivateKey(priv)
-			assert.NoError(tt, err)
-			assert.Equal(tt, keyType, kt)
+			assert.NoError(t, err)
+			assert.Equal(t, keyType, kt)
 		})
 	}
 
 	for _, keyType := range GetExperimentalKeyTypes() {
-		t.Run(string(keyType), func(tt *testing.T) {
+		t.Run(string(keyType), func(t *testing.T) {
 			pub, priv, err := GenerateKeyByKeyType(keyType)
 
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, pub)
-			assert.NotEmpty(tt, priv)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, pub)
+			assert.NotEmpty(t, priv)
 
 			pubKeyBytes, err := PubKeyToBytes(pub)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, pubKeyBytes)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, pubKeyBytes)
 
 			reconstructedPub, err := BytesToPubKey(pubKeyBytes, keyType)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, reconstructedPub)
-			assert.EqualValues(tt, pub, reconstructedPub)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, reconstructedPub)
+			assert.EqualValues(t, pub, reconstructedPub)
 
 			privKeyBytes, err := PrivKeyToBytes(priv)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, privKeyBytes)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, privKeyBytes)
 
 			reconstructedPriv, err := BytesToPrivKey(privKeyBytes, keyType)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, reconstructedPriv)
-			assert.EqualValues(tt, priv, reconstructedPriv)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, reconstructedPriv)
+			assert.EqualValues(t, priv, reconstructedPriv)
 
 			kt, err := GetKeyTypeFromPrivateKey(priv)
-			assert.NoError(tt, err)
-			assert.Equal(tt, keyType, kt)
+			assert.NoError(t, err)
+			assert.Equal(t, keyType, kt)
 		})
 	}
 
 	for _, keyType := range GetSupportedKeyTypes() {
-		t.Run(string(keyType)+" with pointers", func(tt *testing.T) {
+		t.Run(string(keyType)+" with pointers", func(t *testing.T) {
 			pub, priv, err := GenerateKeyByKeyType(keyType)
 
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, pub)
-			assert.NotEmpty(tt, priv)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, pub)
+			assert.NotEmpty(t, priv)
 
 			pubKeyBytes, err := PubKeyToBytes(&pub)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, pubKeyBytes)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, pubKeyBytes)
 
 			reconstructedPub, err := BytesToPubKey(pubKeyBytes, keyType)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, reconstructedPub)
-			assert.EqualValues(tt, pub, reconstructedPub)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, reconstructedPub)
+			assert.EqualValues(t, pub, reconstructedPub)
 
 			privKeyBytes, err := PrivKeyToBytes(&priv)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, privKeyBytes)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, privKeyBytes)
 
 			reconstructedPriv, err := BytesToPrivKey(privKeyBytes, keyType)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, reconstructedPriv)
-			assert.EqualValues(tt, priv, reconstructedPriv)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, reconstructedPriv)
+			assert.EqualValues(t, priv, reconstructedPriv)
 
 			kt, err := GetKeyTypeFromPrivateKey(&priv)
-			assert.NoError(tt, err)
-			assert.Equal(tt, keyType, kt)
+			assert.NoError(t, err)
+			assert.Equal(t, keyType, kt)
 		})
 	}
 
 	for _, keyType := range GetExperimentalKeyTypes() {
-		t.Run(string(keyType)+" with pointers", func(tt *testing.T) {
+		t.Run(string(keyType)+" with pointers", func(t *testing.T) {
 			pub, priv, err := GenerateKeyByKeyType(keyType)
 
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, pub)
-			assert.NotEmpty(tt, priv)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, pub)
+			assert.NotEmpty(t, priv)
 
 			pubKeyBytes, err := PubKeyToBytes(&pub)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, pubKeyBytes)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, pubKeyBytes)
 
 			reconstructedPub, err := BytesToPubKey(pubKeyBytes, keyType)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, reconstructedPub)
-			assert.EqualValues(tt, pub, reconstructedPub)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, reconstructedPub)
+			assert.EqualValues(t, pub, reconstructedPub)
 
 			privKeyBytes, err := PrivKeyToBytes(&priv)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, privKeyBytes)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, privKeyBytes)
 
 			reconstructedPriv, err := BytesToPrivKey(privKeyBytes, keyType)
-			assert.NoError(tt, err)
-			assert.NotEmpty(tt, reconstructedPriv)
-			assert.EqualValues(tt, priv, reconstructedPriv)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, reconstructedPriv)
+			assert.EqualValues(t, priv, reconstructedPriv)
 
 			kt, err := GetKeyTypeFromPrivateKey(&priv)
-			assert.NoError(tt, err)
-			assert.Equal(tt, keyType, kt)
+			assert.NoError(t, err)
+			assert.Equal(t, keyType, kt)
 		})
 	}
 }
 
 func TestDilithiumKeys(t *testing.T) {
-	t.Run("Able to generate dilithium key pairs for each mode", func(tt *testing.T) {
+	t.Run("Able to generate dilithium key pairs for each mode", func(t *testing.T) {
 		tests := []struct {
 			name string
 			m    dilithium.Mode
@@ -157,16 +157,16 @@ func TestDilithiumKeys(t *testing.T) {
 			},
 		}
 		for _, test := range tests {
-			tt.Run(test.name, func(ttt *testing.T) {
+			t.Run(test.name, func(t *testing.T) {
 				pk, sk, err := GenerateDilithiumKeyPair(test.m)
-				assert.NoError(ttt, err)
-				assert.NotEmpty(ttt, pk)
-				assert.NotEmpty(ttt, sk)
+				assert.NoError(t, err)
+				assert.NotEmpty(t, pk)
+				assert.NotEmpty(t, sk)
 			})
 		}
 	})
 
-	t.Run("Able to extract the mode for each Dilithium private key type", func(tt *testing.T) {
+	t.Run("Able to extract the mode for each Dilithium private key type", func(t *testing.T) {
 		tests := []struct {
 			m dilithium.Mode
 		}{
@@ -181,18 +181,18 @@ func TestDilithiumKeys(t *testing.T) {
 			},
 		}
 		for _, test := range tests {
-			tt.Run(test.m.Name(), func(ttt *testing.T) {
+			t.Run(test.m.Name(), func(t *testing.T) {
 				_, privKey, err := GenerateDilithiumKeyPair(test.m)
-				assert.NoError(tt, err)
+				assert.NoError(t, err)
 
 				mode, err := GetModeFromDilithiumPrivateKey(privKey)
-				assert.NoError(tt, err)
-				assert.Equal(tt, test.m, mode)
+				assert.NoError(t, err)
+				assert.Equal(t, test.m, mode)
 			})
 		}
 	})
 
-	t.Run("Able to extract the mode for each Dilithium public key type", func(tt *testing.T) {
+	t.Run("Able to extract the mode for each Dilithium public key type", func(t *testing.T) {
 		tests := []struct {
 			m dilithium.Mode
 		}{
@@ -207,13 +207,13 @@ func TestDilithiumKeys(t *testing.T) {
 			},
 		}
 		for _, test := range tests {
-			tt.Run(test.m.Name(), func(ttt *testing.T) {
+			t.Run(test.m.Name(), func(t *testing.T) {
 				pubKey, _, err := GenerateDilithiumKeyPair(test.m)
-				assert.NoError(tt, err)
+				assert.NoError(t, err)
 
 				mode, err := GetModeFromDilithiumPublicKey(pubKey)
-				assert.NoError(tt, err)
-				assert.Equal(tt, test.m, mode)
+				assert.NoError(t, err)
+				assert.Equal(t, test.m, mode)
 			})
 		}
 	})
