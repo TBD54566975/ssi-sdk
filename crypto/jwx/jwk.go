@@ -168,6 +168,24 @@ func (k *PublicKeyJWK) IsEmpty() bool {
 	return reflect.DeepEqual(k, &PublicKeyJWK{})
 }
 
+// Thumbprint returns the JWK thumbprint using the indicated hashing algorithm (SHA-256), according to RFC 7638
+// The thumbprint is returned as a base64URL encoded string.
+func (k *PublicKeyJWK) Thumbprint() (string, error) {
+	keyBytes, err := json.Marshal(k)
+	if err != nil {
+		return "", err
+	}
+	gotJWK, err := jwk.ParseKey(keyBytes)
+	if err != nil {
+		return "", errors.Wrap(err, "creating JWK from public key")
+	}
+	thumbprintBytes, err := gotJWK.Thumbprint(gocrypto.SHA256)
+	if err != nil {
+		return "", errors.Wrap(err, "creating thumbprint")
+	}
+	return base64.RawURLEncoding.EncodeToString(thumbprintBytes), nil
+}
+
 // ToPublicKey converts a PublicKeyJWK to a PublicKey
 func (k *PublicKeyJWK) ToPublicKey() (gocrypto.PublicKey, error) {
 	if k.ALG == "" {
