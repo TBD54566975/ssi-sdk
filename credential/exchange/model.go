@@ -72,7 +72,7 @@ type PresentationDefinition struct {
 	ID                     string                  `json:"id,omitempty" validate:"required"`
 	Name                   string                  `json:"name,omitempty"`
 	Purpose                string                  `json:"purpose,omitempty"`
-	Format                 *ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`
+	Format                 *ClaimFormat            `json:"format,omitempty" validate:"omitempty"`
 	InputDescriptors       []InputDescriptor       `json:"input_descriptors" validate:"required,dive"`
 	SubmissionRequirements []SubmissionRequirement `json:"submission_requirements,omitempty" validate:"omitempty,dive"`
 
@@ -130,13 +130,13 @@ func (pd *PresentationDefinition) IsValid() error {
 // ClaimFormat https://identity.foundation/presentation-exchange/#claim-format-designations
 // At most one field can have non-nil
 type ClaimFormat struct {
-	JWT   *JWTType `json:"jwt,omitempty" validate:"omitempty,dive"`
-	JWTVC *JWTType `json:"jwt_vc,omitempty" validate:"omitempty,dive"`
-	JWTVP *JWTType `json:"jwt_vp,omitempty" validate:"omitempty,dive"`
+	JWT   *JWTType `json:"jwt,omitempty" validate:"omitempty"`
+	JWTVC *JWTType `json:"jwt_vc,omitempty" validate:"omitempty"`
+	JWTVP *JWTType `json:"jwt_vp,omitempty" validate:"omitempty"`
 
-	LDP   *LDPType `json:"ldp,omitempty" validate:"omitempty,dive"`
-	LDPVC *LDPType `json:"ldp_vc,omitempty" validate:"omitempty,dive"`
-	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty,dive"`
+	LDP   *LDPType `json:"ldp,omitempty" validate:"omitempty"`
+	LDPVC *LDPType `json:"ldp_vc,omitempty" validate:"omitempty"`
+	LDPVP *LDPType `json:"ldp_vp,omitempty" validate:"omitempty"`
 }
 
 func SupportedClaimFormats() []CredentialFormat {
@@ -231,7 +231,7 @@ type InputDescriptor struct {
 	Name string `json:"name,omitempty"`
 	// Purpose for which claim's data is being requested
 	Purpose     string       `json:"purpose,omitempty"`
-	Format      *ClaimFormat `json:"format,omitempty" validate:"omitempty,dive"`
+	Format      *ClaimFormat `json:"format,omitempty" validate:"omitempty"`
 	Constraints *Constraints `json:"constraints" validate:"required"`
 	// Must match a grouping strings listed in the `from` values of a submission requirement rule
 	Group []string `json:"group,omitempty"`

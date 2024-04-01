@@ -117,8 +117,8 @@ type DisplayMappingSchema struct {
 
 // LabeledDisplayMappingObject https://identity.foundation/wallet-rendering/#labeled-display-mapping-object
 type LabeledDisplayMappingObject struct {
-	Label                 string `json:"label" validate:"required"`
-	*DisplayMappingObject `validate:"dive"`
+	Label string `json:"label" validate:"required"`
+	*DisplayMappingObject
 }
 
 func (ldmo *LabeledDisplayMappingObject) IsEmpty() bool {

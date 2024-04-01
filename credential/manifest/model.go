@@ -21,10 +21,10 @@ type CredentialManifest struct {
 	SpecVersion            string                           `json:"spec_version" validate:"required"`
 	Name                   string                           `json:"name,omitempty"`
 	Description            string                           `json:"description,omitempty"`
-	Issuer                 Issuer                           `json:"issuer" validate:"required,dive"`
+	Issuer                 Issuer                           `json:"issuer" validate:"required"`
 	OutputDescriptors      []OutputDescriptor               `json:"output_descriptors" validate:"required,dive"`
-	Format                 *exchange.ClaimFormat            `json:"format,omitempty" validate:"omitempty,dive"`
-	PresentationDefinition *exchange.PresentationDefinition `json:"presentation_definition,omitempty" validate:"omitempty,dive"`
+	Format                 *exchange.ClaimFormat            `json:"format,omitempty" validate:"omitempty"`
+	PresentationDefinition *exchange.PresentationDefinition `json:"presentation_definition,omitempty" validate:"omitempty"`
 }
 
 func (cm *CredentialManifest) IsEmpty() bool {
@@ -95,9 +95,9 @@ type CredentialApplication struct {
 	SpecVersion string                `json:"spec_version" validate:"required"`
 	Applicant   string                `json:"applicant" validate:"required"`
 	ManifestID  string                `json:"manifest_id" validate:"required"`
-	Format      *exchange.ClaimFormat `json:"format" validate:"required,dive"`
+	Format      *exchange.ClaimFormat `json:"format" validate:"required"`
 	// Must be present if the corresponding manifest contains a presentation_definition
-	PresentationSubmission *exchange.PresentationSubmission `json:"presentation_submission,omitempty" validate:"omitempty,dive"`
+	PresentationSubmission *exchange.PresentationSubmission `json:"presentation_submission,omitempty" validate:"omitempty"`
 }
 
 func (ca *CredentialApplication) IsEmpty() bool {
@@ -136,11 +136,11 @@ type CredentialResponse struct {
 	ApplicationID string `json:"application_id"`
 	Fulfillment   *struct {
 		DescriptorMap []exchange.SubmissionDescriptor `json:"descriptor_map" validate:"required"`
-	} `json:"fulfillment,omitempty" validate:"omitempty,dive"`
+	} `json:"fulfillment,omitempty" validate:"omitempty"`
 	Denial *struct {
 		Reason           string   `json:"reason" validate:"required"`
 		InputDescriptors []string `json:"input_descriptors,omitempty"`
-	} `json:"denial,omitempty" validate:"omitempty,dive"`
+	} `json:"denial,omitempty" validate:"omitempty"`
 }
 
 func (cf *CredentialResponse) IsEmpty() bool {
