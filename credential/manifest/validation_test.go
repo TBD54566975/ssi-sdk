@@ -67,11 +67,11 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		// test claim format
 		cm.Format = &exchange.ClaimFormat{
-			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 		}
 
 		ca.CredentialApplication.Format = &exchange.ClaimFormat{
-			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 		}
 
 		credAppRequestBytes, err = json.Marshal(ca)
@@ -84,12 +84,12 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		assert.Empty(tt, unfulfilledIDs)
 
 		cm.Format = &exchange.ClaimFormat{
-			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 			LDP: &exchange.LDPType{ProofType: []cryptosuite.SignatureType{"sigtype"}},
 		}
 
 		ca.CredentialApplication.Format = &exchange.ClaimFormat{
-			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 		}
 
 		credAppRequestBytes, err = json.Marshal(ca)
@@ -102,7 +102,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 		assert.Empty(tt, unfulfilledIDs)
 
 		cm.Format = &exchange.ClaimFormat{
-			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 		}
 
 		ca.CredentialApplication.Format = &exchange.ClaimFormat{
@@ -120,7 +120,7 @@ func TestIsValidCredentialApplicationForManifest(t *testing.T) {
 
 		// reset
 		ca.CredentialApplication.Format = &exchange.ClaimFormat{
-			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+			JWT: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 		}
 
 		ca.CredentialApplication.PresentationSubmission.DefinitionID = "badid"

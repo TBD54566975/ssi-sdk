@@ -93,7 +93,7 @@ func getDummyPresentationDefinition() PresentationDefinition {
 		},
 		Name: "test-def",
 		Format: &ClaimFormat{
-			JWTVC: &JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+			JWTVC: &JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 		},
 	}
 }

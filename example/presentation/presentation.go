@@ -39,7 +39,7 @@ func makePresentationData() exchange.PresentationDefinition {
 		},
 		Name: "test-def",
 		Format: &exchange.ClaimFormat{ // Optional property
-			JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+			JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 		},
 	}
 }
