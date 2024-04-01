@@ -35,7 +35,7 @@ func TestPresentationDefinitionBuilder(t *testing.T) {
 			Name:    "name",
 			Purpose: "purpose",
 			Format: &ClaimFormat{
-				JWT: &JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+				JWT: &JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 			},
 			Constraints: &Constraints{SubjectIsIssuer: Preferred.Ptr()},
 		},
@@ -55,7 +55,7 @@ func TestPresentationDefinitionBuilder(t *testing.T) {
 
 	// valid claim format
 	err = builder.SetClaimFormat(ClaimFormat{
-		JWT: &JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+		JWT: &JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 	})
 	assert.NoError(t, err)
 
@@ -224,7 +224,7 @@ func TestInputDescriptorBuilder(t *testing.T) {
 	// valid claim format
 	err = builder.SetClaimFormat(ClaimFormat{
 		JWT: &JWTType{
-			Alg: []crypto.SignatureAlgorithm{crypto.EdDSA},
+			Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA},
 		},
 	})
 	assert.NoError(t, err)

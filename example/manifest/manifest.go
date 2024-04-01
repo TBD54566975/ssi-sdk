@@ -117,7 +117,7 @@ func prepareCredentialManifest(issuerDID key.DIDKey, licenseSchemaID string) (*m
 				Name:    "First Name",
 				Purpose: "Provide your first name required to issue your drivers license",
 				Format: &exchange.ClaimFormat{
-					JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+					JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 				},
 				Constraints: &exchange.Constraints{
 					SubjectIsIssuer: exchange.Preferred.Ptr(),
@@ -134,7 +134,7 @@ func prepareCredentialManifest(issuerDID key.DIDKey, licenseSchemaID string) (*m
 				Name:    "Last Name",
 				Purpose: "Provide your last name required to issue your drivers license",
 				Format: &exchange.ClaimFormat{
-					JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+					JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 				},
 				Constraints: &exchange.Constraints{
 					SubjectIsIssuer: exchange.Preferred.Ptr(),
@@ -151,7 +151,7 @@ func prepareCredentialManifest(issuerDID key.DIDKey, licenseSchemaID string) (*m
 				Name:    "Date of Birth",
 				Purpose: "Provide your date of birth required to issue your drivers license",
 				Format: &exchange.ClaimFormat{
-					JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+					JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 				},
 				Constraints: &exchange.Constraints{
 					SubjectIsIssuer: exchange.Preferred.Ptr(),
@@ -170,7 +170,7 @@ func prepareCredentialManifest(issuerDID key.DIDKey, licenseSchemaID string) (*m
 
 	// Set the claim format which we'll accept as inputs
 	if err := builder.SetClaimFormat(exchange.ClaimFormat{
-		JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+		JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 	}); err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func prepareCredentialApplication(cm manifest.CredentialManifest, vc credential.
 	builder := manifest.NewCredentialApplicationBuilder(cm.ID)
 
 	if err := builder.SetApplicationClaimFormat(exchange.ClaimFormat{
-		JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.EdDSA}},
+		JWTVC: &exchange.JWTType{Alg: []crypto.SignatureAlgorithm{crypto.Ed25519DSA}},
 	}); err != nil {
 		return nil, err
 	}

@@ -28,6 +28,7 @@ const (
 )
 
 const (
+	JSONWebKeyType                    LDKeyType = "JsonWebKey"
 	JSONWebKey2020Type                LDKeyType = "JsonWebKey2020"
 	X25519KeyAgreementKey2020         LDKeyType = "X25519KeyAgreementKey2020"
 	Ed25519VerificationKey2020        LDKeyType = "Ed25519VerificationKey2020"

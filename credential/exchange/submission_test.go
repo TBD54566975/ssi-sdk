@@ -328,7 +328,7 @@ func TestBuildPresentationSubmissionVP(t *testing.T) {
 		presentationClaimJWT := PresentationClaim{
 			Token:                         util.StringPtr(string(testVCJWT)),
 			JWTFormat:                     JWTVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
+			SignatureAlgorithmOrProofType: string(crypto.Ed25519DSA),
 		}
 
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim, presentationClaimJWT})
@@ -760,7 +760,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		presentationClaim := PresentationClaim{
 			Token:                         util.StringPtr(string(jwtVC)),
 			JWTFormat:                     JWTVC.Ptr(),
-			SignatureAlgorithmOrProofType: string(crypto.EdDSA),
+			SignatureAlgorithmOrProofType: string(crypto.Ed25519DSA),
 		}
 
 		normalized, err := normalizePresentationClaims([]PresentationClaim{presentationClaim})
@@ -769,7 +769,7 @@ func TestNormalizePresentationClaims(t *testing.T) {
 		assert.True(tt, len(normalized) == 1)
 		assert.NotEmpty(tt, normalized[0].Data)
 		assert.EqualValues(tt, JWTVC, normalized[0].Format)
-		assert.EqualValues(tt, string(crypto.EdDSA), normalized[0].AlgOrProofType)
+		assert.EqualValues(tt, string(crypto.Ed25519DSA), normalized[0].AlgOrProofType)
 	})
 
 	t.Run("Normalize VP Claim", func(tt *testing.T) {
