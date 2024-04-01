@@ -1,6 +1,6 @@
 module github.com/TBD54566975/ssi-sdk/mobile
 
-go 1.21
+go 1.22
 
 require (
 	github.com/TBD54566975/ssi-sdk v0.0.4-alpha
