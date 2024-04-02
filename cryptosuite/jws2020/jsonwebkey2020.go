@@ -182,7 +182,12 @@ func (s *JSONWebKeySigner) Sign(tbs []byte) ([]byte, error) {
 	if err := headers.Set(jws.CriticalKey, []string{b64}); err != nil {
 		return nil, err
 	}
-	return jws.Sign(nil, jws.WithKey(jwa.SignatureAlgorithm(s.ALG), s.PrivateKey), jws.WithHeaders(headers), jws.WithDetachedPayload(tbs))
+	// Ed25519 is not supported by the jwx library yet https://github.com/TBD54566975/ssi-sdk/issues/520
+	alg := s.ALG
+	if alg == "Ed25519" {
+		alg = jwa.EdDSA.String()
+	}
+	return jws.Sign(nil, jws.WithKey(jwa.SignatureAlgorithm(alg), s.PrivateKey), jws.WithHeaders(headers), jws.WithDetachedPayload(tbs))
 }
 
 func (s *JSONWebKeySigner) GetKeyID() string {
@@ -238,7 +243,12 @@ func (v JSONWebKeyVerifier) Verify(message, signature []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "getting public key")
 	}
-	_, err = jws.Verify(signature, jws.WithKey(jwa.SignatureAlgorithm(v.ALG), pubKey), jws.WithDetachedPayload(message))
+	// Ed25519 is not supported by the jwx library yet https://github.com/TBD54566975/ssi-sdk/issues/520
+	alg := v.ALG
+	if alg == "Ed25519" {
+		alg = jwa.EdDSA.String()
+	}
+	_, err = jws.Verify(signature, jws.WithKey(jwa.SignatureAlgorithm(alg), pubKey), jws.WithDetachedPayload(message))
 	return err
 }
 

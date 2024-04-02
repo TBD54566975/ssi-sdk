@@ -44,7 +44,13 @@ func SignVerifiableCredentialJWT(signer jwx.Signer, cred credential.VerifiableCr
 			return nil, errors.Wrap(err, "setting KID protected header")
 		}
 	}
-	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.ALG), signer.PrivateKey, jws.WithProtectedHeaders(hdrs)))
+
+	// Ed25519 is not supported by the jwx library yet https://github.com/TBD54566975/ssi-sdk/issues/520
+	alg := signer.ALG
+	if alg == "Ed25519" {
+		alg = jwa.EdDSA.String()
+	}
+	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(alg), signer.PrivateKey, jws.WithProtectedHeaders(hdrs)))
 	if err != nil {
 		return nil, errors.Wrap(err, "signing JWT credential")
 	}
@@ -271,7 +277,12 @@ func SignVerifiablePresentationJWT(signer jwx.Signer, parameters *JWTVVPParamete
 			return nil, errors.Wrap(err, "setting KID protected header")
 		}
 	}
-	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(signer.ALG), signer.PrivateKey, jws.WithProtectedHeaders(hdrs)))
+	// Ed25519 is not supported by the jwx library yet https://github.com/TBD54566975/ssi-sdk/issues/520
+	alg := signer.ALG
+	if alg == "Ed25519" {
+		alg = jwa.EdDSA.String()
+	}
+	signed, err := jwt.Sign(t, jwt.WithKey(jwa.SignatureAlgorithm(alg), signer.PrivateKey, jws.WithProtectedHeaders(hdrs)))
 	if err != nil {
 		return nil, errors.Wrap(err, "signing JWT presentation")
 	}
