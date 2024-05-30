@@ -1,6 +1,6 @@
 module github.com/TBD54566975/ssi-sdk
 
-go 1.23
+go 1.22
 
 require (
 	github.com/bits-and-blooms/bitset v1.13.0
