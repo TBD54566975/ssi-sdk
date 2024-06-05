@@ -93,11 +93,11 @@ func TestCredentialBuilder(t *testing.T) {
 	err = builder.AddContext("https://www.w3.org/2018/credentials/examples/v1")
 	assert.NoError(t, err)
 
-	// there is a default id
-	assert.NotEmpty(t, builder.ID)
+	//default id is empty
+	assert.Empty(t, builder.ID)
 
 	// set id
-	id := "test-id"
+	id := "p"
 	err = builder.SetID(id)
 	assert.NoError(t, err)
 

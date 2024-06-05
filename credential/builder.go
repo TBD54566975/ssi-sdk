@@ -2,6 +2,7 @@ package credential
 
 import (
 	"fmt"
+	"net/url"
 	"reflect"
 
 	"github.com/google/uuid"
@@ -31,6 +32,7 @@ type VerifiableCredentialBuilder struct {
 }
 
 // NewVerifiableCredentialBuilder returns an initialized credential builder with some default fields populated
+// Default id is empty
 func NewVerifiableCredentialBuilder() VerifiableCredentialBuilder {
 	contexts := []string{VerifiableCredentialsLinkedDataContext}
 	types := []string{VerifiableCredentialType}
@@ -38,7 +40,7 @@ func NewVerifiableCredentialBuilder() VerifiableCredentialBuilder {
 		contexts: contexts,
 		types:    types,
 		VerifiableCredential: &VerifiableCredential{
-			ID:           uuid.NewString(),
+			ID:           "",
 			Context:      contexts,
 			Type:         types,
 			IssuanceDate: util.GetRFC3339Timestamp(),
@@ -85,7 +87,9 @@ func (vcb *VerifiableCredentialBuilder) SetID(id string) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
-
+    if _, err := url.Parse(id); err != nil {
+		return errors.Wrap(err, "malformed id")
+	}
 	vcb.ID = id
 	return nil
 }
