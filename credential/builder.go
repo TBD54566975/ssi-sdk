@@ -32,7 +32,7 @@ type VerifiableCredentialBuilder struct {
 }
 
 // NewVerifiableCredentialBuilder returns an initialized credential builder with some default fields populated
-// Default id is empty
+// Setting emptyID as True creates VC with empty ID. Default ID is a random UUID.
 func NewVerifiableCredentialBuilder(emptyID ...bool) VerifiableCredentialBuilder {
 	contexts := []string{VerifiableCredentialsLinkedDataContext}
 	types := []string{VerifiableCredentialType}
