@@ -33,19 +33,25 @@ type VerifiableCredentialBuilder struct {
 
 // NewVerifiableCredentialBuilder returns an initialized credential builder with some default fields populated
 // Default id is empty
-func NewVerifiableCredentialBuilder() VerifiableCredentialBuilder {
+func NewVerifiableCredentialBuilder(emptyID ...bool) VerifiableCredentialBuilder {
 	contexts := []string{VerifiableCredentialsLinkedDataContext}
 	types := []string{VerifiableCredentialType}
-	return VerifiableCredentialBuilder{
+	id := uuid.NewString()
+	if len(emptyID)>0 && emptyID[0]{
+		id = ""
+	}
+	vcb := VerifiableCredentialBuilder{
 		contexts: contexts,
 		types:    types,
 		VerifiableCredential: &VerifiableCredential{
-			ID:           "",
+			ID:           id,
 			Context:      contexts,
 			Type:         types,
 			IssuanceDate: util.GetRFC3339Timestamp(),
 		},
 	}
+	return vcb
+	
 }
 
 // Build attempts to turn a builder into a valid verifiable credential, doing some object model validation.
