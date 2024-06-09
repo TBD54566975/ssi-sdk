@@ -12,6 +12,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+type IDValue string // IDValue represents different types of ID values for building Verifiable Credentials
+
 const (
 	VerifiableCredentialsLinkedDataContext string = "https://www.w3.org/2018/credentials/v1"
 	VerifiableCredentialType               string = "VerifiableCredential"
@@ -21,6 +23,9 @@ const (
 	VerifiablePresentationType             string = "VerifiablePresentation"
 
 	BuilderEmptyError string = "builder cannot be empty"
+
+	EmptyIDValue    IDValue = ""         // EmptyIDValue indicates setting the ID value to empty
+	GenerateIDValue IDValue = "generate" // GenerateIDValue indicates generating a UUID as the ID value.
 )
 
 // VerifiableCredentialBuilder uses the builder pattern to construct a verifiable credential
@@ -32,14 +37,20 @@ type VerifiableCredentialBuilder struct {
 }
 
 // NewVerifiableCredentialBuilder returns an initialized credential builder with some default fields populated
-// Setting emptyID as True creates VC with empty ID. Default ID is a random UUID.
-func NewVerifiableCredentialBuilder(emptyID ...bool) VerifiableCredentialBuilder {
+// idValue determines whether VC will have empty ID/ random UUID/ customID.
+func NewVerifiableCredentialBuilder(idValue IDValue) VerifiableCredentialBuilder {
 	contexts := []string{VerifiableCredentialsLinkedDataContext}
 	types := []string{VerifiableCredentialType}
-	id := uuid.NewString()
-	if len(emptyID)>0 && emptyID[0]{
+	var id string
+	switch {
+	case idValue == EmptyIDValue:
 		id = ""
+	case idValue == GenerateIDValue:
+		id = uuid.NewString()
+	default:
+		id = string(idValue)
 	}
+
 	vcb := VerifiableCredentialBuilder{
 		contexts: contexts,
 		types:    types,
@@ -51,7 +62,7 @@ func NewVerifiableCredentialBuilder(emptyID ...bool) VerifiableCredentialBuilder
 		},
 	}
 	return vcb
-	
+
 }
 
 // Build attempts to turn a builder into a valid verifiable credential, doing some object model validation.
@@ -93,7 +104,7 @@ func (vcb *VerifiableCredentialBuilder) SetID(id string) error {
 	if vcb.IsEmpty() {
 		return errors.New(BuilderEmptyError)
 	}
-    if _, err := url.Parse(id); err != nil {
+	if _, err := url.Parse(id); err != nil {
 		return errors.Wrap(err, "malformed id")
 	}
 	vcb.ID = id
