@@ -1,7 +1,7 @@
 ⚠️ This repository is not actively being maintained. For a go SDK please look at [web5-go](https://github.com/TBD54566975/web5-go/). ⚠️
 
 [![godoc ssi-sdk](https://img.shields.io/badge/godoc-ssi--sdk-blue)](https://pkg.go.dev/github.com/TBD54566975/ssi-sdk)
-[![go version 1.22.3](https://img.shields.io/badge/go_version-1.22.3-brightgreen)](https://golang.org/)
+[![go version 1.22.4](https://img.shields.io/badge/go_version-1.22.4-brightgreen)](https://golang.org/)
 [![Go Report Card A+](https://goreportcard.com/badge/github.com/TBD54566975/ssi-sdk)](https://goreportcard.com/report/github.com/TBD54566975/ssi-sdk)
 [![license Apache 2](https://img.shields.io/badge/license-Apache%202-black)](https://github.com/TBD54566975/ssi-sdk/blob/main/LICENSE)
 [![issues](https://img.shields.io/github/issues/TBD54566975/ssi-sdk)](https://github.com/TBD54566975/ssi-sdk/issues)
