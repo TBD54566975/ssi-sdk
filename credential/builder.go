@@ -62,7 +62,6 @@ func NewVerifiableCredentialBuilder(idValue IDValue) VerifiableCredentialBuilder
 		},
 	}
 	return vcb
-
 }
 
 // Build attempts to turn a builder into a valid verifiable credential, doing some object model validation.
