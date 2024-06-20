@@ -181,7 +181,7 @@ func prepareCredentialManifest(issuerDID key.DIDKey, licenseSchemaID string) (*m
 // Prepare a credential which is required to fill out the credential manifest's application's
 // input descriptor's requirements
 func issueApplicationCredential(id key.DIDKey, s schema.JSONSchema) (*credential.VerifiableCredential, error) {
-	builder := credential.NewVerifiableCredentialBuilder()
+	builder := credential.NewVerifiableCredentialBuilder(credential.GenerateIDValue)
 
 	if err := builder.SetIssuer(id.String()); err != nil {
 		return nil, err
@@ -272,7 +272,7 @@ type driversLicenseFields struct {
 }
 
 func issueDriversLicenseCredential(issuerDID key.DIDKey, subjectDID string, s schema.JSONSchema, data driversLicenseFields) (*credential.VerifiableCredential, error) {
-	builder := credential.NewVerifiableCredentialBuilder()
+	builder := credential.NewVerifiableCredentialBuilder(credential.GenerateIDValue)
 
 	if err := builder.SetIssuer(issuerDID.String()); err != nil {
 		return nil, err

@@ -273,7 +273,7 @@ func createVerifiableCredential(issuerDID string, walletDID string) credential.V
 	credSubject := vc.CredentialSubject
 	credSubject["id"] = walletDID
 
-	builder := credential.NewVerifiableCredentialBuilder()
+	builder := credential.NewVerifiableCredentialBuilder(credential.GenerateIDValue)
 	_ = builder.SetIssuer(issuerDID)
 	_ = builder.SetCredentialSubject(credSubject)
 	_ = builder.SetCredentialSchema(*vc.CredentialSchema)

@@ -73,7 +73,7 @@ func GenerateStatusList2021Credential(id string, issuer string, purpose StatusPu
 		EncodedList:   bitString,
 	}
 
-	builder := credential.NewVerifiableCredentialBuilder()
+	builder := credential.NewVerifiableCredentialBuilder(credential.GenerateIDValue)
 	errMsgFragment := "could not generate status list credential: error setting "
 	if err = builder.SetID(id); err != nil {
 		return nil, errors.Wrap(err, errMsgFragment+"id")
