@@ -44,7 +44,7 @@ func TestCredential(t *testing.T) {
 	assert.NoError(t, err)
 
 	// re-build with our builder
-	builder := NewVerifiableCredentialBuilder()
+	builder := NewVerifiableCredentialBuilder(EmptyIDValue)
 
 	err = builder.AddContext(knownContext)
 	assert.NoError(t, err)
@@ -73,7 +73,14 @@ func TestCredential(t *testing.T) {
 
 // Exercise all builder methods
 func TestCredentialBuilder(t *testing.T) {
-	builder := NewVerifiableCredentialBuilder()
+
+	builder := NewVerifiableCredentialBuilder(EmptyIDValue)
+	assert.Empty(t, builder.ID)
+
+	builder = NewVerifiableCredentialBuilder(IDValue("customid-123"))
+	assert.Equal(t, builder.ID, "customid-123")
+
+	builder = NewVerifiableCredentialBuilder(GenerateIDValue)
 	_, err := builder.Build()
 	assert.Error(t, err)
 	notReadyErr := "credential not ready to be built"
@@ -93,11 +100,11 @@ func TestCredentialBuilder(t *testing.T) {
 	err = builder.AddContext("https://www.w3.org/2018/credentials/examples/v1")
 	assert.NoError(t, err)
 
-	// there is a default id
+	//default id is not empty
 	assert.NotEmpty(t, builder.ID)
 
 	// set id
-	id := "test-id"
+	id := "p"
 	err = builder.SetID(id)
 	assert.NoError(t, err)
 
