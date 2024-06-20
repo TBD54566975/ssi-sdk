@@ -71,9 +71,8 @@ func TestCredential(t *testing.T) {
 	assert.EqualValues(t, knownCred, *credential)
 }
 
-// Exercise all builder methods
+// TestCredentialBuilder Exercises all builder methods
 func TestCredentialBuilder(t *testing.T) {
-
 	builder := NewVerifiableCredentialBuilder(EmptyIDValue)
 	assert.Empty(t, builder.ID)
 
@@ -100,7 +99,7 @@ func TestCredentialBuilder(t *testing.T) {
 	err = builder.AddContext("https://www.w3.org/2018/credentials/examples/v1")
 	assert.NoError(t, err)
 
-	//default id is not empty
+	// default id is not empty
 	assert.NotEmpty(t, builder.ID)
 
 	// set id
