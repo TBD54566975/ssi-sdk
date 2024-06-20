@@ -76,7 +76,7 @@ func main() {
 		"birthdate": "1975-01-01",
 	}
 
-	vcBuilder := credential.NewVerifiableCredentialBuilder()
+	vcBuilder := credential.NewVerifiableCredentialBuilder(credential.GenerateIDValue)
 
 	err = vcBuilder.SetIssuer(string(*knownIssuer))
 	example.HandleExampleError(err, "Failed to set issuer")
