@@ -73,7 +73,7 @@ func TestCredential(t *testing.T) {
 
 // Exercise all builder methods
 func TestCredentialBuilder(t *testing.T) {
-	
+
 	builder := NewVerifiableCredentialBuilder(EmptyIDValue)
 	assert.Empty(t, builder.ID)
 
@@ -102,7 +102,7 @@ func TestCredentialBuilder(t *testing.T) {
 
 	//default id is not empty
 	assert.NotEmpty(t, builder.ID)
-    
+
 	// set id
 	id := "p"
 	err = builder.SetID(id)
