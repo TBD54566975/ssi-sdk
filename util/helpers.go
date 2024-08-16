@@ -304,7 +304,7 @@ func (a *AppendError) Error() error {
 	if a == nil || len(*a) == 0 {
 		return nil
 	}
-	return fmt.Errorf(strings.Join(*a, "\n"))
+	return errors.New(strings.Join(*a, "\n"))
 }
 
 func Contains(needle string, haystack []string) bool {
