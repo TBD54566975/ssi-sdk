@@ -9,9 +9,9 @@ on:
     branches:
       - main
 
-  # Run every day at 5am UTC
-  schedule:
-    - cron: "0 5 * * *"
+  # # Run every day at 5am UTC
+  # schedule:
+  #   - cron: "0 5 * * *"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
