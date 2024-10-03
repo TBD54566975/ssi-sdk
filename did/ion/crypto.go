@@ -142,10 +142,7 @@ func (*BTCSignerVerifier) GetJWSHeader() map[string]any {
 
 // Sign signs the given data according to Bitcoin's signing process
 func (sv *BTCSignerVerifier) Sign(dataHash []byte) ([]byte, error) {
-	signature, err := ecdsa.SignCompact(sv.privateKey, dataHash, false)
-	if err != nil {
-		return nil, err
-	}
+	signature := ecdsa.SignCompact(sv.privateKey, dataHash, false)
 
 	rBytes := signature[1:33]
 	sBytes := signature[33:65]

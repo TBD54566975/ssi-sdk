@@ -80,8 +80,6 @@ type Display struct {
 	Name *string `json:"name,omitempty"`
 
 	Locale *language.Tag `json:"locale,omitempty"`
-
-	// TODO: Support arbitrary fields. Look at https://github.com/hyperledger/aries-framework-go/pull/564/files#diff-953974a5ec9fe3293be8ffd004be86b23666847d300650428cb21673e78fa140
 }
 
 // https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-credential-issuer-metadata-p
