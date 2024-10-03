@@ -242,7 +242,7 @@ func bitstringExpansion(compressedBitstring string) ([]string, error) {
 	var i uint
 	for i = 0; i < b.Len(); i++ {
 		if b.Test(i) {
-			expanded = append(expanded, strconv.Itoa(int(i)))
+			expanded = append(expanded, strconv.FormatUint(uint64(i), 10))
 		}
 	}
 	return expanded, nil
